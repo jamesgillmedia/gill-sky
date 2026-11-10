@@ -269,7 +269,18 @@ function openTile(api,it){
   }
   var kids=null;
   var filmish0=work.kind==='film'||work.kind==='reel';
-  if(filmish0&&!it._shot){openFilm(api,work,null);return}
+  if(filmish0&&!it._shot){
+    var reelShots=(work.kind==='reel'||work.slug==='demo-reel')?shotsOf(work):null;
+    if(reelShots&&reelShots.length>1){
+      board={k:cur.k||'film',title:work.title,items:tilesFrom(reelShots,work),fine:true,parent:board,work:work};
+      api.setCur({lv:2,k:board.k,id:work.id});
+      api.push();
+      api.arrive();
+      preload(board.items,api);
+      return;
+    }
+    openFilm(api,work,null);return;
+  }
   if((work.chapter==='objects'||cur.k==='objects')&&!it._shot){
     api.setCur({lv:3,k:'objects',id:work.id});
     api.push();
@@ -797,14 +808,19 @@ function paintFilm(el,work){
   if(filmLv===1){
     var hero=wk?'media/pro2/frames/22/12.webp':(poster||'');
     var media=(!wk&&clip)
-      ? '<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
+      ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+'<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
       : (hero?'<img src="'+esc(hero)+'" alt="">':'');
     var role=work.role||'';
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
     el.innerHTML='<div class="sheet film lv1 full"><h2>'+esc(work.title)+'</h2><div class="heroframe">'+media+'</div>'+
       (role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
     var v1=el.querySelector('video');
-    if(v1){var p1=v1.play();if(p1&&p1.catch)p1.catch(function(){})}
+    if(v1){
+      function showFrame(){if(v1.readyState>=2)v1.classList.add('live')}
+      v1.addEventListener('loadeddata',showFrame);
+      v1.addEventListener('playing',showFrame);
+      var p1=v1.play();if(p1&&p1.catch)p1.catch(function(){});
+    }
     return;
   }
   if(filmLv===2||filmLv===3){

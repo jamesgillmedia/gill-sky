@@ -40,7 +40,8 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
  opacity:0;transition:opacity .8s ease}
 .poem.on.ready{opacity:1}
 .poem span{display:block;font-weight:200;font-size:clamp(13px,3.2vw,16px);line-height:1.4;letter-spacing:.04em;text-shadow:0 1px 8px rgba(0,0,0,.65)}
-.poem .wm{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:8px}
+.poem .wm{display:grid;justify-items:center;margin-bottom:8px}
+.poem .wm>.gj{grid-area:1/1}
 .poem .gj{font-family:"Julius Sans One",sans-serif;font-weight:400;font-size:clamp(20px,5.4vw,32px);letter-spacing:.18em;text-transform:lowercase;margin-bottom:0;color:#f4f7fb;white-space:nowrap;text-shadow:2px 0 0 rgba(10,189,240,.85),-2px 0 0 rgba(254,1,1,.75),0 0 16px rgba(10,189,240,.28)}
 .poem .gj.fade i{display:inline-block;font-style:normal;animation:letterfade 2.8s ease-in-out infinite}
 @keyframes letterfade{0%,100%{opacity:.18}42%{opacity:1}}
@@ -238,7 +239,7 @@ html:has(.filmfield) #bar{
 .framewall img:nth-child(3n){animation-delay:.08s}
 .framewall img:nth-child(3n+1){animation-delay:.16s}
 .framewall img:nth-child(3n+2){animation-delay:.24s}
-@keyframes framebloom{from{transform:scale(.15);opacity:.15}to{transform:none;opacity:1}}
+@keyframes framebloom{from{transform:scale(.97);opacity:1}to{transform:none;opacity:1}}
 .filmfield .filmcap{position:absolute;left:0;right:0;bottom:0;z-index:3;padding:36px 92px calc(14px + var(--sb)) 16px;
  background:linear-gradient(transparent,rgba(4,7,11,.9) 42%);pointer-events:none}
 .filmfield .filmcap .credits{margin:0;padding:0;list-style:none;font-size:11px;line-height:1.45;color:rgba(226,234,242,.86)}
@@ -271,6 +272,8 @@ html:has(.filmfield) #bar{
 #lrail b{font-size:10px;letter-spacing:.14em;font-weight:400;color:rgba(236,244,230,.85)}
 .heroframe{position:relative;width:100%;flex:1 1 auto;height:auto;min-height:58vh;margin:8px 0 0;overflow:hidden;background:#000}
 .heroframe img,.heroframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.heroframe video{opacity:0}
+.heroframe video.live{opacity:1}
 .enterframe{position:fixed;z-index:12;overflow:hidden;background:#000;transition:left .9s cubic-bezier(.22,.7,.2,1),top .9s cubic-bezier(.22,.7,.2,1),width .9s cubic-bezier(.22,.7,.2,1),height .9s cubic-bezier(.22,.7,.2,1)}
 .enterframe img,.enterframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%}
 .enterframe.face img{object-position:62% 38%}

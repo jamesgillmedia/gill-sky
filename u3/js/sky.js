@@ -239,7 +239,8 @@ function stepSprings(dt){
 }
 function arriveAt(st,instant){
   var to=camFor(st);
-  var onBoard=st.lv===2&&!st.id;
+  var fineBoard=window.GJ_DEPTH&&GJ_DEPTH.board()&&GJ_DEPTH.board().fine&&GJ_DEPTH.board().k===st.k;
+  var onBoard=st.lv===2&&(!st.id||fineBoard);
   var player=st.lv>=3&&st.id&&byId[st.id]&&byId[st.id].kind==='player';
   var b1=(onBoard&&st.k&&st.k!=='progress'&&!player)?1:0;
   var p1=(st.k==='progress'&&st.lv===2)?1:0;
@@ -247,7 +248,7 @@ function arriveAt(st,instant){
   aim(cxS,to.x,instant);aim(cyS,to.y,instant);aim(csS,to.s,instant);
   aim(bxS,b1,instant);aim(pxS,p1,instant);
   aim(lxS,0,instant);aim(lyS,0,instant);
-  if(st.k!==scrK||st.lv===0){aim(scr,0,instant);scrK=st.lv===0?null:st.k}
+  if(st.k!==scrK||st.lv===0||fineBoard){aim(scr,0,instant);scrK=st.lv===0?null:st.k}
   if(instant){rest.x=to.x;rest.y=to.y;rest.s=to.s;bloom=b1;pbloom=p1;look.x=look.y=0;if(!b1&&!p1)bloomK=st.k}
   renderLayer();syncBio();ui();
   if(st.k&&CH[st.k])want(st.k);
@@ -553,12 +554,13 @@ function drawNames(fa){
     var c=CH[k],p=sp(c.x,c.y+c.ex.y1),y=p[1]+20;
     if(y<48||y>H-8)return;
     var on=sel&&sel.type==='ch'&&sel.k===k;
-    g.globalAlpha=fa*(on?.9:.5);
-    g.font='400 11px "Julius Sans One",Poppins,sans-serif';
-    g.fillStyle=on?'rgb('+MINT+')':'rgba(228,235,245,.8)';
-    g.letterSpacing='3px';
+    g.globalAlpha=1;
+    g.font='400 13px "Julius Sans One",Poppins,sans-serif';
+    g.shadowColor='rgba(4,7,11,.92)';g.shadowBlur=8;g.shadowOffsetY=1;
+    g.fillStyle=on?'rgb('+MINT+')':'#f7f4ee';
+    g.letterSpacing='2.5px';
     g.fillText(k.toUpperCase(),p[0],y);
-    g.letterSpacing='0px';
+    g.letterSpacing='0px';g.shadowBlur=0;g.shadowOffsetY=0;
     g.globalAlpha=1;
   });
 }
@@ -593,9 +595,8 @@ function gridSpec(key){
   var cap=key==='sound'||key==='about'?0:(key==='film'?34:18);
   var pitch=th+cap+8,rows=Math.ceil(n/cols);
   var contentH=head+rows*pitch+8;
-  var top=chromeTop(),bot=16,room=Math.max(180,H-top-bot);
-  var maxH=Math.min(room,H*.88);
-  var winH=Math.min(maxH,contentH);
+  var top=chromeTop(),bot=6,room=Math.max(220,H-top-bot);
+  var winH=Math.min(room,contentH);
   var y0=top;
   return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
 }
@@ -1588,7 +1589,7 @@ function fillPoem(){
     return '<i style="animation-delay:'+(i*0.16).toFixed(2)+'s">'+(ch===' '?'&nbsp;':ch)+'</i>';
   }).join('');
   el.classList.remove('ready');
-  el.innerHTML='<span class="wm"><span class="gj fade">'+letters+'</span><span class="gj">gill james</span></span><span id="typed"></span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
+  el.innerHTML='<span class="wm"><span class="gj">gill james</span><span class="gj fade" aria-hidden="true">'+letters+'</span></span><span id="typed"></span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
   var start=function(){if(!el.isConnected)return;typePoem()};
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(start,start);
   else start();

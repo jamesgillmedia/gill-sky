@@ -67,7 +67,19 @@ Filled only from files already in the folder. Nothing was drawn or written to st
 
 ### The boards
 
-Sky, then the category, then that category’s board, then the piece. A category tap or pinch stops on the constellation. The next pinch, or a tap on that chart, opens the board: a clear grid of the real works, with titles, and sound as a list of players. About’s board is the bio, contact, and poem list. Back from a piece returns to that board, then to the category, then to the sky. One level each time. On a phone the breadcrumb keeps enough of the bar to read the level (`film`, `film · board`, and the same for photo, objects, sound, and about). A film title that is too long for one column wraps onto a second line.
+Sky, then the category, then that category’s board, then the piece. A category tap or pinch stops on the constellation. The next pinch, or a tap on that chart, opens the board: a clear grid of the real works, with titles, and sound as a list of players. About’s board is the bio, contact, and poem list. Back from a piece returns to that board, then to the category, then to the sky. One level each time. On a phone the breadcrumb keeps enough of the bar to read the level (`film`, `film · board`, and the same for photo, objects, sound, and about). A film title that is too long for one column wraps onto a second line. The board panel runs to the bottom of the phone.
+
+### Arrival name
+
+The arrival shows one “gill james”. The letter pulse sits on that same line, above “I am Gill”.
+
+### Demo Reel
+
+Opening Demo Reel from the film board lands on the shot grid. The black lead frame is one tile in that grid. A film that does have a clip keeps its poster up until the video has a frame.
+
+### Sky labels
+
+FILM, PHOTO, SOUND, OBJECTS, and ABOUT are the paper colour, with a short dark shadow, so they read on the phone in daylight.
 
 ### Phone pass
 
