@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Generate u1/data.json and the static pages from the pro2 lists, copy.js, and r3 slugs.
 
-One file is the source. Pages work with JavaScript off. Heavy media stays at the
-published github.io URLs. One With the Devil is the only media committed here.
+One file is the source. Pages work with JavaScript off. Media the sky uses
+lives under u2/media so a page does not depend on github.io.
 """
 import html
 import json
@@ -66,16 +66,30 @@ BIO = [
 BIDC = "recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive"
 
 
+def localize(url):
+    hosts = (
+        ("https://jamesgillmedia.github.io/gilljames/site-v3-pro2/", "media/pro2/"),
+        ("https://jamesgillmedia.github.io/gilljames/site-v3/", "media/v3/"),
+        ("https://jamesgillmedia.github.io/gilljames/site-v2/", "media/v2/"),
+    )
+    for host, prefix in hosts:
+        if url.startswith(host):
+            return prefix + url[len(host):]
+    return url
+
+
 def abs_url(path):
     if not path:
         return ""
     if path.startswith("http://") or path.startswith("https://") or path.startswith("mailto:"):
-        return path
+        return localize(path)
     if path.startswith("../audio/"):
-        return PRO2 + path[3:]
+        return "media/pro2/audio/" + path[len("../audio/"):]
+    if path.startswith("../site-v3/"):
+        return "media/v3/" + path[len("../site-v3/"):]
     if path.startswith("../"):
-        return SITE + path[3:]
-    return PRO2 + path
+        return "media/v3/" + path[3:]
+    return "media/pro2/" + path
 
 
 def credits_from_copy():
@@ -269,7 +283,7 @@ def owtd():
             "Leo Award, Best Cinematography in a Short Drama (2015)",
             "Canadian Society of Cinematographers Award",
         ],
-        "related": ["about/bio"],
+        "related": [],
         "also": [],
         "in_progress": False,
         "body": "",
@@ -279,15 +293,21 @@ def owtd():
 
 def wire_related(by_id):
     bio = by_id["about/bio"]
-    bio["related"] = ["film/one-with-the-devil", "sound/mothers-moniker", "sound/lost-coffee", "objects/hand-carved-piece"]
+    bio["related"] = []
     bio["body"] = "\n\n".join(BIO)
     by_id["about/poem"]["body"] = "\n".join(POEM)
     by_id["about/contact"]["body"] = EMAIL
-    by_id["about/joio"]["related"] = ["objects/joio"]
-    by_id["objects/joio"]["related"] = ["about/joio"]
-    for slug, chapter in (("mothers-moniker", "sound"), ("lost-coffee", "sound"), ("hand-carved-piece", "objects")):
-        by_id[f"{chapter}/{slug}"]["related"] = ["about/bio"]
-    by_id["film/one-with-the-devil"]["related"] = ["about/bio"]
+    by_id["about/joio"]["related"] = []
+    # Cross-chapter only. Film-to-film stays in "also". About is not a thread.
+    # photograph 23 is the file named redcar. No work is titled railing or next firing.
+    pairs = [
+        ("film/legends", "photo/photograph-23"),
+        ("objects/latte-in-a-joio-co-cup", "sound/to-go"),
+    ]
+    for a, b in pairs:
+        if a in by_id and b in by_id:
+            by_id[a]["related"] = [b]
+            by_id[b]["related"] = [a]
 
 
 def e(s):
@@ -295,9 +315,9 @@ def e(s):
 
 
 PAGE_CSS = """
-@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/poppins-300.woff2) format("woff2")}
-@font-face{font-family:"Julius Sans One";font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/julius-sans-one.woff2) format("woff2")}
-@font-face{font-family:Syl;font-weight:700;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/pro2/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/pro2/fonts/julius-sans-one.woff2) format("woff2")}
+@font-face{font-family:Syl;font-weight:700;font-display:swap;src:url(../media/pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
 :root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--meta:#93a1a6;--mint:#55DAA1;--line:rgba(255,255,255,.14);
  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box}html{background:var(--bg);color:var(--ink);overscroll-behavior:none}
@@ -428,14 +448,12 @@ def work_body(c, by_id, depth=2):
     if c["credits"]:
         rows = "".join(f"<dt>credit</dt><dd>{e(line)}</dd>" for line in c["credits"])
         bits.append(f"<dl class=\"file\">{rows}</dl>")
-    if c["related"]:
-        links = []
-        for rid in c["related"]:
-            o = by_id.get(rid)
-            if o:
-                links.append(f'<a href="../../{o["chapter"]}/{o["slug"]}/">{e(o["title"])}</a>')
-        if links:
-            bits.append('<p class="rel">related · ' + " · ".join(links) + "</p>")
+    links = []
+    for rid in c["related"]:
+        o = by_id.get(rid)
+        if o and o["chapter"] != c["chapter"] and o["chapter"] != "about" and c["chapter"] != "about":
+            links.append(f'<a href="../../{o["chapter"]}/{o["slug"]}/">{e(o["title"])}</a>')
+    bits.append('<p class="rel">Related' + (" · " + " · ".join(links) if links else "") + "</p>")
     if c["also"]:
         links = []
         for rid in c["also"]:
@@ -445,12 +463,11 @@ def work_body(c, by_id, depth=2):
         if links:
             bits.append('<p class="also">also · ' + " · ".join(links) + "</p>")
     if c["kind"] == "joio":
-        # clips referenced, not copied — the page itself moves
         raw = (ROOT / "js/joio.js").read_text(encoding="utf-8")
         raw = raw.split("=", 1)[1].rsplit(";", 1)[0]
         clips = json.loads(raw)
         cells = []
-        base = PRO2 + "joio/"
+        base = "../../media/pro2/joio/"
         for clip in clips:
             src = base + clip["f"]
             if clip["k"] == "v":
@@ -509,8 +526,8 @@ def main():
 
 def scan():
     bad = ["Two-Spirit", "Joshua", "award-winning", "Retail Revolution", "they/them",
-           "Norway House", "IMG_1936", "IMG_6881", "IMG_1187", "IMG_1188", "IMG_1189",
-           "IMG_5722", "IMG_6405", "IMG_6606", "IMG_6612", "22179A95", "Best Student"]
+           "Norway House", "IMG_1936", "IMG_1188", "IMG_1189",
+           "IMG_6405", "IMG_6606", "IMG_6612", "22179A95", "Best Student"]
     hits = []
     for p in ROOT.rglob("*"):
         if p.suffix not in {".html", ".json", ".css", ".js"}:

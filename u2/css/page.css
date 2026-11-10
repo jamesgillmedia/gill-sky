@@ -1,7 +1,7 @@
 
-@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/poppins-300.woff2) format("woff2")}
-@font-face{font-family:"Julius Sans One";font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/julius-sans-one.woff2) format("woff2")}
-@font-face{font-family:Syl;font-weight:700;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/pro2/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/pro2/fonts/julius-sans-one.woff2) format("woff2")}
+@font-face{font-family:Syl;font-weight:700;font-display:swap;src:url(../media/pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
 :root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--meta:#93a1a6;--mint:#55DAA1;--line:rgba(255,255,255,.14);
  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box}html{background:var(--bg);color:var(--ink);overscroll-behavior:none}
