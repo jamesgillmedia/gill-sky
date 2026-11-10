@@ -1492,7 +1492,7 @@ function ui(){
     if(dst&&dst.label)label=dst.label;
   }
   if(bioOn&&isBio())label=bioMoon?'about · moon':'about · '+bioLv;
-  if(cur.lv===2&&cur.id&&byId[cur.id]&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())){
+  if(cur.lv===2&&cur.id&&byId[cur.id]&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())&&!(bioOn&&isBio())){
     var nm=byId[cur.id].title||'';
     if(!(/^photograph\s+\d+$/i.test(nm)||nm==='untitled'))label=nm;
   }
