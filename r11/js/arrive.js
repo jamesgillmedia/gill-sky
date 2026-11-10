@@ -16,14 +16,12 @@ var arrive=document.getElementById('arrive');
 if(!arrive||!D.classList.contains('arriving'))return;
 var lines=[].slice.call(arrive.querySelectorAll('.poem span'));
 var page=0,per=lines.length,busy=false;
+function clashes(){var band=arrive.querySelector('.waterband');if(!band)return false;var edge=band.getBoundingClientRect().bottom;
+  return lines.some(function(s){if(s.hidden)return false;return s.getBoundingClientRect().top<edge-1})}
 function fit(){lines.forEach(function(s){s.hidden=false});
   var box=arrive.querySelector('.poem');
-  per=lines.length;
-  if(box.scrollHeight>box.clientHeight+2){
-    per=Math.max(4,Math.floor(lines.length/2));
-    while(per>3){show();if(box.scrollHeight<=box.clientHeight+2)break;per--}
-  }
-  show()}
+  per=lines.length;show();
+  while(per>3&&(box.scrollHeight>box.clientHeight+2||clashes())){per--;show()}}
 function show(){lines.forEach(function(s,i){s.hidden=i<page||i>=page+per});
   var hint=arrive.querySelector('.hint');
   hint.textContent=page+per<lines.length?'tap for the rest · or skip':'touch the water · fall into the sky'}
@@ -41,6 +39,8 @@ function dive(x,y){if(busy)return;if(nextPage())return;busy=true;arrive.classLis
 arrive.addEventListener('click',function(e){if(e.target.closest('.skip'))return;dive(e.clientX,e.clientY)});
 arrive.querySelector('.skip').addEventListener('click',function(e){e.stopPropagation();page=lines.length;dive(innerWidth/2,innerHeight*0.55)});
 addEventListener('resize',fit);
-if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);else fit();
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fit);
+requestAnimationFrame(function(){requestAnimationFrame(fit)});
+setTimeout(fit,300);
 fit();
 })();
