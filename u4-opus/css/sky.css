@@ -243,7 +243,7 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 #grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.16;mix-blend-mode:overlay;z-index:2}
 #laytext{position:absolute;z-index:3;left:7%;right:12%;top:16%;bottom:14%;display:flex;flex-direction:column;justify-content:center;
  color:#f4f7ef;font-weight:300;text-shadow:0 1px 2px rgba(0,0,0,.85);pointer-events:none;
- background:linear-gradient(transparent,rgba(4,7,11,.82) 14%,rgba(4,7,11,.86) 86%,transparent);padding:22px 10px}
+ background:radial-gradient(ellipse at 40% 50%,rgba(4,7,11,.62),rgba(4,7,11,.3) 60%,transparent 80%);padding:22px 10px}
 #laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{justify-content:flex-start;top:calc(68px + var(--st));bottom:calc(36px + var(--sb));overflow:auto;pointer-events:auto;padding-bottom:28px}
 #laytext.flick{opacity:.62}
 #laytext span{display:block;font-size:14.5px;line-height:1.55;letter-spacing:.01em}

@@ -158,16 +158,18 @@ function preload(items,api){
 }
 function showBoard(api){
   if(!board)return;
+  var h=history.state&&history.state.u1&&history.state.cur;
+  if(h&&h.lv>=2&&!board.fine){still=null;filmLv=0;piece=null;snd=null;dropFly();setBleed(false);history.back();return}
   still=null;filmLv=0;piece=null;snd=null;
   dropFly();setBleed(false);
-  api.setCur({lv:1,k:board.k,id:board.work?board.work.id:null});
+  api.setCur({lv:1,k:board.k,id:board.work?board.work.id:null,b:1});
   api.arrive();
   preload(board.items,api);
 }
 function openBoard(api,k){
   still=null;filmLv=0;filmWork=null;
   board=makeBoard(api,k);
-  api.setCur({lv:1,k:k,id:null});
+  api.setCur({lv:1,k:k,id:null,b:1});
   api.push();
   api.arrive();
   preload(board.items,api);
@@ -271,6 +273,7 @@ function openTile(api,it){
     api.arrive();
     return;
   }
+  if(work.chapter==='photo'&&!it._shot){openPhoto(api,work);return}
   if(!it._shot&&!(board&&board.fine)){
     if(it._shots&&it._shots.length)kids=it._shots;
     else kids=shotsOf(work);
@@ -501,6 +504,23 @@ function pinchIn(x,y,api){
   spawn(16);
   return true;
 }
+/* The same push for a level that the sky opens itself. */
+function plunge(fn,x,y){
+  if(PL.busy)return true;
+  if(typeof x==='number')PL.ox=x;
+  if(typeof y==='number')PL.oy=y;
+  PL.busy=1;PL.pending=fn;PL.applied=0;PL.on=1;PL.e=0;PL.t0=performance.now();
+  spawn(16);
+  return true;
+}
+function openItem(it,x,y,api){
+  if(!board)board=makeBoard(api,api.cur().k);
+  return plunge(function(){
+    openTile(api,it);
+    var c=api.cur(),h=history.state&&history.state.cur;
+    if(c.lv>=2&&!(h&&h.lv>=2&&h.id===c.id))api.push();
+  },x,y);
+}
 function pinchOut(api){
   if(PL.busy)return true;
   var act=planOut(api);
@@ -708,8 +728,9 @@ function growInto(box, src, clip, extra, push){
   requestAnimationFrame(function(){
     el.style.transition='';
     requestAnimationFrame(function(){
-      el.style.left='0px';el.style.top='0px';
-      el.style.width=innerWidth+'px';el.style.height=innerHeight+'px';
+      var bar=document.getElementById('bar'),bh=bar&&bar.offsetHeight||0;
+      el.style.left='0px';el.style.top=bh+'px';
+      el.style.width=innerWidth+'px';el.style.height=(innerHeight-bh)+'px';
       el.classList.add('in');
     });
   });
@@ -1055,6 +1076,18 @@ function paintLayer(el){
   if(still){paintStill(el);return}
 }
 
+var FILM_AT=['','','frames','the frame','the field','credits'],WK_AT=['','','frames','the frame','neighbours','Kiesza','credits'];
+var PHOTO_AT=['','','contact sheet','the print','grain'],OBJ_AT=['','','process','in motion'];
+function where(){
+  if(soundOn){
+    var m='';try{var f=document.getElementById('snd'),sk=f&&f.contentWindow&&f.contentWindow.__sk,st=sk&&sk.state();if(st&&(st.mode==='in'||st.mode==='diving')){var v=sk.view();m=v&&v.z>4.2?'among the stars':'inside the waveform'}}catch(e){}
+    return m?[m]:[];
+  }
+  if(filmLv>1&&filmWork){var L=filmWork.id==='film/weird-kid'?WK_AT:FILM_AT;return L[filmLv]?[L[filmLv]]:[]}
+  if(piece&&piece.photo)return PHOTO_AT[piece.lv]?[PHOTO_AT[piece.lv]]:[];
+  if(piece)return OBJ_AT[piece.lv]?[OBJ_AT[piece.lv]]:[];
+  return [];
+}
 function state(){
   return {
     film:filmLv, scale:+((piece&&piece.scale)||(still?still.scale:filmScale)).toFixed(2),
@@ -1062,13 +1095,14 @@ function state(){
     n:board?board.items.length:0, sound:soundOn?1:0,
     plunge:+(PL.e||0).toFixed(2), work:(filmWork&&filmWork.id)||(piece&&piece.work&&piece.work.id)||null,
     piece:piece?piece.lv:0,
-    label:(filmWork&&filmWork.id==='film/weird-kid'&&filmLv===5)?'Kiesza':''
+    label:(filmWork&&filmWork.id==='film/weird-kid'&&filmLv===5)?'Kiesza':'',
+    where:where()
   };
 }
 
 window.GJ_DEPTH={
   tick:tick, fly:rush, burst:burst, viewScale:viewScale, drawFx:drawFx,
-  pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
+  pinchIn:pinchIn, pinchOut:pinchOut, plunge:plunge, openItem:openItem, sync:sync, owns:owns, paintLayer:paintLayer,
   paintField:paintField, board:function(){return board}, soundOn:function(){return soundOn},
   state:state,
   origin:function(){return {x:PL.ox||0,y:PL.oy||0}}
