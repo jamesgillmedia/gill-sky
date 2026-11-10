@@ -315,6 +315,7 @@ def wire_related(by_id):
     pairs = [
         ("film/legends", "photo/photograph-23"),
         ("objects/latte-in-a-joio-co-cup", "sound/to-go"),
+        ("objects/carved-spoon", "photo/photograph-12"),
     ]
     for a, b in pairs:
         if a in by_id and b in by_id:

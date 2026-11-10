@@ -1561,7 +1561,7 @@
       "h": 1200
      },
      "credits": [],
-     "related": [],
+     "related": ["objects/carved-spoon"],
      "also": [],
      "in_progress": false,
      "body": "",
@@ -2608,7 +2608,7 @@
       "h": 1125
      },
      "credits": [],
-     "related": [],
+     "related": ["photo/photograph-12"],
      "also": [],
      "in_progress": false,
      "body": "",
