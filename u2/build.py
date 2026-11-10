@@ -58,10 +58,10 @@ POEM = [
     "I create.",
 ]
 BIO = [
-    "I'm Gill James (he/him), a Cree-Métis artist. I live in Vancouver.",
-    "After graduating from UBC Film Production in 2014, building on a design and advertising background from OCAD, I spent more than a decade as a cinematographer and producer. My cinematography on One With the Devil — Leo Award, Best Cinematography in a Short Drama (2015); Canadian Society of Cinematographers Award. Further Leo nominations for Arc (2015) and Backward Fall (2014).",
-    "I make objects, spaces, light and sound as one practice. Spirit Eye of skwácháýs, a public art concept recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive. I'm developing a yellow cedar piece staged with light, sound and film. I make music as Mothers Moniker and Lost Coffee.",
-    "Outside the studio, I do trail stewardship. Time on the trails shapes how I think about place, material and light.",
+    "Gill James (he/him) is a Cree-Métis artist based in Vancouver.",
+    "After graduating from UBC Film Production in 2014, building on a design and advertising background from OCAD, he spent more than a decade as a cinematographer and producer. His cinematography on One With the Devil — Leo Award, Best Cinematography in a Short Drama (2015); Canadian Society of Cinematographers Award. Further Leo nominations for Arc (2015) and Backward Fall (2014).",
+    "He makes objects, spaces, light and sound as one practice. Spirit Eye of skwácháýs, a public art concept recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive. He is developing a yellow cedar piece staged with light, sound and film. He makes music as Mothers Moniker and Lost Coffee.",
+    "Outside the studio, he does trail stewardship. Time on the trails shapes how he thinks about place, material and light.",
 ]
 BIDC = "recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive"
 
