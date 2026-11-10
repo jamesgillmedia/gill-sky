@@ -5,7 +5,7 @@
    Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
 (function(){
 'use strict';
-var RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+var RM = false;
 var Q = new URLSearchParams(location.search);
 var PRO2 = 'https://jamesgillmedia.github.io/gilljames/site-v3-pro2/';
 var REELB = PRO2 + 'reel/';
@@ -19,7 +19,7 @@ var STROKES = [[[-58.5,-96],[-156.5,-95],[-203.5,-61],[-213.5,1],[-203.5,63],[-1
 var $=function(id){return document.getElementById(id)};
 var cv=$('cv'),g=cv.getContext('2d'),stage=$('stage');
 var W=0,H=0,DPR=1,PORT=false;
-var data=null,CH={},byId={},progress=[];
+var data=null,CH={},byId={},progress=[],cluster=[];
 /* site-3d's critically damped spring (sstep). Level changes use its glide
    weight, so a board arrives and settles instead of easing like a button.
    Drag never yaws the camera. */
@@ -55,7 +55,15 @@ function boot(d){
       if(it.in_progress)progress.push(it);else c.skyItems.push(it);
     });
   });
-  d.tracks.forEach(function(t){t._i=0});
+  /* Centre cluster stays four stars so the ring is not pushed. The board holds the rest. */
+  ['objects/joio','sound/to-go'].forEach(function(id){var it=byId[id];if(it&&progress.indexOf(it)<0)progress.push(it)});
+  d.tracks.forEach(function(t){
+    t._i=0;
+    if(t.artist!=='Lost Coffee'||t.k==='togo')return;
+    var it={id:'sound/track/'+t.k,chapter:'sound',k:t.k,slug:t.k,title:t.title,role:'Lost Coffee',year:null,meta:'Lost Coffee',kind:'track',track:t,media:{},credits:[],related:[],also:[],in_progress:true,body:'',isNew:false,ox:0,oy:0,sx:0,sy:0,gx:0,gy:0,cx:0,cy:0,px:0,py:0,b:.6,sh:0,tw:52,th:29};
+    byId[it.id]=it;progress.push(it);
+  });
+  cluster=[byId['objects/hand-carved-piece'],byId['objects/joio'],byId['sound/to-go'],byId['sound/track/noproblem']].filter(Boolean);
   song=d.tracks[0];
   buildGlow();buildField();layout();
   fillPoem();dust();
@@ -133,11 +141,10 @@ function layout(){
     c.dec.forEach(function(d){d.x=c.x+d.ox;d.y=c.y+d.oy});
     c.node.forEach(function(nd){if(nd&&nd.dec){nd.x=c.x+nd.ox;nd.y=c.y+nd.oy}else if(nd&&nd.sx!=null){nd.x=nd.sx;nd.y=nd.sy}});
   });
-  /* a small sixth figure under the poem. The five chapters stay where w7 put them. */
+  /* four stars under the poem. The five chapters stay on the w7 ring. */
   var fig=[[-86,-16],[86,-16],[-34,48],[34,48]];
-  progress.forEach(function(it,i){
-    var p=fig[i%fig.length];it.cx=p[0];it.cy=408+p[1];
-  });
+  cluster.forEach(function(it,i){var p=fig[i%fig.length];it.cx=p[0];it.cy=408+p[1];it._cluster=1});
+  progress.forEach(function(it){if(!it._cluster){it.cx=0;it.cy=440}});
   boards();
   FAR={x:0,y:0,s:scale};
   if(!ready){cxS.x=cxS.t=0;cyS.x=cyS.t=0;csS.x=csS.t=scale;rest.s=scale}
@@ -360,18 +367,18 @@ function cover(im,x,y,w,h){
 function drawCluster(fa){
   if(cur.k==='progress'&&pbloom>.85)return;
   if(cur.k==='objects'&&bloom>.5)return;
-  if(!progress.length)return;
+  if(!cluster.length)return;
   var on=!!(sel&&sel.prog),fade=(cur.k==='progress'?1-pbloom:1);
-  var pts=progress.map(function(it){return sp(posOf(it)[0],posOf(it)[1])});
+  var pts=cluster.map(function(it){return sp(it.cx,it.cy)});
   if(cur.lv===0&&fade>.2){
     g.strokeStyle='rgba(214,222,236,'+(0.28*fade*(on?1.4:.8))+')';g.lineWidth=1;g.beginPath();
     [[0,2],[2,3],[3,1],[0,1]].forEach(function(e){if(!pts[e[0]]||!pts[e[1]])return;g.moveTo(pts[e[0]][0],pts[e[0]][1]);g.lineTo(pts[e[1]][0],pts[e[1]][1])});
     g.stroke();
   }
-  progress.forEach(function(it,i){
-    if(cur.k==='objects'&&bloom>.15)return;
-    var q=pts[i];
-    star(q,.7,CH.objects,false,(on?1:.85)*fade);
+  cluster.forEach(function(it,i){
+    if(cur.k==='objects'&&bloom>.15&&it.chapter==='objects')return;
+    var q=pts[i];if(!q)return;
+    star(q,.7,CH[it.chapter]||CH.objects,false,(on?1:.85)*fade);
     if(sel&&sel.id===it.id){g.strokeStyle='rgba('+MINT+',.9)';g.beginPath();g.arc(q[0],q[1],11,0,7);g.stroke()}
   });
   if(cur.lv===0&&fade>.4){
@@ -460,14 +467,14 @@ function drawWindow(){
   g.beginPath();g.rect(spec.x0+1,spec.y0+(spec.head-6),spec.w-2,spec.winH-(spec.head-6));g.clip();
   items.forEach(function(it,i){
     var rc=tileRect(spec,i,scr.x);
-    var home=it.in_progress?[it.cx,it.cy]:[it.sx,it.sy];
+    var home=(it._cluster||it.in_progress)?[it.cx,it.cy]:[it.sx,it.sy];
     var sp0=sp(home[0],home[1]);
     var w=lerp(4,rc.w,b),h=lerp(4,rc.h,b);
     var x=lerp(sp0[0],rc.x+rc.w/2,b)-w/2,y=lerp(sp0[1],rc.y+rc.h/2,b)-h/2;
     if(y>spec.y0+spec.winH||y+h<spec.y0)return;
     g.globalAlpha=Math.min(1,b*1.4);
     if(it._im&&it.ld)cover(it._im,x,y,w,h);
-    else if(it.kind==='bio'||it.kind==='poem'||it.kind==='contact'||it.kind==='link'){
+    else if(it.kind==='bio'||it.kind==='poem'||it.kind==='contact'||it.kind==='link'||it.kind==='track'){
       g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);
       g.font='300 13px Poppins,sans-serif';g.fillStyle='#e8eef5';g.textAlign='center';g.textBaseline='middle';
       g.fillText(it.title,x+w/2,y+h/2);
@@ -843,7 +850,7 @@ function hit(x,y){
     var c=wp(x,y);
     if(Math.hypot(c[0],c[1])<70)return {type:'poem',k:'about',id:'about/poem'};
     var best=null,bd=26;
-    progress.forEach(function(it){var q=sp(it.cx,it.cy),d=Math.hypot(q[0]-x,q[1]-y);if(d<bd){bd=d;best={type:'work',k:'progress',id:it.id,prog:1}}});
+    cluster.forEach(function(it){var q=sp(it.cx,it.cy),d=Math.hypot(q[0]-x,q[1]-y);if(d<bd){bd=d;best={type:'work',k:'progress',id:it.id,prog:1}}});
     if(best)return best;
     ORDER.forEach(function(k){
       var ch=CH[k];ch.skyItems.forEach(function(it){var q=sp(it.sx,it.sy),d=Math.hypot(q[0]-x,q[1]-y);if(d<bd){bd=d;best={type:'ch',k:k}}});
@@ -867,7 +874,11 @@ function openSel(){
   if(sel.type==='ch')go({lv:1,k:sel.k,id:null});
   else if(sel.type==='poem')go({lv:2,k:'about',id:'about/poem'});
   else if(sel.type==='work'&&sel.prog&&cur.lv===0)go({lv:1,k:'progress',id:null});
-  else if(sel.type==='work'&&cur.lv>=1)go({lv:2,k:sel.prog?'progress':sel.k,id:sel.id});
+  else if(sel.type==='work'&&cur.lv>=1){
+    var it=byId[sel.id];
+    if(it&&it.kind==='track'){song=it.track;if(au)au.src=song.file;go({lv:2,k:'sound',id:'sound/waveform'})}
+    else go({lv:2,k:sel.prog?'progress':sel.k,id:sel.id});
+  }
   sel=null;
 }
 function deeper(x,y){

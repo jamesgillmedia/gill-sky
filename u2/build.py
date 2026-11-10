@@ -71,6 +71,8 @@ def abs_url(path):
         return ""
     if path.startswith("http://") or path.startswith("https://") or path.startswith("mailto:"):
         return path
+    if path.startswith("../audio/"):
+        return PRO2 + path[3:]
     if path.startswith("../"):
         return SITE + path[3:]
     return PRO2 + path
