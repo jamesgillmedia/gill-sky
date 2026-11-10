@@ -388,7 +388,22 @@ h1{margin:8px 0 0;font:400 clamp(28px,6vw,52px)/1.05 "Julius Sans One",sans-seri
 .poem .sig{font-family:Syl,sans-serif;font-weight:700;font-size:22px;margin-top:10px}
 .joio{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .joio video,.joio img{width:100%;display:block;background:#000;border-radius:2px}
-audio{width:min(100%,520px);margin:8px 0}
+audio[controls]{width:min(100%,520px);margin:12px 0;display:block}
+audio:not([controls]){position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+.sketch{display:none;margin:16px 0 0;padding:12px 12px 8px;max-width:520px;border-radius:10px;
+ background:linear-gradient(180deg,rgba(8,14,24,.55),rgba(3,5,10,.94));
+ border:1px solid rgba(255,255,255,.14)}
+html.js .sketch{display:block}
+.sketch .sc-row{display:flex;align-items:center;gap:8px}
+.sketch .play{min-width:64px;min-height:44px;padding:0 14px;border:1px solid rgba(255,255,255,.18);border-radius:22px;
+ background:rgba(255,255,255,.06);color:#eef3f5;letter-spacing:.12em;font-size:11px;text-transform:lowercase}
+.sketch .sc-lab{flex:1;min-width:0}
+.sketch .l1,.sketch .l2{margin:0}
+.sketch .l1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.08em;color:#c9d3d6;font-size:12px}
+.sketch .l1 b{font:400 13px/1 "Julius Sans One",sans-serif;letter-spacing:.16em;color:#eef3f5;margin-right:6px}
+.sketch .time{font-family:ui-monospace,Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:.12em;color:#eef3f5;font-size:12px}
+.sketch .rail{position:relative;height:48px;margin:6px 0 0;touch-action:none;cursor:pointer}
+.sketch canvas{display:block;width:100%;height:48px}
 """
 
 
@@ -425,9 +440,31 @@ def loc(src, depth):
     return ("../" * depth) + src
 
 
+SONG_PAGE = {
+    "to-go": ("togo", "media/pro2/audio/to-go.mp3", "To Go", "Lost Coffee"),
+    "mothers-moniker": ("gone", "media/pro2/audio/gone-are-the-days.mp3", "Gone Are the Days of Yesterday", "Mothers Moniker"),
+    "lost-coffee": ("lostintime", "media/pro2/audio/lost-in-time.mp3", "Lost in Time", "Lost Coffee"),
+    "lost-coffee-apple-music": ("noproblem", "media/pro2/audio/no-problem.mp3", "No Problem", "Lost Coffee"),
+}
+
+
+def song_block(key, file, title, artist, depth):
+    src = e(loc(file, depth))
+    waves = e(loc("media/pro2/audio/waves.json", depth))
+    return (
+        f'<div class="sketch" data-src="{src}" data-wave="{e(key)}" data-waves="{waves}">'
+        f'<div class="sc-row"><button type="button" class="play">play</button>'
+        f'<div class="sc-lab"><p class="l1"><b>{e(title)}</b> {e(artist)}</p>'
+        f'<p class="l2"><span class="time">0:00</span></p></div></div>'
+        f'<div class="rail" aria-label="{e(title)}"><canvas class="wf"></canvas></div></div>'
+        f'<noscript><audio controls preload="metadata" src="{src}"></audio></noscript>'
+    )
+
+
 def work_body(c, by_id, depth=2):
     m = c["media"]
     bits = []
+    heard = False
     role = f'<p class="role">{e(c["role"])}</p>' if c["role"] else ""
     meta = c["meta"] or ""
     year = f' · {c["year"]}' if c["year"] and str(c["year"]) not in meta else ""
@@ -462,14 +499,17 @@ def work_body(c, by_id, depth=2):
         bits.append(f'<figure class="hero"><img src="{e(loc(m["big"] or m["thumb"], depth))}" alt="{e(c["title"])}"></figure>')
     elif c["kind"] == "player":
         for t in TRACKS:
-            bits.append(f'<p><b>{e(t["title"])}</b> · {e(t["artist"])}<br><audio controls preload="none" src="{e(t["file"])}"></audio></p>')
+            bits.append(song_block(t["k"], t["file"], t["title"], t["artist"], depth))
+            heard = True
         bits.append(f'<p class="rel"><a href="mailto:{EMAIL}?subject=music%20licensing">licensing · {EMAIL}</a></p>')
     elif c["kind"] == "sound":
         if m["big"]:
             bits.append(f'<figure class="hero frame239"><img src="{e(loc(m["big"], depth))}" alt=""></figure>')
-        if c["slug"] == "to-go":
-            bits.append(f'<audio controls preload="none" src="{e(loc("media/pro2/audio/to-go.mp3", depth))}"></audio>')
-        elif m["embed"] and "youtube.com" not in m["embed"] and "youtu.be" not in (m["url"] or ""):
+        song = SONG_PAGE.get(c["slug"])
+        if song:
+            bits.append(song_block(song[0], song[1], song[2], song[3], depth))
+            heard = True
+        if m["embed"] and "youtube.com" not in m["embed"] and "youtu.be" not in (m["url"] or ""):
             href = m["url"] or m["embed"]
             place = "Apple Music" if "apple.com" in href else "Spotify" if "spotify.com" in href else "listen"
             bits.append(f'<p class="rel"><a href="{e(href)}">{place}</a></p>')
@@ -518,6 +558,8 @@ def work_body(c, by_id, depth=2):
             else:
                 cells.append(f'<li><img src="{e(src)}" alt=""></li>')
         bits.append(f'<ol class="joio">{"".join(cells)}</ol>')
+    if heard:
+        bits.append(f'<script src="{e(loc("js/song.js", depth))}"></script>')
     return "\n".join(bits)
 
 

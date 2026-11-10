@@ -23,7 +23,7 @@ Close-ups, the nine fixes, the depth budget, the gaps, and the song player. The 
 - Weird Kid keeps “dir. Gill James & Kiesza”. That line is in the published credits.
 - Photo labels that were “photograph 22” are “untitled”. The files have no EXIF place or date. Slugs are unchanged.
 - The objects board opens on the joio cup from above, not the wood-fired pizza.
-- Song pages use the sound-sketch player. The native audio element stays for when JavaScript is off, and it preloads metadata so the length is the file’s length. The waveform page was pointing at `media/pro2/audio/` inside its own folder, so those files could not load. They now point at `../../media/pro2/audio/`.
+- Song pages use the sound-sketch player: a dark rail, a mint progress line, and the measured waveform. The length on the rail is the file’s own length (To Go 1:20, Gone Are the Days 1:20, No Problem 1:20, Lost in Time 1:30, = 1:30, ii 1:10). The native audio control is only in `<noscript>`, for when JavaScript is off.
 
 ### Depth
 
