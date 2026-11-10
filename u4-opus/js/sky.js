@@ -1550,7 +1550,8 @@ function trail(){
   t.push(cur.k==='progress'?'in progress':cur.k);
   if(cur.k!=='progress'&&(cur.b||cur.lv>=2))t.push('board');
   if(cur.lv>=2&&cur.id&&byId[cur.id]){
-    var nm=byId[cur.id].title||'';
+    var nm=byId[cur.id].title||'',dot=nm.lastIndexOf(' · ');
+    if(dot>=0)nm=nm.slice(dot+3).replace(/^['‘’"“”]+|['‘’"“”]+$/g,'');
     if(untitledName(nm))nm=cur.k==='photo'?'print':'';
     if(cur.id==='about/bio')nm='bio';
     if(nm)t.push(nm);

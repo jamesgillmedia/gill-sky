@@ -116,3 +116,8 @@
 #crumb{color:var(--paper2)}
 .herobleed,.filmfield,.credsky{top:var(--bar)}
 #snd,#layers{top:var(--bar);height:auto;bottom:0}
+
+/* piece titles: the name on one line, the client small above it */
+h2.tt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+h2.tt small{display:block;white-space:normal;font:300 11px/1.4 Poppins,sans-serif;letter-spacing:.04em;text-transform:none;color:var(--paper2);margin-bottom:4px}
+#layer .sheet .said{margin:14px 2px 0;font:300 13px/1.55 Poppins,sans-serif;color:var(--paper);max-width:34em}
