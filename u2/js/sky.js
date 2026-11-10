@@ -294,6 +294,7 @@ function frame(t){
     if(psnd)psnd.style.transform=psc!==1?'scale('+psc.toFixed(3)+')':'';
   }
   draw(t);
+  drawGlitch(t);
   syncExtras();
   if(window.GJ_DEPTH&&GJ_DEPTH.state().film>=3)GJ_DEPTH.paintField();
   if(window.GJ_INNER&&GJ_INNER.active())GJ_INNER.tick(t);
@@ -1049,13 +1050,105 @@ function paintGrain(){
   for(i=0;i<d.length;i+=4){var n=(Math.random()*255)|0;d[i]=d[i+1]=d[i+2]=n;d[i+3]=70}
   g.putImageData(im,0,0);grainOn=1;
 }
-function paintBio(){
+var GL={bands:[],burst:0,w:0,h:0,frame:null,prev:null};
+function calcCrop(v,W,H){
+  var vw=v.videoWidth,vh=v.videoHeight,safe=vh*0.76;
+  var tx=vw*0.70,ty=vh*0.50,dar=W/Math.max(1,H),sw,sh,sx,sy;
+  if(vw/safe>dar){sh=safe;sw=sh*dar}else{sw=vw;sh=sw/dar}
+  sx=Math.max(0,Math.min(vw-sw,tx-sw/2));
+  sy=Math.max(0,Math.min(Math.max(0,safe-sh),ty-sh/2));
+  return {sx:sx,sy:sy,sw:sw,sh:sh,lx:(tx-sx)/sw,ly:(ty-sy)/sh};
+}
+function layoutCalc(){
+  var stage=$('calcstage'),zoom=$('calczoom'),v=$('calc');
+  if(!stage||!zoom)return;
+  var z=1+(Math.max(1,Math.min(7,bioLv))-1)*0.30;
+  var ox=52,oy=66,crop=null;
+  if(v&&v.videoWidth&&stage.clientWidth){
+    crop=calcCrop(v,stage.clientWidth,stage.clientHeight);
+    ox=crop.lx*100;oy=crop.ly*100;
+  }
+  zoom._crop=crop;
+  zoom.style.transformOrigin=ox.toFixed(2)+'% '+oy.toFixed(2)+'%';
+  zoom.style.transform='scale('+z.toFixed(3)+')';
+}
+function drawGlitch(t){
+  if(!bioOn)return;
+  var v=$('calc'),c=$('glitch'),zoom=$('calczoom');
+  if(!v||!c||!zoom||v.readyState<2||!v.videoWidth)return;
+  var W=zoom.clientWidth||innerWidth,H=zoom.clientHeight||innerHeight;
+  if(W<2||H<2)return;
+  var bw=Math.max(2,Math.min(W,520)),bh=Math.max(2,Math.round(bw*H/W));
+  if(c.width!==bw||c.height!==bh){c.width=bw;c.height=bh;GL.frame=null;GL.prev=null}
+  if(!zoom._crop)layoutCalc();
+  var crop=zoom._crop;if(!crop)return;
+  var g=c.getContext('2d',{willReadFrequently:true});
+  g.drawImage(v,crop.sx,crop.sy,crop.sw,crop.sh,0,0,bw,bh);
+  var img=g.getImageData(0,0,bw,bh),d=img.data;
+  if(!GL.frame||GL.frame.length!==d.length){GL.frame=new Uint8ClampedArray(d.length);GL.prev=new Uint8ClampedArray(d.length)}
+  var src=GL.frame,prev=GL.prev,i;
+  src.set(d);
+  var depth=(Math.max(1,Math.min(7,bioLv))-1)/6;
+  var shift=Math.round(1+depth*16+(GL.burst>0?2+depth*8:0));
+  var mix=0.16+depth*0.84;
+  var dim=0.28+depth*0.42;
+  var scan=depth>0.55?2:3;
+  var flick=(0.78-depth*0.5)+(0.28+depth*0.85)*(0.5+0.5*Math.sin(t*0.05));
+  if(depth>0.35&&Math.sin(t*0.021)>0.8)flick*=0.35;
+  var yBand=(Math.sin(t*0.0023)*0.5+0.5);
+  var standY=(yBand*(bh-8))|0;
+  var standDx=Math.round(Math.sin(t*0.0031)*(depth*26));
+  var standH=Math.round(2+depth*20);
+  var standY2=((standY+((bh*0.37)|0))%bh);
+  var standDx2=Math.round(Math.cos(t*0.0027)*(depth*20));
+  if(Math.random()<0.12+depth*0.28+(GL.burst>0?0.55:0)){
+    GL.bands.push({y:(Math.random()*bh)|0,hh:Math.round(3+Math.random()*(6+depth*22)),dx:Math.round((Math.random()*2-1)*(2+depth*26)),life:3+((Math.random()*(4+depth*10))|0),mosh:Math.random()<0.45+depth*0.4});
+  }
+  if(GL.burst>0)GL.burst--;
+  var live=[],bi;
+  for(bi=0;bi<GL.bands.length;bi++){GL.bands[bi].life--;if(GL.bands[bi].life>0)live.push(GL.bands[bi])}
+  GL.bands=live.slice(-8);
+  for(var y=0;y<bh;y++){
+    var dx=0,mosh=0;
+    if(y>=standY&&y<standY+standH)dx=standDx;
+    if(y>=standY2&&y<standY2+Math.max(2,standH-2))dx=standDx2;
+    for(bi=0;bi<live.length;bi++){
+      var b=live[bi];
+      if(y>=b.y&&y<b.y+b.hh){dx=b.dx;if(b.mosh&&GL.seen)mosh=1}
+    }
+    var row=mosh&&GL.prev?prev:src;
+    var scanOn=(y%scan)===0;
+    var o=y*bw*4;
+    for(var x=0;x<bw;x++){
+      var xr=x-shift+dx;if(xr<0)xr=0;else if(xr>=bw)xr=bw-1;
+      var xb=x+shift+dx;if(xb<0)xb=0;else if(xb>=bw)xb=bw-1;
+      var xg=x+dx;if(xg<0)xg=0;else if(xg>=bw)xg=bw-1;
+      var ir=o+xr*4,ig=o+xg*4,ib=o+xb*4,ip=o+x*4;
+      var r0=src[ip],g0=src[ip+1],b0=src[ip+2];
+      var r=(r0*(1-mix)+row[ir]*mix)*0.76;
+      var gc=(g0*(1-mix)+row[ig+1]*mix)*0.76;
+      var bch=(b0*(1-mix)+row[ib+2]*mix)*0.76;
+      if(scanOn){var s=1-dim;r*=s;gc*=s;bch*=s}
+      if(g0>70&&g0>r0*1.25&&g0>b0*1.1)gc=Math.max(0,Math.min(255,g0*flick));
+      d[ip]=r;d[ip+1]=gc;d[ip+2]=bch;d[ip+3]=255;
+    }
+  }
+  g.putImageData(img,0,0);
+  prev.set(src);
+  GL.seen=1;
+}
+function paintBio(flick){
   var texts=(window.GJ_BIO&&GJ_BIO.layers)||[];
   var text=texts[bioLv-1]||'';
   var box=$('laytext');
   if(box){
     box.className='copy lv'+bioLv+(bioLv===7?' sel':'');
     box.innerHTML=text.split('\n').map(function(line){return line?'<span>'+esc(line)+'</span>':'<br>'}).join('');
+    if(flick){
+      box.classList.add('flick');
+      GL.burst=8;
+      setTimeout(function(){box.classList.remove('flick')},40);
+    }
   }
   var rail=$('lrail');
   if(rail){
@@ -1063,12 +1156,8 @@ function paintBio(){
     rail.innerHTML=dots+'<b>'+bioLv+'</b>';
   }
   var v=$('calc');
-  if(v){
-    var s=1+(bioLv-1)*0.2,blur=0.7+(bioLv-1)*0.15;
-    v.style.transform='scale('+s.toFixed(3)+')';
-    v.style.filter='brightness(0.58) contrast(1.05) blur('+blur.toFixed(2)+'px)';
-    v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){});
-  }
+  if(v){v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){})}
+  layoutCalc();
 }
 function syncBio(){
   var el=$('layers');if(!el)return;
@@ -1078,13 +1167,13 @@ function syncBio(){
   if(!bioOn)bioLv=1;
   bioOn=1;if(bioLv<1)bioLv=1;if(bioLv>7)bioLv=7;
   el.hidden=false;el.classList.add('on');
-  paintGrain();paintBio();
+  paintGrain();paintBio(false);
 }
 function bioDeeper(){
   if(bioExit)return true;
   if(!(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id))return false;
   if(bioLv>=7)return true;
-  bioLv++;paintBio();ui();return true;
+  bioLv++;paintBio(true);ui();return true;
 }
 function startMoonExit(){
   if(bioExit)return;
@@ -1106,7 +1195,7 @@ function startMoonExit(){
 function bioBack(){
   if(bioExit)return true;
   if(!(bioOn||(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id)))return false;
-  if(bioLv>1){bioLv--;paintBio();ui();return true}
+  if(bioLv>1){bioLv--;paintBio(true);ui();return true}
   startMoonExit();return true;
 }
 function deeper(x,y){

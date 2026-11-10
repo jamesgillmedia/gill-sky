@@ -224,16 +224,19 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .matte .tie a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 #layers{position:absolute;inset:0;z-index:5;overflow:hidden;background:#04070b}
 #layers[hidden]{display:none}
-#layers video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform-origin:50% 42%}
-#calc{transition:opacity .75s ease,transform .55s ease,filter .55s ease}
-#moons{opacity:0;transition:opacity .75s ease}
-#layers.exit #calc,#layers.exit #laytext,#layers.exit #lrail{opacity:0}
+#calcstage{position:absolute;inset:0;overflow:hidden;z-index:0}
+#calczoom{position:absolute;inset:0;transform-origin:52% 66%;transition:transform .48s ease}
+#calc{position:absolute;width:2px;height:2px;opacity:0;pointer-events:none}
+#glitch{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#moons{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .75s ease;z-index:1}
+#layers.exit #calcstage,#layers.exit #laytext,#layers.exit #lrail{opacity:0;transition:opacity .75s ease}
 #layers.exit #moons{opacity:1}
 #layers.exit.moonfade #moons{opacity:0;transition:opacity 1.2s ease}
-#grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.22;mix-blend-mode:overlay;z-index:2}
+#grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.16;mix-blend-mode:overlay;z-index:2}
 #laytext{position:absolute;z-index:3;left:7%;right:12%;top:16%;bottom:14%;display:flex;flex-direction:column;justify-content:center;
  color:#f4f7ef;font-weight:300;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 18px rgba(0,0,0,.55);pointer-events:none}
 #laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{justify-content:flex-start;top:calc(68px + var(--st));bottom:calc(36px + var(--sb));overflow:auto;pointer-events:auto;padding-bottom:28px}
+#laytext.flick{opacity:.62}
 #laytext span{display:block;font-size:14.5px;line-height:1.42}
 #laytext.lv1 span{font-size:30px;line-height:1.2;letter-spacing:.01em}
 #laytext.lv2 span{font-size:15px;line-height:1.35}

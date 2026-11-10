@@ -4,7 +4,7 @@ The About chapter opens on the calculator. Seven layers of Gill’s text, one pi
 
 ## In this pass
 
-- About: calculator.mp4, darkened, with a little blur and grain. Pinch moves one layer deeper and zooms toward the green display. A seven-dot rail and the breadcrumb show the layer. Layer 7 is selectable text. The old star chart stays in the page and stays hidden.
+- About: calculator.mp4, cropped so the phone’s zoom pills and macro icon stay out of frame. Each pinch zooms further into the green display and adds a glitch that builds from a light scanline at layer 1 to channel-split, torn slices and flickering digits at layer 7, in the manner of the Forever Rose glitch clip. The words stay sharp. Layer 7 is selectable text. The old star chart stays in the page and stays hidden.
 - Pinching out past layer 1 crossfades to moon-grid.mp4, then that picture fades the way the arrival moon fades, and the sky is back.
 - Weird Kid stays on the published credits. There is no “Co-created with Kiesza” line. Level 2 is a wall of the film’s frames. Level 3 packs those frames, one larger, most of them sharp. The next pinch is a level labeled Kiesza, built from the frames where she is on screen. `work.bts` can take later behind-the-scenes stills.
 - To Go’s inside-the-waveform level is unchanged.
