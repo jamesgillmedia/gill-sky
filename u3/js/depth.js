@@ -157,17 +157,20 @@ function preload(items,api){
   });
 }
 function showBoard(api){
-  if(!board)return;
-  still=null;filmLv=0;piece=null;snd=null;
-  dropFly();setBleed(false);
-  api.setCur({lv:1,k:board.k,id:board.work?board.work.id:null});
+  still=null;filmLv=0;filmWork=null;piece=null;snd=null;
+  dropFly();setBleed(false);hideSound();
+  var st=history.state&&history.state.cur;
+  if(st&&st.id){api.backHist();return}
+  if(!board){api.backHist();return}
+  api.setCur({lv:2,k:board.k,id:null});
   api.arrive();
   preload(board.items,api);
 }
 function openBoard(api,k){
+  if(api.openBoard){api.openBoard(k);return}
   still=null;filmLv=0;filmWork=null;
   board=makeBoard(api,k);
-  api.setCur({lv:1,k:k,id:null});
+  api.setCur({lv:2,k:k,id:null});
   api.push();
   api.arrive();
   preload(board.items,api);
@@ -198,7 +201,8 @@ function openCover(api, work){
   var peaks=api.wave?api.wave(work):null;
   var box={l:innerWidth*0.08,t:innerHeight*0.3,w:innerWidth*0.84,h:96};
   if(api.tileBox){var b=api.tileBox(work);if(b&&b.w)box=b}
-  api.setCur({lv:2,k:'sound',id:work.id});
+  api.setCur({lv:3,k:'sound',id:work.id});
+  api.push();
   if(!src&&!(peaks&&peaks.length)){snd.empty=1;api.arrive();return}
   growInto(box, src, '', waveHtml(peaks)||'', true);
   api.arrive();
@@ -214,7 +218,7 @@ function showSound(track, into){
 function openSound(api,track,into,work){
   showSound(track, into);
   var id=work&&work.id;
-  if(id)api.setCur({lv:2,k:'sound',id:id});
+  if(id){api.setCur({lv:3,k:'sound',id:id});api.push()}
   else if(board)api.setCur({lv:2,k:board.k,id:null});
   else {api.setCur({lv:1,k:'sound',id:null});api.push()}
   api.arrive();
@@ -244,13 +248,15 @@ function soundStep(api){
 }
 function openFilm(api,work,shot){
   filmWork=work;filmLv=1;filmAt=(shot&&shot.t)||0;filmScale=1;still=null;piece=null;
-  api.setCur({lv:2,k:work.chapter||'film',id:work.id});
+  api.setCur({lv:3,k:work.chapter||'film',id:work.id});
+  api.push();
   api.arrive();
 }
 function openStill(api,work,shot){
   filmLv=0;filmWork=null;
   still={work:work,shot:shot||null,scale:1};
-  api.setCur({lv:2,k:work.chapter||api.cur().k,id:work.id});
+  api.setCur({lv:3,k:work.chapter||api.cur().k,id:work.id});
+  api.push();
   api.arrive();
 }
 function openTile(api,it){
@@ -265,7 +271,7 @@ function openTile(api,it){
   var filmish0=work.kind==='film'||work.kind==='reel';
   if(filmish0&&!it._shot){openFilm(api,work,null);return}
   if((work.chapter==='objects'||cur.k==='objects')&&!it._shot){
-    api.setCur({lv:2,k:'objects',id:work.id});
+    api.setCur({lv:3,k:'objects',id:work.id});
     api.push();
     stepPiece(api,work,0,0);
     api.arrive();
@@ -276,7 +282,8 @@ function openTile(api,it){
     else kids=shotsOf(work);
     if(kids&&kids.length>1){
       board={k:cur.k,title:work.title,items:tilesFrom(kids,work),fine:true,parent:board,work:work};
-      api.setCur({lv:1,k:cur.k,id:work.id});
+      api.setCur({lv:2,k:cur.k,id:work.id});
+      api.push();
       api.arrive();
       preload(board.items,api);
       return;
@@ -288,7 +295,8 @@ function openTile(api,it){
   if(filmish&&(work.kind==='film'||work.kind==='reel')){openFilm(api,work,shot);return}
   if(shot&&(shot.src||shot.clip||shot.text)){openStill(api,work,shot);return}
   still=null;filmLv=0;
-  api.setCur({lv:2,k:work.chapter||cur.k,id:work.id});
+  api.setCur({lv:3,k:work.chapter||cur.k,id:work.id});
+  api.push();
   api.arrive();
 }
 function pieceShots(work, api){
@@ -366,7 +374,8 @@ function openPhoto(api, work){
   if(sheet.length<6)sheet=items.slice(0,12);
   piece={work:work,lv:1,scale:1,shots:[],photo:1,series:series,sheet:sheet};
   still=null;filmLv=0;filmWork=null;
-  api.setCur({lv:2,k:'photo',id:work.id});
+  api.setCur({lv:3,k:'photo',id:work.id});
+  api.push();
   api.arrive();
 }
 function shownTitle(work){
@@ -423,12 +432,13 @@ function planIn(x,y,api){
   if(cur.lv===0){
     var h=api.hit(x,y);
     if(!h)return null;
-    if(h.type==='ch')return function(){openBoard(api,h.k)};
+    if(h.type==='ch')return function(){api.openCat(h.k)};
     if(h.type==='poem')return function(){api.openId('about/poem')};
-    if(h.prog)return function(){openBoard(api,'progress')};
+    if(h.type==='work'||h.prog)return function(){api.openCat(h.prog?'progress':h.k)};
     return null;
   }
-  if(cur.lv>=2&&cur.id&&!filmLv&&!still){
+  if(cur.lv===1&&cur.k)return function(){api.openBoard(cur.k)};
+  if(cur.lv>=3&&cur.id&&!filmLv&&!still){
     var wk=api.byId(cur.id);
     if(wk&&wk.chapter==='sound')return function(){openSound(api,trackOf(wk),false,wk)};
     if(wk&&wk.chapter==='objects'){
@@ -440,9 +450,9 @@ function planIn(x,y,api){
       return function(){stepPhoto(api,wk,x,y,pph)};
     }
   }
-  if(cur.lv>=1&&board){
+  if(cur.lv===2&&board){
     var it=api.tileAt(x,y);
-    if(!it&&cur.lv>=2){
+    if(!it&&cur.id){
       var w=api.byId(cur.id);
       if(w)return function(){openTile(api,w)};
       return null;
@@ -475,18 +485,18 @@ function planOut(api){
       if(!w){api.backHist();return}
       piece={work:w,lv:back.lv,scale:back.scale||1,shots:pieceShots(w,api)};
       still=null;filmLv=0;filmWork=null;
-      api.setCur({lv:2,k:'objects',id:w.id});
-      try{history.replaceState({u1:1,cur:{lv:2,k:'objects',id:w.id}},'','#objects/'+w.slug)}catch(e){}
+      api.setCur({lv:3,k:'objects',id:w.id});
+      try{history.replaceState({u1:1,cur:{lv:3,k:'objects',id:w.id}},'','#objects/'+w.slug)}catch(e){}
       api.arrive();
     };
   }
   if(piece&&piece.lv>1)return function(){piece.lv--;piece.scale=1;api.paint()};
-  if(piece)return function(){piece=null;api.paint()};
+  if(piece)return function(){piece=null;showBoard(api)};
   if(filmLv>1)return function(){dropFly();filmLv--;filmScale=1;api.paint()};
   if(filmLv===1)return function(){filmLv=0;filmWork=null;if(board)showBoard(api);else api.backHist()};
   if(still&&still.scale>1.18)return function(){still.scale=Math.max(1,still.scale/1.2);api.paint()};
   if(still)return function(){still=null;if(board)showBoard(api);else api.backHist()};
-  if(cur.lv>=2&&board)return function(){filmLv=0;still=null;showBoard(api)};
+  if(cur.lv>=3&&board)return function(){filmLv=0;still=null;piece=null;showBoard(api)};
   if(board&&board.fine)return function(){board=board.parent;showBoard(api)};
   if(board)return function(){board=null;api.backHist()};
   return null;
@@ -514,13 +524,17 @@ function sync(cur,api){
   if(!cur||cur.lv===0){board=null;filmLv=0;filmWork=null;still=null;piece=null;snd=null;dropFly();setBleed(false);hideSound();return}
   if(cur.k!=='sound'&&soundOn)hideSound();
   if(cur.lv===1){
-    filmLv=0;still=null;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);
-    if(soundOn)hideSound();
+    board=null;filmLv=0;still=null;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);hideSound();
+    return;
+  }
+  if(cur.lv===2&&!cur.id){
+    filmLv=0;still=null;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);hideSound();
     if(!board||board.k!==cur.k||board.fine)board=makeBoard(api,cur.k);
     preload(board.items,api);
     return;
   }
-  if(cur.lv>=2&&cur.id){
+  if(cur.lv===2&&cur.id&&board&&board.fine&&board.work&&board.work.id===cur.id)return;
+  if((cur.lv>=3||cur.id)&&cur.id){
     var it=api.byId(cur.id);
     if(!board||board.k!==cur.k)board=makeBoard(api,cur.k);
     if(piece&&piece.work&&piece.work.id!==cur.id)piece=null;
@@ -1043,6 +1057,31 @@ function paintPiece(el){
   }
   el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="empty-slot">no moving picture of this piece</div></div>';
 }
+function fitLongTitle(el){
+  if(!el)return;
+  var nodes=el.querySelectorAll('h2');
+  function pass(){
+    for(var i=0;i<nodes.length;i++){
+      var h=nodes[i],text=h.textContent||'';
+      if(text.length<18)continue;
+      h.style.whiteSpace='nowrap';
+      h.style.letterSpacing='.01em';
+      h.style.textTransform='none';
+      h.style.fontSize='13px';
+      h.style.display='block';
+      h.style.transformOrigin='left center';
+      h.style.transform='none';
+      var max=h.clientWidth||0;
+      if(max<48){var p=h.parentElement;max=(p?p.clientWidth:innerWidth)-36}
+      if(h.scrollWidth>max-2){
+        var s=Math.max(0.62,(max-2)/h.scrollWidth);
+        h.style.transform='scaleX('+s.toFixed(3)+')';
+      }
+    }
+  }
+  pass();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pass);
+}
 function paintLayer(el){
   if(snd&&(fly||snd.empty)){
     el.classList.add('on');
@@ -1050,8 +1089,8 @@ function paintLayer(el){
     return;
   }
   if(soundOn){el.classList.remove('on');el.innerHTML='';return}
-  if(piece){paintPiece(el);return}
-  if(filmLv>0&&filmWork){paintFilm(el,filmWork);return}
+  if(piece){paintPiece(el);fitLongTitle(el);return}
+  if(filmLv>0&&filmWork){paintFilm(el,filmWork);fitLongTitle(el);return}
   if(still){paintStill(el);return}
 }
 
