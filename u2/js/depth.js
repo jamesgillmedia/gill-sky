@@ -4,7 +4,7 @@
    near-lens bokeh brushes past, then the next level eases to a stop. */
 (function(){
 'use strict';
-var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0;
+var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0, filmSrc='';
 var PL={on:0,e:0,t0:0,busy:0,applied:0,pending:null};
 var FX={t0:0,life:0,fly:0};
 var BOK=[], SPR=null;
@@ -324,10 +324,10 @@ function planIn(x,y,api){
   var cur=api.cur();
   if(soundOn)return function(){zoomSound()};
   if(filmLv===2)return function(){enterFilm(x,y,api)};
-  if(filmLv===3)return function(){dropFly();filmLv=4;api.paint()};
+  if(filmLv===3)return function(){dropFly();setBleed(false);filmLv=4;api.paint()};
   if(filmLv>=1){
     return function(){
-      var cap=5;
+      var cap=(filmWork&&filmWork.id==='film/weird-kid')?6:5;
       if(filmLv<cap){filmLv++;api.paint()}
       else if(document.getElementById('filmfield')){filmScale=Math.min(2.15,filmScale*1.16);paintField()}
     };
@@ -584,6 +584,8 @@ function growInto(box, src, clip, extra){
   var host=document.getElementById('layer');if(!host||!box)return;
   var el=document.createElement('div');
   el.className='enterframe';
+  var face=/22\/12\.webp/.test(src||'');
+  if(face)el.classList.add('face');
   var img=src?'<img src="'+esc(src)+'" alt="">':'';
   var vid=clip?'<video muted loop autoplay playsinline poster="'+esc(src||'')+'" src="'+esc(clip)+'"></video>':'';
   el.innerHTML=img+vid+(extra?'<div class="entercap">'+extra+'</div>':'');
@@ -591,7 +593,10 @@ function growInto(box, src, clip, extra){
   el.style.left=box.l+'px';el.style.top=box.t+'px';el.style.width=box.w+'px';el.style.height=box.h+'px';
   host.appendChild(el);
   var v=el.querySelector('video');
-  if(v){var p=v.play();if(p&&p.catch)p.catch(function(){})}
+  if(v){
+    var p=v.play();if(p&&p.catch)p.catch(function(){})
+  }
+  setBleed(true);
   fly={el:el,i:0};
   void el.offsetWidth;
   requestAnimationFrame(function(){
@@ -624,10 +629,16 @@ function leaveFly(){
     else if(piece){piece.lv=piece.photo?2:1;piece.scale=1}
   });
 }
-function hiClip(src){
-  if(!src)return '';
-  if(/\/(?:sc|pv)\//.test(src))return '';
-  if(/one-with-the-devil-clip\.mp4/.test(src))return src;
+function setBleed(on){
+  document.documentElement.classList.toggle('bleed', !!on);
+}
+function momentClip(src, work){
+  var reel=src&&String(src).match(/\/reel\/(.+)\.webp$/);
+  if(reel)return 'media/pro2/reel/'+reel[1]+'.mp4';
+  var m=work&&work.media||{};
+  if(work&&work.id==='film/weird-kid')return '';
+  if(m.pv&&!/\/sc\//.test(m.pv))return m.pv;
+  if(m.clip&&!/\/sc\//.test(m.clip)&&!/youtube|youtu\.be/i.test(m.clip))return m.clip;
   return '';
 }
 function masterSrc(src){
@@ -638,9 +649,22 @@ function enterFilm(x,y,api){
   filmLv=3;
   if(!hit||!filmWork){filmLv=2;return}
   filmFocus=hit.i;
-  var clip=hiClip(hit.el.getAttribute('data-clip')||'');
+  filmSrc=hit.src||'';
+  var clip=hit.el.getAttribute('data-clip')||momentClip(hit.src, filmWork);
   growInto(hit.box, hit.src, clip);
   if(fly)fly.i=hit.i;
+}
+function paintNeighbours(el,work){
+  var frames=gallery(work),at=0,i;
+  for(i=0;i<frames.length;i++){
+    if(filmSrc&&frames[i].src&&frames[i].src.indexOf(filmSrc.slice(filmSrc.lastIndexOf('/')+1))>=0){at=i;break}
+  }
+  var from=Math.max(0,at-4),list=frames.slice(from,Math.min(frames.length,at+5));
+  if(!list.length)list=frames.slice(0,8);
+  var wall=list.map(function(s){
+    return s.src?'<img src="'+esc(s.src)+'" alt="">':'';
+  }).join('');
+  el.innerHTML='<div class="sheet film lv2 full"><h2>'+esc(work.title)+'</h2><div class="framewall near">'+wall+'</div></div>';
 }
 function paintFilm(el,work){
   var m=work.media||{};
@@ -649,7 +673,7 @@ function paintFilm(el,work){
   el.classList.add('on');
   var wk=work.id==='film/weird-kid';
   if(filmLv===3&&document.querySelector('.enterframe'))return;
-  if(filmLv!==3)dropFly();
+  if(filmLv!==3){dropFly();setBleed(false)}
   if(filmLv===1){
     var hero=wk?'media/pro2/frames/22/12.webp':(poster||'');
     var media=(!wk&&clip)
@@ -667,14 +691,14 @@ function paintFilm(el,work){
     var wall=frames.map(function(s){
       if(!s.src)return '';
       var hi=masterSrc(s.src)?1:0;
-      var shot=hiClip(s.clip||clip);
+      var shot=momentClip(s.src, work);
       return '<img src="'+esc(s.src)+'" data-hi="'+hi+'"'+(shot?' data-clip="'+esc(shot)+'"':'')+' alt="">';
     }).join('');
     el.innerHTML='<div class="sheet film lv2 full"><h2>'+esc(work.title)+'</h2><div class="framewall">'+wall+'</div></div>';
     if(filmLv===3){
       var imgs=el.querySelectorAll('.framewall img[data-hi="1"]');
       var im=imgs[filmFocus]||imgs[0];
-      if(im)growInto(boxOf(im), im.getAttribute('src'), hiClip(im.getAttribute('data-clip')||''));
+      if(im)growInto(boxOf(im), im.getAttribute('src'), im.getAttribute('data-clip')||'');
     }
     return;
   }
@@ -707,9 +731,11 @@ function paintFilm(el,work){
     }
     return;
   }
+  if(filmLv===4&&wk){paintNeighbours(el,work);return}
   if(filmLv===4&&!wk){paintConstellation(el,work,1);return}
-  if(filmLv>=5){paintCreditStars(el,work);return}
-  var kiesza=wk&&filmLv===4;
+  if(filmLv===5&&!wk){paintCreditStars(el,work);return}
+  if(filmLv>=6){paintCreditStars(el,work);return}
+  var kiesza=wk&&filmLv===5;
   var pack=fieldShots(work),list=pack.list||pack,focus=pack.focus||0;
   if(kiesza){
     var kept=list.filter(function(s){return isKiesza(s.src)});
@@ -897,7 +923,7 @@ function state(){
     n:board?board.items.length:0, sound:soundOn?1:0,
     plunge:+(PL.e||0).toFixed(2), work:(filmWork&&filmWork.id)||(piece&&piece.work&&piece.work.id)||null,
     piece:piece?piece.lv:0,
-    label:(filmWork&&filmWork.id==='film/weird-kid'&&filmLv>=4)?'Kiesza':''
+    label:(filmWork&&filmWork.id==='film/weird-kid'&&filmLv===5)?'Kiesza':''
   };
 }
 
