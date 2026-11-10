@@ -1,5 +1,5 @@
 /* Shell only. Video and audio are never stored; everything else off this origin streams. */
-var CACHE = 'u2-shell-8';
+var CACHE = 'u2-shell-9';
 var SHELL = [
   './',
   './index.html',
@@ -9,7 +9,9 @@ var SHELL = [
   './js/sky.js',
   './js/reelshots.js',
   './js/joio.js',
+  './js/copy.js',
   './js/frames.js',
+  './js/layers.js',
   './js/inner.js',
   './js/depth.js',
   './data.json',

@@ -284,7 +284,8 @@ function planIn(x,y,api){
   if(soundOn)return function(){zoomSound()};
   if(filmLv>=1){
     return function(){
-      if(filmLv<4){filmLv++;api.paint()}
+      var cap=(filmWork&&filmWork.id==='film/weird-kid')?4:3;
+      if(filmLv<cap){filmLv++;api.paint()}
       else {filmScale=Math.min(2.15,filmScale*1.16);paintField()}
     };
   }
@@ -375,19 +376,56 @@ function sync(cur,api){
 
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function owns(){return filmLv>0||!!still||!!piece}
+var KIESZA_FILES={
+  '22/01.webp':1,'22/03.webp':1,'22/04.webp':1,'22/05.webp':1,'22/10.webp':1,
+  '22/12.webp':1,'22/13.webp':1,'22/14.webp':1,'22/15.webp':1,'22/17.webp':1,
+  '22/18.webp':1,'22/36.webp':1,'22/37.webp':1,'22/51.webp':1,'22/52.webp':1,
+  '22/59.webp':1,'22/61.webp':1,'22/62.webp':1,'22/67.webp':1,'22/68.webp':1,
+  '22/69.webp':1,'a/019.webp':1,'b/052.webp':1
+};
+function isKiesza(src){
+  if(!src)return false;
+  var name=src.slice(src.lastIndexOf('/')+1);
+  var folder=src.slice(0,src.lastIndexOf('/'));
+  folder=folder.slice(folder.lastIndexOf('/')+1);
+  return !!(KIESZA_FILES[folder+'/'+name]||KIESZA_FILES[name]);
+}
+function gallery(work){
+  var all=(shotsOf(work)||[]).slice(),seen={},i;
+  for(i=0;i<all.length;i++)if(all[i].src)seen[all[i].src]=1;
+  if(work&&work.id==='film/weird-kid'&&window.GJ_REEL){
+    GJ_REEL.forEach(function(r){
+      if(String(r.l)!=='22')return;
+      var src='media/pro2/reel/'+r.f+'.webp';
+      if(!seen[src]){seen[src]=1;all.push({src:src,t:0,clip:'',title:r.b||''})}
+    });
+  }
+  ((work&&work.bts)||[]).forEach(function(src){
+    if(src&&!seen[src]){seen[src]=1;all.push({src:src,t:0,clip:'',title:''})}
+  });
+  return all;
+}
 function fieldShots(work){
-  var all=shotsOf(work);
-  if(all.length<=8)return all;
-  var out=[],n=8,i,idx,best=-1,bd=1e9;
-  for(i=0;i<n;i++){
-    idx=Math.round(i*(all.length-1)/(n-1));
-    out.push(all[idx]);
+  var all=gallery(work),i,best=0,bd=1e9,prefer;
+  if(work&&work.id==='film/weird-kid'){
+    prefer=(filmLv>=4)?'22/12.webp':'22/13.webp';
+    for(i=0;i<all.length;i++)if(all[i].src&&all[i].src.indexOf(prefer)>=0){best=i;bd=-1;break}
   }
-  for(i=0;i<out.length;i++){
-    var d=Math.abs((out[i].t||0)-filmAt);
-    if(d<bd){bd=d;best=i}
+  if(bd>=0){
+    for(i=0;i<all.length;i++){
+      var d=Math.abs((all[i].t||0)-filmAt);
+      if(d<bd){bd=d;best=i}
+    }
   }
-  return {list:out,focus:Math.max(0,best)};
+  if(all.length>16&&!(work&&work.id==='film/weird-kid')){
+    var out=[],n=8,idx;
+    for(i=0;i<n;i++){
+      idx=Math.round(i*(all.length-1)/(n-1));
+      out.push(all[idx]);
+    }
+    return {list:out,focus:0};
+  }
+  return {list:all,focus:best};
 }
 function relHtml(work){
   var bits=[];
@@ -400,7 +438,11 @@ function relHtml(work){
 function creditList(work){
   var bits=(work.credits||[]).slice().filter(Boolean);
   if(work.role)bits=bits.filter(function(s){return s!==work.role});
-  return bits.slice(0,8);
+  return bits;
+}
+function credHtml(work){
+  var bits=creditList(work).map(function(c){return '<li>'+esc(c)+'</li>'}).join('');
+  return bits?'<ul class="credits">'+bits+'</ul>':'';
 }
 function paintFilm(el,work){
   var m=work.media||{};
@@ -408,12 +450,17 @@ function paintFilm(el,work){
   var poster=m.big||m.thumb||'';
   el.classList.add('on');
   if(filmLv===1){
-    var creds=creditList(work).map(function(c){return '<li>'+esc(c)+'</li>'}).join('');
     el.innerHTML='<div class="sheet film lv1 off239 full"><div class="frame239"><video id="fv" muted playsinline autoplay loop preload="metadata" poster="'+esc(poster)+'"'+(clip?' src="'+esc(clip)+'"':'')+'></video></div>'+
       '<h2>'+esc(work.title)+'</h2>'+(work.role?'<p class="role">'+esc(work.role)+'</p>':'')+
-      (creds?'<ul class="credits">'+creds+'</ul>':'')+relHtml(work)+'</div>';
+      credHtml(work)+relHtml(work)+'</div>';
     var v0=document.getElementById('fv');
     if(v0){var p0=v0.play();if(p0&&p0.catch)p0.catch(function(){})}
+    return;
+  }
+  if(filmLv===2&&work.id==='film/weird-kid'){
+    var wall=gallery(work).map(function(s){return '<img src="'+esc(s.src)+'" alt="">'}).join('');
+    el.innerHTML='<div class="sheet film lv2 full"><h2>'+esc(work.title)+'</h2><div class="framewall">'+wall+'</div>'+
+      credHtml(work)+relHtml(work)+'</div>';
     return;
   }
   if(filmLv===2){
@@ -445,12 +492,23 @@ function paintFilm(el,work){
     }
     return;
   }
+  var kiesza=work.id==='film/weird-kid'&&filmLv>=4;
   var pack=fieldShots(work),list=pack.list||pack,focus=pack.focus||0;
+  if(kiesza){
+    var kept=list.filter(function(s){return isKiesza(s.src)});
+    if(kept.length){
+      var want=-1,fi;
+      for(fi=0;fi<kept.length;fi++)if(kept[fi].src&&kept[fi].src.indexOf('22/12.webp')>=0)want=fi;
+      list=kept;focus=want<0?0:want;
+    }
+  }
   if(!list.length){list=[{src:poster,t:0,clip:clip}];focus=0}
-  el.innerHTML='<div class="filmfield" id="filmfield"><canvas id="zfield"></canvas><h2>'+esc(work.title)+'</h2>'+relHtml(work)+'</div>';
+  var label=kiesza?'Kiesza':work.title;
+  el.innerHTML='<div class="filmfield'+(kiesza?' kiesza':'')+'" id="filmfield"><canvas id="zfield"></canvas><h2>'+esc(label)+'</h2>'+
+    '<div class="filmcap">'+credHtml(work)+'</div></div>';
   var host=document.getElementById('filmfield');
   var s=list[focus]||list[0];
-  var src=s&&(s.clip||clip);
+  var src=!kiesza&&s&&(s.clip||clip);
   if(src){
     var vid=document.createElement('video');
     vid.muted=true;vid.loop=true;vid.autoplay=true;vid.playsInline=true;vid.setAttribute('playsinline','');
@@ -471,16 +529,18 @@ function paintField(){
   g.clearRect(0,0,W,H);
   g.fillStyle='#04070b';g.fillRect(0,0,W,H);
   var list=host._list,focus=host._focus||0,sc=filmScale,n=list.length;
+  var cols=3;
+  var rows=Math.max(1,Math.ceil(n/cols));
+  var dw=Math.min(W*0.64,(H/rows)*2.39*1.15);
+  list.forEach(function(s,i){
+    var c=i%cols,r=(i/cols)|0;
+    s._x=(c+0.5)*W/cols;
+    s._y=((r+0.5)/rows)*H;
+    s._dw=dw;
+    s._blur=(i%9===4)?0.45:0;
+  });
   var fx=W*0.40,fy=H*0.42;
   var fw=Math.min(W*0.72,420)*Math.min(sc,1.35),fh=fw/2.39;
-  list.forEach(function(s,i){
-    if(i===focus)return;
-    var ang=-0.9+i*0.95;
-    s._x=W*0.5+Math.cos(ang)*W*0.40;
-    s._y=H*0.46+Math.sin(ang)*H*0.30;
-    s._dw=Math.min(W*0.28,78+(i%3)*26);
-    s._blur=1.4+(i%3)*1.15;
-  });
   list.forEach(function(s,i){
     if(i===focus)return;
     var im=s.src&&img(s.src);
@@ -497,14 +557,6 @@ function paintField(){
         v.style.width=fw+'px';v.style.height=fh+'px';
       });
     }
-  }
-  if(host._work){
-    var bits=creditList(host._work).slice(0,4);
-    g.font='300 11px Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';
-    g.fillStyle='rgba(226,234,242,.82)';
-    bits.forEach(function(f,i){
-      g.fillText(String(f).slice(0,48), fx-fw/2, fy+fh/2+14+i*16);
-    });
   }
 }
 function drawFrame(g,s,x,y,dw,dh,blur){
@@ -567,7 +619,16 @@ function paintPiece(el){
     ? '<video muted loop autoplay playsinline poster="'+esc(src)+'" src="'+esc(focus.clip)+'"></video>'
     : (src?'<img src="'+esc(src)+'" alt="">':'');
   var ghosts=shots.slice(0,5).map(function(s,i){return s.src?'<img class="ghost" style="--i:'+i+'" src="'+esc(s.src)+'" alt="">':''}).join('');
-  el.innerHTML='<div class="matte" style="transform:scale('+sc.toFixed(3)+')">'+ghosts+'<div class="focal">'+main+'</div><h2>'+esc(work.title)+'</h2></div>';
+  var tie='';
+  if(/joio/i.test(work.id||'')){
+    tie='<p class="tie"><a href="#objects/spirit-eye" data-open="objects/spirit-eye">Spirit Eye of skwácháýs</a>, a public art concept co-created with Joshua Ngenda, was recognized with Best Public Art Concept and Council\'s Choice within the BIDC Public Art Intensive. The same hand shapes joio.</p>';
+  }
+  el.innerHTML='<div class="matte" style="transform:scale('+sc.toFixed(3)+')">'+ghosts+'<div class="focal">'+main+'</div><h2>'+esc(work.title)+'</h2>'+tie+'</div>';
+  var link=el.querySelector('[data-open]');
+  if(link)link.addEventListener('click',function(ev){
+    ev.preventDefault();ev.stopPropagation();
+    if(window.__u1&&__u1.open)__u1.open(link.getAttribute('data-open'));
+  });
 }
 function paintLayer(el){
   if(soundOn){el.classList.remove('on');el.innerHTML='';return}
@@ -582,7 +643,8 @@ function state(){
     board:board?board.title:null, fine:!!(board&&board.fine),
     n:board?board.items.length:0, sound:soundOn?1:0,
     plunge:+(PL.e||0).toFixed(2), work:(filmWork&&filmWork.id)||(piece&&piece.work&&piece.work.id)||null,
-    piece:piece?piece.lv:0
+    piece:piece?piece.lv:0,
+    label:(filmWork&&filmWork.id==='film/weird-kid'&&filmLv>=4)?'Kiesza':''
   };
 }
 

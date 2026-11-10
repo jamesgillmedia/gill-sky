@@ -1,7 +1,7 @@
 /* gill james · site-v3-pro · per-film credits (the one editable place for the film pages).
    t = title, b = brand / artist: both already on the site. dir / prod (production company) / agency / cam (camera) stay '' until
    Gill confirms them; an empty field renders nothing (no placeholder anywhere). Only credits published with the film itself are
-   filled in (w13 and w22: from the film's own YouTube description). Example once known: dir:'Jane Doe', prod:'Prod Co', agency:'Agency', cam:'Alexa 35'. */
+   filled in (w13 and w22: from the film's published description). Example once known: dir:'Jane Doe', prod:'Prod Co', agency:'Agency', cam:'Alexa 35'. */
 window.GJ_COPY={credits:{
   w0:{t:'Reel 2026',b:''},
   w1:{t:'Cinematography Demo Reel 2025',b:''},

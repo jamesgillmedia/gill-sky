@@ -58,10 +58,11 @@ POEM = [
     "I create.",
 ]
 BIO = [
-    "Gill James (he/him) is a Cree-Métis artist based in Vancouver.",
-    "After graduating from UBC Film Production in 2014, building on a design and advertising background from OCAD, he spent more than a decade as a cinematographer and producer. His cinematography on One With the Devil — Leo Award, Best Cinematography in a Short Drama (2015); Canadian Society of Cinematographers Award. Further Leo nominations for Arc (2015) and Backward Fall (2014).",
-    "He makes objects, spaces, light and sound as one practice. Spirit Eye of skwácháýs, a public art concept recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive. He is developing a yellow cedar piece staged with light, sound and film. He makes music as Mothers Moniker and Lost Coffee.",
-    "Outside the studio, he does trail stewardship. Time on the trails shapes how he thinks about place, material and light.",
+    "Gill James is a multidisciplinary artist based in Vancouver. A Crəə-Métis voice rising, he blends visual storytelling with nature-focused design and thought-provoking imagery and movement. His artful eye and practical nature create immersive work that fuses art, natural materials and function, redefining spaces and experiences from a culturally resonant, human-centred perspective.",
+    "A graduate of UBC Film Production with a design and advertising foundation from OCAD, Gill has spent more than two decades behind the camera, with an innate sense of story and an uncanny fluency in visual language. He's known for music videos for Allan Rayman ft. Jessie Reyez, Old Man Canyon, Hey Ocean! and Kiesza, and for campaigns for brands including BMW and Coca-Cola. His cinematography on One With the Devil earned the Leo Award for Best Cinematography in a Short Drama and a Canadian Society of Cinematographers Award.",
+    "Spirit Eye of skwácháýs, a public art concept co-created with Joshua Ngenda, was recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive. The same hand shapes joio, where his love of coffee, food and natural materials becomes artful coffee accessories, kitchen paddles and other unexpected objects within the public realm of usefulness. Increasingly, his work leaves the hand and enters the land, as places to stand inside, listen and look.",
+    "As Lost Coffee and Mothers Moniker, he weaves sound into the unseen: haunting acoustic duets, piano, guitar and cello, experimental textures and lulling rhythms.",
+    "Fine art and music are rivers he swims, a daily drift, a lifelong hum. All his relations, in all his creations.",
 ]
 BIDC = "recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive"
 
@@ -218,14 +219,24 @@ def card(chapter, it, creds):
     elif it["k"] == "joio":
         kind = "link"
     frames = [abs_url(f) for f in j.get("frames") or []]
+
+    def off_youtube(url):
+        url = url or ""
+        if "youtube.com" in url or "youtu.be" in url:
+            return ""
+        return url
+
+    meta = it["meta"] or ""
+    if meta.strip() == "YouTube":
+        meta = ""
     media = {
         "thumb": abs_url(it["thumb"]),
         "big": abs_url(it["big"]),
         "clip": abs_url(it["sc"] or it["pv"]),
         "pv": abs_url(it["pv"]),
         "frames": frames,
-        "url": j.get("url") or "",
-        "embed": j.get("embed") or "",
+        "url": off_youtube(j.get("url") or ""),
+        "embed": off_youtube(j.get("embed") or ""),
         "w": j.get("w") or 0,
         "h": j.get("h") or 0,
     }
@@ -242,7 +253,7 @@ def card(chapter, it, creds):
         "title": it["title"],
         "role": role,
         "year": year,
-        "meta": it["meta"],
+        "meta": meta,
         "kind": kind,
         "media": media,
         "credits": credits,
@@ -294,6 +305,7 @@ def owtd():
 def wire_related(by_id):
     bio = by_id["about/bio"]
     bio["related"] = []
+    bio["meta"] = ""
     bio["body"] = "\n\n".join(BIO)
     by_id["about/poem"]["body"] = "\n".join(POEM)
     by_id["about/contact"]["body"] = EMAIL
@@ -414,7 +426,7 @@ def work_body(c, by_id, depth=2):
             inner = f'<img src="{e(loc(m["big"], depth))}" alt="{e(c["title"])}">'
         cls = "hero frame239" if c["kind"] == "film" else "hero"
         bits.append(f'<figure class="{cls}">{inner}</figure>')
-        if m["url"]:
+        if m["url"] and "youtube.com" not in m["url"] and "youtu.be" not in m["url"]:
             bits.append(f'<p class="rel"><a href="{e(m["url"])}">Watch ↗</a></p>')
     elif c["kind"] == "reel":
         bits.append(f'<figure class="hero frame239"><img src="{e(loc(m["big"] or m["thumb"], depth))}" alt=""></figure>')
@@ -429,7 +441,9 @@ def work_body(c, by_id, depth=2):
     elif c["kind"] == "sound":
         if m["big"]:
             bits.append(f'<figure class="hero frame239"><img src="{e(loc(m["big"], depth))}" alt=""></figure>')
-        if m["embed"]:
+        if c["slug"] == "to-go":
+            bits.append(f'<audio controls preload="none" src="{e(loc("media/pro2/audio/to-go.mp3", depth))}"></audio>')
+        elif m["embed"] and "youtube.com" not in m["embed"] and "youtu.be" not in (m["url"] or ""):
             bits.append(f'<p class="rel"><a href="{e(m["url"] or m["embed"])}">Listen ↗</a></p>')
     elif c["kind"] == "bio":
         bits.append('<div class="prose">' + "".join(f"<p>{e(p)}</p>" for p in BIO) + "</div>")
@@ -535,6 +549,7 @@ def scan():
         if p.name in ("reelshots.js", "joio.js"):
             continue
         text = p.read_text(encoding="utf-8", errors="replace")
+        text = text.replace("co-created with Joshua Ngenda", "")
         for word in bad:
             if word.lower() in text.lower():
                 hits.append(f"{p.relative_to(ROOT)} :: {word}")
