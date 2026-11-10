@@ -558,6 +558,7 @@ function gridSpec(key){
   var items=(b&&b.items&&(key===b.k||key===boardKey()))?b.items:(key==='progress'?progress:(CH[key]?CH[key].items:[]));
   var n=items.length||1;
   var fine=!!(b&&b.fine);
+  if(!fine&&CH[key])return boardSpec(key,items);
   var cols=n<=4?2:n<=9?3:(W<520?4:W<860?5:6);
   if(key==='about'&&n<=4)cols=1;
   var hero=!fine&&(key==='film'||key==='photo'||key==='objects');
@@ -577,7 +578,49 @@ function gridSpec(key){
   var y0=Math.max(62,(H-winH)/2);
   return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
 }
+/* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
+var BSPEC=null;
+function boardSpec(key,items){
+  var n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n;
+  if(BSPEC&&BSPEC.sig===sig)return BSPEC;
+  var maxW=Math.min(W-20,680),pad=10,gap=8,head=44;
+  var cols=key==='about'?(W<520?1:2):key==='sound'?(W<520?2:3):(W<520?3:W<860?4:6);
+  var tw=(maxW-pad*2-gap*(cols-1))/cols;
+  var cap=(key==='film'||key==='objects')?26:0;
+  var th=key==='about'?46:key==='sound'?tw*.62:key==='objects'?tw:tw*9/16;
+  var rects=[],bottom=0,i;
+  if(key==='photo'){
+    var colH=[];for(i=0;i<cols;i++)colH.push(0);
+    items.forEach(function(it){
+      var m=it.media||{},ar=(m.w&&m.h)?m.h/m.w:1,h=tw*Math.max(.62,Math.min(1.5,ar)),c=0;
+      for(i=1;i<cols;i++)if(colH[i]<colH[c]-1)c=i;
+      rects.push({x:c*(tw+gap),y:colH[c],w:tw,h:h});colH[c]+=h+gap;
+    });
+    bottom=Math.max.apply(null,colH);
+  }else{
+    var taken={},rowH=th+cap+gap;
+    function free(r,c,cs,rs){for(var a=0;a<rs;a++)for(var q=0;q<cs;q++)if(c+q>=cols||taken[(r+a)+':'+(c+q)])return false;return true}
+    items.forEach(function(it,j){
+      var cs=1,rs=1;
+      if(key==='film'&&cols>=3&&(j===0||j%10===6)){cs=2;rs=2}
+      if(key==='objects'&&cols>=3&&j%9===0){cs=2;rs=2}
+      if(key==='sound'&&j===0){cs=cols}
+      var r=0,c=0;
+      for(;;r++){var ok=false;for(c=0;c<cols;c++)if(free(r,c,cs,rs)){ok=true;break}if(ok)break}
+      for(var a=0;a<rs;a++)for(var q=0;q<cs;q++)taken[(r+a)+':'+(c+q)]=1;
+      var w=cs*tw+(cs-1)*gap,h=rs*th+(rs-1)*(cap+gap);
+      rects.push({x:c*(tw+gap),y:r*rowH,w:w,h:h});
+      bottom=Math.max(bottom,r*rowH+h+cap);
+    });
+  }
+  var contentH=head+bottom+10;
+  var winH=Math.min(Math.min(H-92,H*.86),contentH);
+  var y0=Math.max(62,(H-winH)/2);
+  BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
+  return BSPEC;
+}
 function tileRect(spec,i,scroll){
+  if(spec.rects){var t=spec.rects[i]||{x:0,y:0,w:0,h:0};return {x:spec.x0+spec.pad+t.x,y:spec.y0+spec.head+t.y-scroll,w:t.w,h:t.h}}
   var r=Math.floor(i/spec.cols),q=i%spec.cols;
   return {x:spec.x0+spec.pad+q*(spec.tw+spec.gap),y:spec.y0+spec.head+r*spec.pitch-scroll,w:spec.tw,h:spec.th};
 }
@@ -609,7 +652,7 @@ function waveFor(it){
 }
 function drawWindow(){
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())return;
-  if(cur.k==='about')return;
+  if(isBio())return;
   var b=cur.k==='progress'?pbloom:bloom;
   if(cur.lv!==1||b<.02||!boardKey()||(cur.k!=='progress'&&!CH[cur.k]))return;
   var spec=gridSpec(boardKey()),items=boardItems();
@@ -638,8 +681,7 @@ function drawWindow(){
     var sp0=sp(hx,hy);
     var w=lerp(4,rc.w,b),h=lerp(4,rc.h,b);
     var x=lerp(sp0[0],rc.x+rc.w/2,b)-w/2,y=lerp(sp0[1],rc.y+rc.h/2,b)-h/2;
-    if(spec.key==='film'&&!(db&&db.fine)){var z=1-(i%3)*0.07;w*=z;h*=z;x+=(i%2?16:-12)}
-    if(spec.key==='objects'&&!(db&&db.fine)){x+=(i%2?10:-8);y+=(i%3)*4}
+    if(spec.key==='objects'&&spec.board)y+=(i%3)*3;
     if(y>spec.y0+spec.winH||y+h<spec.y0)return;
     g.globalAlpha=Math.min(1,b*1.4);
     if(spec.key==='photo'&&!(db&&db.fine)&&it._im&&it.ld){
@@ -682,6 +724,13 @@ function drawWindow(){
         g.fillStyle='#e7f6c8';g.textAlign='left';g.textBaseline='middle';
         g.fillText(lab,x+w-lw-2,y+h-16);
       }
+    }else if(spec.key==='about'&&spec.board){
+      g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);
+      g.textAlign='left';g.textBaseline='middle';
+      g.font='400 13px "Julius Sans One",sans-serif';g.fillStyle=sel&&sel.id===it.id?'rgb('+MINT+')':'#e4ddd2';
+      g.fillText(cut(it.title,w-24),x+12,y+h*.38);
+      g.font='300 10px Poppins,sans-serif';g.fillStyle='rgba(228,221,210,.62)';
+      g.fillText(cut(it.meta||'',w-24),x+12,y+h*.7);
     }else if(it._im&&it.ld)cover(it._im,x,y,w,h,it._crop);
     else if(it._text||it.kind==='bio'||it.kind==='poem'||it.kind==='contact'||it.kind==='link'||it.kind==='track'){
       g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);
@@ -692,7 +741,12 @@ function drawWindow(){
     if(sel&&sel.id===it.id){g.strokeStyle='rgba('+MINT+',.95)';g.lineWidth=1.5;g.strokeRect(x-1,y-1,w+2,h+2);g.lineWidth=1}
     var capText=it._cap||it.title;
     if(/^photograph\s+\d+$/i.test(capText||'')||capText==='untitled')capText='';
-    if(b>.72&&spec.cap&&capText&&it.kind!=='track'&&spec.key!=='sound'){
+    if(b>.72&&spec.board&&spec.cap>=20&&capText){
+      g.globalAlpha=b;g.textAlign='left';g.textBaseline='top';
+      g.font='300 10.5px Poppins,sans-serif';g.fillStyle='#e4ddd2';g.fillText(cut(capText,w),x,y+h+3);
+      var ml=it.role||it.meta||'';
+      if(ml){g.font='300 9px Poppins,sans-serif';g.fillStyle=it.role?'rgba('+MINT+',.85)':'rgba(228,221,210,.6)';g.fillText(cut(ml,w),x,y+h+15)}
+    }else if(b>.72&&spec.cap&&capText&&it.kind!=='track'&&spec.key!=='sound'){
       g.globalAlpha=b;g.font='300 9px Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';
       g.fillStyle='rgba(233,239,248,.78)';g.fillText(cut(capText,w),x,y+h+1);
     }
@@ -1203,7 +1257,8 @@ function openSel(){
   sel=null;
 }
 var bioOn=0,bioLv=1,bioExit=0,bioMoon=0,grainOn=0;
-function bioActive(){return phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id&&!bioExit}
+function isBio(){return phase==='sky'&&cur.k==='about'&&cur.lv===2&&cur.id==='about/bio'}
+function bioActive(){return isBio()&&!bioExit}
 function paintGrain(){
   var c=$('grain');if(!c||grainOn)return;
   var w=180,h=320;c.width=w;c.height=h;
@@ -1213,11 +1268,12 @@ function paintGrain(){
 }
 var GL={bands:[],burst:0,w:0,h:0,frame:null,prev:null};
 function calcCrop(v,W,H){
-  var vw=v.videoWidth,vh=v.videoHeight,safe=vh*0.76;
+  var vw=v.videoWidth,vh=v.videoHeight,top=vh*0.14,safe=vh*0.76;
   var tx=vw*0.70,ty=vh*0.50,dar=W/Math.max(1,H),sw,sh,sx,sy;
   if(vw/safe>dar){sh=safe;sw=sh*dar}else{sw=vw;sh=sw/dar}
   sx=Math.max(0,Math.min(vw-sw,tx-sw/2));
-  sy=Math.max(0,Math.min(Math.max(0,safe-sh),ty-sh/2));
+  if(sh>safe-top){sh=safe-top;sw=sh*dar;sx=Math.max(0,Math.min(vw-sw,tx-sw/2))}
+  sy=Math.max(top,Math.min(Math.max(top,safe-sh),ty-sh/2));
   return {sx:sx,sy:sy,sw:sw,sh:sh,lx:(tx-sx)/sw,ly:(ty-sy)/sh};
 }
 function layoutCalc(){
@@ -1323,7 +1379,7 @@ function paintBio(flick){
 function syncBio(){
   var el=$('layers');if(!el)return;
   if(bioExit)return;
-  var active=phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id;
+  var active=isBio();
   if(!active){el.hidden=true;el.classList.remove('on','exit','moonfade');bioOn=0;bioMoon=0;return}
   if(!bioOn)bioLv=1;
   bioOn=1;if(bioLv<1)bioLv=1;if(bioLv>7)bioLv=7;
@@ -1356,7 +1412,7 @@ function enterMoon(){
 }
 function bioDeeper(){
   if(bioExit)return true;
-  if(!(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id))return false;
+  if(!isBio())return false;
   if(bioMoon)return true;
   if(bioLv>=7){enterMoon();return true}
   bioLv++;paintBio(true);ui();return true;
@@ -1372,15 +1428,15 @@ function startMoonExit(){
   setTimeout(function(){
     bioExit=0;bioOn=0;bioLv=1;bioMoon=0;
     el.hidden=true;el.classList.remove('on','exit','moonfade');
-    cur={lv:0,k:null,id:null};
+    cur={lv:1,k:'about',id:null};
     if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
-    history.pushState({u1:1,cur:{lv:0,k:null,id:null}},'','#/');
+    history.replaceState({u1:1,cur:{lv:1,k:'about',id:null}},'',hashOf(cur));
     arriveAt(cur,false);
   },760+1200);
 }
 function bioBack(){
   if(bioExit)return true;
-  if(!(bioOn||(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id)))return false;
+  if(!(bioOn&&isBio()))return false;
   if(bioMoon){
     bioMoon=0;
     var el=$('layers');
@@ -1435,14 +1491,14 @@ function ui(){
     var dst=GJ_DEPTH.state();
     if(dst&&dst.label)label=dst.label;
   }
-  if(bioOn&&cur.k==='about'&&!cur.id)label=bioMoon?'about · moon':'about · '+bioLv;
+  if(bioOn&&isBio())label=bioMoon?'about · moon':'about · '+bioLv;
   if(cur.lv===2&&cur.id&&byId[cur.id]&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())){
     var nm=byId[cur.id].title||'';
     if(!(/^photograph\s+\d+$/i.test(nm)||nm==='untitled'))label=nm;
   }
   if(window.GJ_DEPTH){var named=GJ_DEPTH.state();if(named&&named.label)label=named.label}
   where.textContent=label;
-  var bar=$('bar');if(bar)bar.classList.toggle('bio',!!(bioOn&&cur.k==='about'&&!cur.id));
+  var bar=$('bar');if(bar)bar.classList.toggle('bio',!!(bioOn&&isBio()));
   stage.setAttribute('aria-label',label);
   syncHire();
 }
@@ -1493,7 +1549,7 @@ function syncExtras(){
 }
 function drawMap(){
   var btn=$('mmap'),cv=$('mmapc');if(!btn||!cv)return;
-  var show=phase==='sky'&&!(bioOn&&cur.k==='about'&&!cur.id);
+  var show=phase==='sky'&&!(bioOn&&isBio());
   btn.hidden=!show;if(!show)return;
   var b={x0:1e9,y0:1e9,x1:-1e9,y1:-1e9};
   function inc(x,y){b.x0=Math.min(b.x0,x);b.x1=Math.max(b.x1,x);b.y0=Math.min(b.y0,y);b.y1=Math.max(b.y1,y)}
@@ -1543,7 +1599,7 @@ function fillPoem(){
   var letters='gill james'.split('').map(function(ch,i){
     return '<i style="animation-delay:'+(i*0.16).toFixed(2)+'s">'+(ch===' '?'&nbsp;':ch)+'</i>';
   }).join('');
-  el.innerHTML='<span class="wm"><span class="gj fade">'+letters+'</span><span class="gj">gill james</span></span><span id="typed"></span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
+  el.innerHTML='<span class="wm"><span class="gj fade">'+letters+'</span></span><span id="typed"></span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
   typePoem();
 }
 function typePoem(){

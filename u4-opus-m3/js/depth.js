@@ -625,6 +625,16 @@ function relHtml(work){
   });
   return bits.length?'<p class="rel">'+bits.join(' · ')+'</p>':'';
 }
+/* "Client · Name" keeps the name on one line and sets the client small above it. */
+function titleParts(t){
+  t=String(t||'');var i=t.lastIndexOf(' · ');
+  if(i<0)return {pre:'',name:t};
+  return {pre:t.slice(0,i),name:t.slice(i+3).replace(/^['‘’"“”]+|['‘’"“”]+$/g,'')};
+}
+function titleHtml(work){
+  var p=titleParts(work&&work.title);
+  return '<h2 class="tt">'+(p.pre?'<small>'+esc(p.pre)+'</small>':'')+esc(p.name)+'</h2>';
+}
 function creditList(work){
   var bits=(work.credits||[]).slice().filter(Boolean);
   if(work.role)bits=bits.filter(function(s){return s!==work.role});
@@ -640,7 +650,7 @@ function paintConstellation(el,work,withClip){
   var poster=m.big||m.thumb||'';
   var pack=fieldShots(work),list=pack.list||[],focus=pack.focus||0;
   if(!list.length)list=[{src:poster,t:0,clip:clip}];
-  el.innerHTML='<div class="filmfield" id="filmfield"><canvas id="zfield"></canvas><h2>'+esc(work.title)+'</h2></div>';
+  el.innerHTML='<div class="filmfield" id="filmfield"><canvas id="zfield"></canvas>'+titleHtml(work)+'</div>';
   var host=document.getElementById('filmfield');
   host._list=list;host._focus=focus;host._lines=0;host._work=work;
   if(withClip){
@@ -661,7 +671,7 @@ function paintCreditStars(el,work){
   if(!bits.length&&work.role)bits=[work.role];
   if(!bits.length)bits=[work.title];
   var lines=bits.map(function(c){return '<li>'+esc(c)+'</li>'}).join('');
-  el.innerHTML='<div class="credsky">'+(poster?'<img src="'+esc(poster)+'" alt="">':'')+'<h2>'+esc(work.title)+'</h2><ul class="credlist">'+lines+'</ul></div>';
+  el.innerHTML='<div class="credsky">'+(poster?'<img src="'+esc(poster)+'" alt="">':'')+''+titleHtml(work)+'<ul class="credlist">'+lines+'</ul></div>';
 }
 function boxOf(el){
   var r=el.getBoundingClientRect();
@@ -770,7 +780,7 @@ function paintNeighbours(el,work){
   var wall=list.map(function(s){
     return s.src?'<img src="'+esc(s.src)+'" alt="">':'';
   }).join('');
-  el.innerHTML='<div class="sheet film lv2 full"><h2>'+esc(work.title)+'</h2><div class="framewall near">'+wall+'</div></div>';
+  el.innerHTML='<div class="sheet film lv2 full">'+titleHtml(work)+'<div class="framewall near">'+wall+'</div></div>';
 }
 function paintFilm(el,work){
   var m=work.media||{};
@@ -787,7 +797,7 @@ function paintFilm(el,work){
       : (hero?'<img src="'+esc(hero)+'" alt="">':'');
     var role=work.role||'';
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
-    el.innerHTML='<div class="sheet film lv1 full"><h2>'+esc(work.title)+'</h2><div class="heroframe">'+media+'</div>'+
+    el.innerHTML='<div class="sheet film lv1 full">'+titleHtml(work)+'<div class="heroframe">'+media+'</div>'+
       (role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
     var v1=el.querySelector('video');
     if(v1){var p1=v1.play();if(p1&&p1.catch)p1.catch(function(){})}
@@ -802,7 +812,7 @@ function paintFilm(el,work){
       var shot=momentClip(s.src, work);
       return '<img src="'+esc(s.src)+'" data-hi="'+hi+'"'+(shot?' data-clip="'+esc(shot)+'"':'')+' alt="">';
     }).join('');
-    el.innerHTML='<div class="sheet film lv2 full"><h2>'+esc(work.title)+'</h2><div class="framewall">'+wall+'</div></div>';
+    el.innerHTML='<div class="sheet film lv2 full">'+titleHtml(work)+'<div class="framewall">'+wall+'</div></div>';
     if(filmLv===3){
       var imgs=el.querySelectorAll('.framewall img[data-hi="1"]');
       var im=imgs[filmFocus]||imgs[0];
@@ -821,7 +831,7 @@ function paintFilm(el,work){
       }
       return html;
     }
-    el.innerHTML='<div class="sheet film lv2 full"><h2>'+esc(work.title)+'</h2>'+
+    el.innerHTML='<div class="sheet film lv2 full">'+titleHtml(work)+''+
       '<div class="sprocket" id="rail"><div class="holes"></div><div class="band">'+band(0)+'</div><div class="holes"></div><i class="head" id="rhead"></i></div>'+
       '<div class="sprocket thin"><div class="holes"></div><div class="band">'+band(Math.max(1,step>>1))+'</div><div class="holes"></div></div>'+
       relHtml(work)+'</div>';
@@ -999,10 +1009,10 @@ function paintPiece(el){
     var face=work.media&&(work.media.big||work.media.thumb)||'';
     if(work.id==='objects/joio')face='media/pro2/img/objects/cup-top-960.webp';
     if(!face){
-      el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="empty-slot">no picture of this piece</div></div>';
+      el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="empty-slot">no picture of this piece</div></div>';
       return;
     }
-    el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="heroframe push"><img src="'+esc(face)+'" alt=""></div></div>';
+    el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="heroframe push"><img src="'+esc(face)+'" alt=""></div></div>';
     return;
   }
   if(piece.lv===2){
@@ -1010,7 +1020,7 @@ function paintPiece(el){
     var stills=shots.filter(function(s){return !s.clip&&s.src&&!/c\/00\./.test(s.src)}).slice(0,6);
     var show=(ordered.length?ordered.concat(stills):shots.filter(function(s){return s.src}).slice(0,18));
     if(!show.length){
-      el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="empty-slot">no process pictures for this piece</div></div>';
+      el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="empty-slot">no process pictures for this piece</div></div>';
       return;
     }
     var cells=show.map(function(s,i){
@@ -1018,7 +1028,7 @@ function paintPiece(el){
       var img=s.src?'<img src="'+esc(s.src)+'" alt="">':'';
       return '<figure'+(s.clip?' data-clip="'+esc(s.clip)+'"':'')+'>'+(vid||img)+'</figure>';
     }).join('');
-    el.innerHTML='<div class="sheet full cutsheet"><h2>'+esc(work.title)+'</h2><div class="cutgrid">'+cells+'</div></div>';
+    el.innerHTML='<div class="sheet full cutsheet">'+titleHtml(work)+'<div class="cutgrid">'+cells+'</div></div>';
     return;
   }
   if(fly){el.classList.add('on');return}
@@ -1041,7 +1051,7 @@ function paintPiece(el){
     el.innerHTML='<div class="herobleed"><img class="push" src="'+esc(stillFace)+'" alt=""></div>';
     return;
   }
-  el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="empty-slot">no moving picture of this piece</div></div>';
+  el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="empty-slot">no moving picture of this piece</div></div>';
 }
 function paintLayer(el){
   if(snd&&(fly||snd.empty)){
