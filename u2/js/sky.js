@@ -502,6 +502,19 @@ function tileRect(spec,i,scroll){
   var r=Math.floor(i/spec.cols),q=i%spec.cols;
   return {x:spec.x0+spec.pad+q*(spec.tw+spec.gap),y:spec.y0+spec.head+r*spec.pitch-scroll,w:spec.tw,h:spec.th};
 }
+var WAVES={"togo":[0.413,0.602,0.426,0.446,0.753,0.682,0.753,0.928,0.841,1,0.92,0.898,0.997,0.89,0.929,0.994,0.908,0.843],"gone":[0.744,0.749,0.896,0.879,0.875,0.874,0.877,0.871,0.887,0.89,0.896,0.918,0.94,0.922,0.987,0.968,1,0.687],"noproblem":[1,0.948,0.907,0.763,0.762,0.693,0.546,0.186,0.324,0.321,0.253,0.329,0.419,0.317,0.144,0.169,0.176,0.142],"lostintime":[0.496,0.651,1,0.724,0.496,0.663,0.961,0.756,0.443,0.649,0.967,0.749,0.667,0.579,0.955,0.564,0.646,0.598],"equals":[0.407,0.665,0.823,1,0.282,0.563,0.862,0.399,0.61,0.573,0.875,0.727,0.911,0.714,0.858,0.526,0.575,0.813],"ii":[0.697,0.897,0.689,0.92,0.804,0.749,0.904,0.698,0.669,0.658,0.924,1,0.7,0.909,0.731,0.926,0.839,0.736],"player":[0.602,1,0.908,0.749,0.89,1,0.948,0.321,0.176,0.651,0.649,0.646,0.665,0.573,0.575,0.897,0.658,0.839]};
+function waveFor(it){
+  var key=it.track&&it.track.k;
+  if(!key){
+    if(it.id==='sound/to-go')key='togo';
+    else if(it.id==='sound/mothers-moniker')key='gone';
+    else if(it.id==='sound/lost-coffee')key='lostintime';
+    else if(it.id==='sound/lost-coffee-apple-music')key='noproblem';
+    else if(it.id==='sound/waveform'||it.kind==='player')key='player';
+  }
+  var p=key&&WAVES[key];
+  return p&&p.length?p:null;
+}
 function drawWindow(){
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())return;
   if(cur.k==='about')return;
@@ -546,8 +559,12 @@ function drawWindow(){
     }else if(spec.key==='sound'&&!(db&&db.fine)){
       g.fillStyle='rgba(8,14,22,.72)';g.fillRect(x,y,w,h);
       g.fillStyle='rgba(85,218,161,.8)';
-      var bars=18,bi;
-      for(bi=0;bi<bars;bi++){var bh=(0.25+Math.abs(Math.sin(i*1.7+bi*0.55)))*(h*0.7);g.fillRect(x+8+bi*(w-16)/bars,y+h/2-bh/2,Math.max(2,(w-16)/bars-3),bh)}
+      var peaks=waveFor(it)||[],bars=peaks.length||18,bi;
+      for(bi=0;bi<bars;bi++){
+        var pk=peaks.length?peaks[bi]:(0.25+Math.abs(Math.sin(i*1.7+bi*0.55)));
+        var bh=(0.25+pk*0.75)*(h*0.7);
+        g.fillRect(x+8+bi*(w-16)/bars,y+h/2-bh/2,Math.max(2,(w-16)/bars-3),bh);
+      }
     }else if(it._im&&it.ld)cover(it._im,x,y,w,h,it._crop);
     else if(it._text||it.kind==='bio'||it.kind==='poem'||it.kind==='contact'||it.kind==='link'||it.kind==='track'){
       g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);

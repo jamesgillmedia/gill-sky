@@ -306,9 +306,11 @@ function build(ctx){
       role:'public art concept',
       meta:"recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive",
       body:"Spirit Eye of skwácháýs. A public art concept recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive.",
-      kind:'object',noPage:true,media:{},credits:["Best Public Art Concept","Council's Choice","BIDC Public Art Intensive"],
+      kind:'object',noPage:true,
+      media:{thumb:'media/pro2/img/objects/spirit-eye.webp',big:'media/pro2/img/objects/spirit-eye.webp'},
+      credits:["Best Public Art Concept","Council's Choice","BIDC Public Art Intensive"],
       shots:[
-        {text:'Spirit Eye of skwácháýs',src:''},
+        {text:'Spirit Eye of skwácháýs',src:'media/pro2/img/objects/spirit-eye.webp'},
         {text:'Best Public Art Concept',src:''},
         {text:"Council's Choice",src:''},
         {text:'BIDC Public Art Intensive',src:''}
