@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
-"""Generate this version's data.json and the static pages.
+"""Generate one version's data.json and its static pages.
 
-Run it from the version folder, or pass the folder:
+The folder you pass is the only place this writes. A copy of the folder
+is the next version: media, data, and pages stay inside it.
 
     python3 u3/build.py
     python3 u3/build.py u3
+    python3 u4/build.py u4
 
-Pages work with JavaScript off. Media stays inside that folder.
+Pages work with JavaScript off. Paths in the pages are relative to that folder.
 """
 import html
 import json
@@ -16,7 +18,15 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 SRC = Path("/tmp/src/gilljames")
-W7 = (SRC / "site-v3-pro3/w7/index.html").read_text(encoding="utf-8")
+W7 = ""
+
+
+def load_source():
+    global W7
+    path = SRC / "site-v3-pro3/w7/index.html"
+    if not path.is_file():
+        raise SystemExit("shared source is not available: " + str(path))
+    W7 = path.read_text(encoding="utf-8")
 PRO2 = "https://jamesgillmedia.github.io/gilljames/site-v3-pro2/"
 SITE = "https://jamesgillmedia.github.io/gilljames/"
 EMAIL = "imjamesgill@gmail.com"
@@ -513,6 +523,7 @@ def work_body(c, by_id, depth=2):
 
 def main():
     global TRACKS
+    load_source()
     creds = credits_from_copy()
     TRACKS = tracks()
     names = {"film": "film", "photo": "photo", "objects": "objects", "sound": "sound", "about": "about"}
@@ -576,8 +587,17 @@ def scan():
         raise SystemExit("public-text scan failed:\n" + "\n".join(hits))
 
 
+def version_root(argv):
+    if len(argv) > 1:
+        root = Path(argv[1]).expanduser().resolve()
+    else:
+        root = Path(__file__).resolve().parent
+    if not (root / "index.html").is_file():
+        raise SystemExit("not a version folder (no index.html): " + str(root))
+    return root
+
+
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) > 1:
-        ROOT = Path(sys.argv[1]).resolve()
+    ROOT = version_root(sys.argv)
     main()

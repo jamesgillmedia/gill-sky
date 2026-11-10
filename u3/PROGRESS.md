@@ -2,6 +2,10 @@
 
 u3 is a copy of u2. u2 is not edited.
 
+## How a version copies
+
+Copy this folder to make the next one. `build.py` writes only into the folder you pass (`python3 u4/build.py u4`). Data and media paths are relative to that folder. The shell cache and the “seen the arrival” memory use the folder’s own path, so two versions on the same site do not share them. This file stays in the folder as the checkpoint. A rebuild does not replace it.
+
 ## Milestone 1
 
 The folder came up as u2, with its own shell cache. Rough arrival and sky: `u3-rough-arrival.png`, `u3-rough-sky.png`.

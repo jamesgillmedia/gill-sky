@@ -341,9 +341,9 @@ $('dive').onclick=function(e){e.stopPropagation();goIn()};
 $('rise').onclick=function(e){e.stopPropagation();goOut()};
 $('home').addEventListener('click',function(e){e.preventDefault();
   if(mode==='in'||mode==='diving'||mode==='rising')goOut();
-  else {try{parent.postMessage('u2-sound-out','*')}catch(err){}}
+  else {try{parent.postMessage('sound-out','*')}catch(err){}}
 });
-if(parent!==window)document.body.classList.add('in-u2');
+if(parent!==window)document.body.classList.add('in-frame');
 $('pp').onclick=function(){if(au.paused){vol(1);au.play()}else au.pause()};
 addEventListener('popstate',function(){if(mode==='in'||mode==='diving')goOut(true)});
 /* fat-finger guard: WebKit/iOS touch adjustment (and Chrome's touch-area hit test) turn a near-miss tap into a click on a nearby
@@ -401,7 +401,7 @@ var sentOut=0;
 function pinchMove(t){var q=two(),z=Math.max(ZMIN,Math.min(ZMAX,PZ.z0*q.d/PZ.d0));
   if(mode==='in'&&z<=1.2&&q.d<PZ.d0*0.82){goOut();return}
   if(mode==='sky'&&z<=1.02&&q.d<PZ.d0*0.8&&PZ.z0<=1.15){
-    if(!sentOut){sentOut=1;try{parent.postMessage('u2-sound-out','*')}catch(e){}}
+    if(!sentOut){sentOut=1;try{parent.postMessage('sound-out','*')}catch(e){}}
     return;
   }
   if(mode==='sky'&&z>2.6)goIn();

@@ -1,5 +1,8 @@
-/* Shell only. Video and audio are never stored; everything else off this origin streams. */
-var CACHE = 'u3-shell-4';
+/* Shell only. Video and audio are never stored; everything else off this origin streams.
+   The cache name follows this folder, so a copy (u4 beside u3) does not share a shell. */
+var SHELL_REV = '5';
+var FOLDER = new URL('./', self.location).pathname.replace(/\/+$/, '') || '/';
+var CACHE = 'shell-' + FOLDER + '-' + SHELL_REV;
 var SHELL = [
   './',
   './index.html',

@@ -914,7 +914,7 @@ function bind(){
   window.addEventListener('pointermove',onPtrMove,true);
   window.addEventListener('pointerup',onPtrUp,true);
   window.addEventListener('pointercancel',onPtrUp,true);
-  window.addEventListener('message',function(e){if(e.data==='u2-sound-out')back()});
+  window.addEventListener('message',function(e){if(e.data==='sound-out')back()});
   $('dive').addEventListener('click',function(e){e.stopPropagation();dive()});
   $('back').addEventListener('click',function(e){e.stopPropagation();back()});
   $('crumb').querySelector('.sig').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();back()});
@@ -1487,9 +1487,14 @@ function nextLand(){
   if(landI>=lands.length-1){enterSky(false);return}
   landI++;landT=now();showLand();
 }
+function seenKey(){
+  var p=location.pathname.replace(/index\.html$/,'');
+  if(p.slice(-1)!=='/')p=p.replace(/\/[^/]*$/,'/');
+  return 'seen:'+p;
+}
 function dive(){
   if(phase!=='arrive'&&phase!=='fly')return;
-  try{sessionStorage.setItem('u2-seen','1')}catch(e){}
+  try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
   if(RM){enterSky(true);return}
   if(phase==='fly'){enterSky(true);return}
   phase='fly';flyT=now();flyU=0;setChrome();
@@ -1510,7 +1515,7 @@ function ripples(){
 }
 function enterSky(instant){
   phase='sky';
-  try{sessionStorage.setItem('u2-seen','1')}catch(e){}
+  try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
   setChrome();
   if(!history.state||!history.state.u1)history.replaceState({u1:1,cur:{lv:cur.lv,k:cur.k,id:cur.id}},'',hashOf(cur));
   arriveAt(cur,instant||RM);
@@ -1518,7 +1523,7 @@ function enterSky(instant){
 function decide(){
   var hash=location.hash||'';
   var deep=hash&&hash!=='#'&&hash!=='#/';
-  var seen=false;try{seen=sessionStorage.getItem('u2-seen')==='1'}catch(e){}
+  var seen=false;try{seen=sessionStorage.getItem(seenKey())==='1'}catch(e){}
   var forceArrive=Q.get('arrive')==='1';
   var forceSky=Q.get('sky')==='1'||Q.get('arrive')==='0';
   var forceLand=Q.get('land')==='1';
