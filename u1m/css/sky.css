@@ -1,0 +1,115 @@
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:Poppins;font-weight:200;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/poppins-200.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/julius-sans-one.woff2) format("woff2")}
+@font-face{font-family:Syl;font-weight:700;font-display:block;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
+:root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--mint:#55DAA1;--line:rgba(255,255,255,.16);
+ --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden}
+body{font:300 14px/1.45 Poppins,Syl,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+button,a{font:inherit;color:inherit}
+button{background:none;border:0;padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent}
+a{text-decoration:none}
+#stage{position:fixed;inset:0;background:
+ radial-gradient(120% 80% at 50% 42%,#121c2e 0%,#070d18 52%,#04070b 100%);
+ touch-action:none}
+canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.water{position:absolute;inset:0;background:#061018 center/cover no-repeat;
+ background-image:url(https://jamesgillmedia.github.io/gilljames/site-v2/img/hero/water-1600.webp);
+ opacity:0;transition:opacity 1s ease;pointer-events:none}
+.water.on{opacity:1}
+.water::after{content:"";position:absolute;inset:0;background:
+ radial-gradient(ellipse at 50% 30%,transparent 0%,rgba(4,7,11,.25) 50%,rgba(4,7,11,.82) 100%)}
+.moon{position:absolute;right:16%;top:calc(7% + var(--st));width:46px;height:46px;border-radius:50%;
+ box-shadow:-13px 2px 0 0 #f3ecdf;filter:drop-shadow(0 0 16px rgba(243,236,223,.55));
+ opacity:0;transition:opacity 1.2s ease;pointer-events:none}
+.moon.on{opacity:.95}
+.path{position:absolute;left:0;right:0;top:16%;bottom:0;pointer-events:none;opacity:0;transition:opacity 1.2s .2s;
+ background:linear-gradient(180deg,rgba(243,236,223,.28),rgba(243,236,223,.05) 42%,transparent 68%);
+ clip-path:polygon(63% 0,71% 0,56% 78%,48% 78%);mix-blend-mode:screen}
+.path.on{opacity:.85}
+.horizon{position:absolute;left:8%;right:8%;top:61%;height:1px;pointer-events:none;opacity:0;
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transition:opacity 1s}
+.horizon.on{opacity:.7}
+.dust{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1s}
+.dust.on{opacity:.7}
+.dust i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.55}
+.poem{position:absolute;left:0;right:0;top:46%;padding:0 8vw;text-align:center;pointer-events:none;
+ opacity:0;transition:opacity .8s ease}
+.poem.on{opacity:1}
+.poem span{display:block;font-weight:200;font-size:clamp(14px,3.6vw,18px);line-height:1.45;letter-spacing:.02em;text-shadow:0 1px 8px rgba(0,0,0,.65)}
+.poem .sig{font-family:Syl,sans-serif;font-weight:700;font-size:26px;margin-top:8px;text-shadow:1px 0 rgba(10,189,240,.7),-1px 0 rgba(254,1,1,.5)}
+#dive{position:absolute;left:50%;bottom:calc(18px + var(--sb));transform:translateX(-50%);
+ min-height:44px;padding:0 18px;border:1px solid rgba(255,255,255,.28);border-radius:22px;
+ letter-spacing:.16em;text-transform:lowercase;font-size:12px;color:var(--dim);
+ background:rgba(4,7,11,.35);opacity:0;pointer-events:none}
+#dive.on{opacity:1;pointer-events:auto}
+#land{position:absolute;inset:0;z-index:4;background:#04070b;display:none}
+#land.on{display:block}
+#land img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#land p{position:absolute;left:max(18px,var(--sl));bottom:calc(22px + var(--sb));margin:0;
+ font:400 clamp(22px,6vw,40px)/1.1 "Julius Sans One",sans-serif;letter-spacing:.04em;
+ text-shadow:0 2px 16px rgba(0,0,0,.7)}
+#bar{position:absolute;z-index:5;left:0;right:0;top:0;display:none;align-items:center;gap:8px;
+ padding:calc(4px + var(--st)) max(10px,var(--sr)) 6px max(8px,var(--sl));
+ background:linear-gradient(rgba(4,7,11,.78),rgba(4,7,11,0))}
+#bar.on{display:flex}
+#back{min-width:44px;min-height:44px;font-size:22px;color:var(--dim)}
+#back[hidden]{display:none}
+#crumb{flex:1;min-width:0;margin:0;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--dim);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#crumb .sig{font-family:Syl,sans-serif;font-weight:700;font-size:16px;letter-spacing:0;color:#fff;
+ text-shadow:1px 0 rgba(10,189,240,.75),-1px 0 rgba(254,1,1,.55);padding:10px}
+#bar .nav a{min-height:44px;display:inline-grid;place-items:center;padding:0 8px;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+#layer{position:absolute;z-index:6;left:0;right:0;bottom:0;top:0;display:none;pointer-events:none}
+#layer.on{display:block}
+#layer .sheet{position:absolute;left:0;right:0;bottom:0;max-height:100%;overflow:auto;
+ padding:12px max(14px,var(--sr)) calc(16px + var(--sb)) max(14px,var(--sl));
+ background:linear-gradient(rgba(4,7,11,.2),rgba(4,7,11,.88) 18%,rgba(4,7,11,.94));
+ pointer-events:auto;-webkit-overflow-scrolling:touch}
+#layer .sheet.full{top:0;background:rgba(4,7,11,.78)}
+.frame239{position:relative;width:100%;aspect-ratio:2.39/1;background:#000;overflow:hidden;border-radius:2px}
+.frame239 img,.frame239 video,.frame239 iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}
+.frame239 img,.frame239 video{object-fit:contain}
+.rail{position:relative;height:36px;margin:8px 2px 0;touch-action:none}
+.rail canvas{width:100%;height:100%;display:block}
+.rail .head{position:absolute;top:4px;bottom:4px;width:1px;background:#fff;box-shadow:0 0 6px #fff;pointer-events:none}
+.strip{display:flex;gap:4px;overflow-x:auto;padding:8px 0 2px}
+.strip button{flex:0 0 auto;padding:0;border-radius:2px}
+.strip img{display:block;height:46px;width:auto;aspect-ratio:2.39/1;object-fit:cover}
+.strip .on img{outline:1px solid var(--mint);outline-offset:1px}
+.sheet h2{margin:10px 0 0;font:400 clamp(20px,5vw,32px)/1.1 "Julius Sans One",sans-serif;letter-spacing:.03em}
+.role{margin:4px 0 0;color:var(--mint);font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.meta{margin:4px 0 0;color:var(--dim);font-size:12px}
+.credits{margin:8px 0 0;padding:0;list-style:none;color:var(--dim);font-size:13px}
+.rel{margin:8px 0 0;font-size:13px}
+.rel a{color:var(--mint)}
+.play{min-height:44px;padding:0 16px;margin-top:8px;border:1px solid rgba(85,218,161,.55);border-radius:22px;letter-spacing:.12em;font-size:12px}
+.stillbig{display:block;width:100%;max-height:70vh;object-fit:contain;background:#000;margin:0 auto}
+.poemcard span{display:block;font-weight:200;font-size:16px;line-height:1.5}
+.poemcard .sig{font-family:Syl,sans-serif;font-weight:700;font-size:24px;margin-top:8px}
+.reel{position:absolute;inset:0;background:#000;pointer-events:auto;display:flex;flex-direction:column}
+.reel .stage{position:relative;flex:1;min-height:0;background:#000}
+.reel .stage img,.reel .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.reel.fit .stage img,.reel.fit .stage video{object-fit:contain;background:#000}
+.reel .ui{display:flex;align-items:center;gap:8px;padding:6px 10px;color:var(--dim);font-size:11px;letter-spacing:.08em}
+.reel .ui b{color:var(--ink);font-weight:300;letter-spacing:.04em}
+.reel .ui button{min-height:36px;padding:0 8px}
+.reel .fs{position:relative;height:44px;overflow:hidden;background:#05070c}
+.reel .fs .row{position:absolute;top:2px;height:40px;display:flex;will-change:transform}
+.reel .fs i{flex:0 0 40px;height:40px;background:#111 center/cover no-repeat}
+.snd{position:absolute;left:0;right:0;bottom:0;pointer-events:auto;
+ padding:12px max(12px,var(--sr)) calc(10px + var(--sb)) max(12px,var(--sl));
+ background:linear-gradient(transparent,rgba(4,7,11,.92) 30%)}
+.snd .row{display:flex;align-items:center;gap:8px}
+.snd .who{flex:1;min-width:0}
+.snd .who b{display:block;font:400 14px/1.2 "Julius Sans One",sans-serif;letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.snd .who small{color:var(--dim);letter-spacing:.12em;text-transform:uppercase;font-size:10px}
+.snd .wf{width:100%;height:42px;display:block;margin-top:4px;touch-action:none}
+.lic{margin:4px 0 0;text-align:center;font-size:10px;letter-spacing:.14em;color:rgba(201,211,214,.7)}
+.lic a{color:var(--mint)}
+.joio-stage{display:grid;grid-template-columns:1fr;gap:8px}
+.joio-stage video{width:100%;max-height:62vh;background:#000;object-fit:contain}
+.joio-row{display:flex;gap:6px;overflow-x:auto}
+.joio-row button{flex:0 0 72px;padding:0}
+.joio-row img,.joio-row video{width:72px;height:96px;object-fit:cover;display:block;background:#000}
