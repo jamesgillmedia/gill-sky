@@ -46,3 +46,9 @@ h1{margin:8px 0 0;font:400 clamp(28px,6vw,52px)/1.05 "Julius Sans One",sans-seri
 .joio{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 .joio video,.joio img{width:100%;display:block;background:#000;border-radius:2px}
 audio{width:min(100%,520px);margin:8px 0}
+html.js audio.fallback{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.sketch{margin:16px 0 0;padding:12px;background:#070b12;border:1px solid rgba(255,255,255,.12);border-radius:8px;max-width:520px}
+.sketch .row{display:flex;align-items:center;gap:12px}
+.sketch .play{min-height:44px;padding:0 16px;border:1px solid rgba(85,218,161,.6);border-radius:22px;background:transparent;color:#e8eef6;letter-spacing:.12em;font-size:12px}
+.sketch canvas{display:block;width:100%;height:64px;margin-top:8px}
+.sketch .time{display:block;margin-top:6px;font-size:12px;letter-spacing:.08em;color:#c9d3d6}
