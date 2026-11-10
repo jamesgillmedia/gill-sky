@@ -32,7 +32,8 @@ Close-ups, the nine fixes, the depth budget, the gaps, and the song player. The 
 - Photo: loose stacks, contact sheet, one print full-bleed with a slow push, grain crops of that print. Four levels under the board. The print that opens is the one under your finger, chosen before the zoom moves the sheet.
 - Sound: dotted star chart, the player, inside the waveform, then among the stars as the audio moves. Four levels. Pinching out reverses that order.
 - Objects: board (a cup), the object close-up, process and the joio clips, full-bleed clip with Spirit Eye beside it. Four levels.
-- About: seven calculator layers, then the moon grid. Eight levels. Pinching out from the moon returns to layer 7. Pinching out from layer 1 returns to the sky.
+- About: seven calculator layers, then the moon grid. Eight levels. Pinching out from the moon returns to layer 7. Pinching out from layer 1 is the moon-grid exit: the grid plays, then it fades back to the sky.
+- Opening a chapter flies into that constellation until the outer nodes leave the screen, then the spring eases to a stop. The work window still fills the phone. A pinch scales from the spot you touched. Weird Kid’s frames bloom into the mosaic.
 
 Stars frame sound only. Film credits are a list on the still. The sky itself is still night water.
 

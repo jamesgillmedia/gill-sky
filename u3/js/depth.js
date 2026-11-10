@@ -5,7 +5,7 @@
 (function(){
 'use strict';
 var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0, filmSrc='', snd=null;
-var PL={on:0,e:0,t0:0,busy:0,applied:0,pending:null};
+var PL={on:0,e:0,t0:0,busy:0,applied:0,pending:null,ox:0,oy:0};
 var FX={t0:0,life:0,fly:0};
 var BOK=[], SPR=null;
 
@@ -56,7 +56,7 @@ function tick(now){
     if(age>1)FX.life=0;
   }
 }
-function fly(u){FX.fly=u;if(u>0&&!BOK.length)spawn(16)}
+function rush(u){FX.fly=u;if(u>0&&!BOK.length)spawn(16)}
 function viewScale(){
   if(!PL.on)return 1;
   var e=PL.e;
@@ -494,6 +494,8 @@ function planOut(api){
 }
 function pinchIn(x,y,api){
   if(PL.busy)return true;
+  if(typeof x==='number')PL.ox=x;
+  if(typeof y==='number')PL.oy=y;
   var act=planIn(x,y,api);
   if(!act)return false;
   PL.busy=1;PL.pending=act;PL.applied=0;PL.on=1;PL.e=0;PL.t0=performance.now();
@@ -1047,9 +1049,10 @@ function state(){
 }
 
 window.GJ_DEPTH={
-  tick:tick, fly:fly, burst:burst, viewScale:viewScale, drawFx:drawFx,
+  tick:tick, fly:rush, burst:burst, viewScale:viewScale, drawFx:drawFx,
   pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
   paintField:paintField, board:function(){return board}, soundOn:function(){return soundOn},
-  state:state
+  state:state,
+  origin:function(){return {x:PL.ox||0,y:PL.oy||0}}
 };
 })();

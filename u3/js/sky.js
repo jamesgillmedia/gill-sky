@@ -215,9 +215,13 @@ function camFor(st){
   if(st.lv===2&&st.id&&byId[st.id]&&byId[st.id].kind==='player'){
     var c=CH.sound,e=c.ex;return fitBox({x0:c.x+e.x0,y0:c.y+e.y0,x1:c.x+e.x1,y1:c.y+e.y1},70,160);
   }
-  /* a short dolly toward the chapter. The board itself is a window in the sky, not a zoom that fills the phone. */
-  if(st.k==='progress')return {x:0,y:36,s:FAR.s*1.28};
-  if(CH[st.k])return {x:CH[st.k].x*0.18,y:CH[st.k].y*0.14,s:FAR.s*1.32};
+  /* Dive into the constellation. The scale is past a snug fit, so the outer nodes leave the screen, and the spring eases to a stop. The work window still takes the phone. */
+  if(st.k==='progress')return {x:0,y:36,s:Math.max(FAR.s*2.6,0.85)};
+  if(CH[st.k]){
+    var ch=CH[st.k],ex=ch.ex;
+    var fit=fitBox({x0:ch.x+ex.x0,y0:ch.y+ex.y0,x1:ch.x+ex.x1,y1:ch.y+ex.y1},36,28);
+    return {x:fit.x,y:fit.y,s:fit.s*1.45};
+  }
   return FAR;
 }
 function aim(s,t,instant){s.t=t;s.w=(instant||RM)?40:W_GLIDE;if(instant||RM){s.x=t;s.v=0}}
@@ -288,10 +292,15 @@ function frame(t){
   if(phase==='land'&&!RM&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   stepSprings(dt);if(playing)listen();
   if(CHIMES.length)chStep(dt);
-  if(window.GJ_DEPTH){GJ_DEPTH.tick(t);if(phase==='fly')GJ_DEPTH.fly(flyU)
-    var psc=GJ_DEPTH.viewScale(),pel=$('layer'),psnd=$('snd');
-    if(pel)pel.style.transform=psc!==1?'scale('+psc.toFixed(3)+')':'';
-    if(psnd)psnd.style.transform=psc!==1?'scale('+psc.toFixed(3)+')':'';
+  if(window.GJ_DEPTH){
+    try{
+      GJ_DEPTH.tick(t);
+      if(phase==='fly'&&typeof GJ_DEPTH.fly==='function')GJ_DEPTH.fly(flyU);
+      var psc=GJ_DEPTH.viewScale(),pel=$('layer'),psnd=$('snd'),og=GJ_DEPTH.origin();
+      var org=(og.x||W/2)+'px '+(og.y||H*0.46)+'px';
+      if(pel){pel.style.transformOrigin=org;pel.style.transform=psc!==1?'scale('+psc.toFixed(3)+')':''}
+      if(psnd){psnd.style.transformOrigin=org;psnd.style.transform=psc!==1?'scale('+psc.toFixed(3)+')':''}
+    }catch(err){}
   }
   draw(t);
   drawGlitch(t);
@@ -304,8 +313,9 @@ function frame(t){
 function farA(){var z=rest.s/Math.max(1e-4,FAR.s);return clamp(1-(z-1.15)/1.5,0,1)}
 function draw(t){
   var sc=window.GJ_DEPTH?GJ_DEPTH.viewScale():1;
+  var og=window.GJ_DEPTH?GJ_DEPTH.origin():{x:W/2,y:H*0.46};
   g.setTransform(DPR,0,0,DPR,0,0);
-  if(sc!==1){g.translate(W/2,H*0.46);g.scale(sc,sc);g.translate(-W/2,-H*0.46)}
+  if(sc!==1){g.translate(og.x,og.y);g.scale(sc,sc);g.translate(-og.x,-og.y)}
   g.clearRect(-W,-H,W*3,H*3);
   if(phase==='arrive'||phase==='fly'){drawMark(phase==='fly'?ease(flyU):0);return}
   if(phase==='land')return;
@@ -1248,6 +1258,7 @@ function paintBio(flick){
 }
 function syncBio(){
   var el=$('layers');if(!el)return;
+  if(bioExit)return;
   var active=phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id;
   if(!active){el.hidden=true;el.classList.remove('on','exit','moonfade');bioOn=0;bioMoon=0;return}
   if(!bioOn)bioLv=1;
@@ -1267,19 +1278,31 @@ function enterMoon(){
   ui();
 }
 function bioDeeper(){
+  if(bioExit)return true;
   if(!(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id))return false;
   if(bioMoon)return true;
   if(bioLv>=7){enterMoon();return true}
   bioLv++;paintBio(true);ui();return true;
 }
-function leaveAbout(){
-  bioMoon=0;bioOn=0;bioLv=1;
-  var el=$('layers');
-  if(el){el.hidden=true;el.classList.remove('on','exit','moonfade')}
-  if(history.state&&history.state.u1&&cur.lv>0)history.back();
-  else {cur={lv:0,k:null,id:null};if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());arriveAt(cur,false);ui()}
+function startMoonExit(){
+  if(bioExit)return;
+  bioExit=1;bioMoon=0;
+  var el=$('layers');if(!el){bioExit=0;return}
+  var moon=$('moons');
+  if(moon){moon.muted=true;var p=moon.play();if(p&&p.catch)p.catch(function(){})}
+  el.classList.add('exit');
+  setTimeout(function(){el.classList.add('moonfade')},760);
+  setTimeout(function(){
+    bioExit=0;bioOn=0;bioLv=1;bioMoon=0;
+    el.hidden=true;el.classList.remove('on','exit','moonfade');
+    cur={lv:0,k:null,id:null};
+    if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
+    history.pushState({u1:1,cur:{lv:0,k:null,id:null}},'','#/');
+    arriveAt(cur,false);
+  },760+1200);
 }
 function bioBack(){
+  if(bioExit)return true;
   if(!(bioOn||(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id)))return false;
   if(bioMoon){
     bioMoon=0;
@@ -1289,7 +1312,7 @@ function bioBack(){
     return true;
   }
   if(bioLv>1){bioLv--;paintBio(true);ui();return true}
-  leaveAbout();return true;
+  startMoonExit();return true;
 }
 function deeper(x,y){
   if(phase!=='sky')return;

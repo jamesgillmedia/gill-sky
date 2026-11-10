@@ -12,7 +12,7 @@ Stars may frame music only. Sound’s dotted waveform and its deepest “among t
 
 The work leads. Below the sky, the work gets more of the phone than the stars. One camera. Pinch to go deeper. Pinch out reverses in that same order. Every zoom grows from the spot you touched.
 
-The journey stays: touch the water, the plunge, the dive into a chapter, the Weird Kid frames opening into a mosaic, the push into a frame until it is full-bleed, the About glitch building with depth, the moon-grid exit, the minimap, and the glyph shortcuts.
+The journey stays: touch the water, the plunge with the near-lens bokeh, the dive into a chapter until the outer nodes leave the screen and the spring eases to a stop, a pinch that grows from the spot you touched, the Weird Kid frames blooming into a mosaic, the push into a frame until it is full-bleed, the About glitch building with depth, the moon-grid exit, the minimap, and the glyph shortcuts.
 
 Motion is the same with Reduce Motion on. `RM` stays false.
 
