@@ -245,6 +245,14 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 #lrail i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);display:block}
 #lrail i.on{background:#e7f6c8;box-shadow:0 0 8px #e7f6c8}
 #lrail b{font-size:10px;letter-spacing:.14em;font-weight:400;color:rgba(236,244,230,.85)}
+.heroframe{position:relative;width:88%;height:56vh;margin:12px auto 0;overflow:hidden;background:#000}
+.heroframe img,.heroframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.enterframe{position:fixed;z-index:12;overflow:hidden;background:#000;transition:left .9s cubic-bezier(.22,.7,.2,1),top .9s cubic-bezier(.22,.7,.2,1),width .9s cubic-bezier(.22,.7,.2,1),height .9s cubic-bezier(.22,.7,.2,1)}
+.enterframe img,.enterframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.enterframe video{opacity:0;transition:opacity .4s linear .4s}
+.enterframe.in video{opacity:1}
+.enterframe .entercap{position:absolute;left:16px;right:16px;bottom:calc(28px + var(--sb));opacity:0;transition:opacity .4s linear .55s}
+.enterframe.in .entercap{opacity:1}
 .herobleed{position:absolute;inset:0;background:#04070b;overflow:hidden}
 .herobleed img,.herobleed video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000}
 .herobleed h2{position:absolute;left:16px;right:16px;bottom:calc(36px + var(--sb));margin:0;text-shadow:0 2px 16px #04070b}

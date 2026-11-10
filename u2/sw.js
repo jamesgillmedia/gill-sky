@@ -1,5 +1,5 @@
 /* Shell only. Video and audio are never stored; everything else off this origin streams. */
-var CACHE = 'u2-shell-12';
+var CACHE = 'u2-shell-14';
 var SHELL = [
   './',
   './index.html',
