@@ -27,7 +27,7 @@ Real media only. No invented copy, no invented credits, no YouTube. Approved fam
 Film can go deepest. Every other medium has at least four levels and a real bottom.
 
 - Photo: loose stacks, contact sheet, one print, grain crops of that same print.
-- Sound: star chart, the song’s picture, the player inside the waveform, then among the stars as the audio moves.
+- Sound: star chart, the player, inside the waveform, then among the stars as the audio moves.
 - Objects: the board, the object close-up, process and detail, then a full-bleed joio clip with Spirit Eye beside it.
 - About: the calculator, seven layers, then the moon grid.
 

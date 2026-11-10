@@ -168,7 +168,7 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
  padding:12px max(14px,var(--sr)) calc(16px + var(--sb)) max(14px,var(--sl));
  background:linear-gradient(rgba(4,7,11,.2),rgba(4,7,11,.88) 18%,rgba(4,7,11,.94));
  pointer-events:auto;-webkit-overflow-scrolling:touch}
-#layer .sheet.full{top:0;background:rgba(4,7,11,.78);padding-top:calc(64px + var(--st))}
+#layer .sheet.full{top:0;background:#04070b;padding-top:calc(64px + var(--st))}
 #layer .sheet.film,#layer .sheet.cutsheet{background:#04070b;padding-top:calc(68px + var(--st))}
 .frame239{position:relative;width:100%;aspect-ratio:2.39/1;background:#000;overflow:hidden;border-radius:2px}
 .frame239 img,.frame239 video,.frame239 iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#000}

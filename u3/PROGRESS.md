@@ -30,9 +30,9 @@ Close-ups, the nine fixes, the depth budget, the gaps, and the song player. The 
 - Film, Weird Kid: framed hero, frame wall, full-bleed still, neighbouring frames, Kiesza, credits as a list. Six levels.
 - Film, other pieces with frames: hero, wall, full-bleed, the frame field, credits. Five levels.
 - Photo: loose stacks, contact sheet, one print full-bleed with a slow push, grain crops of that print. Four levels under the board. The print that opens is the one under your finger, chosen before the zoom moves the sheet.
-- Sound: dotted star chart, the cover full-bleed with the peaks in motion, the player inside the waveform, then further in among the stars. Four levels.
+- Sound: dotted star chart, the player, inside the waveform, then among the stars as the audio moves. Four levels. Pinching out reverses that order.
 - Objects: board (a cup), the object close-up, process and the joio clips, full-bleed clip with Spirit Eye beside it. Four levels.
-- About: seven calculator layers, then the moon grid.
+- About: seven calculator layers, then the moon grid. Eight levels. Pinching out from the moon returns to layer 7. Pinching out from layer 1 returns to the sky.
 
 Stars frame sound only. Film credits are a list on the still. The sky itself is still night water.
 

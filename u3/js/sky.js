@@ -1128,7 +1128,7 @@ function openSel(){
   }
   sel=null;
 }
-var bioOn=0,bioLv=1,bioExit=0,grainOn=0;
+var bioOn=0,bioLv=1,bioExit=0,bioMoon=0,grainOn=0;
 function bioActive(){return phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id&&!bioExit}
 function paintGrain(){
   var c=$('grain');if(!c||grainOn)return;
@@ -1248,42 +1248,48 @@ function paintBio(flick){
 }
 function syncBio(){
   var el=$('layers');if(!el)return;
-  if(bioExit)return;
   var active=phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id;
-  if(!active){el.hidden=true;el.classList.remove('on','exit','moonfade');bioOn=0;return}
+  if(!active){el.hidden=true;el.classList.remove('on','exit','moonfade');bioOn=0;bioMoon=0;return}
   if(!bioOn)bioLv=1;
   bioOn=1;if(bioLv<1)bioLv=1;if(bioLv>7)bioLv=7;
   el.hidden=false;el.classList.add('on');
+  if(bioMoon){el.classList.add('exit');el.classList.remove('moonfade');return}
+  el.classList.remove('exit','moonfade');
   paintGrain();paintBio(false);
 }
-function bioDeeper(){
-  if(bioExit)return true;
-  if(!(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id))return false;
-  if(bioLv>=7)return true;
-  bioLv++;paintBio(true);ui();return true;
-}
-function startMoonExit(){
-  if(bioExit)return;
-  bioExit=1;
-  var el=$('layers');if(!el){bioExit=0;return}
+function enterMoon(){
+  bioMoon=1;
+  var el=$('layers');if(!el)return;
   var moon=$('moons');
   if(moon){moon.muted=true;var p=moon.play();if(p&&p.catch)p.catch(function(){})}
   el.classList.add('exit');
-  setTimeout(function(){el.classList.add('moonfade')},760);
-  setTimeout(function(){
-    bioExit=0;bioOn=0;bioLv=1;
-    el.hidden=true;el.classList.remove('on','exit','moonfade');
-    cur={lv:0,k:null,id:null};
-    if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
-    history.pushState({u1:1,cur:{lv:0,k:null,id:null}},'','#/');
-    arriveAt(cur,false);
-  },760+1200);
+  el.classList.remove('moonfade');
+  ui();
+}
+function bioDeeper(){
+  if(!(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id))return false;
+  if(bioMoon)return true;
+  if(bioLv>=7){enterMoon();return true}
+  bioLv++;paintBio(true);ui();return true;
+}
+function leaveAbout(){
+  bioMoon=0;bioOn=0;bioLv=1;
+  var el=$('layers');
+  if(el){el.hidden=true;el.classList.remove('on','exit','moonfade')}
+  if(history.state&&history.state.u1&&cur.lv>0)history.back();
+  else {cur={lv:0,k:null,id:null};if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());arriveAt(cur,false);ui()}
 }
 function bioBack(){
-  if(bioExit)return true;
   if(!(bioOn||(phase==='sky'&&cur.k==='about'&&cur.lv>=1&&!cur.id)))return false;
+  if(bioMoon){
+    bioMoon=0;
+    var el=$('layers');
+    if(el)el.classList.remove('exit','moonfade');
+    paintBio(true);ui();
+    return true;
+  }
   if(bioLv>1){bioLv--;paintBio(true);ui();return true}
-  startMoonExit();return true;
+  leaveAbout();return true;
 }
 function deeper(x,y){
   if(phase!=='sky')return;
@@ -1329,7 +1335,7 @@ function ui(){
     var dst=GJ_DEPTH.state();
     if(dst&&dst.label)label=dst.label;
   }
-  if(bioOn&&cur.k==='about'&&!cur.id)label='about · '+bioLv;
+  if(bioOn&&cur.k==='about'&&!cur.id)label=bioMoon?'about · moon':'about · '+bioLv;
   if(cur.lv===2&&cur.id&&byId[cur.id]&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())){
     var nm=byId[cur.id].title||'';
     if(!(/^photograph\s+\d+$/i.test(nm)||nm==='untitled'))label=nm;

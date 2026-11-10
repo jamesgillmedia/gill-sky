@@ -230,11 +230,17 @@ function soundStep(api){
     var sk=f&&f.contentWindow&&f.contentWindow.__sk;
     var v=sk&&sk.view();
     var st=sk&&sk.state&&sk.state();
-    if(st&&(st.mode==='in'||st.mode==='diving')&&v&&v.z>3.2){sk.viewSet(Math.max(1.6,v.z/1.28),0,0);return}
+    if(st&&st.mode==='rising')return;
+    if(st&&(st.mode==='in'||st.mode==='diving')){
+      if(v&&v.z>4.2){sk.viewSet(Math.max(3.4,v.z/1.28),0,0);return}
+      if(sk.goOut)sk.goOut();
+      return;
+    }
   }catch(e){}
   hideSound();
-  if(snd){api.paint();return}
-  api.paint();
+  snd=null;dropFly();setBleed(false);
+  if(board)showBoard(api);
+  else api.backHist();
 }
 function openFilm(api,work,shot){
   filmWork=work;filmLv=1;filmAt=(shot&&shot.t)||0;filmScale=1;still=null;piece=null;
@@ -250,12 +256,9 @@ function openStill(api,work,shot){
 function openTile(api,it){
   var cur=api.cur();
   var work=it._work||api.byId(it.id)||it;
-  if(work.kind==='player'||work.id==='sound/waveform'){
-    openSound(api,trackOf(work),true,work);
-    return;
-  }
-  if(work.kind==='track'||work.chapter==='sound'||(work.track&&!it._shot)){
-    openCover(api,work);
+  if(work.kind==='player'||work.id==='sound/waveform'||work.kind==='track'||work.chapter==='sound'||(work.track&&!it._shot)){
+    snd=null;dropFly();setBleed(false);
+    openSound(api,trackOf(work),false,work);
     return;
   }
   var kids=null;
@@ -405,7 +408,7 @@ function zoomSound(){
 function planIn(x,y,api){
   var cur=api.cur();
   if(soundOn)return function(){zoomSound()};
-  if(snd&&!soundOn)return function(){snd.lv=2;openSound(api,trackOf(snd.work),true,snd.work)};
+  if(snd&&!soundOn)return function(){openSound(api,trackOf(snd.work),false,snd.work)};
   if(filmLv===2){var fh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');return function(){enterFilm(x,y,api,fh)}}
   if(filmLv===3)return function(){dropFly();setBleed(false);filmLv=4;api.paint()};
   if(filmLv>=1){
@@ -428,7 +431,7 @@ function planIn(x,y,api){
   }
   if(cur.lv>=2&&cur.id&&!filmLv&&!still){
     var wk=api.byId(cur.id);
-    if(wk&&wk.chapter==='sound')return function(){openSound(api,trackOf(wk),true,wk)};
+    if(wk&&wk.chapter==='sound')return function(){openSound(api,trackOf(wk),false,wk)};
     if(wk&&wk.chapter==='objects'){
       var oph=piece&&piece.work&&piece.work.id===wk.id&&piece.lv===2?nearestStill(x,y,'#layer .cutgrid img, #layer .cutgrid video'):null;
       return function(){stepPiece(api,wk,x,y,oph)};
@@ -531,13 +534,8 @@ function sync(cur,api){
     }
     if(it.chapter==='sound'||it.kind==='track'){
       filmLv=0;filmWork=null;still=null;piece=null;
-      if(it.kind==='player'||it.id==='sound/waveform'){
-        snd=null;dropFly();setBleed(false);
-        if(!soundOn)openSound(api,trackOf(it),false,it);
-        return;
-      }
-      if(snd&&snd.work&&snd.work.id===it.id)return;
-      openCover(api,it);
+      snd=null;dropFly();setBleed(false);
+      if(!soundOn)openSound(api,trackOf(it),false,it);
       return;
     }
     if(it.chapter==='photo'){
@@ -643,7 +641,7 @@ function paintConstellation(el,work,withClip){
   if(!list.length)list=[{src:poster,t:0,clip:clip}];
   el.innerHTML='<div class="filmfield" id="filmfield"><canvas id="zfield"></canvas><h2>'+esc(work.title)+'</h2></div>';
   var host=document.getElementById('filmfield');
-  host._list=list;host._focus=focus;host._lines=1;host._work=work;
+  host._list=list;host._focus=focus;host._lines=0;host._work=work;
   if(withClip){
     var s=list[focus]||list[0],src=s&&(s.clip||clip);
     if(src){
