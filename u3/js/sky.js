@@ -619,7 +619,7 @@ function drawWindow(){
       if(!it._im){g.font='300 11px Poppins,sans-serif';g.fillStyle='rgba(233,239,248,.82)';g.textAlign='center';g.textBaseline='middle';g.fillText(cut(it.title,w-12),x+w/2,y+h/2)}}
     if(sel&&sel.id===it.id){g.strokeStyle='rgba('+MINT+',.95)';g.lineWidth=1.5;g.strokeRect(x-1,y-1,w+2,h+2);g.lineWidth=1}
     var capText=it._cap||it.title;
-    if(/^photograph\s+\d+$/i.test(capText||''))capText='untitled';
+    if(/^photograph\s+\d+$/i.test(capText||'')||capText==='untitled')capText='';
     if(b>.72&&spec.cap&&capText&&it.kind!=='track'&&spec.key!=='sound'){
       g.globalAlpha=b;g.font='300 9px Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';
       g.fillStyle='rgba(233,239,248,.78)';g.fillText(cut(capText,w),x,y+h+1);
@@ -798,16 +798,25 @@ function renderSheet(el,it){
   if(it.kind==='contact')body='<p><a href="mailto:'+esc(data.email)+'">'+esc(data.email)+'</a></p>';
   if(it.kind==='link')body='<p><a href="https://www.joioco.com">joio.co ↗</a></p>';
   var cred=(it.credits||[]).map(function(c){return '<li>'+esc(c)+'</li>'}).join('');
-  var rel=(it.related||[]).map(function(id){var o=byId[id];return o?'<a href="'+o.chapter+'/'+o.slug+'/">'+esc(o.title)+'</a>':''}).filter(Boolean).join(' · ');
-  rel='<p class="rel">Related'+(rel?' · '+rel:'')+'</p>';
-  var watch=(m.url&&!/youtube\.com|youtu\.be/i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">watch ↗</a></p>':'';
+  var rel=(it.related||[]).map(function(id){
+    var o=byId[id];if(!o)return '';
+    var name=o.title||'';
+    if(/^photograph\s+\d+$/i.test(name)||name==='untitled')return '';
+    return '<a href="'+o.chapter+'/'+o.slug+'/">'+esc(name)+'</a>';
+  }).filter(Boolean).join(' · ');
+  rel=rel?'<p class="rel">'+rel+'</p>':'';
+  var watch=(m.url&&!/youtube\.com|youtu\.be/i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
   if(it.body&&!body)body='<div class="prose"><p>'+esc(it.body).split('\n\n').map(function(p){return p}).join('</p><p>')+'</p></div>';
-  var href=it.pageHref||(it.chapter+'/'+it.slug+'/');
-  var page=it.noPage?'':'<p class="rel"><a href="'+href+'">open the page</a></p>';
+  var role=it.role||'';
+  if(role==='Director · Director of Photography'&&(it.credits||[]).length)role='';
+  var meta=it.meta||'';
+  if(/^(portrait|landscape|square)$/i.test(meta)||/moving filmstrip/i.test(meta))meta='';
+  var title=it.title||'';
+  if(/^photograph\s+\d+$/i.test(title)||title==='untitled')title='';
   el.innerHTML='<div class="sheet'+(it.kind==='film'?'':' full')+'">'+frame+play+rail+
-    '<p class="meta" id="tc"></p>'+strip+'<h2>'+esc(it.title)+'</h2>'+
-    (it.role?'<p class="role">'+esc(it.role)+'</p>':'')+(it.meta?'<p class="meta">'+esc(it.meta)+'</p>':'')+
-    body+(cred?'<ul class="credits">'+cred+'</ul>':'')+watch+rel+page+'</div>';
+    '<p class="meta" id="tc"></p>'+strip+(title?'<h2>'+esc(title)+'</h2>':'')+
+    (role?'<p class="role">'+esc(role)+'</p>':'')+(meta?'<p class="meta">'+esc(meta)+'</p>':'')+
+    body+(cred?'<ul class="credits">'+cred+'</ul>':'')+watch+rel+'</div>';
   var v=$('fv'),railEl=$('rail');
   var btn=$('play');
   if(btn)btn.onclick=function(){
@@ -861,7 +870,7 @@ function renderJoio(el){
   var clips=(window.GJ_JOIO||[]).filter(function(c){return c.k==='v'});
   var hero=clips[0];
   if(!hero){renderSheet(el,byId['objects/joio']);return}
-  el.innerHTML='<div class="sheet full"><div class="joio-stage"><video id="jv" muted loop playsinline autoplay poster="'+esc(JOIOB+hero.f)+'" src="'+esc(JOIOB+hero.v)+'"></video></div><h2>joio</h2><p class="meta">cups and paddles · '+clips.length+' clips</p><p class="rel"><a href="objects/joio/">open the page</a> · <a href="https://www.joioco.com">joio.co ↗</a></p></div>';
+  el.innerHTML='<div class="sheet full"><div class="joio-stage"><video id="jv" muted loop playsinline autoplay poster="'+esc(JOIOB+hero.f)+'" src="'+esc(JOIOB+hero.v)+'"></video></div><h2>joio</h2><p class="meta">cups and paddles</p><p class="rel"><a href="https://www.joioco.com">joio.co</a></p></div>';
 }
 function renderReel(el){
   var S=window.GJ_REEL||[];if(!S.length){el.innerHTML='<div class="sheet full"><p>The reel is missing.</p></div>';return}
@@ -1321,7 +1330,10 @@ function ui(){
     if(dst&&dst.label)label=dst.label;
   }
   if(bioOn&&cur.k==='about'&&!cur.id)label='about · '+bioLv;
-  if(cur.lv===2&&cur.id&&byId[cur.id]&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn()))label=byId[cur.id].title;
+  if(cur.lv===2&&cur.id&&byId[cur.id]&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())){
+    var nm=byId[cur.id].title||'';
+    if(!(/^photograph\s+\d+$/i.test(nm)||nm==='untitled'))label=nm;
+  }
   if(window.GJ_DEPTH){var named=GJ_DEPTH.state();if(named&&named.label)label=named.label}
   where.textContent=label;
   var bar=$('bar');if(bar)bar.classList.toggle('bio',!!(bioOn&&cur.k==='about'&&!cur.id));

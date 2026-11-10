@@ -421,7 +421,19 @@ def work_body(c, by_id, depth=2):
     role = f'<p class="role">{e(c["role"])}</p>' if c["role"] else ""
     meta = c["meta"] or ""
     year = f' · {c["year"]}' if c["year"] and str(c["year"]) not in meta else ""
-    bits.append(f'<h1>{e(c["title"])}</h1>{role}<p class="meta">{e(meta)}{year}</p>')
+    title = c["title"] if c["title"] not in ("untitled",) and not c["title"].lower().startswith("photograph ") else ""
+    if meta.lower() in ("portrait", "landscape", "square") or "moving filmstrip" in meta.lower():
+        meta = ""
+    if meta.lower() == "commercial":
+        meta = ""
+    elif meta.lower().startswith("commercial · "):
+        meta = meta.split(" · ", 1)[1]
+    role_html = role
+    if c["role"] == "Director · Director of Photography" and c["credits"]:
+        role_html = ""
+    head = f'<h1>{e(title)}</h1>' if title else ""
+    meta_html = f'<p class="meta">{e(meta)}{year}</p>' if meta or year else ""
+    bits.append(f'{head}{role_html}{meta_html}')
     if c["kind"] == "film" and (m["clip"] or m["big"]):
         inner = ""
         if m["clip"]:
@@ -435,11 +447,10 @@ def work_body(c, by_id, depth=2):
             bits.append(f'<p class="rel"><a href="{e(m["url"])}">Watch ↗</a></p>')
     elif c["kind"] == "reel":
         bits.append(f'<figure class="hero frame239"><img src="{e(loc(m["big"] or m["thumb"], depth))}" alt=""></figure>')
-        bits.append('<p class="meta">201 shots. The filmstrip drifts in the sky, one shot at a time.</p>')
+        bits.append('<p class="meta">The filmstrip drifts in the sky, one shot at a time.</p>')
     elif c["kind"] in ("photo", "object", "joio") and (m["big"] or m["thumb"]):
         bits.append(f'<figure class="hero"><img src="{e(loc(m["big"] or m["thumb"], depth))}" alt="{e(c["title"])}"></figure>')
     elif c["kind"] == "player":
-        bits.append('<p class="meta">Six tracks. Licensing only — no picture locked to the music.</p>')
         for t in TRACKS:
             bits.append(f'<p><b>{e(t["title"])}</b> · {e(t["artist"])}<br><audio controls preload="none" src="{e(t["file"])}"></audio></p>')
         bits.append(f'<p class="rel"><a href="mailto:{EMAIL}?subject=music%20licensing">licensing · {EMAIL}</a></p>')
@@ -449,7 +460,9 @@ def work_body(c, by_id, depth=2):
         if c["slug"] == "to-go":
             bits.append(f'<audio controls preload="none" src="{e(loc("media/pro2/audio/to-go.mp3", depth))}"></audio>')
         elif m["embed"] and "youtube.com" not in m["embed"] and "youtu.be" not in (m["url"] or ""):
-            bits.append(f'<p class="rel"><a href="{e(m["url"] or m["embed"])}">Listen ↗</a></p>')
+            href = m["url"] or m["embed"]
+            place = "Apple Music" if "apple.com" in href else "Spotify" if "spotify.com" in href else "listen"
+            bits.append(f'<p class="rel"><a href="{e(href)}">{place}</a></p>')
     elif c["kind"] == "bio":
         bits.append('<div class="prose">' + "".join(f"<p>{e(p)}</p>" for p in BIO) + "</div>")
     elif c["kind"] == "poem":
@@ -465,14 +478,15 @@ def work_body(c, by_id, depth=2):
     if c["slug"] == "legends":
         bits.append('<blockquote class="pull"><p>“What are legends made of?”</p><cite>On-screen line in BMW Legends, as titled in the Reel 2026 shot list.</cite></blockquote>')
     if c["credits"]:
-        rows = "".join(f"<dt>credit</dt><dd>{e(line)}</dd>" for line in c["credits"])
+        rows = "".join(f"<dd>{e(line)}</dd>" for line in c["credits"])
         bits.append(f"<dl class=\"file\">{rows}</dl>")
     links = []
     for rid in c["related"]:
         o = by_id.get(rid)
         if o and o["chapter"] != c["chapter"] and o["chapter"] != "about" and c["chapter"] != "about":
             links.append(f'<a href="../../{o["chapter"]}/{o["slug"]}/">{e(o["title"])}</a>')
-    bits.append('<p class="rel">Related' + (" · " + " · ".join(links) if links else "") + "</p>")
+    if links:
+        bits.append('<p class="rel">' + " · ".join(links) + "</p>")
     if c["also"]:
         links = []
         for rid in c["also"]:
@@ -480,7 +494,7 @@ def work_body(c, by_id, depth=2):
             if o:
                 links.append(f'<a href="../../{o["chapter"]}/{o["slug"]}/">{e(o["title"])}</a>')
         if links:
-            bits.append('<p class="also">also · ' + " · ".join(links) + "</p>")
+            bits.append('<p class="also">' + " · ".join(links) + "</p>")
     if c["kind"] == "joio":
         raw = (ROOT / "js/joio.js").read_text(encoding="utf-8")
         raw = raw.split("=", 1)[1].rsplit(";", 1)[0]

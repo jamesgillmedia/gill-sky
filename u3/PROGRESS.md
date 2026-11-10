@@ -42,11 +42,12 @@ Stars frame sound only. Film credits are a list on the still. The sky itself is 
 
 ### Fits the artist
 
-- Film: kept the work large, the published credits, and the frames. Removed the star labels on the credit level so stars are not framing a film.
-- Photo: kept the prints. Removed the “photograph 22” labels. There was no real place or year to put in their place.
-- Objects: the cup and the clips lead. The pizza is still in the joio feed, later, because it is a real clip. It is not the door.
-- Sound: music stays one part of the sky. The chart, the lengths, and the player are the songs themselves.
-- About: the calculator and the locked text stay. No pronouns line. The band behind the words is so the green display does not eat the sentence.
+- Arrival and the sky: kept the night water, the poem, and “touch the water”. The client line stays small at the bottom. Hire stays one quiet card: film, objects, space and sound.
+- Film: the picture and the published credits lead. Removed the empty “Related” line, the “Frames” heading, the stock word “credit”, and Weird Kid’s doubled “Director · Director of Photography” line, because the published credits already say it. Stars do not frame the films.
+- Photo: the prints lead. Removed “untitled” from the picture, and the orientation words portrait, landscape, and square. There was no real place or year to put in their place. The browser tab still says untitled, so nothing is invented.
+- Objects: the cup is the door, then the clips. Removed the clip count and “open the page”. The pizza stays later in the feed, because it is a real clip. Spirit Eye stays beside the close-up.
+- Sound: one part of the sky, not the headline. Kept the dotted chart, the lengths, and the player. Removed “Listen”, the licensing slogan, and “player · 6 tracks”. Spotify and Apple Music stay as the places the songs already live.
+- About: the calculator and the locked layers stay, word for word, including the poem. No pronouns line. Vancouver only. Jack Taylor is not in that locked text, so his name was not added. The dark band is there so the green display does not eat the sentence.
 
 ## Still open
 

@@ -369,7 +369,7 @@ function openPhoto(api, work){
 }
 function shownTitle(work){
   var t=work&&work.title||'';
-  if(/^photograph\s+\d+$/i.test(t))return 'untitled';
+  if(/^photograph\s+\d+$/i.test(t)||t==='untitled')return '';
   return t;
 }
 function stepPhoto(api, work, x, y, preset){
@@ -619,9 +619,12 @@ function relHtml(work){
   var bits=[];
   (work.related||[]).forEach(function(id){
     var o=window.__u1&&__u1.byId?__u1.byId(id):null;
-    if(o)bits.push('<a href="'+o.chapter+'/'+o.slug+'/">'+esc(o.title)+'</a>');
+    if(!o)return;
+    var name=shownTitle(o);
+    if(!name)return;
+    bits.push('<a href="'+o.chapter+'/'+o.slug+'/">'+esc(name)+'</a>');
   });
-  return '<p class="rel">Related'+(bits.length?' · '+bits.join(' · '):'')+'</p>';
+  return bits.length?'<p class="rel">'+bits.join(' · ')+'</p>':'';
 }
 function creditList(work){
   var bits=(work.credits||[]).slice().filter(Boolean);
@@ -783,8 +786,10 @@ function paintFilm(el,work){
     var media=(!wk&&clip)
       ? '<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
       : (hero?'<img src="'+esc(hero)+'" alt="">':'');
+    var role=work.role||'';
+    if(role==='Director · Director of Photography'&&creditList(work).length)role='';
     el.innerHTML='<div class="sheet film lv1 full"><h2>'+esc(work.title)+'</h2><div class="heroframe">'+media+'</div>'+
-      (work.role?'<p class="role">'+esc(work.role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
+      (role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
     var v1=el.querySelector('video');
     if(v1){var p1=v1.play();if(p1&&p1.catch)p1.catch(function(){})}
     return;
@@ -957,28 +962,31 @@ function paintPhoto(el){
   function cells(list,cls){
     return (list||[]).map(function(it){
       var im=it.media&&(it.media.big||it.media.thumb)||'';
-      return '<figure'+(it.id===work.id?' class="on"':'')+'><img src="'+esc(im)+'" alt=""><figcaption>'+esc(shownTitle(it))+'</figcaption></figure>';
+      var cap=shownTitle(it);
+      return '<figure'+(it.id===work.id?' class="on"':'')+'><img src="'+esc(im)+'" alt="'+(cap?esc(cap):'')+'">'+(cap?'<figcaption>'+esc(cap)+'</figcaption>':'')+'</figure>';
     }).join('');
   }
+  var head=shownTitle(work);
+  head=head?'<h2>'+esc(head)+'</h2>':'';
   if(piece.lv<=1){
-    el.innerHTML='<div class="sheet full photoseries"><h2>'+esc(shownTitle(work))+'</h2><div class="series">'+cells(piece.series)+'</div></div>';
+    el.innerHTML='<div class="sheet full photoseries">'+head+'<div class="series">'+cells(piece.series)+'</div></div>';
     return;
   }
   if(piece.lv===2){
-    el.innerHTML='<div class="sheet full"><h2>'+esc(shownTitle(work))+'</h2><div class="contact">'+cells(piece.sheet)+'</div></div>';
+    el.innerHTML='<div class="sheet full">'+head+'<div class="contact">'+cells(piece.sheet)+'</div></div>';
     return;
   }
   if(piece.lv===3){
     if(fly){el.classList.add('on');return}
-    el.innerHTML='<div class="herobleed"><img src="'+esc(piece.print||src)+'" alt=""><h2>'+esc(shownTitle(work))+'</h2></div>';
+    el.innerHTML='<div class="herobleed"><img src="'+esc(piece.print||src)+'" alt="">'+(shownTitle(work)?'<h2>'+esc(shownTitle(work))+'</h2>':'')+'</div>';
     return;
   }
   var print=piece.print||src;
   var crops=[[0,0],[70,0],[0,60],[40,45]];
-  var cells=crops.map(function(c){
+  var cropsHtml=crops.map(function(c){
     return '<figure><img style="object-position:'+c[0]+'% '+c[1]+'%;transform:scale('+(sc||1).toFixed(3)+')" src="'+esc(print)+'" alt=""></figure>';
   }).join('');
-  el.innerHTML='<div class="sheet full grainbox"><h2>'+esc(shownTitle(work))+'</h2><div class="graincrops">'+cells+'</div></div>';
+  el.innerHTML='<div class="sheet full grainbox">'+head+'<div class="graincrops">'+cropsHtml+'</div></div>';
 }
 function paintPiece(el){
   if(piece.photo){
