@@ -24,6 +24,7 @@ Close-ups, the nine fixes, the depth budget, the gaps, and the song player. The 
 - Photo labels that were “photograph 22” are “untitled”. The files have no EXIF place or date. Slugs are unchanged.
 - The objects board opens on the joio cup from above, not the wood-fired pizza.
 - Song pages use the sound-sketch player: a dark rail, a mint progress line, and the measured waveform. The length on the rail is the file’s own length (To Go 1:20, Gone Are the Days 1:20, No Problem 1:20, Lost in Time 1:30, = 1:30, ii 1:10). The native audio control is only in `<noscript>`, for when JavaScript is off.
+- Reduce Motion is a bypass. The slow push on a full-bleed still and the mint dot pulse on a waveform keep running when the browser asks for less motion. Nothing in this folder reads that preference.
 
 ### Depth
 

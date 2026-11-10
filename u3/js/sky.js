@@ -5,7 +5,6 @@
    Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
 (function(){
 'use strict';
-var RM = false;
 var Q = new URLSearchParams(location.search);
 var PROOF = true;
 var PRO2 = 'media/pro2/';
@@ -26,7 +25,7 @@ var data=null,CH={},byId={},progress=[],cluster=[];
    Drag never yaws the camera. */
 function S(x,w){return{x:x,v:0,t:x,w:w}}
 function sstep(s,dt){var w=s.w,e=s.x-s.t,k=Math.exp(-w*dt),c=s.v+w*e;s.x=s.t+(e+c*dt)*k;s.v=(s.v-w*c*dt)*k}
-var W_GLIDE=RM?16:4.8,W_LOOK=RM?16:9.5;
+var W_GLIDE=4.8,W_LOOK=9.5;
 var cxS=S(0,W_GLIDE),cyS=S(0,W_GLIDE),csS=S(.3,W_GLIDE);
 var bxS=S(0,W_GLIDE),pxS=S(0,W_GLIDE),lxS=S(0,W_LOOK),lyS=S(0,W_LOOK),scr=S(0,10);
 var rest={x:0,y:0,s:.3},look={x:0,y:0},FAR={x:0,y:0,s:.3};
@@ -224,7 +223,7 @@ function camFor(st){
   }
   return FAR;
 }
-function aim(s,t,instant){s.t=t;s.w=(instant||RM)?40:W_GLIDE;if(instant||RM){s.x=t;s.v=0}}
+function aim(s,t,instant){s.t=t;s.w=instant?40:W_GLIDE;if(instant){s.x=t;s.v=0}}
 
 function cam(){return {x:rest.x+look.x,y:rest.y+look.y,s:rest.s}}
 function sp(x,y){var c=cam();return [(x-c.x)*c.s+W/2,(y-c.y)*c.s+H/2]}
@@ -249,7 +248,7 @@ function arriveAt(st,instant){
   aim(bxS,b1,instant);aim(pxS,p1,instant);
   aim(lxS,0,instant);aim(lyS,0,instant);
   if(st.k!==scrK||st.lv===0){aim(scr,0,instant);scrK=st.lv===0?null:st.k}
-  if(instant||RM){rest.x=to.x;rest.y=to.y;rest.s=to.s;bloom=b1;pbloom=p1;look.x=look.y=0;if(!b1&&!p1)bloomK=st.k}
+  if(instant){rest.x=to.x;rest.y=to.y;rest.s=to.s;bloom=b1;pbloom=p1;look.x=look.y=0;if(!b1&&!p1)bloomK=st.k}
   renderLayer();syncBio();ui();
   if(st.k&&CH[st.k])want(st.k);
   if(st.k==='progress')progress.forEach(loadImg);
@@ -288,8 +287,8 @@ function washImgs(k){
 
 function frame(t){
   var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
-  if(phase==='fly'){flyU=clamp((t-flyT)/(RM?1:1100),0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
-  if(phase==='land'&&!RM&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
+  if(phase==='fly'){flyU=clamp((t-flyT)/1100,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
+  if(phase==='land'&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   stepSprings(dt);if(playing)listen();
   if(CHIMES.length)chStep(dt);
   if(window.GJ_DEPTH){
@@ -388,7 +387,7 @@ function drawChapter(k,t,fa){
 function nodePos(n){if(n.id)return posOf(n);return [n.x,n.y]}
 function star(q,b,c,mint,a,t){
   if(a<.02||q[0]<-20||q[0]>W+20||q[1]<-20||q[1]>H+20)return;
-  var pulse=(t&&!RM)?(1+.07*Math.sin(t/900+(q[0]+q[1])*.01)):1;
+  var pulse=t?(1+.07*Math.sin(t/900+(q[0]+q[1])*.01)):1;
   var gs=(5+16*b)*pulse*(mint?1.3:1);g.globalAlpha=a*(.45+.5*b);
   g.drawImage(mint?GLOW.m:c.glow,q[0]-gs,q[1]-gs,gs*2,gs*2);
   g.globalAlpha=a;g.fillStyle=mint?'rgb('+MINT+')':'#fff';
@@ -933,13 +932,13 @@ function renderReel(el){
     $('rim').src=REELB+s.f+'.webp';
     $('rn').textContent=(i+1)+' / '+N;
     $('rb').textContent=s.b||'';
-    var v=$('rv');if(!RM){v.src=REELB+s.f+'.mp4';var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})}
+    var v=$('rv');v.src=REELB+s.f+'.mp4';var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})
     var film=s.l!=null?CH.film.items.filter(function(it){return it.k==='w'+s.l})[0]:null;
     $('rview').style.visibility=film?'visible':'hidden';
     $('rview').onclick=function(){if(film)go({lv:2,k:'film',id:film.id})};
   }
   function place(){var w=el.clientWidth||W,q=((p%N)+N)%N;row.style.transform='translate3d('+(w/2-(q)*40)+'px,0,0)';show(Math.floor(q))}
-  function loop(t){raf=requestAnimationFrame(loop);var dt=Math.min(.05,(t-(last||t))/1000);last=t;if(on&&!dragR&&!RM)p+=dt*1.1;place()}
+  function loop(t){raf=requestAnimationFrame(loop);var dt=Math.min(.05,(t-(last||t))/1000);last=t;if(on&&!dragR)p+=dt*1.1;place()}
   raf=requestAnimationFrame(loop);place();
   $('rfit').onclick=function(){fit=!fit;$('reel').classList.toggle('fit',fit);this.textContent=fit?'fit':'fill'};
   var fs=$('rfs');
@@ -1576,7 +1575,6 @@ function seenKey(){
 function dive(){
   if(phase!=='arrive'&&phase!=='fly')return;
   try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
-  if(RM){enterSky(true);return}
   if(phase==='fly'){enterSky(true);return}
   phase='fly';flyT=now();flyU=0;setChrome();
   ripples();
@@ -1599,7 +1597,7 @@ function enterSky(instant){
   try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
   setChrome();
   if(!history.state||!history.state.u1)history.replaceState({u1:1,cur:{lv:cur.lv,k:cur.k,id:cur.id}},'',hashOf(cur));
-  arriveAt(cur,instant||RM);
+  arriveAt(cur,instant);
 }
 function decide(){
   var hash=location.hash||'';
@@ -1613,8 +1611,7 @@ function decide(){
   }
   if(forceSky){cur={lv:0,k:null,id:null};enterSky(true);return}
   if(forceLand){phase='land';landI=0;landT=now()+1e9;showLand();return}
-  if(forceArrive||(!seen&&!RM)){phase='arrive';setChrome();return}
-  if(!seen&&RM){phase='arrive';setChrome();return}
+  if(forceArrive||!seen){phase='arrive';setChrome();return}
   cur={lv:0,k:null,id:null};enterSky(true);
 }
 function parseHash(h){

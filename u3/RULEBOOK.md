@@ -14,7 +14,7 @@ The work leads. Below the sky, the work gets more of the phone than the stars. O
 
 The journey stays: touch the water, the plunge with the near-lens bokeh, the dive into a chapter until the outer nodes leave the screen and the spring eases to a stop, a pinch that grows from the spot you touched, the Weird Kid frames blooming into a mosaic, the push into a frame until it is full-bleed, the About glitch building with depth, the moon-grid exit, the minimap, and the glyph shortcuts.
 
-Motion is the same with Reduce Motion on. `RM` stays false.
+Motion is the same with Reduce Motion on. The page does not read `prefers-reduced-motion`, and it does not branch on it. The slow push and the waveform dot pulse run either way.
 
 ## What may be on screen
 

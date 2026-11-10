@@ -264,7 +264,7 @@ function drawLabels(c,sp,sa){var sb=safeBand(),zs=VW.s,fsT=9.5*Math.min(1.25,.9+
 /* nearest song star within r screen px of (x,y), or -1 */
 function starHit(x,y,r){var best=-1,bd=r||28;for(var k in STAR2K){var p=skyProj[+k];if(!p)continue;var d=Math.hypot(x-p[0],y-p[1]);if(d<bd){bd=d;best=+k}}return best}
 /* ---------- the long sweep (from sketch-next), made to obey the zoom rules ----------
-   only in the sky, only while zoomed in (>1.05x: at 1x the framed view stays put), never with reduced motion.
+   only in the sky, only while zoomed in (>1.05x: at 1x the framed view stays put).
    starts after 2.5 s with no touch/wheel/key, ramps in over 1.5 s, and only drifts the PAN toward a slow Lissajous path
    over the constellation at <= 18 px/s x the tempo of the song star nearest the centre. it never writes V.z, it starts from
    wherever the user left the view (no jump, no spring-back), and any touch/wheel/key freezes it on the spot. */
@@ -273,12 +273,12 @@ var SW={on:true,idle:0,w:0,t:0,moved:0};
    off. a held zoom above 1x is never touched, and a one-finger pan made AT 1x is kept (any new pointerdown or key cancels) */
 var zHi=1,RC=0;
 function recentStep(dt){if(V.z>ZMIN){RC=0;zHi=Math.max(zHi,V.z);return}if(zHi>ZMIN+.02&&mode==='sky')RC=1;zHi=ZMIN;
-  if(!RC||PZ||nPT()||p0||mode!=='sky')return;var k=Math.min(1,dt*(RM.matches?14:5));V.x-=V.x*k;V.y-=V.y*k;
+  if(!RC||PZ||nPT()||p0||mode!=='sky')return;var k=Math.min(1,dt*5);V.x-=V.x*k;V.y-=V.y*k;
   if(Math.abs(V.x)<.3&&Math.abs(V.y)<.3){V.x=0;V.y=0;RC=0}}
 function poke(){SW.idle=0;SW.w=0}
 function nearTempo(){var best=1,bd=1e9;for(var k in STAR2K){var p=skyProj[+k];if(!p)continue;var d=Math.hypot(p[0]-W/2,p[1]-H*.46);if(d<bd){bd=d;best=TRACKS[STAR2K[k]].tempo||1}}return best}
 function sweepStep(dt){var held=!!(p0||PZ||nPT());if(held)poke();
-  if(!SW.on||held||mode!=='sky'||dive>.001||V.z<=1.05||RM.matches){SW.w=0;return}
+  if(!SW.on||held||mode!=='sky'||dive>.001||V.z<=1.05){SW.w=0;return}
   SW.idle+=dt;if(SW.idle<2.5)return;SW.w=Math.min(1,SW.w+dt/1.5);
   var tp=nearTempo(),b=skyBox(),bw=b[1]-b[0],bh=b[3]-b[2];SW.t+=dt*SW.w*tp;
   var bx=(b[0]+b[1])/2+bw*.36*Math.sin(SW.t*.11)+bw*.08*Math.sin(SW.t*.037),by=(b[2]+b[3])/2+bh*.3*Math.sin(SW.t*.083+1.1),
@@ -288,19 +288,18 @@ function sweepStep(dt){var held=!!(p0||PZ||nPT());if(held)poke();
    sky only. swipe across the sky = a breeze (swipe speed + direction, capped low) that sways the strands on pendulum physics;
    neighbours that swing into each other's reach knock and ring. tap a strand (44 px+ target) = just that strand plays its note.
    pitch by position, left to right on C major pentatonic; each strand has its own slightly different timbre. Web Audio only. */
-var RM={matches:false};
 var PENT=[523.25,587.33,659.25,783.99,880.00],CHR=[1,2.76,5.40],CHD=[2.6,1.1,.42];
 var TB=[[1,.20,.06],[1,.14,.09],[1,.24,.05],[1,.12,.08],[1,.18,.10]],CDT=[0,.0015,-.001,.002,-.0015];
 var CH=SOUND.e.slice(0,5).map(function(e,i){return{a:e[0],b:e[1],th:0,w:0,fl:0,f:PENT[i],v:i,lc:-1}}),CHL=[],chT=0;
 function skyXY(k){var q=lay(k);return[W/2+q[0],H*.46+q[1]]}
 function chGeo(){for(var i=0;i<CH.length;i++){var c=CH[i],p=skyXY(c.a),r=skyXY(c.b);c.px=p[0];c.py=p[1];c.rx=r[0];c.ry=r[1];c.L=Math.max(20,Math.hypot(r[0]-p[0],r[1]-p[1]));c.a0=Math.atan2(r[0]-p[0],r[1]-p[1])}}
 function bob(c){return[c.px+c.L*Math.sin(c.a0+c.th),c.py+c.L*Math.cos(c.a0+c.th)]}
-function chStep(dt){chGeo();var rm=RM.matches,damp=rm?1.5:.7,vmax=rm?34:68,h=1/120,n=Math.min(8,Math.ceil(dt/h));h=dt/Math.max(1,n);
+function chStep(dt){chGeo();var damp=.7,vmax=68,h=1/120,n=Math.min(8,Math.ceil(dt/h));h=dt/Math.max(1,n);
   for(var s=0;s<n;s++){chT+=h;
     for(var i=0;i<CH.length;i++){var c=CH[i];c.w+=(-(900/c.L)*Math.sin(c.th)-damp*c.w)*h;var v=c.w*c.L;if(Math.abs(v)>vmax)c.w=(v>0?vmax:-vmax)/c.L;c.th+=c.w*h}
     for(var i=0;i<CH.length-1;i++){var A=CH[i],B=CH[i+1],xa=bob(A)[0],xb=bob(B)[0],g0=B.rx-A.rx,ct=g0-9;
       if(xb-xa<ct){var va=A.w*A.L,vb=B.w*B.L,rel=va-vb;
-        if(rel>0){var m=(va+vb)/2,e=.4;A.w=(m-e*rel/2)/A.L;B.w=(m+e*rel/2)/B.L;var vel=Math.min(1,rel/(rm?60:110));
+        if(rel>0){var m=(va+vb)/2,e=.4;A.w=(m-e*rel/2)/A.L;B.w=(m+e*rel/2)/B.L;var vel=Math.min(1,rel/110);
           if(vel>.04){if(chT-A.lc>.09){A.lc=chT;chime(A.f,vel,A.v,0)}if(chT-B.lc>.09){B.lc=chT;chime(B.f,vel*.7,B.v,.014)}A.fl=Math.max(A.fl,vel);B.fl=Math.max(B.fl,vel)}}
         var ov=(ct-(xb-xa))/2;A.th-=ov/A.L;B.th+=ov/B.L}}}
   for(var i=0;i<CH.length;i++){var c=CH[i];c.fl*=Math.exp(-dt*3);if(Math.abs(c.th)<2e-4&&Math.abs(c.w)<2e-3){c.th=0;c.w=0}}}
@@ -308,9 +307,9 @@ function chActive(){return mode==='sky'}
 function segD(x,y,c){var b=bob(c),dx=b[0]-c.px,dy=b[1]-c.py,t=Math.max(0,Math.min(1,((x-c.px)*dx+(y-c.py)*dy)/(dx*dx+dy*dy)));return Math.hypot(x-c.px-dx*t,y-c.py-dy*t)}
 function chHit(sx,sy,r){var q=toBase(sx,sy),x=q[0],y=q[1],s=VW.s,best=null,bd=(r||24)/s;for(var i=0;i<CH.length;i++){var c=CH[i],b=bob(c),d=Math.min(segD(x,y,c)+(y<c.py+8/s?99:0),Math.hypot(x-b[0],y-b[1])-4/s);if(d<bd){bd=d;best=c}}return best}
 /* the breeze: wind = swipe velocity (capped low), felt most by the strand under the finger, a little by all of them */
-function wind(x,y,vx,vy,dt){var rm=RM.matches,cap=rm?320:640,sp=Math.hypot(vx,vy);if(sp>cap){vx*=cap/sp;vy*=cap/sp}
+function wind(x,y,vx,vy,dt){var cap=640,sp=Math.hypot(vx,vy);if(sp>cap){vx*=cap/sp;vy*=cap/sp}
   for(var i=0;i<CH.length;i++){var c=CH[i],d=segD(x,y,c),wg=.12+.88*Math.exp(-d*d/(2*60*60)),f=vx+.25*Math.abs(vy)*(c.rx<x?-1:1);c.w+=f*.42*wg*(.3+1.4*rnd(i*7.1+chT*61))*dt/c.L}}
-function pluck(c,x){var rm=RM.matches,dir=x<bob(c)[0]?1:-1;c.w+=dir*(rm?12:22)/c.L;c.fl=Math.max(c.fl,.6);chime(c.f,.5,c.v,0)}
+function pluck(c,x){var dir=x<bob(c)[0]?1:-1;c.w+=dir*22/c.L;c.fl=Math.max(c.fl,.6);chime(c.f,.5,c.v,0)}
 /* synth: struck-tube partials (1, 2.76, 5.4) with their own decays, on a soft bus that sits under the track, 8 voices max */
 var CB=null,VOX=[],unl=false,CHN=0;
 function unlock(){if(REC)return;try{initAudio();if(AC.state==='suspended')AC.resume();if(!unl){var b=AC.createBuffer(1,1,22050),s=AC.createBufferSource();s.buffer=b;s.connect(AC.destination);s.start(0);unl=true}}catch(x){}}
@@ -374,7 +373,7 @@ function uiRects(){var f=function(e){var r=e.getBoundingClientRect();return[r.le
   UR={head:f(HEAD),intro:f(IN),ui:UIE.map(f),hud:[].map.call(document.querySelectorAll('.hud a,.hud .crumb'),f)}}
 function inR(x,y,r,m){return x>r[0]-m&&x<r[2]+m&&y>r[1]-m&&y<r[3]+m}
 function introStep(dt){if(!UR||(uiF++%30)===0)uiRects();
-  var zf=Math.max(0,Math.min(1,(V.z-1.02)/.06)),k=Math.min(1,dt*(RM.matches?14:7));IA+=((1-zf)-IA)*k;if(Math.abs(IA-(1-zf))<.004)IA=1-zf;
+  var zf=Math.max(0,Math.min(1,(V.z-1.02)/.06)),k=Math.min(1,dt*7);IA+=((1-zf)-IA)*k;if(Math.abs(IA-(1-zf))<.004)IA=1-zf;
   HN=false;if(mode==='sky'&&dive<.01){var r=UR.head;
     for(var i=0;i<CH.length&&!HN;i++){var c=CH[i],b=bob(c);for(var s=0;s<=6;s++){var f=s/6,sx=W/2+(c.px+(b[0]-c.px)*f-W/2)*VW.s+VW.x,sy=H*.46+(c.py+(b[1]-c.py)*f-H*.46)*VW.s+VW.y;
       if(inR(sx,sy,r,10)){HN=true;break}}}}

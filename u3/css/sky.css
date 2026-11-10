@@ -290,10 +290,6 @@ html.bleed #proof,html.bleed #mmap{display:none !important}
 .photoseries .series figure:nth-child(3){transform:translate(-14px,4px) rotate(-1deg)}
 .enterframe.push.in img,.herobleed img.push{animation:slowpush 16s cubic-bezier(.22,.6,.2,1) forwards;transform-origin:50% 42%}
 @keyframes slowpush{from{transform:scale(1)}to{transform:scale(1.1)}}
-@media (prefers-reduced-motion:reduce){
-  .enterframe.push.in img,.herobleed img.push{animation:none;transform:scale(1.08)}
-  .syncwave i{animation:none}
-}
 .syncwave{position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none}
 .syncwave i{position:absolute;width:7px;height:7px;border-radius:50%;background:rgba(85,218,161,.92);box-shadow:0 0 6px rgba(85,218,161,.45);animation:dotpulse 1.8s ease-in-out infinite alternate}
 .syncwave i.on{background:#e7f6c8;box-shadow:0 0 10px #55daa1}
