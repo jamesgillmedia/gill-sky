@@ -39,11 +39,13 @@ Stars frame sound only. Film credits are a list on the still. The sky itself is 
 
 ### Gaps
 
-- Sound’s far level uses the real peaks. A song with no cover still shows those peaks, not a made-up picture.
-- Objects’ middle level uses the joio clips and the studio stills. A piece with none of those says “no process pictures for this piece”.
-- Objects’ deepest level plays a real clip. If the piece has no clip, the slot says “no moving picture of this piece”.
-- About’s deepest layer is the locked bio. The moon grid is `moon-grid.mp4`.
-- Spirit Eye beside the joio clip is the plan render already in the repo.
+Filled only from files already in the folder. Nothing was drawn or written to stand in.
+
+- Sound, far. Filled. The chart uses the covers already on the songs (`waveform-480.webp`, `purple.webp`, `moonloop.webp`, `to-go-480.webp`) and the measured peaks (`togo`, `gone`, `lostintime`, `noproblem`, `player`). Every song on the chart has peaks, so the quiet line “no waveform for this song” was not needed. A sine stand-in is no longer drawn when peaks are missing.
+- Objects, far. Filled. The board and the sky nodes use the real stills: the cup (`cup-top-960.webp`), Spirit Eye (`spirit-eye.webp`), the carved piece, and the studio. No star ring around them.
+- Objects, middle. joio is filled with the studio clips `c/05`, `c/13`, `c/16`, `c/12`, `c/07`, `c/02` and the stills beside them. Spirit Eye is filled with the one plan in the repo, `spirit-eye.webp`. There is no rest of a deck, so the three text-only cards were removed and nothing was added. The design board, the wireframe, and the materials board have a single still and no process set, so that level is left empty: “no process pictures for this piece”. The old nine-crop stand-in is gone.
+- Objects, deepest. joio plays `c/05.mp4`, with Spirit Eye beside it. Spirit Eye and the design board have no clip, so they push the still that exists (`spirit-eye.webp`, `boards-960.webp`). A piece with neither still nor clip says “no moving picture of this piece”. No piece in the folder is in that state.
+- About, deepest. Filled with `media/about/moon-grid.mp4`. It plays. If that file fails, the slot says “no picture of the moon grid”.
 
 ### Fits the artist
 

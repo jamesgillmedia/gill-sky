@@ -81,7 +81,7 @@ function crops(src,clip){
 }
 function waveShots(song){
   var peaks=(song&&song.peaks)||[];
-  if(!peaks.length){for(var i=0;i<48;i++)peaks.push(0.2+0.6*Math.abs(Math.sin(i*0.7)));}
+  if(!peaks.length)return [];
   return peaks.map(function(p,i){return {peak:p,src:'',title:(song&&song.title)||'',i:i,clip:(song&&song.file)||'',t:song&&song.dur?song.dur*(i/peaks.length):0}});
 }
 function shotsOf(it,song){
@@ -310,10 +310,7 @@ function build(ctx){
       media:{thumb:'media/pro2/img/objects/spirit-eye.webp',big:'media/pro2/img/objects/spirit-eye.webp'},
       credits:["Best Public Art Concept","Council's Choice","BIDC Public Art Intensive"],
       shots:[
-        {text:'Spirit Eye of skwácháýs',src:'media/pro2/img/objects/spirit-eye.webp'},
-        {text:'Best Public Art Concept',src:''},
-        {text:"Council's Choice",src:''},
-        {text:'BIDC Public Art Intensive',src:''}
+        {title:'Spirit Eye of skwácháýs',src:'media/pro2/img/objects/spirit-eye.webp'}
       ],
       related:[],also:[],in_progress:false,isNew:false,ox:0,oy:0,sx:0,sy:0,gx:0,gy:0
     });

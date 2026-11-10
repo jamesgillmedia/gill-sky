@@ -292,15 +292,14 @@ function openTile(api,it){
   api.arrive();
 }
 function pieceShots(work, api){
-  if(work.shots&&work.shots.length>1)return work.shots;
+  if(work.shots&&work.shots.length){
+    var own=work.shots.filter(function(s){return s.src||s.clip});
+    if(own.length)return own;
+  }
   var bag=(work.id||'')+' '+(work.slug||'')+' '+(work.title||'')+' '+(work.meta||'');
   var srcId=/joio/i.test(bag)?'objects/joio':(/cedar|carved|spoon|process|hand-carved/i.test(bag)?'objects/hand-carved-piece':'');
-  if(srcId){var g=api.byId(srcId);if(g&&g.shots&&g.shots.length)return g.shots}
-  var src=work.media&&(work.media.big||work.media.thumb)||'';
-  var out=[],a,b;
-  if(!src)return out;
-  for(b=0;b<3;b++)for(a=0;a<3;a++)out.push({src:src,crop:[a/3,b/3,1/3,1/3],title:''});
-  return out;
+  if(srcId){var g=api.byId(srcId);if(g&&g.shots&&g.shots.length)return g.shots.filter(function(s){return s.src||s.clip})}
+  return [];
 }
 function shotClip(el){
   if(!el)return '';
@@ -1007,9 +1006,9 @@ function paintPiece(el){
     return;
   }
   if(piece.lv===2){
-    var ordered=cupFirst(shots);
+    var ordered=cupFirst(shots).filter(function(s){return s.src});
     var stills=shots.filter(function(s){return !s.clip&&s.src&&!/c\/00\./.test(s.src)}).slice(0,6);
-    var show=ordered.length?ordered.concat(stills):shots.slice(0,18);
+    var show=(ordered.length?ordered.concat(stills):shots.filter(function(s){return s.src}).slice(0,18));
     if(!show.length){
       el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="empty-slot">no process pictures for this piece</div></div>';
       return;
@@ -1023,6 +1022,25 @@ function paintPiece(el){
     return;
   }
   if(fly){el.classList.add('on');return}
+  var moving=null,si;
+  for(si=0;si<shots.length;si++){
+    if(shots[si].clip&&!/c\/00\.|wood-fired/i.test((shots[si].src||'')+' '+(shots[si].title||''))){moving=shots[si];break}
+  }
+  var stillFace='';
+  if(work.id==='objects/joio')stillFace='media/pro2/img/objects/cup-top-960.webp';
+  else if(work.media)stillFace=work.media.big||work.media.thumb||'';
+  if(!stillFace){for(si=0;si<shots.length;si++)if(shots[si].src){stillFace=shots[si].src;break}}
+  if(moving){
+    var beside=/joio/i.test(work.id||'')?spiritBeside():'';
+    el.innerHTML='<div class="herobleed"><video muted loop autoplay playsinline poster="'+esc(moving.src||stillFace||'')+'" src="'+esc(moving.clip)+'"></video>'+beside+'</div>';
+    bindSpirit(el);
+    var mv=el.querySelector('video');if(mv){var mp=mv.play();if(mp&&mp.catch)mp.catch(function(){})}
+    return;
+  }
+  if(stillFace){
+    el.innerHTML='<div class="herobleed"><img class="push" src="'+esc(stillFace)+'" alt=""></div>';
+    return;
+  }
   el.innerHTML='<div class="sheet full"><h2>'+esc(work.title)+'</h2><div class="empty-slot">no moving picture of this piece</div></div>';
 }
 function paintLayer(el){
