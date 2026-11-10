@@ -1,0 +1,54 @@
+/* Shell only. Video and audio are never stored; everything else off this origin streams. */
+var CACHE = 'u2-shell-1';
+var SHELL = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './css/sky.css',
+  './css/page.css',
+  './js/sky.js',
+  './js/reelshots.js',
+  './js/joio.js',
+  './data.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png',
+  './icons/icon-maskable-192.png',
+  './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png'
+];
+
+self.addEventListener('install', function (event) {
+  event.waitUntil(caches.open(CACHE).then(function (cache) {
+    return cache.addAll(SHELL);
+  }).then(function () { return self.skipWaiting(); }));
+});
+
+self.addEventListener('activate', function (event) {
+  event.waitUntil(caches.keys().then(function (keys) {
+    return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+  }).then(function () { return self.clients.claim(); }));
+});
+
+function isMedia(url) {
+  return /\.(mp4|webm|m4v|mov|ogv|mp3|m4a|ogg|wav|aac)(\?|$)/i.test(url.pathname);
+}
+
+self.addEventListener('fetch', function (event) {
+  var req = event.request;
+  if (req.method !== 'GET') return;
+  var url = new URL(req.url);
+  if (url.origin !== self.location.origin) return;
+  if (isMedia(url)) return;
+  if (req.headers.get('range')) return;
+  event.respondWith(caches.open(CACHE).then(function (cache) {
+    return cache.match(req).then(function (hit) {
+      var fresh = fetch(req).then(function (res) {
+        if (res && res.ok && SHELL.some(function (p) { return url.pathname.endsWith(p.replace('./', '/')) || url.pathname.endsWith(p.slice(1)); })) {
+          cache.put(req, res.clone());
+        }
+        return res;
+      }).catch(function () { return hit; });
+      return hit || fresh;
+    });
+  }));
+});

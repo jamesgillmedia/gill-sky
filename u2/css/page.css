@@ -1,0 +1,48 @@
+
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/julius-sans-one.woff2) format("woff2")}
+@font-face{font-family:Syl;font-weight:700;font-display:swap;src:url(https://jamesgillmedia.github.io/gilljames/site-v3-pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
+:root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--meta:#93a1a6;--mint:#55DAA1;--line:rgba(255,255,255,.14);
+ --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+*{box-sizing:border-box}html{background:var(--bg);color:var(--ink);overscroll-behavior:none}
+body{margin:0;overscroll-behavior:none;touch-action:manipulation;font:300 15px/1.55 Poppins,Syl,system-ui,sans-serif;background:
+ radial-gradient(1px 1px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 70% 8%,#fff,transparent),
+ radial-gradient(ellipse at 50% 0,#13202e,var(--bg) 70%) fixed}
+a,button{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+a{color:inherit}
+.top{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;
+ padding:calc(8px + var(--st)) max(14px,var(--sr)) 8px max(14px,var(--sl));
+ background:linear-gradient(#04070bf0,#04070b00)}
+.top a{text-decoration:none;min-height:44px;display:inline-grid;place-items:center}
+.sig{font:700 22px/1 Syl,sans-serif;text-shadow:1px 0 rgba(10,189,240,.7),-1px 0 rgba(254,1,1,.55)}
+.crumb{flex:1;margin:0;font-size:12px;letter-spacing:.08em;color:var(--dim)}
+.links{display:flex;gap:12px;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+main{max-width:980px;margin:0 auto;padding:8px max(16px,var(--sr)) calc(48px + var(--sb)) max(16px,var(--sl))}
+h1{margin:8px 0 0;font:400 clamp(28px,6vw,52px)/1.05 "Julius Sans One",sans-serif;letter-spacing:.04em}
+.role{margin:6px 0 0;color:var(--mint);letter-spacing:.12em;font-size:12px;text-transform:uppercase}
+.meta{margin:6px 0 0;color:var(--meta);font-size:13px}
+.hero{margin:18px 0 0;background:#000;border-radius:4px;overflow:hidden}
+.hero img,.hero video{display:block;width:100%;height:auto;max-height:78vh;object-fit:contain;background:#000}
+.frame239{aspect-ratio:2.39/1;background:#000;display:grid}
+.frame239 img,.frame239 video{width:100%;height:100%;object-fit:contain}
+.prose p{max-width:62ch}
+.file{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:18px 0}
+.file dt{color:var(--meta);font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.file dd{margin:0}
+.frames{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.frames img{width:100%;aspect-ratio:2.39/1;object-fit:cover;display:block;border-radius:2px;background:#0d151c}
+.rel a,.also a{color:var(--mint);text-decoration:none}
+.pull{margin:28px 0;padding-left:14px;border-left:2px solid var(--mint);font:400 clamp(18px,3vw,26px)/1.3 "Julius Sans One",sans-serif}
+.group{margin:28px 0 0}
+.group h2{font:400 13px/1 "Julius Sans One",sans-serif;letter-spacing:.22em;text-transform:uppercase;color:var(--dim)}
+.works{list-style:none;margin:10px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.works a{text-decoration:none;display:block}
+.works img{width:100%;aspect-ratio:16/9;object-fit:cover;display:block;border-radius:2px;background:#101820}
+.works.sq img{aspect-ratio:1}
+.works b{display:block;margin-top:4px;font-weight:300;font-size:13px}
+.works small{color:var(--meta);font-size:11px}
+.poem span{display:block}
+.poem .sig{font-family:Syl,sans-serif;font-weight:700;font-size:22px;margin-top:10px}
+.joio{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.joio video,.joio img{width:100%;display:block;background:#000;border-radius:2px}
+audio{width:min(100%,520px);margin:8px 0}
