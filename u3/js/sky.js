@@ -287,7 +287,7 @@ function washImgs(k){
 
 function frame(t){
   var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
-  if(phase==='fly'){flyU=clamp((t-flyT)/1100,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
+  if(phase==='fly'){flyU=clamp((t-flyT)/1680,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
   if(phase==='land'&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   stepSprings(dt);if(playing)listen();
   if(CHIMES.length)chStep(dt);
@@ -316,8 +316,8 @@ function draw(t){
   g.setTransform(DPR,0,0,DPR,0,0);
   if(sc!==1){g.translate(og.x,og.y);g.scale(sc,sc);g.translate(-og.x,-og.y)}
   g.clearRect(-W,-H,W*3,H*3);
-  if(phase==='arrive'||phase==='fly'){drawMark(phase==='fly'?ease(flyU):0);return}
-  if(phase==='land')return;
+  if(phase==='arrive'||phase==='fly'){drawMark(phase==='fly'?ease(flyU):0);drawGlow();return}
+  if(phase==='land'){drawGlow();return}
   var fa=farA(),lk=look;
   FIELD.forEach(function(L){
     g.globalAlpha=L.a*(.35+.65*Math.min(1,fa+.4));
@@ -353,6 +353,30 @@ function draw(t){
     g.fillStyle='rgba(255,255,255,.85)';
     ids.forEach(function(id){var p=PT[id];g.beginPath();g.arc(p.x,p.y,7,0,7);g.fill()});
   }
+  drawGlow();
+}
+var glow=null;
+function noteTouch(x,y){
+  var snd=$('snd');
+  glow={x:x,y:y,t:now(),mint:(cur&&cur.k==='sound')||!!(snd&&!snd.hidden)};
+}
+function drawGlow(){
+  if(!glow)return;
+  var age=(now()-glow.t)/1100;
+  if(age>=1){glow=null;return}
+  var a=(1-age)*(1-age)*0.2;
+  var col=glow.mint?'85,218,161':'228,221,210';
+  g.save();
+  g.setTransform(DPR,0,0,DPR,0,0);
+  g.globalCompositeOperation='lighter';
+  var rad=g.createRadialGradient(glow.x,glow.y,0,glow.x,glow.y,128);
+  rad.addColorStop(0,'rgba('+col+','+a.toFixed(3)+')');
+  rad.addColorStop(1,'rgba('+col+',0)');
+  g.fillStyle=rad;
+  g.beginPath();
+  g.arc(glow.x,glow.y,128,0,6.3);
+  g.fill();
+  g.restore();
 }
 
 function drawChapter(k,t,fa){
@@ -994,6 +1018,7 @@ function bind(){
 }
 function onDown(e){
   if(e.target.closest('#hirecard'))return;
+  noteTouch(e.clientX,e.clientY);
   var card=$('hirecard');
   if(card&&!card.hidden&&!e.target.closest('#hire')){hireOpen(false);return}
   if(e.target.closest('#bar,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
@@ -1009,6 +1034,7 @@ function onDown(e){
 }
 function onMove(e){
   if(!drag||e.pointerId!==drag.id)return;
+  noteTouch(e.clientX,e.clientY);
   var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(Math.hypot(dx,dy)>8)moved=true;
   if(phase!=='sky')return;
@@ -1558,9 +1584,19 @@ function setChrome(){
   $('land').classList.toggle('on',phase==='land');
   syncHire();
 }
+var landTok=0;
 function showLand(){
   var L=lands[landI]||lands[0];
-  $('landimg').src=L.src;$('landimg').alt=L.cap;$('landcap').textContent=L.cap;
+  var img=$('landimg');
+  var tok=++landTok;
+  var live=img.getAttribute('src')&&$('land').classList.contains('on');
+  function paint(){
+    if(tok!==landTok)return;
+    img.src=L.src;img.alt=L.cap;$('landcap').textContent=L.cap;
+    img.style.opacity='1';
+  }
+  if(live){img.style.opacity='0';setTimeout(paint,320)}
+  else paint();
   setChrome();
 }
 function nextLand(){

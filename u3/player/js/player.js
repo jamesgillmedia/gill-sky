@@ -42,7 +42,7 @@ function pickTrack(k,fromStar){if(!TRACKS[k])return;TK=k;T=TRACKS[k];N=T.peaks.l
   SECS.forEach(function(s,i){var t=document.createElement('i');t.className='tk';t.style.left=(s.t/T.dur*100)+'%';rail.insertBefore(t,headE)});
   [].forEach.call($('picks').children,function(b){b.setAttribute('aria-checked',b.dataset.k===k)});
   rail.setAttribute('aria-valuemax',T.dur);drawWF();
-  if(!fromStar){camZ=tz=ringAt(+Q.get('t')||0);if(Q.get('t'))au.currentTime=+Q.get('t')}else{camZ=tz=0;au.currentTime=0}
+  if(!fromStar){camZ=tz=ringAt(+Q.get('t')||0);railT=+Q.get('t')||0;if(Q.get('t'))placeTime(+Q.get('t'))}else{camZ=tz=0;railT=0;au.currentTime=0}
   highlight=T.star!=null?T.star:-1;pulseStar=1}
 KEYS.forEach(function(k){var b=document.createElement('button');b.type='button';b.setAttribute('role','radio');b.dataset.k=k;
   b.innerHTML=TRACKS[k].title+'<small>'+TRACKS[k].artist+'</small>';b.onclick=function(e){e.stopPropagation();pickTrack(k)};$('picks').appendChild(b)});
@@ -441,10 +441,14 @@ var dragging=false,PR=null,seekQ=0;
 function railTime(e){var r=rail.getBoundingClientRect();return Math.max(0,Math.min(T.dur-.05,(e.clientX-r.left)/r.width*T.dur))}
 rail.addEventListener('pointerdown',function(e){PR=e.pointerId;try{rail.setPointerCapture(PR)}catch(x){}dragging=true;rail.classList.add('drag');vol(.25,.05);scrub(railTime(e))});
 rail.addEventListener('pointermove',function(e){if(PR===e.pointerId)scrub(railTime(e))});
-function scrub(t){railT=t;tz=ringAt(t);var n=performance.now();if(n-seekQ>140){seekQ=n;au.currentTime=t}}
-function pup(e){if(PR!==e.pointerId)return;PR=null;rail.classList.remove('drag');au.currentTime=railTime(e);dragging=false;vol(au.paused?0:1,.15);if(au.paused&&mode==='in'){vol(1);au.play()}}
+var wantAt=null;
+function canSeek(t){if(REC)return true;var end=au.seekable&&au.seekable.length?au.seekable.end(au.seekable.length-1):0;return end+0.05>=t}
+function placeTime(t){if(canSeek(t)){try{au.currentTime=t}catch(x){}wantAt=null}else wantAt=t}
+function scrub(t){railT=t;tz=ringAt(t);if(T&&T.dur&&N>1){var pk=env(t/T.dur*(N-1));if(pk)L.rms=Math.max(L.rms*.6,pk)}var n=performance.now();if(n-seekQ>140){seekQ=n;placeTime(t)}else wantAt=t}
+function pup(e){if(PR!==e.pointerId)return;PR=null;rail.classList.remove('drag');var t=railTime(e);railT=t;tz=ringAt(t);placeTime(t);dragging=false;vol(au.paused?0:1,.15);if(au.paused&&mode==='in'){vol(1);au.play()}}
+au.addEventListener('progress',function(){if(wantAt==null||!canSeek(wantAt))return;try{au.currentTime=wantAt}catch(x){}wantAt=null});
 rail.addEventListener('pointerup',pup);rail.addEventListener('pointercancel',pup);
-rail.addEventListener('keydown',function(e){var d=e.key==='ArrowRight'?5:e.key==='ArrowLeft'?-5:0;if(d){au.currentTime=Math.max(0,Math.min(T.dur,au.currentTime+d));tz=ringAt(au.currentTime)}});
+rail.addEventListener('keydown',function(e){var d=e.key==='ArrowRight'?5:e.key==='ArrowLeft'?-5:0;if(d){var nt=Math.max(0,Math.min(T.dur-.05,(wantAt!=null?wantAt:au.currentTime)+d));railT=nt;tz=ringAt(nt);placeTime(nt)}});
 au.addEventListener('ended',function(){au.currentTime=0;tz=0;au.play()});
 addEventListener('resize',function(){rs();clampPan();uiRects()});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){uiRects();if(V.z<1.001&&mode==='sky'){fitLayout();clampPan()}});
 pickTrack(TK);rs();if(Q.get('in')==='1')setTimeout(goIn,320);if(!REC)requestAnimationFrame(frame);else{last=0;tick(0,0)}

@@ -46,7 +46,7 @@ function spawn(n){
 }
 function tick(now){
   if(PL.on){
-    var u=Math.min(1,(now-PL.t0)/780);
+    var u=Math.min(1,(now-PL.t0)/960);
     PL.e=1-Math.pow(1-u,3);
     if(PL.pending&&!PL.applied&&PL.e>=0.38){PL.applied=1;var fn=PL.pending;PL.pending=null;fn()}
     if(u>=1){PL.on=0;PL.e=1;PL.busy=0;PL.applied=0;PL.pending=null}

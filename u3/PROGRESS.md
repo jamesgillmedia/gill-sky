@@ -26,6 +26,14 @@ Close-ups, the nine fixes, the depth budget, the gaps, and the song player. The 
 - Song pages use the sound-sketch player: a dark rail, a mint progress line, and the measured waveform. The length on the rail is the file’s own length (To Go 1:20, Gone Are the Days 1:20, No Problem 1:20, Lost in Time 1:30, = 1:30, ii 1:10). The native audio control is only in `<noscript>`, for when JavaScript is off.
 - Reduce Motion is a bypass. The slow push on a full-bleed still and the mint dot pulse on a waveform keep running when the browser asks for less motion. Nothing in this folder reads that preference.
 
+### Beyond the sheets
+
+- The plunge takes a little longer. A landing fades into the next picture instead of cutting.
+- A pinch still changes the level as the zoom peaks. The scale eases a little longer after that.
+- A finger leaves a low warm-paper light. On Sound that light is mint.
+- Dragging a song rail moves the mint line, the time, and a pulse on the measured peak under the finger. The file moves only when it can seek, so the drag does not send the song back to the start. Inside the player, the rings swell to that same peak.
+- The poem, the sheet titles, the landing names, and the calculator lines sit a little looser.
+
 ### Depth
 
 - Film, Weird Kid: framed hero, frame wall, full-bleed still, neighbouring frames, Kiesza, credits as a list. Six levels.
