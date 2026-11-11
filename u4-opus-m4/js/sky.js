@@ -44,6 +44,11 @@ var GLOW={};
 
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
+/* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
+var TDEF={map:1};
+var TUNE={map:1};
+var SPATIAL={map:1};
+function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
 function ease(u){u=clamp(u,0,1);return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2}
 function now(){return performance.now()}
@@ -186,6 +191,10 @@ function layout(){
     if(overlap){rx*=1.05;ry*=1.05;continue}
     break;
   }
+  /* Spread the five centres after the fit, and keep FAR at the fitted scale,
+     so a multiplier of 1 is this map and any other value actually moves them apart. */
+  var mapK=tk('map');
+  if(mapK!==1){ORDER.forEach(function(k){var c=CH[k],p=chapterAt(k,rx*mapK,ry*mapK);c.x=p.x;c.y=p.y})}
   ORDER.forEach(function(k){var c=CH[k];
     c.skyItems.forEach(function(it){it.sx=c.x+it.ox;it.sy=c.y+it.oy});
     c.dec.forEach(function(d){d.x=c.x+d.ox;d.y=c.y+d.oy});
@@ -1476,6 +1485,7 @@ function songTapOpens(im){
   return false;
 }
 function onPtrDown(e){
+  if(e.target&&e.target.closest&&e.target.closest('#gjdbg'))return;
   if(e.pointerType==='mouse'&&!e.buttons)return;
   PT[e.pointerId]={x:e.clientX,y:e.clientY};
   var ids=Object.keys(PT);
@@ -2363,6 +2373,27 @@ function seed(st){
 }
 
 applyCtl();
+/* The debug panel is the only caller. Defaults stay 1, so a normal visit never reads a dial. */
+window.GJ_TUNE={
+  get:function(k){return tk(k)},
+  values:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=TUNE[k]});return o},
+  defaults:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=TDEF[k]});return o},
+  set:function(patch){
+    if(!patch)return;
+    var spatial=false;
+    Object.keys(patch).forEach(function(k){
+      if(!(k in TDEF))return;
+      var v=+patch[k];if(!isFinite(v))return;
+      TUNE[k]=v;
+      if(SPATIAL[k])spatial=true;
+    });
+    if(spatial&&ready){layout();arriveAt(cur,true)}
+  },
+  reset:function(){
+    Object.keys(TDEF).forEach(function(k){TUNE[k]=TDEF[k]});
+    if(ready){layout();arriveAt(cur,true)}
+  }
+};
 window.__u1={
   get phase(){return phase},get cur(){return snap(cur)},get step(){return STEP},
   get sel(){return sel},get ready(){return ready},
