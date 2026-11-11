@@ -167,7 +167,8 @@ function loop(t){
   var dt=t-(lastT||t);lastT=t;
   if(dt>0&&dt<500){ft+=(dt-ft)*.08;fps+=(1000/dt-fps)*.08}
   if(grainOn&&grainEl){
-    if(t-(loop.g||0)>42){loop.g=t;grainEl.style.backgroundPosition=((Math.random()*200)|0)+'px '+((Math.random()*200)|0)+'px'}
+    var gx=(Math.random()*256)|0,gy=(Math.random()*256)|0;
+    grainEl.style.transform='translate3d('+(-gx)+'px,'+(-gy)+'px,0)';
   }
   if(!on||!open||t-uiT<200)return;
   uiT=t;
