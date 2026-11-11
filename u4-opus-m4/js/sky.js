@@ -45,8 +45,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1};
-var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1};
+var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
+var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
@@ -2393,6 +2393,10 @@ function seed(st){
 
 applyCtl();
 /* Open delay stretches the water and moon fade with the fallback, so the mark still waits for them. 1 removes the override. */
+function applyFlash(){
+  GFL=clamp(TUNE.flash,0,1);TUNE.flash=GFL;applyCtl();
+  try{localStorage.setItem('gj.flash',String(GFL))}catch(e){}
+}
 function applyDelay(){
   var dly=tk('delay'),de=document.documentElement;
   if(dly===1)de.style.removeProperty('--gj-delay');
@@ -2402,27 +2406,29 @@ function applyDelay(){
     ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250*dly);
   }
 }
-/* The debug panel is the only caller. Defaults stay 1, so a normal visit never reads a dial. */
+/* The debug panel is the only caller. A multiplier left at 1 is the sky as written. Flash defaults to the player's 0.6. */
 window.GJ_TUNE={
-  get:function(k){return tk(k)},
-  values:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=TUNE[k]});return o},
+  get:function(k){return k==='flash'?GFL:tk(k)},
+  values:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=k==='flash'?GFL:TUNE[k]});return o},
   defaults:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=TDEF[k]});return o},
   set:function(patch){
     if(!patch)return;
-    var spatial=false,delay=false;
+    var spatial=false,delay=false,flash=false;
     Object.keys(patch).forEach(function(k){
       if(!(k in TDEF))return;
       var v=+patch[k];if(!isFinite(v))return;
       TUNE[k]=v;
       if(SPATIAL[k])spatial=true;
       if(k==='delay')delay=true;
+      if(k==='flash')flash=true;
     });
     if(spatial&&ready){layout();arriveAt(cur,true)}
     if(delay)applyDelay();
+    if(flash)applyFlash();
   },
   reset:function(){
     Object.keys(TDEF).forEach(function(k){TUNE[k]=TDEF[k]});
-    applyDelay();
+    applyDelay();applyFlash();
     if(ready){layout();arriveAt(cur,true)}
   }
 };
