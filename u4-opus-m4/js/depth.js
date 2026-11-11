@@ -51,12 +51,16 @@ function tick(now){
     if(PL.pending&&!PL.applied&&PL.e>=0.38){PL.applied=1;var fn=PL.pending;PL.pending=null;fn()}
     if(u>=1){PL.on=0;PL.e=1;PL.busy=0;PL.applied=0;PL.pending=null}
   }
+  /* The opening fly drives these orbs. Once that fly stops, drop them so they cannot sit on the sky. */
+  if(!PL.on&&FX.fly>0&&!FX.hot){FX.fly=0;FX.life=0;FX.t0=0}
+  FX.hot=0;
   if(FX.life>0 && !PL.on && FX.fly<=0){
     var age=(now-FX.t0)/900;
     if(age>1)FX.life=0;
   }
 }
-function rush(u){FX.fly=u;if(u>0&&!BOK.length)spawn(16)}
+function rush(u){FX.fly=u;FX.hot=1;if(u>0&&!BOK.length)spawn(16)}
+function hush(){FX.fly=0;FX.life=0;FX.t0=0;FX.hot=0;BOK=[]}
 function viewScale(){
   if(!PL.on)return 1;
   var e=PL.e;
@@ -80,11 +84,18 @@ function drawFx(g,W,H){
     b=BOK[i];
     near=PL.on?Math.min(1,PL.e*(0.55+b.lag*0.7)):Math.min(1,(FX.fly>0?FX.fly:age)*(0.45+b.lag));
     if(near<0.02)continue;
-    diam=Math.min(W,H)*b.sp*(0.45+near*1.15);
+    /* Opening orbs fade out across the fly and are gone at the end. A depth pinch is unchanged. */
+    var openFade=1;
+    if(!PL.on&&FX.fly>0){
+      var f=Math.max(0,1-FX.fly);
+      openFade=f*f*(3-2*f);
+    }
+    if(openFade<0.02)continue;
+    diam=Math.min(W,H)*b.sp*(0.45+near*1.15)*openFade;
     var push=near*near;
     x=W*(0.5+(b.x-0.5)*(0.35+push*1.7))+Math.cos(b.ang+near*2)*W*0.04;
     y=H*(0.5+(b.y-0.5)*(0.28+push*1.5))+Math.sin(b.ang+near)*H*0.03;
-    a=(0.22+0.55*near)*(1-Math.max(0,near-0.92)/0.08);
+    a=(0.22+0.55*near)*(1-Math.max(0,near-0.92)/0.08)*openFade;
     if(a<=0.02)continue;
     g.globalAlpha=Math.min(0.85,a);
     g.drawImage(spr,x-diam/2,y-diam/2,diam,diam);
@@ -1277,7 +1288,7 @@ function state(){
 
 window.GJ_DEPTH={
   busy:function(){return !!PL.busy},
-  tick:tick, fly:rush, burst:burst, viewScale:viewScale, drawFx:drawFx,
+  tick:tick, fly:rush, hush:hush, burst:burst, viewScale:viewScale, drawFx:drawFx,
   follow:follow, followEnd:followEnd, holdOut:holdOut, pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
   paintField:paintField, board:function(){return board}, soundOn:function(){return soundOn},
   state:state,

@@ -324,7 +324,7 @@ function washImgs(k){
 
 function frame(t){
   var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
-  if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/1680,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
+  if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/1680,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush()}}
   if(phase==='land'&&!OP.on&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   if(OP.used)opLayers(dt);
   stepSprings(dt);if(playing)listen();
@@ -355,8 +355,8 @@ function draw(t){
   g.setTransform(DPR,0,0,DPR,0,0);
   if(sc!==1){g.translate(og.x,og.y);g.scale(sc,sc);g.translate(-og.x,-og.y)}
   g.clearRect(-W,-H,W*3,H*3);
-  if(phase==='arrive'||phase==='fly'){drawMark(phase==='fly'?ease(flyU):0);drawGlow();return}
-  if(phase==='land'){drawGlow();return}
+  if(phase==='arrive'||phase==='fly'){drawMark(phase==='fly'?ease(flyU):0);drawGlow();paintFx();return}
+  if(phase==='land'){drawGlow();paintFx();return}
   var fa=farA(),lk=look;
   FIELD.forEach(function(L){
     g.globalAlpha=L.a*(.35+.65*Math.min(1,fa+.4));
@@ -381,18 +381,24 @@ function draw(t){
   drawRelated();
   if(cur.lv===2&&cur.id&&byId[cur.id]&&byId[cur.id].kind==='player'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn()))drawSound(t);
   if(sc!==1)g.setTransform(DPR,0,0,DPR,0,0);
-  var fx=document.getElementById('fx');
-  if(fx&&window.GJ_DEPTH){
-    if(fx.width!==cv.width||fx.height!==cv.height){fx.width=cv.width;fx.height=cv.height}
-    var fg=fx.getContext('2d');fg.setTransform(DPR,0,0,DPR,0,0);fg.clearRect(0,0,W,H);
-    GJ_DEPTH.drawFx(fg,W,H);
-  }
-  if(pinch&&PT){
-    var ids=Object.keys(PT);
-    g.fillStyle='rgba(255,255,255,.85)';
-    ids.forEach(function(id){var p=PT[id];g.beginPath();g.arc(p.x,p.y,7,0,7);g.fill()});
+  paintFx();
+  /* The opening pinch keeps its own marks off the sky. Other pinches still show the two fingers. */
+  if(pinch&&PT&&!OP.hold){
+    var ids=Object.keys(PT),dotA=OP.used?Math.max(0,1-OP.p):0.85;
+    if(dotA>0.03){
+      g.globalAlpha=dotA;g.fillStyle='#fff';
+      ids.forEach(function(id){var p=PT[id];g.beginPath();g.arc(p.x,p.y,7,0,7);g.fill()});
+      g.globalAlpha=1;
+    }
   }
   drawGlow();
+}
+function paintFx(){
+  var fx=document.getElementById('fx');
+  if(!fx||!window.GJ_DEPTH)return;
+  if(fx.width!==cv.width||fx.height!==cv.height){fx.width=cv.width;fx.height=cv.height}
+  var fg=fx.getContext('2d');fg.setTransform(DPR,0,0,DPR,0,0);fg.clearRect(0,0,W,H);
+  GJ_DEPTH.drawFx(fg,W,H);
 }
 var glow=null;
 function noteTouch(x,y){
@@ -1491,10 +1497,10 @@ function pinchBack(n){
 function pinchLetGo(){if(pinch&&!pinch.done&&window.GJ_DEPTH)GJ_DEPTH.followEnd()}
 function onPtrUp(e){
   delete PT[e.pointerId];
-  if(Object.keys(PT).length<2){if(OP.on)opRelease();pinchLetGo();pinch=null}
+  if(Object.keys(PT).length<2){if(OP.on)opRelease();pinchLetGo();pinch=null;OP.hold=0}
 }
 /* Opening pinch: two fingers drive the opening itself (p 0..1 = mark, fly, land frames, sky) and the layers follow them. */
-var OP={on:0,used:0,p:0,p0:0,d0:1,d:1,x:0,y:0,z:0,ox:0,oy:0},OFEND=.4,OSPAN=2.8;
+var OP={on:0,used:0,hold:0,p:0,p0:0,d0:1,d:1,x:0,y:0,z:0,ox:0,oy:0},OFEND=.4,OSPAN=2.8;
 function opening(){return phase==='arrive'||phase==='fly'||phase==='land'}
 function opP(){
   if(phase==='arrive')return 0;
@@ -1503,7 +1509,7 @@ function opP(){
   return 1;
 }
 function opEngage(pz){
-  OP.on=1;OP.p0=OP.p=opP();OP.d0=pz.d||1;OP.d=OP.d0;OP.x=pz.x;OP.y=pz.y;
+  OP.on=1;OP.hold=1;OP.p0=OP.p=opP();OP.d0=pz.d||1;OP.d=OP.d0;OP.x=pz.x;OP.y=pz.y;
   if(!OP.used){OP.used=1;OP.z=OP.p;OP.ox=pz.x;OP.oy=pz.y}
   pz.done=1;
   try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
@@ -1512,7 +1518,7 @@ function opMove(d,x,y){
   OP.d=d;OP.x=x;OP.y=y;
   var p=clamp(OP.p0+Math.log(d/OP.d0)/Math.log(OSPAN),0,1);
   OP.p=p;
-  if(p>=1){opCommit();return}
+  if(p>=1){if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush();opCommit();return}
   if(p<=0){if(phase!=='arrive'){phase='arrive';flyU=0;landTok++;setChrome()}return}
   if(p<OFEND){
     if(phase!=='fly'){phase='fly';landTok++;setChrome()}
@@ -1520,6 +1526,7 @@ function opMove(d,x,y){
   }
   var i=Math.min(lands.length-1,Math.floor((p-OFEND)/(1-OFEND)*lands.length));
   flyU=1;
+  if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush();
   if(phase!=='land'){phase='land';landI=i;landT=now();showLand();setChrome()}
   else if(landI!==i){landI=i;landT=now();showLand()}
 }
