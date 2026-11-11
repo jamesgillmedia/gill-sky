@@ -1075,9 +1075,13 @@ function drawMark(u){
     if(gi<=0)return;
     var a=markScreen(p),b;
     if(u>0&&markTo[i]){var np=nodePos(markTo[i]);b=sp(np[0],np[1])}else b=a;
-    var q=[lerp(a[0],b[0],u),lerp(a[1],b[1],u)];
-    var gs=u>.85?0:10;if(gs){g.globalAlpha=.8*gi*al;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
-    g.globalAlpha=gi*al;g.fillStyle='#fff';g.beginPath();g.arc(q[0],q[1],u>.9?1.4:1.8,0,7);g.fill();
+    /* The mark stays whole, then eases apart. The glow shrinks and fades with that same progress, so no orb is left at the end. */
+    var tr=u<=0?0:u<.4?0:(u-.4)/.6;tr=tr*tr*(3-2*tr);
+    var fade=u>0?1-u:1;
+    var q=[lerp(a[0],b[0],tr),lerp(a[1],b[1],tr)];
+    var gs=10*fade;
+    if(gs>.4){g.globalAlpha=.8*gi*al*fade;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
+    g.globalAlpha=gi*al*fade;g.fillStyle='#fff';g.beginPath();g.arc(q[0],q[1],1.8*Math.max(.15,fade),0,7);g.fill();
   });
   g.globalAlpha=1;
 }
@@ -1536,6 +1540,7 @@ var OPL=['water','path','horizon','dust','poem','moon'],OPK={water:1.4,path:1.7,
 function opClear(){
   OPL.forEach(function(id){var el=$(id);if(el)el.style.transform=''});
   var im=$('landimg');if(im)im.style.transform='';
+  var dust=$('dust');if(dust&&!OP.on){dust.style.transition='';dust.style.opacity=''}
 }
 function opLayers(dt){
   var tgt=OP.on?OP.p:opP(),k=1-Math.exp(-dt*22);
@@ -1543,6 +1548,11 @@ function opLayers(dt){
   if(!OP.on){OP.ox=OP.x}
   if(!OP.on&&phase==='arrive'&&OP.z<.003){OP.used=0;opClear();return}
   var ox=OP.ox||W/2,oy=OP.on?OP.y:(OP.y||H*.46),z=OP.z;
+  var dust=$('dust');
+  if(dust){
+    if(OP.on){dust.style.transition='none';dust.style.opacity=(Math.max(0,1-OP.p/OFEND)*.7).toFixed(3)}
+    else if(dust.style.opacity){dust.style.transition='';dust.style.opacity=''}
+  }
   OPL.forEach(function(id){
     var el=$(id);if(!el)return;
     var sc=1+z*OPK[id];

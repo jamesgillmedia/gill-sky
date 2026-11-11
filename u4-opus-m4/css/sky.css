@@ -35,7 +35,7 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .horizon{position:absolute;left:8%;right:8%;top:61%;height:1px;pointer-events:none;opacity:0;
  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transition:opacity 1s}
 .horizon.on{opacity:.7}
-.dust{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity 1s}
+.dust{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s linear}
 .dust.on{opacity:.7}
 .dust i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.55}
 .poem{position:absolute;left:0;right:0;top:var(--ptop,28%);bottom:calc(112px + var(--sb));padding:0 8vw 0;overflow:hidden;text-align:center;pointer-events:none;
