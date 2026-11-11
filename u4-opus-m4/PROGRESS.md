@@ -66,6 +66,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | Player favicon | `abc45a0` | player/index.html no longer requests img/favicon-32.png. The icon link is ../icons/apple-touch-icon.png, which returns 200. | Yara title pill |
 | Track bpm in data | `700947f` | data.json tracks gain bpm from the measured table: togo 92.7, gone 89.1, noproblem 84.7, lostintime 81.0, equals 116.2, ii 62.9. No tempo field was added or changed. SHELL_REV 55. | Player tracks.js bpm |
 | Player tracks bpm | `45e000e` | player/js/tracks.js gains the same bpm values. The unitless tempo scroll multipliers are unchanged: togo 0.72, gone 1.05, noproblem 0.88, lostintime 0.55, equals 1.25, ii 1.4. | Player glow on the beat |
+| Player beat glow | `31ecf8e` | The player glow repeats on 60/bpm from the track's bpm. Onset flashes stay: the low-band spike, the 280 ms gap, and the ripple are unchanged. The tempo scroll multiplier is untouched. | Yara title pill |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
