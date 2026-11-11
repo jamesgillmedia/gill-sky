@@ -248,5 +248,16 @@ function loop(t){
   if(cfg.list&&listEl){var l=cfg.list();listEl.innerHTML=l.map(function(s){return '<div>'+esc(s)+'</div>'}).join('')}
 }
 function setSeg(id,v){vals[id]=v;var row=root&&root.querySelector('.rowc[data-id="'+id+'"]');if(row)[].forEach.call(row.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x.getAttribute('data-v')===String(v)))})}
-return {setSeg:setSeg,pulse:pulse,flash:flash,beat:beatCount,sf:function(){return (vals.sf||0)/100},af:function(){return (vals.af||0)/100},bpm:function(){return vals.bpm||100},sync:function(){return (vals.sync||0)/100},setBeat:function(fn){beatSrc=fn},fogLevel:function(v){fogLevel=v},init:init,frame:function(){},val:function(id){return vals[id]},isOn:function(){return on},setP:setP,open:openPanel,close:close,state:function(){return {on:on,open:open,fps:fps}}};
+/* A chosen song reports its measured bpm. setP writes ?bpm= and the slider shows that number. */
+function setBpm(v){
+  v=parseFloat(v);if(!isFinite(v))return;
+  var k=null;allControls().forEach(function(c){if(c.id==='bpm')k=c});
+  if(!k){setP('bpm',v);return}
+  v=Math.max(k.min,Math.min(k.max,r(v,k.step)));
+  vals.bpm=v;
+  var o=ctl.bpm;
+  if(o){o.range.value=String(v);if(document.activeElement!==o.nb)o.nb.value=v.toFixed(2)}
+  setP('bpm',v,k.def);
+}
+return {setSeg:setSeg,setBpm:setBpm,pulse:pulse,flash:flash,beat:beatCount,sf:function(){return (vals.sf||0)/100},af:function(){return (vals.af||0)/100},bpm:function(){return vals.bpm||100},sync:function(){return (vals.sync||0)/100},setBeat:function(fn){beatSrc=fn},fogLevel:function(v){fogLevel=v},init:init,frame:function(){},val:function(id){return vals[id]},isOn:function(){return on},setP:setP,open:openPanel,close:close,state:function(){return {on:on,open:open,fps:fps}}};
 })();
