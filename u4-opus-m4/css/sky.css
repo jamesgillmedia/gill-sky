@@ -390,8 +390,9 @@ html.wc .filmfield h2{top:calc(80px + var(--st))}
 html.wc #laytext{top:calc(80px + var(--st))}
 #shint{position:absolute;z-index:9;left:max(12px,var(--sl));right:max(108px,calc(var(--sr) + 108px));bottom:calc(64px + var(--sb));margin:0;text-align:left;pointer-events:none;
  padding:8px 12px;border-radius:8px;background:#04070b;border:1px solid rgba(255,255,255,.1);
- font:300 11px/1.45 Poppins,sans-serif;letter-spacing:.1em;color:rgba(228,235,245,.82);opacity:0;transition:opacity 1.2s ease}
+ font:300 11px/1.45 Poppins,sans-serif;letter-spacing:.1em;color:rgba(228,235,245,.82);opacity:0;transition:opacity 1.2s ease,top .4s ease}
 #shint.on{opacity:1}
+#shint.on.clash{opacity:0;transition-duration:.25s}
 #shint[hidden]{display:none}
 
 /* Film sheets: every title, role, credit and caption wraps instead of being cut, and sits on the frames' centre axis */

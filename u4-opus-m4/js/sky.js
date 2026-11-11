@@ -374,6 +374,7 @@ function frame(t){
   draw(t);
   drawGlitch(t);
   syncExtras();
+  placeHint();
   if(window.GJ_DEPTH&&GJ_DEPTH.state().film>=3)GJ_DEPTH.paintField();
   if(window.GJ_INNER&&GJ_INNER.active())GJ_INNER.tick(t);
   requestAnimationFrame(frame);
@@ -2037,6 +2038,39 @@ function seenHint(){
   var h=$('shint');if(!h)return;
   clearTimeout(h._t);h.classList.remove('on');h._fading=1;
   setTimeout(function(){h._fading=0;h.hidden=true},1300);
+}
+/* The middle-view hint takes the lowest slot in the sky that has no star, orb or print under it, and waits invisibly when no slot is free. */
+function placeHint(){
+  var h=$('shint');if(!h||h.hidden||!h.classList.contains('on')&&!h._fading)return;
+  if(!isMid()||!CH[cur.k])return;
+  var c=CH[cur.k];
+  if(h._home==null||h._H!==H||h._W!==W){
+    h.style.top='';h.style.bottom='';
+    var r0=h.getBoundingClientRect();
+    h._home=r0.top;h._h=r0.height;h._H=H;h._W=W;h._x0=r0.left;h._x1=r0.right;
+    h.style.bottom='auto';h.style.top=h._home+'px';h._y=h._home;
+  }
+  var boxes=[];
+  var list=(cur.k==='objects'?c.items:c.skyItems).slice();
+  list.forEach(function(it){
+    if(it.in_progress&&cur.k!=='objects')return;
+    if(it._mr){boxes.push([it._mr[0]-8,it._mr[1]-8,it._mr[0]+it._mr[2]+8,it._mr[1]+it._mr[3]+8])}
+    else{var q=sp(posOf(it)[0],posOf(it)[1]);boxes.push([q[0]-24,q[1]-24,q[0]+24,q[1]+24])}
+  });
+  if(cur.k==='sound')c.dec.forEach(function(d){var q=sp(d.x,d.y);boxes.push([q[0]-14,q[1]-14,q[0]+14,q[1]+14])});
+  function free(y){
+    var y1=y+h._h;
+    for(var i=0;i<boxes.length;i++){var b=boxes[i];if(b[0]<h._x1&&h._x0<b[2]&&b[1]<y1&&y<b[3])return false}
+    return true;
+  }
+  var top=92+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--st'))||0);
+  var y=h._y;
+  if(!free(y)){
+    y=null;
+    for(var t=h._home;t>=top;t-=8)if(free(t)){y=t;break}
+  }
+  if(y==null){h.classList.add('clash')}
+  else{h.classList.remove('clash');if(y!==h._y){h._y=y;h.style.top=y+'px'}}
 }
 function syncCrumb(label){
   var cr=$('wcrumb'),rl=$('wrail'),bar=$('bar');if(!cr||!rl)return;
