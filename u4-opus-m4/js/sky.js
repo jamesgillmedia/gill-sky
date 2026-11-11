@@ -1261,7 +1261,7 @@ function bind(){
   window.addEventListener('pointerup',onPtrUp,true);
   window.addEventListener('pointercancel',onPtrUp,true);
   window.addEventListener('message',function(e){if(e.data==='sound-out')back()});
-  $('dive').addEventListener('click',function(e){e.stopPropagation();dive()});
+  $('dive').addEventListener('click',function(e){e.stopPropagation();skipToSky()});
   $('back').addEventListener('click',function(e){e.stopPropagation();back()});
   $('crumb').querySelector('.sig').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();farHome()});
   addEventListener('keydown',function(e){
@@ -1333,7 +1333,7 @@ var LASTTAP={t:0,x:0,y:0,hit:null};
 function onUp(e){
   if(!drag||e.pointerId!==drag.id)return;
   var was=drag;drag=null;
-  if(phase==='arrive'){dive();return}
+  if(phase==='arrive'){skipToSky();return}
   if(phase==='land'){if(!moved)nextLand();return}
   if(phase!=='sky')return;
   if(moved){
@@ -2136,6 +2136,21 @@ function seenKey(){
   var p=location.pathname.replace(/index\.html$/,'');
   if(p.slice(-1)!=='/')p=p.replace(/\/[^/]*$/,'/');
   return 'seen:'+p;
+}
+var SKIPPING=0;
+function skipToSky(){
+  if(phase!=='arrive'||SKIPPING)return;
+  SKIPPING=1;
+  try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
+  var v=document.createElement('div');
+  v.style.cssText='position:fixed;inset:0;z-index:50;background:#04070b;opacity:0;pointer-events:none;transition:opacity .15s linear';
+  document.body.appendChild(v);
+  void v.offsetWidth;v.style.opacity='1';
+  setTimeout(function(){
+    enterSky(true);
+    v.style.transition='opacity .25s linear';v.style.opacity='0';
+    setTimeout(function(){if(v.parentNode)v.parentNode.removeChild(v);SKIPPING=0},300);
+  },150);
 }
 function dive(){
   if(phase!=='arrive'&&phase!=='fly')return;
