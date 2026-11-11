@@ -1020,7 +1020,7 @@ function armArrival(){
       el.addEventListener('transitionend',function(e){if(e.target===el&&e.propertyName==='opacity'&&ARR.on){ARR[p[1]]=1;arrBegin()}});
     });
   }
-  if(ARR.done){MP.t0=-1;po.classList.add('seq','again');pa.classList.add('seq','again');return}
+  if(ARR.done){MP.t0=-1;po.classList.add('seq','again');pa.classList.add('seq','again');$('dive').classList.add('show');return}
   ARR.wd=ARR.md=0;MP.t0=0;
   clearTimeout(ARR.tm);ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250);
 }
@@ -1028,12 +1028,12 @@ function arrBegin(){
   if(!ARR.on||ARR.done||!(ARR.wd&&ARR.md))return;
   ARR.done=1;clearTimeout(ARR.tm);
   MP.t0=now();
-  $('poem').classList.add('seq');$('path').classList.add('seq');
+  $('poem').classList.add('seq');$('path').classList.add('seq');$('dive').classList.add('show');
 }
 function disarmArrival(){
   if(!ARR.on)return;
   ARR.on=0;clearTimeout(ARR.tm);
-  ['poem','path'].forEach(function(id){$(id).classList.remove('seq','again')});
+  ['poem','path'].forEach(function(id){$(id).classList.remove('seq','again')});$('dive').classList.remove('show');
 }
 function markScreen(p){return [MG.ox+p[0]*MG.sc,MG.oy+p[1]*MG.sc]}
 function markArc(){
