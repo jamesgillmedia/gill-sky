@@ -27,9 +27,10 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 #ctx{transform-origin:50% 50%}
 .plane.card{-webkit-mask-image:none;mask-image:none;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 30px rgba(0,0,0,.6)}
 .plane img{position:absolute;display:block;max-width:none;pointer-events:none}
-#gal{position:absolute;inset:0;z-index:2;background:#04070b;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:calc(72px + env(safe-area-inset-top)) 6px calc(110px + env(safe-area-inset-bottom));overscroll-behavior:contain;transform-origin:50% 50%}
+#gal{position:absolute;inset:0;z-index:2;background:#04070b;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:calc(72px + env(safe-area-inset-top)) 6px calc(28px + env(safe-area-inset-bottom));overscroll-behavior:contain;transform-origin:50% 50%}
 #gal h2{margin:14px 10px 0;font:400 calc(26px*var(--tx))/1.15 "Julius Sans One",sans-serif;letter-spacing:.08em;text-transform:lowercase}
-#gal .sub{margin:6px 10px 14px;color:#9fb0c4;font-size:calc(12px*var(--tx))}
+#gal .sub{margin:6px 10px 2px;color:#9fb0c4;font-size:calc(12px*var(--tx))}
+#gal .pinch{margin:0 10px 14px;color:#e9eef5;font-size:calc(12px*var(--tx));font-weight:300}
 .cutgrid{display:grid;grid-template-columns:1fr 1fr;gap:26px 16px;padding:4px 6px 48px}
 @media (orientation:landscape),(min-width:700px){.cutgrid{grid-template-columns:repeat(3,1fr)}}
 .cutgrid figure{margin:0;cursor:pointer}
@@ -535,7 +536,7 @@ function mountPlanes(){
   placePlanes();
 }
 function mountGallery(){
-  var h='<h2>'+cur.title+'</h2><p class="sub">'+cur.views.length+' photographs · '+cur.note+' · pinch in or tap one to go into it</p><div class="cutgrid">';
+  var h='<h2>'+cur.title+'</h2><p class="sub">'+cur.views.length+' photographs · '+cur.note+'</p><p class="pinch">pinch in, or tap a photograph, to go into it</p><div class="cutgrid">';
   cur.views.forEach(function(it,i){h+='<figure data-i="'+i+'"><img src="'+P+(it.th||it.s)+'" alt="'+it.n+'" loading="lazy"><figcaption>'+it.n+'</figcaption></figure>'});
   gal.innerHTML=h+'</div>';
   gal.scrollTop=0;
@@ -572,7 +573,8 @@ function showLayer(n){
   $('reset').hidden=n!==2;
   $('tilt').hidden=!tiltOK;
   $('back').hidden=n===BASE;
-  $('hint').textContent=n===1?'pinch in, or tap a photograph, to go into it':'drag to orbit · pinch to resize · pinch out to return to the gallery';
+  $('foot').hidden=n===1;
+  $('hint').textContent=n===1?'':'drag to orbit · pinch to resize · pinch out to return to the gallery';
   document.documentElement.setAttribute('data-layer',String(n));
 }
 var BASE=OPT===1?1:2,tiltOK=false;
