@@ -100,7 +100,9 @@ function paintCard(i){
 function setOpen(v){
   open=v;if(!v)paintPreview();sheet.classList.toggle('on',v);sheet.setAttribute('aria-hidden',v?'false':'true');
   if(v){sel=sel<0?(cur<0?0:cur):sel;paintCard(sel);paintChips();
-    var e=B[sel].el;chips.scrollTo({left:e.offsetLeft-chips.offsetLeft-chips.clientWidth/2+e.offsetWidth/2,behavior:'smooth'})}
+    if(!setOpen.started){setOpen.started=1;chips.scrollLeft=0}
+    else{var e=B[sel].el,l=e.offsetLeft-chips.offsetLeft,cw=chips.clientWidth,sl=chips.scrollLeft;
+      if(l<sl+6||l+e.offsetWidth>sl+cw-6)chips.scrollTo({left:l-cw/2+e.offsetWidth/2,behavior:'smooth'})}}
 }
 function chipTap(i){
   if(i===sel){ if(i===cur)setOpen(false);else load(i,true); return }
