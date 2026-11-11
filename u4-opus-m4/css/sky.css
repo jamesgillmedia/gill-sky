@@ -344,8 +344,8 @@ html.bleed #proof,html.bleed #mmap{display:none !important}
 .contact{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .contact figure{margin:0}
 .contact img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.photoseries .series figure:nth-child(2){transform:translate(16px,6px) rotate(1.2deg)}
-.photoseries .series figure:nth-child(3){transform:translate(-14px,4px) rotate(-1deg)}
+.photoseries .series figure:nth-child(2){transform:translate(16px,6px)}
+.photoseries .series figure:nth-child(3){transform:translate(-14px,4px)}
 .enterframe.push.in img,.herobleed img.push{animation:slowpush 16s cubic-bezier(.22,.6,.2,1) forwards;transform-origin:50% 42%}
 @keyframes slowpush{from{transform:scale(1)}to{transform:scale(1.1)}}
 .syncwave{position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none}

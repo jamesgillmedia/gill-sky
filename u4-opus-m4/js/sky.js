@@ -1147,7 +1147,7 @@ function drawWindow(){
     if(y>spec.y0+spec.winH||y+h<spec.y0)return;
     g.globalAlpha=Math.min(1,b*1.4);
     if(spec.key==='photo'&&!(db&&db.fine)&&it._im&&it.ld){
-      g.save();g.translate(x+w/2,y+h/2);g.rotate(((i%5)-2)*0.025);
+      g.save();g.translate(x+w/2,y+h/2);/* no tilt (Gill, Nov 11 3:10 PM) */
       g.fillStyle='#e4ddd2';g.fillRect(-w/2,-h/2,w,h);
       cover(it._im,-w/2+3,-h/2+3,w-6,h-6,it._crop);g.restore();
     }else if(spec.key==='objects'&&!(db&&db.fine)){
