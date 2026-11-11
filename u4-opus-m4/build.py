@@ -419,6 +419,7 @@ def page(rel, title, crumb, body, depth):
 <meta name="apple-mobile-web-app-title" content="ᑕᐣᓯ">
 <link rel="manifest" href="{up}manifest.webmanifest">
 <link rel="apple-touch-icon" href="{up}icons/apple-touch-icon.png">
+<link rel="icon" href="{up}icons/icon-192.png">
 <link rel="stylesheet" href="{up}css/page.css">
 </head><body>
 <header class="top"><a class="sig" href="{up}" lang="cr">ᑕᐣᓯ</a>
