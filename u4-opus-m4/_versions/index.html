@@ -27,17 +27,16 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 #dot::after{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--mint);box-shadow:0 0 10px rgba(85,218,161,.7)}
 #dot::before{content:"";position:absolute;inset:0;border-radius:50%;border:1px solid rgba(85,218,161,.55);animation:rip 2.4s ease-out infinite}
 @keyframes rip{0%{transform:scale(.7);opacity:.9}100%{transform:scale(1.7);opacity:0}}
-#sheet{position:fixed;left:0;right:0;bottom:0;z-index:19;padding:12px max(14px,env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border-radius:18px 18px 0 0;border-bottom:0;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);max-width:640px;margin:0 auto}
+#sheet{position:fixed;left:0;right:0;bottom:0;z-index:19;padding:12px 0 calc(14px + env(safe-area-inset-bottom));border-radius:18px 18px 0 0;border-bottom:0;transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.8,.2,1);max-width:640px;margin:0 auto}
 #sheet.on{transform:none}
-#card{display:flex;gap:12px;align-items:center;margin:0 0 12px;min-height:96px}
+#card{display:flex;gap:12px;align-items:center;margin:0 14px 12px;min-height:96px}
 #card img{height:96px;width:44px;object-fit:cover;object-position:top;border-radius:8px;background:#0a121c;flex:none;border:1px solid rgba(255,255,255,.14)}
 #card .t{flex:1;min-width:0}
 #card h2{margin:0;font-size:16px;font-weight:600}
 #card p{margin:3px 0 0;color:var(--dim);font-size:11.5px}
 #card .go{all:unset;cursor:pointer;flex:none;padding:10px 16px;border-radius:20px;background:rgba(85,218,161,.16);border:1px solid rgba(85,218,161,.55);color:var(--mint);font-size:12px;letter-spacing:.06em}
 #card .go:active{background:rgba(85,218,161,.3)}
-#chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0;scrollbar-width:none;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%)}
-#chips::before,#chips::after{content:"";flex:none;width:4px}
+#chips{display:flex;gap:8px;overflow-x:auto;padding:2px 14px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 #chips::-webkit-scrollbar{display:none}
 .chip{all:unset;cursor:pointer;flex:none;padding:8px 12px;border-radius:16px;border:1px solid rgba(255,255,255,.2);color:var(--ink);font-size:12px}
 .chip.sel{border-color:var(--mint);color:var(--mint);background:rgba(85,218,161,.1)}
@@ -62,11 +61,13 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hi
 <div id="dot" class="glass gone" aria-label="builds"></div>
 <script>
 (function(){
-var B=[{"id": "r4", "date": "Nov 10, 02:01"}, {"id": "r5", "date": "Nov 10, 02:39"}, {"id": "r6", "date": "Nov 10, 03:18"}, {"id": "r7", "date": "Nov 10, 03:40"}, {"id": "r8", "date": "Nov 10, 04:32"}, {"id": "r9", "date": "Nov 10, 05:10"}, {"id": "r10", "date": "Nov 10, 05:50"}, {"id": "r11", "date": "Nov 10, 15:41"}, {"id": "u1", "date": "Nov 10, 09:38"}, {"id": "u1m", "date": "Nov 10, 10:07"}, {"id": "u3", "date": "Nov 10, 20:03"}, {"id": "u3-r2", "date": "Nov 10, 21:51"}, {"id": "u3-r3", "date": "Nov 10, 22:01"}, {"id": "u4-opus-m1", "date": "Nov 10, 21:45"}, {"id": "u4-opus-m2", "date": "Nov 10, 23:35"}, {"id": "u4-opus-m3", "date": "Nov 10, 23:41"}, {"id": "u4-opus-m4", "date": "Nov 11, 01:13"}];
+var B=[{"id": "r4", "ts": "2026-11-10T02:01:16Z"}, {"id": "r5", "ts": "2026-11-10T02:39:09Z"}, {"id": "r6", "ts": "2026-11-10T03:18:16Z"}, {"id": "r7", "ts": "2026-11-10T03:40:33Z"}, {"id": "r8", "ts": "2026-11-10T04:32:17Z"}, {"id": "r9", "ts": "2026-11-10T05:10:33Z"}, {"id": "r10", "ts": "2026-11-10T05:50:20Z"}, {"id": "r11", "ts": "2026-11-10T15:41:45Z"}, {"id": "u1", "ts": "2026-11-10T16:38:04Z"}, {"id": "u1m", "ts": "2026-11-10T17:07:03Z"}, {"id": "u3", "ts": "2026-11-10T20:03:14Z"}, {"id": "u3-r2", "ts": "2026-11-10T21:51:12Z"}, {"id": "u3-r3", "ts": "2026-11-10T22:01:01Z"}, {"id": "u4-opus-m1", "ts": "2026-11-10T21:45:39Z"}, {"id": "u4-opus-m2", "ts": "2026-11-10T23:35:59Z"}, {"id": "u4-opus-m3", "ts": "2026-11-10T23:41:30Z"}, {"id": "u4-opus-m4", "ts": "2026-11-11T01:13:46Z"}];
 var LS='gjv.', $=function(i){return document.getElementById(i)};
 var frame=$('frame'),pill=$('pill'),dot=$('dot'),sheet=$('sheet'),chips=$('chips');
 function get(k,d){try{var v=localStorage.getItem(LS+k);return v==null?d:JSON.parse(v)}catch(e){return d}}
 function set(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}
+var DF=new Intl.DateTimeFormat('en-US',{timeZone:'America/Edmonton',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+function fmt(ts){return DF.format(new Date(ts))+' MT'}
 function idx(id){for(var i=0;i<B.length;i++)if(B[i].id===id)return i;return -1}
 
 var cur=-1,sel=-1,open=false;
@@ -78,15 +79,20 @@ B.forEach(function(b,i){
   c.onclick=function(){chipTap(i)};chips.appendChild(c);b.el=c;
 });
 function paintChips(){B.forEach(function(b,i){b.el.className='chip'+(i===sel?' sel':'')+(i===cur?' cur':'')})}
+function paintPreview(){
+  var on=open&&sel>=0&&sel!==cur;
+  $('pv').classList.toggle('on',on);
+  if(on){var b=B[sel];$('pvimg').src='thumbs/'+b.id+'.jpg';$('pvtag').textContent='preview \u00b7 tap again to open'}
+}
 function paintCard(i){
   var b=B[i];$('cimg').src='thumbs/'+b.id+'.jpg';$('cname').textContent=b.id;
-  $('cmeta').textContent=b.date+' \u00b7 '+(i+1)+' of '+B.length+(i===cur?' \u00b7 showing':'');
+  $('cmeta').textContent=fmt(b.ts)+' \u00b7 '+(i+1)+' of '+B.length+(i===cur?' \u00b7 showing':'');
   $('cgo').textContent=i===cur?'Close':'Open';
 }
 function setOpen(v){
   open=v;sheet.classList.toggle('on',v);sheet.setAttribute('aria-hidden',v?'false':'true');
   if(v){sel=sel<0?(cur<0?0:cur):sel;paintCard(sel);paintChips();
-    var e=B[sel].el;chips.scrollTo({left:e.offsetLeft-chips.offsetLeft-chips.clientWidth/2+e.offsetWidth/2,behavior:'smooth'})}
+    var e=B[sel].el;chips.scrollTo({left:e.offsetLeft-chips.clientWidth/2+e.offsetWidth/2,behavior:'smooth'})}
 }
 function chipTap(i){
   if(i===sel){ if(i===cur)setOpen(false);else load(i,true); return }
