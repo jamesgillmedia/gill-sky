@@ -15,6 +15,27 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | Step | Commit | What changed | Next |
 |---|---|---|---|
 | 0 | `e195ff7` | `_spec/DESIGN-SPEC.md` + `spec-img/` added, no code touched | A |
+| A | `172cd61` | Ported from u3-r2/u3-r3 (diffed against u3/): see "A. u3-r2/r3 fixes" below | C |
+
+### A. u3-r2/r3 fixes
+Ported (each was missing from m4):
+1. `.poem.on.ready` gate: the arrival poem stays hidden until fonts and the first typed line are ready, so the whole name is on first paint (`css/sky.css`, `fillPoem`/`typePoem` in `js/sky.js`). Name stays `white-space:nowrap`. m4's single GILL JAMES (one fading span) is kept.
+2. Sky labels FILM / PHOTO / SOUND / OBJECTS / ABOUT in paper colour with a short dark shadow (`drawNames`, `js/sky.js`).
+3. Film titles stay on one line, smaller on a phone: `.film.lv1 h2`, `.film.lv2 h2`, `#layer .sheet.film h2`, `.filmfield h2` (all `clamp(12px,3.2vw,..)`, no wrap) plus `fitLongTitle()` in `js/depth.js` (long titles scaleX, never wrapped or sliced).
+4. Single process still fills the phone (`.cutgrid figure:only-child`), Weird Kid mid frames fill the phone (`.framewall` grid stretch), `#layer .sheet.full` as a flex column.
+5. `.framebloom` no longer starts from scale .15, so "Demo Reel" and the frames are drawn whole, not sliced mid-word during the film dive.
+6. Top bar fades to a light gradient over full-bleed stills (`html.bleed`, `:has(.enterframe)`, `:has(.herobleed)`, `:has(.filmfield)`).
+7. WORK hero: a film that has a clip keeps its poster `<img>` up until the video has a frame (`.heroframe video` opacity 0, `.live` on `loadeddata`/`playing`); hero frame takes the full width.
+8. Calculator crop takes the body of the device and drops the letterbox (`calcCrop`), and the bio text sits on a softer wash (`#laytext`).
+9. `#apro .about-l1:empty{display:none}`.
+
+Already in m4 (own implementation, nothing to port): the camera level path FAR / MID / BOARD / WORK with its hashes (`#film`, `#film/board`, `#film/<slug>`) and one-history-entry-per-level, board top below the bar, whole-word board captions, Reel 000 opens on its first real frame, sound board.
+
+Not ported, on purpose:
+- r2's `@media (max-width:480px)` that hides List and Contact and collapses Reel to a bare triangle: it conflicts with spec K3 (Reel / List / Contact stay). B2 gives the readable level crumb instead.
+- r2's `#crumb` restyle: m4's `html.deep` bar rules stay (ᑕᐣᓯ beside ‹); B2 adds the readable crumb beside the bar.
+- r3's Demo Reel "opens on a shot grid" board: B3 replaces it with the 201-shot filmstrip reel as a WORK stop.
+- r3's wrapCap card captions and `gridSpec` rewrite: m4's boards already have their own whole-word captions and layout (K11, K13).
 
 LOGROWS
 
