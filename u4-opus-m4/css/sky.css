@@ -385,8 +385,9 @@ html.wc #layer .sheet.full,html.wc #layer .sheet.film,html.wc #layer .sheet.cuts
 html.wc #layer .sheet{padding-bottom:calc(46px + var(--sb))}
 html.wc .filmfield h2{top:calc(80px + var(--st))}
 html.wc #laytext{top:calc(80px + var(--st))}
-#shint{position:absolute;z-index:7;left:max(12px,var(--sl));right:max(96px,calc(var(--sr) + 96px));bottom:calc(46px + var(--sb));margin:0;text-align:left;pointer-events:none;
- font:300 11px/1.45 Poppins,sans-serif;letter-spacing:.1em;color:rgba(228,235,245,.62);text-shadow:0 1px 8px rgba(4,7,11,.95);opacity:0;transition:opacity 1.2s ease}
+#shint{position:absolute;z-index:9;left:max(12px,var(--sl));right:max(108px,calc(var(--sr) + 108px));bottom:calc(64px + var(--sb));margin:0;text-align:left;pointer-events:none;
+ padding:8px 12px;border-radius:8px;background:#04070b;border:1px solid rgba(255,255,255,.1);
+ font:300 11px/1.45 Poppins,sans-serif;letter-spacing:.1em;color:rgba(228,235,245,.82);opacity:0;transition:opacity 1.2s ease}
 #shint.on{opacity:1}
 #shint[hidden]{display:none}
 
