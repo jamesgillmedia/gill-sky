@@ -1423,6 +1423,14 @@ function bind(){
   if(wc)wc.addEventListener('click',wjump);
   if(wr){wr.addEventListener('click',wjump);wr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')wjump(e)})}
   $('layer').addEventListener('click',layerTap);
+  /* The seven layers step deeper from a click or tap (a mouse has no pinch), unless the click is picking text or a link. */
+  $('layers').addEventListener('click',function(e){
+    if(phase!=='sky'||!bioOn||bioExit||bioMoon)return;
+    if(e.target.closest&&e.target.closest('a,button,input'))return;
+    var sel=window.getSelection&&window.getSelection();
+    if(sel&&String(sel).length)return;
+    deeper(e.clientX,e.clientY);
+  });
   stage.addEventListener('pointerdown',onDown);
   stage.addEventListener('pointermove',onMove);
   stage.addEventListener('pointerup',onUp);
@@ -1442,6 +1450,10 @@ function bind(){
     var c=$('hirecard');
     if(e.key==='Escape'&&c&&!c.hidden){e.preventDefault();e.stopPropagation();hireOpen(false);return}
     if(e.key==='Escape'){e.preventDefault();back()}
+    if(bioOn&&!bioExit&&isBio()&&!(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))){
+      if(e.key==='ArrowRight'){e.preventDefault();deeper(innerWidth/2,innerHeight/2)}
+      else if(e.key==='ArrowLeft'){e.preventDefault();back()}
+    }
   });
   var hireBtn=$('hire'),hireX=$('hirex');
   if(hireBtn)hireBtn.addEventListener('click',function(e){e.stopPropagation();hireOpen($('hirecard').hidden)});
