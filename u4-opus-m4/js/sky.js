@@ -656,7 +656,7 @@ function gridSpec(key){
   if(hero)cols=1;
   var gap=hero?10:((key==='photo'||key==='objects')&&!fine?16:4),pad=hero?8:10,head=key==='about'?16:44;
   var room=boardRoom();
-  var maxW=Math.min(hero?Math.min(W-12,760):Math.min(W-20,680),room.w);
+  var maxW=Math.min(hero?Math.min(W-28,760):Math.min(W-28,680),room.w);
   var tw=(maxW-pad*2-gap*(cols-1))/cols;
   var sq=key==='progress'||((key==='photo'||key==='objects')&&fine);
   var th=key==='about'?40:hero?Math.min(tw*1.12,Math.max(320,H*.62)):sq?tw:(key==='sound'&&!fine?96:tw*9/16);
@@ -667,14 +667,14 @@ function gridSpec(key){
   maxH=Math.min(maxH,room.bottom-room.top);
   var winH=Math.min(maxH,contentH);
   var y0=Math.min(Math.max(room.top,(H-winH)/2),room.bottom-winH);
-  return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:room.x+(room.w-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
+  return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:Math.max(14,Math.min(W-14-maxW,room.x+(room.w-maxW)/2)),y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
 }
 /* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
 var BSPEC=null;
 function boardSpec(key,items){
   var room=boardRoom(),n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'');
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
-  var maxW=Math.min(W-20,680,room.w),pad=10,gap=8,head=44,AW=maxW+20;
+  var maxW=Math.min(W-28,680,room.w),pad=10,gap=8,head=44,AW=maxW+28;
   if(key==='film'||key==='objects'){pad=8;gap=6}
   var cols=key==='about'?(AW<520?1:2):key==='film'?(AW<520?2:3):(AW<520?3:AW<860?4:6);
   if(key==='photo')gap=14;
@@ -731,7 +731,7 @@ function boardSpec(key,items){
   var floor=room.bottom;
   var winH=Math.min(Math.min(floor-room.top,H*.86),contentH);
   var y0=Math.min(Math.max(room.top,(H-winH)/2),floor-winH);
-  BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:room.x+(room.w-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
+  BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:Math.max(14,Math.min(W-14-maxW,room.x+(room.w-maxW)/2)),y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
   return BSPEC;
 }
 function boardCount(key,items){
@@ -789,7 +789,7 @@ function boardRoom(){
   if(cr&&!cr.hidden){var cb=cr.getBoundingClientRect();if(cb.height)top=Math.max(top,Math.round(cb.bottom)+2)}
   var rail=$('wrail'),rb=rail&&!rail.hidden?36:0;
   if(m.t-8-top>=H*.55)return {x:0,w:W,top:top,bottom:m.t-8,m:m.l+':'+m.t+':'+top};
-  return {x:10,w:Math.max(200,m.l-18),top:top,bottom:H-8-rb,m:m.l+':'+m.t+':'+top};
+  return {x:14,w:Math.max(200,m.l-22),top:top,bottom:H-8-rb,m:m.l+':'+m.t+':'+top};
 }
 function roundRect(g,x,y,w,h,r){
   g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);
