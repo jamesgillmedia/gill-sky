@@ -63,6 +63,18 @@ html.deep #bar .nav a,html.deep #hire{padding:0 1px}
 #wcrumb .sg{font:700 14px Syl,sans-serif;color:#fff;text-decoration:none;text-shadow:1px 0 rgba(10,189,240,.75),-1px 0 rgba(254,1,1,.55)}
 #wcrumb .here{color:var(--ink);overflow:hidden;text-overflow:ellipsis}
 #wcrumb i{font-style:normal;opacity:.5}
+@media(max-width:430px){
+ html:not(.deep) #crumb{flex:0 0 auto;font-size:0}
+ html:not(.deep) #crumb .sig{padding:10px 3px}
+ html:not(.deep) #where{position:fixed;left:max(14px,var(--sl));top:calc(52px + var(--st));font-size:12px;letter-spacing:.04em;color:var(--ink);pointer-events:none}
+}
+@media(max-width:380px){
+ #back{min-width:34px}
+ .chips{gap:3px}
+ .chips button{width:22px;height:22px}
+ #reel{padding:0 5px}
+ #bar .nav a,#hire{letter-spacing:.04em}
+}
 
 #shint,#rhint{position:absolute;z-index:6;left:max(14px,var(--sl));right:96px;bottom:calc(20px + var(--sb));margin:0;font-size:12px;letter-spacing:.06em;color:rgba(228,235,245,.72);pointer-events:none;transition:opacity .8s}
 #shint.off,#rhint.off{opacity:0}
