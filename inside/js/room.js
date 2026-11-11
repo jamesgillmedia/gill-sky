@@ -180,8 +180,12 @@ function build(p, tile, camera) {
     } else {
       const ar = m.ar || 1;
       const b = i === 0 ? sw * 1.15 : sw * (.7 + rnd(i) * .25), w = b / Math.max(1, ar), h = w * ar;
-      const mat = texMat(m.type === 'vid' ? m.poster : m.url, t => { if (!m.ar && t.image) { const r2 = t.image.height / t.image.width; mesh.scale.y = r2 / (mesh.userData.ar || 1); } });
+      /* objects-fix: a cached texture runs this callback synchronously, before mesh exists; keep the ratio and apply it once mesh is assigned */
+      let r2p = null;
+      const fitAr = r2 => { if (mesh) mesh.scale.y = r2 / (mesh.userData.ar || 1); else r2p = r2; };
+      const mat = texMat(m.type === 'vid' ? m.poster : m.url, t => { if (!m.ar && t.image) fitAr(t.image.height / t.image.width); });
       mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat); mesh.userData.ar = ar;
+      if (r2p !== null) fitAr(r2p);
       if (m.type === 'vid') vids.push({mesh, m, v: null, live: 0});
     }
     mesh.renderOrder = 2;
