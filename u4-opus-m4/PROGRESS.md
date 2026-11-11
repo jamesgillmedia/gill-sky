@@ -16,6 +16,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 |---|---|---|---|
 | 0 | `e195ff7` | `_spec/DESIGN-SPEC.md` + `spec-img/` added, no code touched | A |
 | A | `172cd61` | Ported from u3-r2/u3-r3 (diffed against u3/): see "A. u3-r2/r3 fixes" below | C |
+| C | `c36897c` | Board window keeps clear of the mini-map on every board: above it on a tall screen, beside it (narrower window) in landscape; also covers the sub-board path (`gridSpec`) and safe-area bottom. Checked 390x844, +34px safe area, 844x390, 667x375, 932x430, 360x640 on film/photo/sound/objects/about/progress: window never meets the map rect | B1 |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
