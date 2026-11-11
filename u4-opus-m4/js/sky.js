@@ -539,7 +539,16 @@ function drawItem(it,bl,focus){
     }
   }
 }
-function cut(s,max){if(g.measureText(s).width<=max)return s;while(s.length>1&&g.measureText(s+'…').width>max)s=s.slice(0,-1);return s+'…'}
+/* Shortens to whole words only. A single word that is too wide shrinks the current font instead of breaking. */
+function cut(s,max){var o=cut0(s,max);if(window.__capLog)__capLog.push([String(s==null?'':s),o]);return o}
+function cut0(s,max){
+  s=String(s==null?'':s);if(g.measureText(s).width<=max)return s;
+  var ws=s.split(' ');
+  while(ws.length>1){ws.pop();var t=ws.join(' ').replace(/[\s·—–,:&+-]+$/,'');if(t&&g.measureText(t+'…').width<=max)return t+'…'}
+  var w=ws[0],f=g.font,m=f.match(/([\d.]+)px/),px=m?+m[1]:10;
+  while(px>6.5&&g.measureText(w).width>max){px-=.5;g.font=f.replace(m[0],px+'px')}
+  return w;
+}
 function cover(im,x,y,w,h,crop){
   var iw=im.naturalWidth,ih=im.naturalHeight;if(!iw||!ih)return;
   g.save();g.beginPath();g.rect(x,y,w,h);g.clip();
@@ -653,7 +662,7 @@ function gridSpec(key){
 /* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
 var BSPEC=null;
 function boardSpec(key,items){
-  var n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n;
+  var n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+mapTop();
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
   var maxW=Math.min(W-20,680),pad=10,gap=8,head=44;
   var cols=key==='about'?(W<520?1:2):key==='film'?(W<520?2:3):(W<520?3:W<860?4:6);
@@ -704,8 +713,9 @@ function boardSpec(key,items){
     });
   }
   var contentH=head+bottom+10;
-  var winH=Math.min(Math.min(H-92,H*.86),contentH);
-  var y0=Math.max(62,(H-winH)/2);
+  var floor=mapTop()-8;
+  var winH=Math.min(Math.min(floor-62,H*.86),contentH);
+  var y0=Math.min(Math.max(62,(H-winH)/2),floor-winH);
   BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
   return BSPEC;
 }
@@ -736,6 +746,14 @@ function wrap2(t,max){
   var ws=t.split(' '),a='',k;
   for(k=0;k<ws.length;k++){var tryA=a?a+' '+ws[k]:ws[k];if(g.measureText(tryA).width>max&&a)break;a=tryA}
   return [a,cut(ws.slice(k).join(' '),max)];
+}
+/* Top of the minimap; boards keep clear of it. */
+var MAPTOP=0;
+function mapTop(){
+  if(MAPTOP&&MAPTOP.h===H)return MAPTOP.y;
+  var bt=$('mmap'),r=bt&&!bt.hidden?bt.getBoundingClientRect():null;
+  if(r&&r.height){MAPTOP={h:H,y:Math.round(r.top)};return MAPTOP.y}
+  return H-124;
 }
 function roundRect(g,x,y,w,h,r){
   g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);
@@ -1683,6 +1701,7 @@ function ui(){
   var back=$('back'),where=$('where');
   back.hidden=cur.lv===0;
   document.documentElement.classList.toggle('mapdim',onBoard()||(bioOn&&isBio()));
+  document.documentElement.classList.toggle('deep',cur.lv>0&&!(bioOn&&isBio()));
   var foot=$('foot');if(foot)foot.hidden=phase==='sky'||phase==='fly';
   var label='the sky';
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())label='sound';
@@ -1948,7 +1967,7 @@ window.__u1={
   byId:function(id){return byId[id]},
   get map(){return {s:+rest.s.toFixed(3),prog:progress.map(function(it){var q=sp(it.cx,it.cy);return {t:it.title,x:Math.round(q[0]),y:Math.round(q[1])}}),ch:ORDER.map(function(k){var q=sp(CH[k].x,CH[k].y);return {k:k,x:Math.round(q[0]),y:Math.round(q[1])}})}},
   get mid(){if(cur.lv!==1||onBoard())return null;return midItems().map(function(it){var p=posOf(it),q=sp(p[0],p[1]);return {id:it.id,t:it.title,x:Math.round(q[0]),y:Math.round(q[1]),r:it._mr||null,l:it._ml||null}})},
-  get rects(){if(cur.lv<1||!onBoard())return null;var spec=gridSpec(boardKey());return {key:spec.key,cap:spec.cap,rects:boardItems().map(function(it,i){var t=spec.rects?spec.rects[i]:null;return t?{x:t.x,y:t.y+(spec.key==='objects'?(i%3)*3:0),w:t.w,h:t.h,a:spec.key==='photo'?((i%5)-2)*0.025:0,cap:!!(it._cap||it.title)}:null})}},
+  get rects(){if(cur.lv<1||!onBoard())return null;var spec=gridSpec(boardKey());return {key:spec.key,cap:spec.cap,win:[spec.x0,spec.y0,spec.w,spec.winH],rects:boardItems().map(function(it,i){var t=spec.rects?spec.rects[i]:null;return t?{x:t.x,y:t.y+(spec.key==='objects'?(i%3)*3:0),w:t.w,h:t.h,a:spec.key==='photo'?((i%5)-2)*0.025:0,cap:!!(it._cap||it.title)}:null})}},
   get tiles(){if(cur.lv<1)return [];var spec=gridSpec(boardKey()),items=boardItems();return items.map(function(it,i){var rc=tileRect(spec,i,scr.x);return {id:it.id,t:it.title,x:Math.round(rc.x+rc.w/2),y:Math.round(rc.y+rc.h/2)}})}
 };
 

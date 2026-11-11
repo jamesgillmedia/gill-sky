@@ -98,6 +98,11 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 #bar.bio .nav{display:flex}
 #back{min-width:44px;min-height:44px;font-size:22px;color:var(--dim)}
 #back[hidden]{display:none}
+html.deep #bar{gap:2px}
+html.deep #crumb{flex:0 0 auto;font-size:0}
+html.deep #crumb .sig{font-size:16px;padding:10px 3px}
+html.deep #reel{padding:0 5px}
+html.deep #bar .nav a,html.deep #hire{padding:0 1px}
 #crumb{flex:1;min-width:0;margin:0;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--dim);
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #crumb .sig{font-family:Syl,sans-serif;font-weight:700;font-size:16px;letter-spacing:0;color:#fff;
