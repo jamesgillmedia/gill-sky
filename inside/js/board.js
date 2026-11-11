@@ -264,6 +264,8 @@ export const Board = {
     scroll = scrollT;
   },
   select(it) { selIt = it; },
+  selected() { return selIt ? selIt.id : null; },
+  screenOf(id, camera) { const t = cur && cur.byId.get(id); if (!t) return null; const v = (t.mesh ? t.mesh.getWorldPosition(new THREE.Vector3()) : E.sky.localToWorld(this.posOf(t.it).clone())).project(camera); return [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H]; },
   pick(x, y, camera) {
     if (!cur) return null;
     RC.setFromCamera(new THREE.Vector2(x / W * 2 - 1, -(y / H) * 2 + 1), camera);
@@ -339,7 +341,7 @@ export const Board = {
     } else selBox.material.opacity = 0;
   },
   labels(label, proj) {
-    if (!cur || bloom < .6 || !selIt || pieceIt) return;
+    if (!cur || bloom < .6 || !selIt || pieceIt || cur.k !== 'photo') return;
     const t = cur.byId.get(selIt.id); if (!t) return;
     const p = proj(t.world.x, t.world.y + t.h / 2, t.world.z); if (!p) return;
     const title = selIt.title && selIt.title !== 'untitled' ? selIt.title : 'tap again to open';

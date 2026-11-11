@@ -22,6 +22,7 @@ fetch('models/models.json').then(r => r.ok ? r.json() : {}).then(j => { MODELS =
 function contents(p) {
   const D = E.D, out = [];
   const img = (u, ar, big) => { if (ok(u)) out.push({type: 'img', url: src(u), ar: ar || 0, big}); };
+  const tb = n => (n.media.thumb || n.media.big);
   const vid = (u, poster, ar) => { if (ok(u)) out.push({type: 'vid', url: src(u), poster: poster ? src(poster) : '', ar: ar || 0}); };
   const pick = (arr, n) => { if (arr.length <= n) return arr; const o = []; for (let i = 0; i < n; i++) o.push(arr[Math.floor(i * arr.length / n)]); return o; };
   let q = p;
@@ -41,7 +42,7 @@ function contents(p) {
   } else if (q.chapter === 'photo') {
     img(p.media.big || p.media.thumb, p.media.w ? p.media.h / p.media.w : 0, 1);
     const all = D.chapters.photo.board, i = all.indexOf(p);
-    for (let j = 1; out.length < 11 && j < all.length; j++) { const n = all[(i + j) % all.length]; img(n.media.big || n.media.thumb, n.media.w ? n.media.h / n.media.w : 0); }
+    for (let j = 1; out.length < 11 && j < all.length; j++) { const n = all[(i + j) % all.length]; img(tb(n), n.media.w ? n.media.h / n.media.w : 0); }
   } else if (q.chapter === 'objects') {
     if (q.kind === 'joio') {
       const J = window.GJ_JOIO || [];
@@ -49,8 +50,8 @@ function contents(p) {
       pick(J.filter(x => x.k === 'v'), 5).forEach(x => vid('media/pro2/joio/' + x.v, 'media/pro2/joio/' + x.f, x.h / x.w));
     } else {
       img(p.media.big || p.media.thumb, p.media.w ? p.media.h / p.media.w : 0, 1);
-      if (p !== q) img(q.media.big || q.media.thumb, 0);
-      D.chapters.objects.board.forEach(n => { if (n.nov9 && n.of === q.id && n !== p) { if (n.media.clip) vid(n.media.clip, n.media.big, n.media.h / n.media.w); else img(n.media.big || n.media.thumb, n.media.w ? n.media.h / n.media.w : 0); } });
+      if (p !== q) img(tb(q), 0);
+      D.chapters.objects.board.forEach(n => { if (n.nov9 && n.of === q.id && n !== p) { if (n.media.clip) vid(n.media.clip, tb(n), n.media.h / n.media.w); else img(tb(n), n.media.w ? n.media.h / n.media.w : 0); } });
     }
   } else if (q.chapter === 'about' && q.kind === 'poem') {
     (D.poem || []).forEach(l => out.push({type: 'text', text: l}));
@@ -142,7 +143,7 @@ function playSong(t) {
 function stopSong() { if (AU) { AU.pause(); } }
 
 function build(p, tile, camera) {
-  G = new THREE.Group(); G.visible = true;
+  G = new THREE.Group(); G.visible = true; G.userData.born = performance.now();
   const {list, q} = contents(p);
   const tint = (E.D.chapters[q.chapter] || E.D.chapters.objects).tint;
   /* the room scales with the screen so a still reads at the same size on a phone and a desktop */
@@ -160,10 +161,16 @@ function build(p, tile, camera) {
   /* stills and clips on a slow ring that faces you; the piece itself straight ahead */
   planes = []; vids = [];
   const n = list.length;
+  /* slots one still-width apart, outward from the piece, then a row above and a row below; never overlapping */
+  const gap = 2 * Math.atan(sw * .5 / R) * 1.12, cap = Math.max(2, Math.floor(Math.PI * 2 / gap)), ELS = [0, .64, -.64];
   list.forEach((m, i) => {
     let a, el, r;
     if (i === 0) { a = 0; el = 0; r = R * .92; }
-    else { a = (i / n) * Math.PI * 2 + (rnd(i * 4.1) - .5) * .18; el = ((i % 3) - 1) * .2 + (rnd(i * 9.2) - .5) * .08; r = R * (.95 + rnd(i * 2.2) * .25); }
+    else {
+      const j = i - 1, row = Math.min(2, Math.floor(j < cap - 1 ? 0 : (j - (cap - 1)) / cap + 1)), jj = row ? (j - (cap - 1)) % cap : j;
+      const k = row ? Math.floor(jj / 2) + .5 : Math.floor(jj / 2) + 1;
+      a = (jj % 2 ? -1 : 1) * k * gap; el = ELS[row] + (rnd(i * 9.2) - .5) * .06; r = R * (.95 + rnd(i * 2.2) * .1);
+    }
     let mesh;
     if (m.type === 'text') {
       /* one line at a time as you turn; ~17 px on screen */
@@ -172,7 +179,7 @@ function build(p, tile, camera) {
       const ppu = innerHeight / (2 * tn * r); mesh.userData.k = 17 / 15 / ppu; mesh.scale.setScalar(mesh.userData.k);
     } else {
       const ar = m.ar || 1;
-      const w = i === 0 ? sw * 1.15 : sw * (.7 + rnd(i) * .25), h = w * ar;
+      const b = i === 0 ? sw * 1.15 : sw * (.7 + rnd(i) * .25), w = b / Math.max(1, ar), h = w * ar;
       const mat = texMat(m.type === 'vid' ? m.poster : m.url, t => { if (!m.ar && t.image) { const r2 = t.image.height / t.image.width; mesh.scale.y = r2 / (mesh.userData.ar || 1); } });
       mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat); mesh.userData.ar = ar;
       if (m.type === 'vid') vids.push({mesh, m, v: null, live: 0});
@@ -185,8 +192,8 @@ function build(p, tile, camera) {
   standin = null;
   const sk = standinKind(q);
   if (sk) {
-    const s = Math.min(R * .34, 2 * R * .6 * tn * aspect * .36);
-    standin = buildStandin(sk, q, s); standin.position.set(0, -R * .27, -R * .6); standin.userData.y0 = -R * .27; G.add(standin);
+    const s = Math.min(R * .2, 2 * R * .6 * tn * aspect * .36);
+    standin = buildStandin(sk, q, s); standin.position.set(0, -R * .31, -R * .6); standin.userData.y0 = -R * .31; G.add(standin);
     swapGLB(q, standin, s * 1.1);
     const hl = new THREE.HemisphereLight(0xdfe9ff, 0x1a1410, 1.1), dl = new THREE.DirectionalLight(0xfff4e6, 1.6); dl.position.set(R, R * 1.4, R * .6);
     G.add(hl, dl); lights = [hl, dl];
@@ -199,7 +206,8 @@ function build(p, tile, camera) {
     songRoom = S.own;
     const pk = S.own.peaks || [], M = 240, pos = new Float32Array(M * 3), col = new Float32Array(M * 3);
     for (let j = 0; j < M; j++) {
-      const v = pk.length ? pk[Math.floor(j * pk.length / M)] : .5, a = -Math.PI / 2 + j / M * Math.PI * 2, rr = R * .8;
+      const fj = j * (pk.length - 1) / M, j0 = Math.floor(fj), v = pk.length ? pk[j0] + (pk[Math.min(pk.length - 1, j0 + 1)] - pk[j0]) * (fj - j0) : .5;
+      const a = -Math.PI / 2 + j / M * Math.PI * 2, rr = R * .8;
       pos[j * 3] = Math.cos(a) * rr; pos[j * 3 + 1] = -R * .08 + v * R * .34; pos[j * 3 + 2] = Math.sin(a) * rr;
       col[j * 3] = .9; col[j * 3 + 1] = .94; col[j * 3 + 2] = .96;
     }
@@ -258,7 +266,7 @@ export const Room = {
   },
   active() { return mode !== 'off'; },
   busy() { return mode === 'enter' || mode === 'exit'; },
-  skyAlpha() { return 1 - .86 * ease(u); },
+  skyAlpha() { return 1 - .95 * ease(u); },
   enter(p, tile, camera) {
     if (G) disposeRoom();
     it = p;
@@ -314,7 +322,7 @@ export const Room = {
     dome.material.uniforms.op.value = .9 * ease(inA);
     G.userData.hor.material.opacity = .14 * inA; G.userData.dust.material.opacity = .7 * inA;
     G.userData.dust.rotation.y = tms * .00002;
-    const spin = tms * .000018;
+    const spin = (tms - G.userData.born) * .000018;
     const camL = G.worldToLocal(camera.position.clone());
     planes.forEach((m, i) => {
       const h = m.userData.home;
@@ -323,7 +331,7 @@ export const Room = {
         const tgt = G.worldToLocal(camera.position.clone().addScaledVector(fw, R * .55));
         m.position.lerp(tgt, 1 - Math.exp(-7 * dt));
       } else {
-        const a = h.a + (i ? spin : 0), y = Math.sin(h.el) * h.r + Math.sin(tms / 1700 + h.ph) * R * .02;
+        const a = h.a + spin, y = Math.sin(h.el) * h.r + Math.sin(tms / 1700 + h.ph) * R * .02;
         const tgt = tmpV.set(Math.sin(a) * Math.cos(h.el) * h.r, y, -Math.cos(a) * Math.cos(h.el) * h.r);
         if (m.userData.placed) m.position.lerp(tgt, 1 - Math.exp(-5 * dt)); else { m.position.copy(tgt); m.userData.placed = 1; }
       }

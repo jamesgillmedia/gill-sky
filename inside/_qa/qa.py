@@ -105,4 +105,4 @@ async def main():
     print(json.dumps(log, indent=1))
     with open(os.path.join(OUT, 'qa-log.json'), 'w') as f: json.dump(log, f, indent=1)
 
-asyncio.run(main())
+if __name__ == "__main__": asyncio.run(main())

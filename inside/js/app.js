@@ -288,7 +288,7 @@ function chrome() {
     pc.hidden = false;
   } else pc.hidden = true;
   $('rhint').hidden = ST.lv !== 4;
-  if (ST.lv === 4) { $('rhint').classList.remove('off'); clearTimeout(chrome.rt); chrome.rt = setTimeout(() => $('rhint').classList.add('off'), 6000); }
+  if (ST.lv === 4) { $('rhint').textContent = !(D.byId[ST.id] && D.byId[ST.id].kind === 'track') ? 'drag to look around · tap a still to bring it close · pinch out to leave' : 'drag to look around · pinch out to leave'; $('rhint').classList.remove('off'); clearTimeout(chrome.rt); chrome.rt = setTimeout(() => $('rhint').classList.add('off'), 6000); }
 }
 export function pieceLink(it) {
   if (it.chapter === 'about' && it.kind === 'contact') return 'mailto:imjamesgill@gmail.com';
@@ -615,8 +615,8 @@ function endPointer(e) {
   if (!drag || drag.id !== e.pointerId) return;
   const wasTap = drag.moved < 8 && performance.now() - p.t0 < 450;
   const fresh = performance.now() - drag.lt < 90;
-  if (wasTap) tap(e.clientX, e.clientY);
-  else if (Room.active()) Room.release(fresh ? dragV : {x: 0, y: 0});
+  if (wasTap) { drag = null; tap(e.clientX, e.clientY); return; }
+  if (Room.active()) Room.release(fresh ? dragV : {x: 0, y: 0});
   else if (ST.lv >= 2) Board.release(fresh ? dragV : {x: 0, y: 0});
   else if (fresh) {
     const ppu = ppuAt(cam.dist);
@@ -714,6 +714,6 @@ async function boot() {
   requestAnimationFrame(frame);
   requestAnimationFrame(() => $('veil').classList.add('off'));
   setTimeout(() => $('shint').classList.add('off'), 9000);
-  window.__inside = {ST, D, cam, goal, camera, up, go, home, Board, Room, FAR: () => FAR};
+  window.__inside = {ST, D, cam, goal, camera, up, go, home, Board, Room, FAR: () => FAR, sel: () => sel && {type: sel.type, k: sel.k, id: sel.it && sel.it.id}, boardSel: () => Board.selected(), scrOf: id => { const s = stars.find(s => s.it && s.it.id === id); return s && s.scr; }};
 }
 boot();
