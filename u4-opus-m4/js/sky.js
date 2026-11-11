@@ -1247,6 +1247,7 @@ function bind(){
   function wjump(e){var b=e.target.closest('[data-lv]');if(!b)return;e.preventDefault();e.stopPropagation();jumpLevel(+b.getAttribute('data-lv'))}
   if(wc)wc.addEventListener('click',wjump);
   if(wr){wr.addEventListener('click',wjump);wr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')wjump(e)})}
+  $('layer').addEventListener('click',layerTap);
   stage.addEventListener('pointerdown',onDown);
   stage.addEventListener('pointermove',onMove);
   stage.addEventListener('pointerup',onUp);
@@ -1345,6 +1346,15 @@ function onUp(e){
   LASTTAP.hit=hit(e.clientX,e.clientY);
   tap(e.clientX,e.clientY);
 }
+/* A real click only ever follows a tap (never a scroll or a pinch), so the HTML sheets open their next level from it. */
+function layerTap(e){
+  if(phase!=='sky'||!e.target||!e.target.closest)return;
+  if(e.target.closest('a,button,input,label,video[controls],[data-open],.rail,.snd,.rl'))return;
+  var im=e.target.closest('.contact img,.framewall img[data-hi="1"],.series img,.heroframe,.cutgrid img,.cutgrid video,.graincrops img');
+  if(!im)return;
+  var r=im.getBoundingClientRect();
+  deeper(r.left+r.width/2,r.top+r.height/2);
+}
 function onPtrDown(e){
   if(e.pointerType==='mouse'&&!e.buttons)return;
   PT[e.pointerId]={x:e.clientX,y:e.clientY};
@@ -1390,14 +1400,15 @@ function tap(x,y){
   }
   var h=hit(x,y);
   if(!h||h.type==='panel'){if(!h)sel=null;return}
-  var again=sel&&sel.id&&sel.id===h.id,star=soundBoardOn()&&h.type==='work'&&byId[h.id]&&byId[h.id].kind==='track'?byId[h.id]:null;
+  var again=!!sel&&selKey(sel)===selKey(h),star=soundBoardOn()&&h.type==='work'&&byId[h.id]&&byId[h.id].kind==='track'?byId[h.id]:null;
   sel=h;
   if(star){
     bstOf(star).w+=(x<W/2?1:-1)*1.2;
     ringStar(star,.9,0);
-    if(again&&window.GJ_DEPTH)GJ_DEPTH.pinchIn(x,y,depthApi());
   }
+  if(again)deeper(x,y);
 }
+function selKey(h){return h.type+':'+(h.id||h.k||'')}
 function tileAt(x,y){
   if(cur.lv<1||!onBoard())return null;
   var b=cur.k==='progress'?pbloom:bloom;
