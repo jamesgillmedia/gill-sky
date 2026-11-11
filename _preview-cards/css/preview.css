@@ -1,0 +1,92 @@
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/fonts/julius-sans-one.woff2) format("woff2")}
+@font-face{font-family:Poppins;font-weight:200;font-display:swap;src:url(../media/fonts/poppins-200.woff2) format("woff2")}
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/fonts/poppins-300.woff2) format("woff2")}
+:root{
+  --bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--mint:#55DAA1;--line:rgba(255,255,255,.16);
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+  --sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px);
+  --inset:12px;--gap:28px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:none;touch-action:none;-webkit-text-size-adjust:100%}
+body{font:300 14px/1.45 Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+
+#sky{position:fixed;inset:0;width:100%;height:100%;display:block;z-index:0;background:
+  radial-gradient(120% 80% at 50% 42%,#121c2e 0%,#070d18 52%,#04070b 100%)}
+
+.rl{position:fixed;inset:0;z-index:1;color:var(--ink);touch-action:none;-webkit-user-select:none;user-select:none;overflow:hidden}
+.track{position:absolute;inset:0;display:flex;align-items:center;will-change:transform;gap:var(--gap);padding:0}
+.card{
+  position:relative;flex:0 0 auto;
+  width:calc(100vw - (var(--inset) * 2));
+  height:calc(100vh - (var(--inset) * 2));
+  height:calc(100dvh - (var(--inset) * 2));
+  margin:0;
+  border-radius:8px;overflow:hidden;
+  background:rgba(4,7,11,.28);
+  box-shadow:0 8px 40px rgba(0,0,0,.45);
+  isolation:isolate;
+}
+.card.sel{outline:1.5px solid rgb(85,218,161);outline-offset:3px;box-shadow:0 0 18px rgba(85,218,161,.45),0 8px 40px rgba(0,0,0,.45)}
+
+.bleed{position:absolute;inset:0;overflow:hidden;background:transparent}
+.bleed img,.bleed>video{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:transparent;
+}
+.bleed>video{opacity:0}
+.bleed>video.on{opacity:1}
+.card.portrait .bleed img,.card.portrait .bleed>video{object-fit:cover;object-position:50% 40%}
+.card.sound .bleed img{object-fit:cover;filter:saturate(.95) brightness(.85)}
+
+/* top + bottom fades so type sits like the To Go / reel cards */
+.card::before,.card::after{content:'';position:absolute;left:0;right:0;pointer-events:none;z-index:2}
+.card::before{top:0;height:120px;background:linear-gradient(to bottom,rgba(3,6,10,.55),rgba(3,6,10,0))}
+.card::after{bottom:0;height:210px;background:linear-gradient(to top,rgba(3,6,10,.78),rgba(3,6,10,0))}
+
+.type{position:absolute;left:max(16px,var(--sl));right:max(16px,var(--sr));bottom:calc(28px + var(--sb));z-index:3;pointer-events:none}
+.type h2{margin:0;font:400 clamp(22px,6vw,40px)/1.15 "Julius Sans One",sans-serif;letter-spacing:.08em;color:var(--ink);text-shadow:0 2px 16px rgba(0,0,0,.7);max-width:100%}
+.type .role{margin:6px 0 0;color:var(--mint);font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 1px 8px #04070b}
+.type .role:empty{display:none}
+.type .info{margin:8px 0 0;max-height:0;overflow:hidden;opacity:0;transition:max-height .3s ease,opacity .3s ease;font:300 12px/1.45 Poppins,sans-serif;color:var(--dim);text-shadow:0 1px 8px #04070b}
+.card.sel .type .info.open{max-height:8em;opacity:1}
+
+/* current small Momo loop tile, as on live m4 To Go — not the rising mockup */
+.card.sound .type{display:flex;flex-direction:column;align-items:flex-start}
+.momo{
+  position:relative;z-index:3;left:auto;bottom:auto;
+  width:min(34vw,132px);margin:0 0 12px;pointer-events:none;text-align:center;
+}
+.momo video,.momo img{
+  display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;opacity:.88;
+  background:#3d8ee0;
+}
+.momo figcaption{margin-top:6px;font-size:12px;letter-spacing:.06em;opacity:.6;color:var(--ink)}
+
+.play{
+  pointer-events:auto;position:relative;z-index:4;
+  min-height:44px;min-width:88px;padding:0 18px;margin-top:14px;
+  border:1px solid rgba(85,218,161,.55);border-radius:22px;
+  letter-spacing:.12em;font-size:12px;text-transform:lowercase;color:var(--ink);
+  background:rgba(4,7,11,.35);
+}
+.play[aria-pressed="true"]{color:var(--mint);border-color:var(--mint);box-shadow:0 0 10px rgba(85,218,161,.35)}
+
+.ui{position:absolute;inset:0;pointer-events:none;z-index:5}
+.k{position:absolute;left:max(16px,var(--sl));top:calc(14px + var(--st));margin:0;
+  font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:var(--mint);
+  font-variant-numeric:tabular-nums;text-transform:uppercase}
+.k .lab{color:#c9d5e3;margin-right:10px}
+.k .n{color:var(--mint)}
+
+.dots{position:absolute;left:0;right:0;bottom:calc(10px + var(--sb));display:flex;justify-content:center;align-items:center;gap:7px}
+.dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.32);display:block}
+.dots i.on{background:var(--mint);box-shadow:0 0 6px rgba(85,218,161,.7)}
+
+.rl.scrub{cursor:grabbing}
+.rl.scrub .card{cursor:grabbing}
+
+/* motion is the same when Reduce Motion is on — the reel's drift stays */
+@media (prefers-reduced-motion:reduce){
+  .type .info{transition:max-height .3s ease,opacity .3s ease}
+}
