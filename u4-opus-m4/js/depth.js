@@ -750,7 +750,7 @@ function dropFly(){
    The visible fraction v is the narrowest window that still holds the subject (never tighter than cover, never wider than the whole frame, where it
    becomes a letterbox); the window is centred on the subject. Percent sizes follow the growing enterframe, so the grow animation is untouched. */
 var FRAMING={
-  'one-with-the-devil-clip.mp4':{ar:1280/544,shots:[[0,2.8,.08,.78],[2.8,7.26,.78,1],[7.26,99,.04,.6]]},
+  'one-with-the-devil-clip.mp4':{ar:1280/544,shots:[[0,2.8,.08,.78,0,1],[2.8,4.4,.78,1,.4,.7],[4.4,7.26,.78,1,.5,1],[7.26,99,.04,.6]]},
   '01_wood_chop.jpg':{ar:1280/544,span:[0,.55]},
   '02_dallas_snow.jpg':{ar:1280/544,span:[.06,.46]},
   '03_colton_snow_trees.jpg':{ar:1280/544,span:[.6,.82]},
@@ -779,7 +779,7 @@ function applyFraming(el,src,clip){
     if(!el.parentNode)return;
     var t=v.currentTime||0,k=0;
     while(k<fi.shots.length-1&&t>=fi.shots[k][1])k++;
-    if(k!==shot){shot=k;var sp=fi.shots[k];frameSpan(v,fi.ar,sp[2],sp[3]);if(img)frameSpan(img,fi.ar,sp[2],sp[3])}
+    if(k!==shot){shot=k;var sp=fi.shots[k],pt=innerWidth<innerHeight&&sp.length>5,a=pt?sp[4]:sp[2],b=pt?sp[5]:sp[3];frameSpan(v,fi.ar,a,b);if(img)frameSpan(img,fi.ar,a,b)}
     requestAnimationFrame(tick);
   }
   tick();
