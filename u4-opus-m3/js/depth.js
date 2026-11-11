@@ -136,8 +136,15 @@ function objectTiles(api){
     };
   });
 }
+/* Every object pro2 showed, in pro2's order, with Spirit Eye after the joio feed. */
+var OBJECT_ORDER=['joio-co-cup-from-above','glazed-joio-co-cup-in-hand','latte-in-a-joio-co-cup','planter-cup-with-moss','joio-co-cup','crescent-rim-of-a-cup','holding-a-joio-co-cup','joio-co-cup-on-a-board','hand-carved-piece','carved-spoon','design-board','wireframe-board','materials-board','joio','spirit-eye'];
+function objectBoard(api){
+  var out=[];
+  OBJECT_ORDER.forEach(function(slug){var it=api.byId('objects/'+slug);if(it)out.push(it)});
+  return out.length?out:objectTiles(api);
+}
 function makeBoard(api,k){
-  if(k==='objects')return {k:k,title:'OBJECTS',items:objectTiles(api),fine:false,parent:null,work:null};
+  if(k==='objects')return {k:k,title:'OBJECTS',items:objectBoard(api),fine:false,parent:null,work:null};
   if(k==='progress')return {k:k,title:'IN PROGRESS',items:api.progress(),fine:false,parent:null,work:null};
   var ch=api.ch(k);
   return {k:k,title:String(k||'').toUpperCase(),items:ch?ch.items.slice():[],fine:false,parent:null,work:null};
