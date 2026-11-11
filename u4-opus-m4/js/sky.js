@@ -1000,20 +1000,87 @@ function markLayout(){
   }
   de.classList.toggle('port',PORT);
 }
+/* Arrival order: water and moon fade in (1.0 s / 1.2 s), then the mark draws and dims to 35%, then the poem block and the moon path settle, then the signature.
+   The clock starts when both opacity transitions end (transitionend, with their longest known duration as a fallback). */
+var MP={t0:0},MS=null,ARR={on:0,done:0,wd:0,md:0,tm:0,hook:0};
+function markProg(){
+  if(MP.t0<0)return {d:1,a:.35};
+  if(!MP.t0)return {d:0,a:1};
+  var t=now()-MP.t0,d=clamp(t/1100,0,1);
+  return {d:1-Math.pow(1-d,2),a:1-.65*clamp((t-1100)/600,0,1)};
+}
+function armArrival(){
+  if(ARR.on)return;
+  ARR.on=1;
+  var po=$('poem'),pa=$('path');
+  if(!ARR.hook){
+    ARR.hook=1;
+    [['water','wd'],['moon','md']].forEach(function(p){
+      var el=$(p[0]);
+      el.addEventListener('transitionend',function(e){if(e.target===el&&e.propertyName==='opacity'&&ARR.on){ARR[p[1]]=1;arrBegin()}});
+    });
+  }
+  if(ARR.done){MP.t0=-1;po.classList.add('seq','again');pa.classList.add('seq','again');return}
+  ARR.wd=ARR.md=0;MP.t0=0;
+  clearTimeout(ARR.tm);ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250);
+}
+function arrBegin(){
+  if(!ARR.on||ARR.done||!(ARR.wd&&ARR.md))return;
+  ARR.done=1;clearTimeout(ARR.tm);
+  MP.t0=now();
+  $('poem').classList.add('seq');$('path').classList.add('seq');
+}
+function disarmArrival(){
+  if(!ARR.on)return;
+  ARR.on=0;clearTimeout(ARR.tm);
+  ['poem','path'].forEach(function(id){$(id).classList.remove('seq','again')});
+}
 function markScreen(p){return [MG.ox+p[0]*MG.sc,MG.oy+p[1]*MG.sc]}
+function markArc(){
+  var lens=[],tot=0;
+  STROKES.forEach(function(st){var c=[0];for(var j=1;j<st.length;j++)c.push(c[j-1]+Math.hypot(st[j][0]-st[j-1][0],st[j][1]-st[j-1][1]));lens.push(c);tot+=c[c.length-1]});
+  var s=markPts.map(function(p){
+    var best=1e9,at=0,off=0;
+    STROKES.forEach(function(st,i){
+      for(var j=1;j<st.length;j++){
+        var ax=st[j-1][0],ay=st[j-1][1],bx=st[j][0],by=st[j][1],dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy||1,
+            t=clamp(((p[0]-ax)*dx+(p[1]-ay)*dy)/l2,0,1),d=Math.hypot(p[0]-(ax+dx*t),p[1]-(ay+dy*t));
+        if(d<best){best=d;at=off+lens[i][j-1]+t*(lens[i][j]-lens[i][j-1])}
+      }
+      off+=lens[i][lens[i].length-1];
+    });
+    return at/tot;
+  });
+  return {lens:lens,tot:tot,s:s};
+}
 function drawMark(u){
-  var sc=MG.sc,ox=MG.ox,oy=MG.oy;
-  g.lineWidth=1;g.strokeStyle='rgba(200,220,240,'+(0.28*(1-u))+')';g.beginPath();
-  STROKES.forEach(function(s){s.forEach(function(q,j){var x=ox+q[0]*sc,y=oy+q[1]*sc;if(j)g.lineTo(x,y);else g.moveTo(x,y)});g.stroke();g.beginPath()});
+  var sc=MG.sc,ox=MG.ox,oy=MG.oy,P=u>0?{d:1,a:.35}:markProg(),al=lerp(P.a,1,u);
+  if(u<=0&&P.d<=0)return;
+  if(!MS||MS.n!==markPts.length){MS=markArc();MS.n=markPts.length}
+  g.lineWidth=1;g.strokeStyle='rgba(200,220,240,'+(0.28*(1-u)*al)+')';g.beginPath();
+  var left=P.d*MS.tot;
+  STROKES.forEach(function(st,i){
+    var c=MS.lens[i];
+    for(var j=0;j<st.length;j++){
+      var x=ox+st[j][0]*sc,y=oy+st[j][1]*sc;
+      if(!j){g.moveTo(x,y);continue}
+      var seg=c[j]-c[j-1];
+      if(left>=seg){g.lineTo(x,y);left-=seg}
+      else{if(left>0){var f=left/seg,px=ox+st[j-1][0]*sc,py=oy+st[j-1][1]*sc;g.lineTo(px+(x-px)*f,py+(y-py)*f)}left=0;break}
+    }
+    g.stroke();g.beginPath();
+  });
   markPts.forEach(function(p,i){
+    var gi=u>0?1:clamp((P.d-MS.s[i])/.05,0,1);
+    if(gi<=0)return;
     var a=markScreen(p),b;
     if(u>0&&markTo[i]){var np=nodePos(markTo[i]);b=sp(np[0],np[1])}else b=a;
     var q=[lerp(a[0],b[0],u),lerp(a[1],b[1],u)];
-    var gs=u>.85?0:10;if(gs){g.globalAlpha=.8;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
-    g.globalAlpha=1;g.fillStyle='#fff';g.beginPath();g.arc(q[0],q[1],u>.9?1.4:1.8,0,7);g.fill();
+    var gs=u>.85?0:10;if(gs){g.globalAlpha=.8*gi*al;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
+    g.globalAlpha=gi*al;g.fillStyle='#fff';g.beginPath();g.arc(q[0],q[1],u>.9?1.4:1.8,0,7);g.fill();
   });
+  g.globalAlpha=1;
 }
-
 /* ---------- sound layer (waveform, chimes, stars that listen) ---------- */
 var PENT=[523.25,587.33,659.25,783.99,880],songAt={};
 function drawSound(t){
@@ -2107,6 +2174,7 @@ function setChrome(){
   $('dust').classList.toggle('on',phase==='arrive'||phase==='sky');
   $('poem').classList.toggle('on',phase==='arrive');
   $('dive').classList.toggle('on',phase==='arrive');
+  if(phase==='arrive')armArrival();else disarmArrival();
   $('bar').classList.toggle('on',phase==='sky');
   $('land').classList.toggle('on',phase==='land');
   syncHire();

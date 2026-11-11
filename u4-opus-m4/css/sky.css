@@ -30,6 +30,8 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
  background:linear-gradient(180deg,rgba(243,236,223,.28),rgba(243,236,223,.05) 42%,transparent 68%);
  clip-path:polygon(63% 0,71% 0,56% 78%,48% 78%);mix-blend-mode:screen}
 .path.on{opacity:.85}
+.path.on.seq{opacity:.4;transition:opacity .7s ease 1.7s}
+.path.on.seq.again{transition-delay:0s}
 .horizon{position:absolute;left:8%;right:8%;top:61%;height:1px;pointer-events:none;opacity:0;
  background:linear-gradient(90deg,transparent,rgba(255,255,255,.45),transparent);transition:opacity 1s}
 .horizon.on{opacity:.7}
@@ -38,7 +40,8 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .dust i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.55}
 .poem{position:absolute;left:0;right:0;top:var(--ptop,28%);bottom:calc(112px + var(--sb));padding:0 8vw 0;overflow:hidden;text-align:center;pointer-events:none;
  opacity:0;transition:opacity .8s ease}
-.poem.on{opacity:1}
+.poem.seq{opacity:1;transition:opacity .7s ease 1.7s}
+.poem.seq.again{transition-delay:0s}
 #typed span{text-wrap:balance}
 .poem span{display:block;font-weight:200;font-size:clamp(13px,3.2vw,16px);line-height:1.4;letter-spacing:.04em;text-shadow:0 1px 8px rgba(0,0,0,.65)}
 .poem .wm{display:flex;flex-direction:column;align-items:center;gap:0;margin-bottom:8px}
@@ -79,7 +82,9 @@ canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
 .matte .ghost:nth-child(2){left:2%;bottom:16%;width:22%}
 .matte .ghost:nth-child(3){right:10%;bottom:10%}
 .matte h2{position:absolute;left:16px;bottom:calc(24px + var(--sb));margin:0;font-size:16px}
-.poem .sig{font-family:Syl,sans-serif;font-weight:700;font-size:26px;margin-top:8px;text-shadow:1px 0 rgba(10,189,240,.7),-1px 0 rgba(254,1,1,.5)}
+.poem .sig{font-family:Syl,sans-serif;font-weight:700;font-size:26px;margin-top:8px;text-shadow:1px 0 rgba(10,189,240,.7),-1px 0 rgba(254,1,1,.5);opacity:0;transition:opacity .6s ease}
+.poem.seq .sig{opacity:1;transition-delay:2.6s}
+.poem.seq.again .sig{transition-delay:.2s}
 #dive{position:absolute;left:50%;bottom:calc(52px + var(--sb));transform:translateX(-50%);z-index:4;
  min-height:44px;padding:0 18px;border:1px solid rgba(255,255,255,.28);border-radius:22px;
  letter-spacing:.16em;text-transform:lowercase;font-size:12px;color:var(--dim);
