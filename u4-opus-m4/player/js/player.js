@@ -374,7 +374,7 @@ addEventListener('keydown',function(e){if(e.key==='Escape')goOut();if(e.key===' 
   else if(k==='ArrowUp'&&(mode==='in'||mode==='diving')){e.preventDefault();goOut()}});
 /* intro while zoomed: past ~1.05x the sub-line, picks and dive button fade out and stop taking pointers, so strand tips
    under them are tappable; they ease back in near 1x. the SOUND heading stays, but softly fades while a strand passes over it. */
-var CVD=0,SPK=0,IN=$('intro'),HEAD=IN.querySelector('.sl b'),UIE=[IN.querySelector('.sl small'),$('picks'),$('dive')],IA=1,HA=1,HN=false,uiF=0,UR=null;
+var CVD=0,SPK=0,IN=$('intro'),HEAD=IN.querySelector('.sl b'),UIE=[IN.querySelector('.sl small'),$('picks'),$('dive'),IN.querySelector('.m4h')],IA=1,HA=1,HN=false,uiF=0,UR=null;
 function uiRects(){var f=function(e){var r=e.getBoundingClientRect();return[r.left,r.top,r.right,r.bottom]};
   UR={head:f(HEAD),intro:f(IN),ui:UIE.map(f),hud:[].map.call(document.querySelectorAll('.hud a,.hud .crumb'),f)}}
 function inR(x,y,r,m){return x>r[0]-m&&x<r[2]+m&&y>r[1]-m&&y<r[3]+m}

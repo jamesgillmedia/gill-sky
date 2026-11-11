@@ -224,7 +224,7 @@ function showSound(track, into){
   soundOn=true;filmLv=0;still=null;piece=null;
   var f=document.getElementById('snd');
   if(!f)return;
-  var src='player/index.html'+(track?'?track='+encodeURIComponent(track):'')+(into?'&in=1':'');
+  var src='player/index.html?m4=1'+(track?'&track='+encodeURIComponent(track):'')+(into?'&in=1':'');
   if(f.getAttribute('data-src')!==src){f.setAttribute('data-src',src);f.src=src}
   f.hidden=false;
 }
