@@ -68,7 +68,7 @@ function mount(el,hooks){
     img.src=still(n).src;
     root.classList.toggle('tall',S[n].h>S[n].w);
     ctr.textContent=pad(n+1)+' / '+pad(N);
-    var s=S[n];lab.textContent=s.b||'';rsrc.textContent=s.r||'';
+    var s=S[n];lab.textContent=s.b||'';rsrc.textContent=hooks.title||'Demo Reel';
     root.classList.toggle('nob',!s.b);root.classList.toggle('nol',s.l==null||!hooks.film(s.l));
     for(var a=1;a<=4;a++)still(mod(n+a));still(mod(n-1));
     var marks=track.children,c;

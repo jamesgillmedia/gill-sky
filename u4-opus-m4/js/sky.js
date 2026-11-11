@@ -1338,6 +1338,7 @@ function renderReel(el,it){
   if(!window.GJ_REELVIEW){el.innerHTML='<div class="sheet full"><p>The reel is missing.</p></div>';return}
   var ctl=GJ_REELVIEW.mount(el,{
     base:REELB,
+    title:it.title||'Demo Reel',
     film:filmByL,
     viewFilm:function(l){var f=filmByL(l);if(f)go({lv:2,k:'film',id:f.id})},
     box:function(){var b=REELBOX;REELBOX=null;return b}
