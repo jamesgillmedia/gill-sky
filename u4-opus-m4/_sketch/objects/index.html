@@ -37,10 +37,11 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 .cutgrid figure:nth-child(3n+1){transform:translate(-4px,0)}
 .cutgrid img{width:100%;display:block;object-fit:contain;max-height:48vh;background:transparent;filter:drop-shadow(0 16px 14px rgba(0,0,0,.6))}
 .cutgrid figcaption{margin-top:6px;font-size:calc(10px*var(--tx));color:#7f93a8;letter-spacing:.04em}
-#hud{position:fixed;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 12px 0;display:flex;align-items:center;gap:8px;z-index:3;pointer-events:none}
+#hud{position:fixed;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 12px 0;display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;z-index:3;pointer-events:none}
 #hud>*{pointer-events:auto}
-#hud select{font:inherit;font-size:calc(12px*var(--tx));color:#e9eef5;background:rgba(10,16,24,.5);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 10px;min-height:34px;max-width:46vw;-webkit-appearance:none;appearance:none}
+#hud select{font:inherit;font-size:calc(12px*var(--tx));color:#e9eef5;background:rgba(10,16,24,.5);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 10px;min-height:34px;max-width:none;flex:0 0 auto;-webkit-appearance:none;appearance:none}
 #hud select option{background:#0a1016;color:#e9eef5}
+#hud #reset{margin-left:auto}
 #hud .sig{font-family:Syl,"Noto Sans Canadian Aboriginal",sans-serif;font-weight:700;font-size:calc(16px*var(--icon-k));color:#fff;text-decoration:none;padding:6px 6px;line-height:1}
 #hud h1{font:200 calc(14px*var(--tx))/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;text-transform:lowercase;margin-right:auto;text-shadow:0 1px 8px #000;pointer-events:none}
 #hud button{font:inherit;font-size:calc(13px*var(--tx));color:#e9eef5;background:rgba(10,16,24,.62);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 14px;min-height:36px;cursor:pointer}
