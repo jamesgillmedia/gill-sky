@@ -1,37 +1,25 @@
-# u4-opus · m3 · u3 with the board level restored
+# u4-opus · m3
 
-m3 starts again from an exact copy of u3. It is not built on m2.
+m3 starts from an exact copy of u3 and follows Gill's RULEBOOK. `CHECKLIST.md` lists every RULEBOOK line as pass or fail, with a screenshot for each.
 
 ## What is the same as u3
-- The sky, water, camera, chapter dive and constellations.
-- The top bar, with the chips, Reel, Hire, List and Contact.
-- The minimap.
-- Navigation: a tap selects, a pinch goes deeper, and a pinch out or back goes up one level.
-- History and the breadcrumb.
+- The far sky, header, camera, bloom, water, parallax, fly-through and minimap.
+- Motion is the same with Reduce Motion on or off.
 
-A scripted pass with Reduce Motion emulated went through Film, Photo, Objects and Sound. At every step its log of the level, the open piece, the breadcrumb and the back button is identical to u3's.
-
-## What changed (only this)
-1. **The board.** Pinching into a chapter opens the same window in the sky that u3 opens. It used to hold a single column of full-width heroes; now it holds pro2's board: a multi-column grid of thumbnails with titles and a caption line (type · length, or Gill's role in mint). Each medium keeps a small difference of its own:
-   - Film: 16:9 tiles, with a few larger ones.
-   - Photo: prints at their own ratio in staggered columns, slightly tilted.
-   - Objects: square cut-outs, slightly off-line, with one large one.
-   - Sound: dotted waveform cards, with the player card across the top.
-   - About: text rows (bio, contact, joio.co, the poem).
-2. **About has a board.** The calculator bio is now one pinch below it, not the chapter itself. Pinching out of layer 1 still goes through the moon grid, and now lands back on the About board, one level up.
-3. **Four fixes carried over:**
-   - one "GILL JAMES" on arrival;
-   - the song player data (`player/js/tracks.js`), which uses the MP3s in this folder and has no YouTube links;
-   - the black band at the top of the About calculator;
-   - piece titles shown as the client small, with the name large on one line.
+## What changed
+1. **A MID level.** Pinching a chapter first stops on its constellation at u3's fit×1.45. It shows small thumbnails and one-line titles that never collide.
+2. **The board** is one more push of the same camera, painted in the sky:
+   - Film: 2.39 strips, staggered 2-up.
+   - Photo: rotated prints with cream mats and gaps.
+   - Objects: the 14 pro2 objects plus Spirit Eye, then Gill's Nov 9 pieces.
+   - Sound: one dotted star-chart with every song's peak labelled.
+   - About: text rows.
+3. **History.** Every step in is one history entry. Pinch-out, ‹, Back and Esc all go up one level.
+4. **Fixes:** C1 (hash), C2 (black first frame), C3 (clipped labels), C4 (minimap over type) and C6 (sound labels and covers).
+5. **Nov 9 media** (`media/nov9/`) are placed on the Objects, Film and Photo boards. See the end of `CHECKLIST.md`.
 
 ## Files
-- `00-u3-vs-m3.png`: u3 (top row) against m3 (bottom row) at 390x844, for the sky and each chapter's level.
-- `01`–`08`: m3 at 390x844 (the sky, each board, the About bio, Film frames).
-- `m3-walk.mp4`, recorded with Reduce Motion emulated:
-  - Film: board, piece, frames, then back up to the sky;
-  - Photo: board, then back;
-  - About: board, the bio, a layer deeper, then back through the moon grid to the board and the sky.
-
-## Waiting for
-Gill's review, before anything else is built.
+- `00-u3-vs-m3.png` has three rows: u3 (FAR and each chapter's level 1), m3's MID for each chapter, and m3's FAR and boards.
+- `01`–`08` are m3 screens at 390x844 (sky, film MID, the boards and the About bio). `09-nov9.png` shows where the Nov 9 media sit.
+- `check/` holds one image per checklist line.
+- `m3-walk.mp4` is a recorded walk with Reduce Motion on: FAR → Film MID → board → Demo Reel → out by pinch, Back and ‹; then Objects → a Nov 9 piece → out; then Sound → a song; then Photo → ᑕᐣᓯ.

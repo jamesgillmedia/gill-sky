@@ -38,13 +38,20 @@ Read this first if you are picking the work up in a fresh run.
   - The 2 "other" files (an orange graphic with the email, and the Lost Coffee lettering) are not used, because they don't fit a board.
   - The Nov 9 items are not in the sky layout, so FAR and MID are unchanged.
 
-## Next (RULEBOOK)
-- MID: make it airy, with no overlapping thumbnails and no clipped labels at 390 wide.
-- Film board: 2.39 strips, staggered 2-up, with title and role under each.
-- Photo board: cream borders and gaps, with no overlap after rotation.
-- Sound board: one dotted star-chart waveform with peaks labelled by song name and m:ss.
-- C2: the Demo Reel opens on a real still. C3: captions within the safe width. C4: fade the minimap over boards and bio text.
-- Write `_progress/CHECKLIST.md` (pass/fail with a screenshot per line). Regenerate `00-u3-vs-m3.png` and `m3-walk.mp4`, then stop and report.
+## RULEBOOK status
+- Every line passes. See `_progress/CHECKLIST.md`, which has one screenshot per line in `_progress/check/`, plus `00-u3-vs-m3.png` and `m3-walk.mp4`.
+- Done:
+  - airy MID;
+  - Film 2-up 2.39 strips;
+  - Photo mats and gaps;
+  - the Sound star-chart;
+  - C1, C2, C3, C4 and C6;
+  - the noscript list link lifted above the stage.
+- Waiting for Gill's review. Nothing is published, and main is untouched.
+
+## Possible next steps (only if Gill asks)
+- The JS-off list pages don't show the Nov 9 media yet.
+- Cover art for the songs is still a gap.
 
 ## Checks
-- `/tmp/shots/drive.py plan.json` runs Playwright at 390x844 with Reduce Motion emulated. The `__u1` hooks are cur, step, tiles (all board tiles with their centres), zoom, pinchIn(x,y) and pinchOut().
+- `/tmp/shots/drive.py plan.json` runs Playwright at 390x844 with Reduce Motion emulated. The `__u1` hooks are cur, step, tiles (all board tiles with their centres), rects (the board layout, for overlap checks), mid (MID thumbnails and label boxes), zoom, pinchIn(x,y) and pinchOut(). `overlap.py`, `midcheck.py`, `mkwalk.py` and `build_progress.py` in `/tmp/shots` rebuild the checks and `_progress/`; if they are gone, rebuild them from `CHECKLIST.md`.
