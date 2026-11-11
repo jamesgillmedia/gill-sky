@@ -739,6 +739,44 @@ function dropFly(){
   if(fly&&fly.el&&fly.el.parentNode)fly.el.parentNode.removeChild(fly.el);
   fly=null;
 }
+/* Full-screen framing for shots whose people a plain cover crop cuts off. span = [left,right] of the subject as a fraction of the frame width.
+   The visible fraction v is the narrowest window that still holds the subject (never tighter than cover, never wider than the whole frame, where it
+   becomes a letterbox); the window is centred on the subject. Percent sizes follow the growing enterframe, so the grow animation is untouched. */
+var FRAMING={
+  'one-with-the-devil-clip.mp4':{ar:1280/544,shots:[[0,2.8,.08,.78],[2.8,7.26,.78,1],[7.26,99,.04,.6]]},
+  '01_wood_chop.jpg':{ar:1280/544,span:[0,.55]},
+  '02_dallas_snow.jpg':{ar:1280/544,span:[.06,.46]},
+  '03_colton_snow_trees.jpg':{ar:1280/544,span:[.6,.82]},
+  '04_table_twoshot.jpg':{ar:1280/544,span:[.08,.68]},
+  '05_lantern_portrait.jpg':{ar:1280/544,span:[.42,.85]},
+  '06_colton_cabin.jpg':{ar:1280/544,span:[.28,.7]},
+  '07_dallas_cu.jpg':{ar:1280/544,span:[0,.5]},
+  '08_rose.jpg':{ar:1280/544,span:[.58,1]},
+  '12_candlelight.jpg':{ar:1280/544,span:[.2,.6]}
+};
+function baseName(u){u=String(u||'');return u.slice(u.lastIndexOf('/')+1)}
+function frameSpan(node,ar,a,b){
+  var vw=innerWidth/innerHeight,cover=Math.min(1,vw/ar);
+  if(cover>=.999){node.style.cssText='';return}
+  var v=Math.max(cover,Math.min(1,(b-a)+.08)),c=(a+b)/2,L=Math.max(0,Math.min(1-v,c-v/2));
+  var st=node.style;
+  st.inset='auto';st.height='auto';st.objectFit='fill';st.aspectRatio=String(ar);
+  st.width=(100/v).toFixed(3)+'%';st.left=(-L*100/v).toFixed(3)+'%';st.top='50%';st.transform='translateY(-50%)';
+}
+function applyFraming(el,src,clip){
+  var fi=FRAMING[baseName(clip)],fs=FRAMING[baseName(src)],img=el.querySelector('img'),v=el.querySelector('video');
+  if(fs&&fs.span&&img&&!(fi&&v))frameSpan(img,fs.ar,fs.span[0],fs.span[1]);
+  if(!(fi&&v))return;
+  var shot=-1;
+  function tick(){
+    if(!el.parentNode)return;
+    var t=v.currentTime||0,k=0;
+    while(k<fi.shots.length-1&&t>=fi.shots[k][1])k++;
+    if(k!==shot){shot=k;var sp=fi.shots[k];frameSpan(v,fi.ar,sp[2],sp[3]);if(img)frameSpan(img,fi.ar,sp[2],sp[3])}
+    requestAnimationFrame(tick);
+  }
+  tick();
+}
 function growInto(box, src, clip, extra, push){
   dropFly();
   var host=document.getElementById('layer');if(!host||!box)return;
@@ -755,6 +793,7 @@ function growInto(box, src, clip, extra, push){
   el.style.transition='none';
   el.style.left=box.l+'px';el.style.top=box.t+'px';el.style.width=box.w+'px';el.style.height=box.h+'px';
   host.appendChild(el);
+  applyFraming(el,src,clip);
   var v=el.querySelector('video');
   if(v){
     var p=v.play();if(p&&p.catch)p.catch(function(){})
