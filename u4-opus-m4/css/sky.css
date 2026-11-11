@@ -410,3 +410,7 @@ html:not(.port) .poem .gj{font-size:clamp(18px,min(3vw,6.5vh),32px)}
 html:not(.port) .poem .sig{font-size:clamp(18px,4.4vh,26px);margin-top:6px}
 html:not(.port) #dive{left:27%}
 @media (max-height:720px){.poem span{line-height:1.32}}
+
+#layer .songsel{outline:1.5px solid rgb(85,218,161);outline-offset:2px;box-shadow:0 0 14px rgba(85,218,161,.45)}
+#songtitle{position:fixed;left:50%;bottom:calc(64px + var(--sb,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.86);border:1px solid rgba(85,218,161,.55);color:#e8f1f4;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
+#songtitle.on{opacity:1}

@@ -45,7 +45,16 @@ function pickTrack(k,fromStar){if(!TRACKS[k])return;TK=k;T=TRACKS[k];N=T.peaks.l
   if(!fromStar){camZ=tz=ringAt(+Q.get('t')||0);railT=+Q.get('t')||0;if(Q.get('t'))placeTime(+Q.get('t'))}else{camZ=tz=0;railT=0;au.currentTime=0}
   highlight=T.star!=null?T.star:-1;pulseStar=1}
 KEYS.forEach(function(k){var b=document.createElement('button');b.type='button';b.setAttribute('role','radio');b.dataset.k=k;
-  b.innerHTML=TRACKS[k].title+'<small>'+TRACKS[k].artist+'</small>';b.onclick=function(e){e.stopPropagation();pickTrack(k)};$('picks').appendChild(b)});
+  b.innerHTML=TRACKS[k].title+'<small>'+TRACKS[k].artist+'</small>';b.onclick=function(e){e.stopPropagation();songTap(k,false)};$('picks').appendChild(b)});
+/* songs open on the second tap: the first tap selects (glow, title in the hint line), a tap on another song moves the selection */
+var UPK=null,M4H=null,M4T='';
+function songTap(k,fromStar){
+  if(!TRACKS[k])return;
+  if(UPK===k&&mode==='sky'){UPK=null;if(M4H)M4H.textContent=M4T;goIn();return}
+  UPK=k;pickTrack(k,fromStar);
+  if(!M4H){M4H=document.querySelector('.m4h');M4T=M4H?M4H.textContent:''}
+  if(M4H)M4H.textContent=TRACKS[k].title+' \u00b7 '+TRACKS[k].artist+' \u00b7 tap again to open';
+}
 var ROMAN=['I','II','III','IV','V','VI','VII','VIII'];
 function secAt(t){var i=0;for(var k=0;k<SECS.length;k++)if(t>=SECS[k].t)i=k;return i}
 function ringAt(t){return t/T.dur*N*SP}
@@ -437,7 +446,7 @@ function cvUp(e){delete PT[e.pointerId];if(fing)fing.on=false;
   if(chActive()){if(tap&&quick){var sq=pd<TAPS,hs=starHit(p0.x,p0.y,12),hc=chHit(p0.x,p0.y),hit=null;
       /* a tap on the strand just below its star (>= 11 px down) rings the strand, not the star */
       if(hs>=0&&hc&&p0.y-skyProj[hs][1]>=11)hs=-1;if(hs<0)hit=hc;if(hs<0&&!hit)hs=starHit(p0.x,p0.y,28);
-      if(hs>=0){if(sq){SPK++;pickTrack(STAR2K[hs],true)}}else if(hit)pluck(hit,toBase(p0.x,p0.y)[0])}}
+      if(hs>=0){if(sq){SPK++;songTap(STAR2K[hs],true)}}else if(hit)pluck(hit,toBase(p0.x,p0.y)[0])}}
   else if(tap&&mode==='in')$('pp').onclick();p0=null}
 cv.addEventListener('pointerup',cvUp);cv.addEventListener('pointercancel',function(e){delete PT[e.pointerId];if(fing)fing.on=false;if(PZ&&nPT()<2)pinchEnd(tnow(e));if(nPT()===0)afterPinch=false;p0=null});
 cv.addEventListener('wheel',function(e){if(!zoomable())return;e.preventDefault();

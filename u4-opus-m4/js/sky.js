@@ -1436,7 +1436,21 @@ function layerTap(e){
   var im=e.target.closest('.contact img,.framewall img[data-hi="1"],.series img,.heroframe,.cutgrid img,.cutgrid video,.graincrops img');
   if(!im)return;
   var r=im.getBoundingClientRect();
+  if(cur.k==='sound'&&!songTapOpens(im))return;
   deeper(r.left+r.width/2,r.top+r.height/2);
+}
+/* Songs open on the second tap: the first tap highlights the song and shows its title, a tap on another song moves the selection. */
+var SONGSEL='';
+function songTapOpens(im){
+  var key=cur.id+'|'+(im.getAttribute('src')||im.tagName);
+  if(SONGSEL===key)return true;
+  var old=document.querySelector('#layer .songsel');if(old)old.classList.remove('songsel');
+  SONGSEL=key;im.classList.add('songsel');
+  var w=byId[cur.id],lab=$('songtitle');
+  if(!lab){lab=document.createElement('div');lab.id='songtitle';lab.setAttribute('aria-live','polite');document.body.appendChild(lab)}
+  lab.textContent=(w&&w.title||'')+' \u00b7 tap again to open';lab.classList.add('on');
+  clearTimeout(songTapOpens.t);songTapOpens.t=setTimeout(function(){lab.classList.remove('on')},2600);
+  return false;
 }
 function onPtrDown(e){
   if(e.pointerType==='mouse'&&!e.buttons)return;
