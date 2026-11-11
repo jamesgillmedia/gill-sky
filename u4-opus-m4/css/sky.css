@@ -279,6 +279,8 @@ html.reelon #mmap{display:none !important}
 .matte .tie a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 #layers{position:absolute;inset:0;z-index:5;overflow:hidden;background:#04070b}
 #layers[hidden]{display:none}
+/* While the seven layers are open they are the page. The static bio sheet in #layer stays out of the way, and every other use of #layer is untouched. */
+#layers.on~#layer{display:none}
 #calcstage{position:absolute;inset:0;overflow:hidden;z-index:0}
 #calczoom{position:absolute;inset:0;transform-origin:52% 66%;transition:transform .48s ease}
 #calc{position:absolute;width:2px;height:2px;opacity:0;pointer-events:none}
