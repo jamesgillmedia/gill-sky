@@ -306,7 +306,7 @@ export const Board = {
       const dim = pieceIt && pieceIt.id !== it.id ? .22 : 1;
       if (t.peak) { const on = selIt && selIt.id === it.id || pieceIt && pieceIt.id === it.id; t.peak.material.opacity = e * sa * (on ? 1 : .55) * dim; t.peak.scale.setScalar(on ? 40 + 6 * Math.sin(tms / 300) : 26); }
       if (t.dot) t.dot.material.opacity = e * sa * dim;
-      if (t.capM) t.capM.material.opacity = e * sa * (pieceIt ? (pieceIt.id === it.id && !t.wave ? 0 : .1) : 1);
+      if (t.capM) t.capM.material.opacity = e * sa * (pieceIt ? (pieceIt.id === it.id && !t.wave ? 0 : .04) : 1);
       const m = t.mesh; if (!m) return;
       const isP = pieceIt && pieceIt.id === it.id;
       if ((near || isP) && bloom > .05) loadTile(t);

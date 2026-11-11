@@ -34,4 +34,5 @@ Live: https://jamesgillmedia.github.io/gill-sky/inside/ (GitHub Pages from `main
 ## Log
 | step | commit | what | next |
 |---|---|---|---|
-| 1 | (this) | Milestone 1: free-floating 3D sky from m4 data (five chapters, in-progress ring, ᑕᐣᓯ centre, m4 glow/labels/top bar/mini-map), drift / pinch / scroll / twist / inertia, constellation level from free flight, QA script | boards |
+| 1 | `65960ee` | Milestone 1: free-floating 3D sky from m4 data (five chapters, in-progress ring, ᑕᐣᓯ centre, m4 glow/labels/top bar/mini-map), drift / pinch / scroll / twist / inertia, constellation level from free flight, QA script | boards |
+| 2 | (this) | Boards (`js/board.js`): m4 boardSpec layouts in the sky (film 2.39 staggered 2-up + title/role, photo masonry prints with tilt + cream mats, objects tiles + captions incl. Nov 9 after their object, sound dotted waveform labelled by song + m:ss, about verbatim bio + star rows). Stars fly from the constellation into their tiles; backing .62 so the sky is felt; drag scrolls with inertia; pinch out = up. Piece stop: tile fills the screen, neighbours dim, title/role/credits + 'open the piece' (m4 page) | Inside rooms |
