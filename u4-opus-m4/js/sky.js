@@ -1417,7 +1417,7 @@ function opCommit(){
   var d=OP.d,x=OP.x,y=OP.y;
   OP.on=0;OP.used=0;opClear();
   enterSky(true);
-  if(Object.keys(PT).length>=2)pinch={d:d,done:0,x:x,y:y};
+  if(Object.keys(PT).length>=2)pinch={d:d,done:1,x:x,y:y};
 }
 function opRelease(){
   OP.on=0;
