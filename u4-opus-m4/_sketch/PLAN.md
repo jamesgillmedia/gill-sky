@@ -31,7 +31,7 @@ Honest finding: m4's arrival has the water photo, touch ripples, dust motes and 
 ## Objects goals (`_sketch/objects/index.html`)
 
 1. Two objects, `#cup` and `#scoop`. The scoop uses four images: the two nov9 object photos, `388e4910-960.webp` and `0f25314d-960.webp`. Orbit layers are the in-hand, frontal and side shots; the on-the-paddles photo is the context card.
-2. Each object has two layers. The gallery is on top, styled like the m4 object gallery. Under it is the 3D constellation: photos and process shots as planes in depth. One finger orbits, two fingers resize, and a phone tilt gives gentle parallax. Touch wins while a finger is down, there's smoothing, and the mouse is the desktop fallback. On iOS the permission is requested from a tap.
+2. Each object has two layers. The gallery is on top, styled like the m4 object gallery. Under it is the 3D constellation: photos and process shots as planes in depth. One finger orbits, two fingers resize, and a phone tilt gives gentle parallax. Touch wins while a finger is down, there's smoothing, and the mouse is the desktop fallback. Tilt sits behind a small quiet "tilt" button in the top bar (confirmed by Gill). Only a deliberate tap on that button calls `DeviceOrientationEvent.requestPermission` (iOS) and turns tilt on; a second tap turns it off. There is no automatic prompt on the first touch, during an orbit, or anywhere else. The on/off state is kept for the session (`sessionStorage`); on reload a remembered "on" just listens again without asking, so on iOS, where the grant is not kept, the button stays off until tapped.
 3. Pinch in or tap goes from the gallery into the constellation. Pinch out, ‹ or Back returns to the same gallery spot.
 4. Option 1 (default) is gallery-first. Option 2 lands in the slowly spinning constellation first, and pinch out goes to the gallery. The choice lives in `?opt=` and is changed only inside the debug panel.
 5. Review of 1f65e97 against the brief. To fix or finish:
@@ -58,3 +58,9 @@ Honest finding: m4's arrival has the water photo, touch ripples, dust motes and 
 2. Objects review fixes, then the opener built on a copy of the same debug module.
 3. Test at 390x844 touch and landscape, with `prefers-reduced-motion` emulated (compare against the normal run).
 4. A PROGRESS row and SHA per push.
+
+## Later additions
+
+- Tilt button rule above (replaces the earlier "permission on first tap").
+- Objects coverage survey: `objects/OBJECT-COVERAGE.md` (work in progress). Only objects with real multi-angle photos get a 3D (2.5D) layer; the rest stay gallery-only.
+- Flash group in both debug panels (star flash, ambient flash, test beat BPM). Both default to 0.
