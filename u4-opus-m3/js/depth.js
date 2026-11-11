@@ -167,7 +167,7 @@ function showBoard(api){
   if(!board)return;
   still=null;filmLv=0;piece=null;snd=null;
   dropFly();setBleed(false);
-  api.setCur({lv:1,k:board.k,id:board.work?board.work.id:null});
+  api.setCur({lv:1,k:board.k,id:board.work?board.work.id:null,b:1});
   api.arrive();
   preload(board.items,api);
 }
@@ -1084,6 +1084,7 @@ function state(){
 }
 
 window.GJ_DEPTH={
+  busy:function(){return !!PL.busy},
   tick:tick, fly:rush, burst:burst, viewScale:viewScale, drawFx:drawFx,
   pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
   paintField:paintField, board:function(){return board}, soundOn:function(){return soundOn},
