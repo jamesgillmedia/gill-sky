@@ -42,6 +42,15 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | versions viewer: show build times in Mountain time (America/Edmonton) | `3d5add5` | Build times are stored as UTC ISO stamps and formatted with Intl in America/Edmonton, e.g. 'Nov 10, 7:13 PM MT' for m4 (this sandbox's tzdata 2026e puts Alberta on UTC-6 after Nov 2026; devices use their own tz data). _progress/versions-mt-dates-390.jpg. | Framing audit, flash/pulse decouple |
 | versions viewer: combined fix | `81f4939` | Corrects the previous two commits, which each applied only their own part: this has all three together (preview in main area, card and chips inset, MT dates). Screenshots: _progress/versions-preview-render-390.jpg, versions-chips-inset-390.jpg, versions-mt-dates-390.jpg. | Framing audit, flash/pulse decouple |
 | Framing audit | `309b700` | _spec/FRAMING-AUDIT.md: 653 cut shots (590 fixable, 63 not: the source frame cuts the subject), 41 ok, 305 no person detected; 4 films have no stills. | Fix the fixable shots in batches via js/framing.js |
+| Framing fix batch 1 | `870f9dd` | Portrait full-screen spans (js/framing.js, SHELL_REV 37) for: reel-2026. Landscape untouched. | Next batch / queue |
+| Framing fix batch 2 | `57a5d09` | Portrait full-screen spans (js/framing.js, SHELL_REV 38) for: cinematography-demo-reel-2025, one-with-the-devil, stay-gold, legends, drift, golden-moment-directors-cut. Landscape untouched. | Next batch / queue |
+| Framing fix batch 3 | `541f76c` | Portrait full-screen spans (js/framing.js, SHELL_REV 39) for: cover-with-love-isabelle, no-place-like-home, the-smell-needs-to-go, brew-bar-coffee-teaser, explorers, sun-kissed, sleepwalker. Landscape untouched. | Next batch / queue |
+| Framing fix batch 4 | `652d4d8` | Portrait full-screen spans (js/framing.js, SHELL_REV 40) for: repeat-feat-jessie-reyez, flower-crown, backward-fall, s18. Landscape untouched. | Next batch / queue |
+| Framing fix batch 5 | `76e24fa` | Portrait full-screen spans (js/framing.js, SHELL_REV 41) for: back-to-the-start, lets-grow-good-together, weird-kid. Landscape untouched. | Next batch / queue |
+| Framing fix batch 6 | `21293e0` | Portrait full-screen spans (js/framing.js, SHELL_REV 42) for: veronas-obsession, obedience-gets-you-nowhere, fire, modern-man, phantoms-and-friends. Landscape untouched. | Next batch / queue |
+| Framing fix batch 7 | `9d97cb1` | Portrait full-screen spans (js/framing.js, SHELL_REV 43) for: summer-is-here, eat-well, buddy-time-grandpas-story, canoe, mandie. Landscape untouched. | Next batch / queue |
+| Framing fix batch 8 | `9f43451` | Portrait full-screen spans (js/framing.js, SHELL_REV 44) for: just-the-beginning, ltl-dstryr, journeys-x-todd. Landscape untouched. | Next batch / queue |
+| Framing audit spans capped | `b62bb25` | Audit proposed spans capped at 64% of frame width so close-ups keep the head instead of shrinking to a letterbox strip. | Framing fix batches |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
