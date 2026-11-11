@@ -1980,7 +1980,7 @@ function deeper(x,y){
   var d0=depthSig(),c0=JSON.stringify(snap(cur)),snd=GJ_DEPTH.soundOn();
   if(GJ_DEPTH.pinchIn(x,y,depthApi())){
     if(STEP!==s0)return;
-    if(GJ_DEPTH.busy()){PEND={s:s0,d:d0,c:c0};return}
+    if(GJ_DEPTH.busy()&&depthSig()===d0&&JSON.stringify(snap(cur))===c0){PEND={s:s0,d:d0,c:c0};return}
     if(snd||depthSig()!==d0||JSON.stringify(snap(cur))!==c0)pushStep();
   }
 }

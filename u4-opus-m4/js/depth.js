@@ -49,7 +49,7 @@ function tick(now){
     var u=Math.min(1,(now-PL.t0)/960);
     PL.e=1-Math.pow(1-u,3);
     if(PL.pending&&!PL.applied&&PL.e>=0.38){PL.applied=1;var fn=PL.pending;PL.pending=null;fn()}
-    if(u>=1){PL.on=0;PL.e=1;PL.busy=0;PL.applied=0;PL.pending=null}
+    if(u>=1){PL.on=0;PL.e=1;PL.busy=0;PL.applied=0;PL.pending=null;PL.quiet=0}
   }
   /* The opening fly drives these orbs. Once that fly stops, drop them so they cannot sit on the sky. */
   if(!PL.on&&FX.fly>0&&!FX.hot){FX.fly=0;FX.life=0;FX.t0=0}
@@ -62,7 +62,7 @@ function tick(now){
 function rush(u){FX.fly=u;FX.hot=1;if(u>0&&!BOK.length)spawn(16)}
 function hush(){FX.fly=0;FX.life=0;FX.t0=0;FX.hot=0;BOK=[]}
 function viewScale(){
-  if(!PL.on)return 1;
+  if(!PL.on||PL.quiet)return 1;
   var e=PL.e, raw;
   if(e<0.38){
     var k=e/0.38;
@@ -80,18 +80,18 @@ function viewScale(){
 function drawFx(g,W,H){
   var now=performance.now();
   var age=FX.t0?(now-FX.t0)/900:1;
-  var show=PL.on||FX.life>0||FX.fly>0.02;
+  var live=PL.on&&!PL.quiet,show=live||FX.life>0||FX.fly>0.02;
   if(!show||!BOK.length)return;
   var spr=sprite(),i,b,near,diam,x,y,a;
   g.save();
   g.globalCompositeOperation='lighter';
   for(i=0;i<BOK.length;i++){
     b=BOK[i];
-    near=PL.on?Math.min(1,PL.e*(0.55+b.lag*0.7)):Math.min(1,(FX.fly>0?FX.fly:age)*(0.45+b.lag));
+    near=live?Math.min(1,PL.e*(0.55+b.lag*0.7)):Math.min(1,(FX.fly>0?FX.fly:age)*(0.45+b.lag));
     if(near<0.02)continue;
     /* Opening orbs fade out across the fly and are gone at the end. A depth pinch is unchanged. */
     var openFade=1;
-    if(!PL.on&&FX.fly>0){
+    if(!live&&FX.fly>0){
       var f=Math.max(0,1-FX.fly);
       openFade=f*f*(3-2*f);
     }
@@ -109,7 +109,7 @@ function drawFx(g,W,H){
   g.globalAlpha=1;
   g.globalCompositeOperation='source-over';
   var blur=0;
-  if(PL.on&&PL.e<0.62)blur=(PL.e/0.62)*10;
+  if(live&&PL.e<0.62)blur=(PL.e/0.62)*10;
   else if(FX.fly>0.05&&FX.fly<0.85)blur=FX.fly*12;
   var poem=document.getElementById('poem'),water=document.getElementById('water');
   if(poem)poem.style.filter=blur?'blur('+blur.toFixed(1)+'px)':'';
@@ -456,18 +456,20 @@ function zoomSound(){
     else {var v=sk.view();sk.viewSet(Math.min(8.5,(v.z||1)*1.28),0,0)}
   }catch(e){}
 }
+function quiet(fn){fn.quiet=1;return fn}
 function planIn(x,y,api){
   var cur=api.cur();
   if(soundOn)return function(){zoomSound()};
   if(snd&&!soundOn)return function(){openSound(api,trackOf(snd.work),false,snd.work)};
   /* Reel 2026 stays in its column. A tap used to cover the screen with the Demo Reel clip, then scatter the stills. */
   if(filmWork&&filmWork.id==='film/reel-2026'&&filmLv>=1)return null;
-  if(filmLv===2){var fh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');return function(){enterFilm(x,y,api,fh)}}
+  /* A still grows out of its own tile, so the whole-page dive (zoom, orbs, a swap) would only fight it. */
+  if(filmLv===2){var fh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');return quiet(function(){enterFilm(x,y,api,fh)})}
   if(filmLv===1){
     var uh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');
-    if(uh&&x>=uh.box.l&&x<=uh.box.l+uh.box.w&&y>=uh.box.t&&y<=uh.box.t+uh.box.h)return function(){
+    if(uh&&x>=uh.box.l&&x<=uh.box.l+uh.box.w&&y>=uh.box.t&&y<=uh.box.t+uh.box.h)return quiet(function(){
       var sh=document.querySelector('#layer .sheet');filmKeep=sh?sh.scrollTop:-1;filmFrom=1;enterFilm(x,y,api,uh);
-    };
+    });
   }
   if(filmLv===3)return function(){dropFly();setBleed(false);filmLv=4;api.paint()};
   if(filmLv>=1){
@@ -558,7 +560,9 @@ function pinchIn(x,y,api){
   if(typeof y==='number')PL.oy=y;
   var act=planIn(x,y,api);
   if(!act)return false;
-  PL.busy=1;PL.pending=act;PL.applied=0;PL.on=1;PL.e=0;PL.t0=performance.now();
+  PL.busy=1;PL.applied=0;PL.on=1;PL.e=0;PL.t0=performance.now();
+  if(act.quiet){PL.quiet=1;PL.pending=null;act();return true}
+  PL.quiet=0;PL.pending=act;
   spawn(16);
   return true;
 }
@@ -807,6 +811,25 @@ function applyFraming(el,src,clip){
   }
   tick();
 }
+/* A framed still opens at the tile's own crop and settles into its framing as it grows, and goes back the same way, so the picture never jumps. */
+var FRAME_EASE='width .9s cubic-bezier(.22,.7,.2,1),left .9s cubic-bezier(.22,.7,.2,1)';
+function framingStart(el){
+  if(el.querySelector('video'))return;
+  var img=el.querySelector('img');
+  if(!img||!img.style.width||img.style.width==='100%')return;
+  img._fw=img.style.width;img._fl=img.style.left;
+  img.style.transition='none';img.style.width='100%';img.style.left='0%';
+}
+function framingSettle(el){
+  var img=el.querySelector('img');
+  if(!img||!img._fw)return;
+  img.style.transition=FRAME_EASE;img.style.width=img._fw;img.style.left=img._fl;
+}
+function framingRelease(el){
+  var img=el.querySelector('img');
+  if(!img||!img._fw)return;
+  img.style.transition=FRAME_EASE;img.style.width='100%';img.style.left='0%';
+}
 function growInto(box, src, clip, extra, push){
   dropFly();
   var host=document.getElementById('layer');if(!host||!box)return;
@@ -824,6 +847,7 @@ function growInto(box, src, clip, extra, push){
   el.style.left=box.l+'px';el.style.top=box.t+'px';el.style.width=box.w+'px';el.style.height=box.h+'px';
   host.appendChild(el);
   applyFraming(el,src,clip);
+  framingStart(el);
   var v=el.querySelector('video');
   if(v){
     var p=v.play();if(p&&p.catch)p.catch(function(){})
@@ -837,6 +861,7 @@ function growInto(box, src, clip, extra, push){
       el.style.left='0px';el.style.top='0px';
       el.style.width=innerWidth+'px';el.style.height=innerHeight+'px';
       el.classList.add('in');
+      framingSettle(el);
     });
   });
 }
@@ -846,6 +871,7 @@ function shrinkBack(box, done){
   var once=0;
   function fin(){if(once)return;once=1;if(el.parentNode)el.parentNode.removeChild(el);fly=null;if(done)done()}
   el.classList.remove('in');
+  framingRelease(el);
   if(el.style.transform){el.style.transition='left .9s cubic-bezier(.22,.7,.2,1),top .9s cubic-bezier(.22,.7,.2,1),width .9s cubic-bezier(.22,.7,.2,1),height .9s cubic-bezier(.22,.7,.2,1),transform .9s cubic-bezier(.22,.7,.2,1)'}
   el.style.transform='';
   if(box&&box.w){el.style.left=box.l+'px';el.style.top=box.t+'px';el.style.width=box.w+'px';el.style.height=box.h+'px'}
@@ -982,6 +1008,8 @@ function momentClip(src, work){
   if(reel)return 'media/pro2/reel/'+reel[1]+'.mp4';
   var m=work&&work.media||{};
   if(work&&work.id==='film/weird-kid')return '';
+  /* The Devil's one preview clip is not each still's own moment; fading into it swaps the picture and re-frames it. */
+  if(work&&work.id==='film/one-with-the-devil'&&/\/owtd\/stills\//.test(src||''))return '';
   if(m.pv&&!/\/sc\//.test(m.pv))return m.pv;
   if(m.clip&&!/\/sc\//.test(m.clip)&&!/youtube|youtu\.be/i.test(m.clip))return m.clip;
   return '';
