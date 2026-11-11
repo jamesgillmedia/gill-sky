@@ -1,6 +1,6 @@
 /* Shell only. Video and audio are never stored; everything else off this origin streams.
    The cache name follows this folder, so a copy (u4 beside u3) does not share a shell. */
-var SHELL_REV = '30';
+var SHELL_REV = '31';
 var FOLDER = new URL('./', self.location).pathname.replace(/\/+$/, '') || '/';
 var CACHE = 'shell-' + FOLDER + '-' + SHELL_REV;
 var SHELL = [
@@ -19,6 +19,7 @@ var SHELL = [
   './js/nov9.js',
   './js/inner.js',
   './js/depth.js',
+  './js/debug.js',
   './data.json',
   './icons/icon-192.png',
   './icons/icon-512.png',
