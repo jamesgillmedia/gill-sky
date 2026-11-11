@@ -271,6 +271,7 @@ function wire(k){
   if(k.kind==='seg'||k.kind==='bool'){
     [].forEach.call(row.querySelectorAll('button'),function(b){
       b.addEventListener('click',function(){
+        if(k.manual){k.onChange(b.getAttribute('data-v'));return}
         vals[k.id]=b.getAttribute('data-v');
         [].forEach.call(row.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x===b))});
         setP(k.param,vals[k.id],k.def);
@@ -348,7 +349,8 @@ function loop(t){
   infoEl.innerHTML=rows.map(function(x){return '<span>'+esc(x[0])+'</span><span>'+esc(x[1])+'</span>'}).join('');
   if(cfg.list&&listEl){var l=cfg.list();listEl.innerHTML=l.map(function(s){return '<div>'+esc(s)+'</div>'}).join('')}
 }
-return {pulse:pulse,flash:flash,beat:beatCount,sf:function(){return (vals.sf||0)/100},af:function(){return (vals.af||0)/100},bpm:function(){return vals.bpm||100},sync:function(){return (vals.sync||0)/100},setBeat:function(fn){beatSrc=fn},fogLevel:function(v){fogLevel=v},init:init,frame:function(){},val:function(id){return vals[id]},isOn:function(){return on},setP:setP,open:openPanel,close:close,state:function(){return {on:on,open:open,fps:fps}}};
+function setSeg(id,v){vals[id]=v;var row=root&&root.querySelector('.rowc[data-id="'+id+'"]');if(row)[].forEach.call(row.querySelectorAll('button'),function(x){x.setAttribute('aria-pressed',String(x.getAttribute('data-v')===String(v)))})}
+return {setSeg:setSeg,pulse:pulse,flash:flash,beat:beatCount,sf:function(){return (vals.sf||0)/100},af:function(){return (vals.af||0)/100},bpm:function(){return vals.bpm||100},sync:function(){return (vals.sync||0)/100},setBeat:function(fn){beatSrc=fn},fogLevel:function(v){fogLevel=v},init:init,frame:function(){},val:function(id){return vals[id]},isOn:function(){return on},setP:setP,open:openPanel,close:close,state:function(){return {on:on,open:open,fps:fps}}};
 })();
 /*DBG:JS:END*/
 </script>
@@ -376,7 +378,7 @@ var FOGS=(function(){var c=document.createElement('canvas');c.width=c.height=128
   gr.addColorStop(0,'rgba(255,255,255,.5)');gr.addColorStop(.5,'rgba(255,255,255,.14)');gr.addColorStop(1,'rgba(255,255,255,0)');q.fillStyle=gr;q.fillRect(0,0,128,128);return c})();
 
 /* ---------- audio and analysis ---------- */
-var TRK=[],tr=null,au=null,AC=null,AN=null,GN=null,FD=null,TD=null,started=false,playing=false,audioErr='';
+var TRK=[],tr=null,lt=null,au=null,AC=null,AN=null,GN=null,FD=null,TD=null,started=false,playing=false,audioErr='';
 var SEED=Math.round(parseFloat(Q.get('seed'))||7),SENS=1,FLASHK=.6,VOL=.8;
 var BANDS=[[30,600],[600,2500],[2500,9000]],bandName=['bass','mid','high'];
 var lvl={bass:0,mid:0,high:0,rms:0},pk={bass:.2,mid:.2,high:.2},CL=[0,0,0,0,0,0],clPk=[.2,.2,.2,.2,.2,.2],kick=0;
@@ -470,26 +472,39 @@ function graph(){
   }catch(e){audioErr='no web audio'}
 }
 function setPP(){var pp=$('pp');pp.classList.toggle('on',playing);pp.classList.toggle('quiet',playing)}
-function togglePlay(){
+function trackOf(k){return TRK.filter(function(x){return x.k===k})[0]||null}
+function songLabel(){
+  var t=tr?tr.title+' · '+tr.artist:'';
+  if(tr&&lt&&lt!==tr&&playing)t+=' · tap again to play';
+  $('song').textContent=t;
+}
+/* Songs follow one rule: the first tap on a song selects it (highlight and title), a second tap on the same song plays it, a tap on another song moves the selection. */
+function selectSong(k){
+  var t=trackOf(k);if(!t)return;
+  tr=t;GJDBG.setSeg('song',k);songLabel();
+  if(!playing){$('hint').textContent='tap again to play';$('foot').classList.remove('gone')}
+}
+function loadSel(){
   mkAudio();
-  if(!tr)return;
-  if(!au.getAttribute('src'))au.src=tr.file;
+  au.pause();au.src=tr.file;au.currentTime=0;lt=tr;
+  started=false;resetAnalysis();lastMedia=0;
+}
+function startPlay(){
+  mkAudio();if(!tr)return;
+  if(lt!==tr)loadSel();
   graph();
   try{if(AC&&AC.state==='suspended')AC.resume()}catch(e){}
-  if(au.paused){
-    started=true;playing=true;setPP();
-    var pr=au.play();if(pr&&pr.catch)pr.catch(function(){playing=false;audioErr='play was blocked';setPP()});
-    $('foot').classList.add('gone');
-  }else{au.pause();playing=false;setPP()}
+  started=true;playing=true;setPP();songLabel();
+  var pr=au.play();if(pr&&pr.catch)pr.catch(function(){playing=false;audioErr='play was blocked';setPP()});
+  $('foot').classList.add('gone');
 }
-function switchSong(k){
-  var t=TRK.filter(function(x){return x.k===k})[0];if(!t)return;
-  var was=playing;tr=t;
-  if(au){au.pause();au.src=t.file;au.currentTime=0}
-  playing=false;started=false;resetAnalysis();lastMedia=0;setPP();
-  $('song').textContent=t.title+' · '+t.artist;
-  if(was){togglePlay()}
+function togglePlay(){
+  mkAudio();
+  if(playing){au.pause();playing=false;setPP();songLabel();return}
+  if(!tr){selectSong(TRK[0]&&(trackOf('lostintime')||TRK[0]).k);if(!tr)return}
+  startPlay();
 }
+function songTap(k){if(tr&&tr.k===k){if(playing&&lt===tr){au.pause();playing=false;setPP();songLabel()}else startPlay()}else selectSong(k)}
 
 /* ---------- sky (seeded: same seed and size give the same sky) ---------- */
 var CS=[],FS=[],EDG=[],HUB=[],rngF=null,Z=1,TZ=1,pcx=0,pcy=0,pinchAct=0;
@@ -584,8 +599,8 @@ function zy(y,d){return (pcy||H/2)+(y-(pcy||H/2))*(1+(Z-1)*d)}
 function draw(t,dt){
   g.setTransform(DPR,0,0,DPR,0,0);g.clearRect(0,0,W,H);
   var hd=.5*Math.hypot(W,H),sfOn=GJDBG.sf()>0,u=Math.min(W,H),i,j;
-  var pos0=au&&tr?clamp(au.currentTime/(tr.dur||80),0,.999):0;
-  var peaks=(tr&&tr.peaks)||[],NP=peaks.length||1,pi0=Math.floor(pos0*NP);
+  var pos0=au&&lt?clamp(au.currentTime/(lt.dur||80),0,.999):0;
+  var peaks=(lt&&lt.peaks)||[],NP=peaks.length||1,pi0=Math.floor(pos0*NP);
   /* ambient fog: breathes with the RMS */
   g.save();g.globalCompositeOperation='lighter';
   for(i=0;i<3;i++){
@@ -660,14 +675,13 @@ function init(){
   stage.addEventListener('contextmenu',function(e){e.preventDefault()});
   addEventListener('keydown',onKey);
   var root=document.documentElement;
-  var want=Q.get('song')||'lostintime';
-  tr=TRK.filter(function(x){return x.k===want})[0]||TRK[0]||null;
-  if(tr){$('song').textContent=tr.title+' · '+tr.artist}else{$('song').textContent='song list not found';$('hint').textContent='no song'}
+  tr=Q.get('song')?trackOf(Q.get('song')):null;
+  if(!TRK.length){$('song').textContent='song list not found';$('hint').textContent='no song'}else if(tr){$('song').textContent=tr.title+' · '+tr.artist;$('hint').textContent='tap again to play'}
   var short={togo:'to go',noproblem:'no problem',lostintime:'lost in time',equals:'=',ii:'ii'};
   GJDBG.init({
     versions:'../../_versions/',
     controls:[
-      {id:'song',label:'song',kind:'seg',def:'lostintime',param:'song',group:'sound',opts:TRK.map(function(x){return [x.k,short[x.k]||x.title]}),onChange:function(v){switchSong(v)}},
+      {id:'song',label:'song',kind:'seg',def:'',param:'song',group:'sound',manual:1,noInit:1,opts:TRK.map(function(x){return [x.k,short[x.k]||x.title]}),onChange:function(v){songTap(v)}},
       {id:'vol',label:'vol',unit:'%',min:0,max:100,step:.1,def:80,param:'vol',group:'sound',always:1,onChange:function(v){VOL=v/100;if(GN)GN.gain.value=VOL}},
       {id:'flash',label:'flash',unit:'%',min:0,max:100,step:.1,def:60,param:'flash',group:'sound',always:1,onChange:function(v){FLASHK=v/100}},
       {id:'sens',label:'sensitivity',unit:'%',min:20,max:300,step:.1,def:100,param:'sens',group:'sound',always:1,onChange:function(v){SENS=v/100}},
@@ -678,8 +692,8 @@ function init(){
     rows:function(){
       var tcur=au?au.currentTime:0;
       return [
-        ['song',tr?tr.title:'-'],['state',audioErr||(playing?'playing':started?'paused':'waiting for a tap')],
-        ['time',f2(tcur,1)+' / '+f2(tr?tr.dur:0,1)+' s'],
+        ['selected / loaded',(tr?tr.title:'-')+' / '+(lt?lt.title:'-')],['state',audioErr||(playing?'playing':started?'paused':'waiting for a tap')],
+        ['time',f2(tcur,1)+' / '+f2(lt?lt.dur:0,1)+' s'],
         ['bpm (from onsets)',bpmEst?f2(bpmEst,1)+' · '+nOn+' onsets':'- · '+nOn+' onsets'],
         ['bass / mid / high',bars(lvl.bass)+' / '+bars(lvl.mid)+' / '+bars(lvl.high)],
         ['rms (fog)',bars(lvl.rms)],['cluster bands',CL.map(function(v){return f2(v,1)}).join(' ')],
@@ -688,7 +702,7 @@ function init(){
         ['volume / flash',f2(VOL*100,1)+' / '+f2(FLASHK*100,1)]
       ];
     },
-    list:function(){return ['stars · '+CS.reduce(function(a,c){return a+c.s.length},0)+' in '+NCL+' clusters + '+NFIELD+' field','audio · '+(tr?tr.file:'-'),'analyser · fft 512, bass/mid/high + 6 cluster bands']}
+    list:function(){return ['stars · '+CS.reduce(function(a,c){return a+c.s.length},0)+' in '+NCL+' clusters + '+NFIELD+' field','audio · '+(lt?lt.file:'-'),'analyser · fft 512, bass/mid/high + 6 cluster bands']}
   });
   GJDBG.setBeat(beatFn);
   requestAnimationFrame(frame);
