@@ -1089,14 +1089,14 @@ function drawSound(t){
   c.node.forEach(function(n,i){if(!n)return;var tr=songAt[i];if(!tr)return;
     var p=nodePos(n),q=sp(p[0],p[1]);
     var on=song&&song.k===tr.k;star(q,on?.9:.55,c,on,1);
-    if(playing&&on){var fr=L.rms*GFL,dm=.35+.65*GFL,pulse=1+fr*1.8;g.globalAlpha=(.35+fr*.5)*dm;g.strokeStyle='rgba('+MINT+','+(0.4+fr)+')';g.beginPath();g.arc(q[0],q[1],8+10*fr*pulse,0,7);g.stroke();g.globalAlpha=1}
+    if(playing&&on){var fr=L.rms,dm=.35+.65*GFL,pulse=1+fr*1.8;g.globalAlpha=(.35+fr*.5)*dm;g.strokeStyle='rgba('+MINT+','+(0.4+fr)+')';g.beginPath();g.arc(q[0],q[1],8+10*fr*pulse,0,7);g.stroke();g.globalAlpha=1}
     if(on){g.font='300 10px Poppins,sans-serif';g.textAlign='center';g.fillStyle='rgb('+MINT+')';g.fillText(tr.title,q[0],q[1]-14)}
   });
   if(playing){
     var o=sp(c.x,c.y),peaks=song.peaks||[],head=(au&&song.dur)?au.currentTime/song.dur:0;
     for(var i=0;i<18;i++){
       var pi=Math.floor(((head*peaks.length+i*3)%peaks.length+peaks.length)%peaks.length);
-      var rad=18+(peaks[pi]||.2)*70+L.rms*GFL*26;
+      var rad=18+(peaks[pi]||.2)*70+L.rms*26;
       g.strokeStyle='rgba(255,182,176,'+((0.08+0.25*(1-i/18))*(.35+.65*GFL))+')';g.beginPath();g.arc(o[0],o[1],rad+i*7,0,7);g.stroke();
     }
   }
