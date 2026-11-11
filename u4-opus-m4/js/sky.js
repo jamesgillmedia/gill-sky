@@ -1077,7 +1077,11 @@ function mmss(s){s=Math.max(0,s|0);return (s/60|0)+':'+(s%60<10?'0':'')+(s%60|0)
 /* ---------- layers ---------- */
 function renderLayer(){
   var el=$('layer');
-  if(reelCtl){reelCtl.stop();reelCtl=null}
+  if(reelCtl){
+    var same=reelCtl.id&&cur.lv===2&&cur.id===reelCtl.id&&!(window.GJ_DEPTH&&GJ_DEPTH.owns())&&el.firstChild&&el.firstChild.className==='rl';
+    if(same)return;
+    reelCtl.stop();reelCtl=null;
+  }
   if(window.GJ_DEPTH&&GJ_DEPTH.owns()){GJ_DEPTH.paintLayer(el);return}
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn()){el.classList.remove('on');el.innerHTML='';return}
   if(cur.lv!==2||!cur.id||!byId[cur.id]){el.classList.remove('on');el.innerHTML='';pauseAu();return}
@@ -1180,33 +1184,17 @@ function renderJoio(el){
   if(!hero){renderSheet(el,byId['objects/joio']);return}
   el.innerHTML='<div class="sheet full"><div class="joio-stage"><video id="jv" muted loop playsinline autoplay poster="'+esc(JOIOB+hero.f)+'" src="'+esc(JOIOB+hero.v)+'"></video></div><h2>joio</h2><p class="meta">cups and paddles</p><p class="rel"><a href="https://www.joioco.com">joio.co</a></p></div>';
 }
-function renderReel(el){
-  var S=window.GJ_REEL||[];if(!S.length){el.innerHTML='<div class="sheet full"><p>The reel is missing.</p></div>';return}
-  el.innerHTML='<div class="reel" id="reel"><div class="stage" id="rst"><img id="rim" alt=""><video id="rv" muted playsinline loop></video></div><div class="ui"><span id="rn"></span><b id="rb"></b><span style="flex:1"></span><button type="button" id="rfit">fill</button><button type="button" id="rview">view film</button></div><div class="fs" id="rfs"><div class="row" id="rrow"></div></div></div>';
-  var N=S.length,p=.5,curI=-1,on=true,fit=false,last=0,raf=0,dragR=null;
-  var row=$('rrow');
-  for(var i=0;i<N;i++){var b=document.createElement('i');b.style.backgroundImage='url('+REELB+S[i].f+'.webp)';row.appendChild(b)}
-  function mod(i){return ((i%N)+N)%N}
-  function show(i){
-    i=mod(i);if(i===curI)return;curI=i;var s=S[i];
-    $('rim').src=REELB+s.f+'.webp';
-    $('rn').textContent=(i+1)+' / '+N;
-    $('rb').textContent=s.b||'';
-    var v=$('rv');v.src=REELB+s.f+'.mp4';var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})
-    var film=s.l!=null?CH.film.items.filter(function(it){return it.k==='w'+s.l})[0]:null;
-    $('rview').style.visibility=film?'visible':'hidden';
-    $('rview').onclick=function(){if(film)go({lv:2,k:'film',id:film.id})};
-  }
-  function place(){var w=el.clientWidth||W,q=((p%N)+N)%N;row.style.transform='translate3d('+(w/2-(q)*40)+'px,0,0)';show(Math.floor(q))}
-  function loop(t){raf=requestAnimationFrame(loop);var dt=Math.min(.05,(t-(last||t))/1000);last=t;if(on&&!dragR)p+=dt*1.1;place()}
-  raf=requestAnimationFrame(loop);place();
-  $('rfit').onclick=function(){fit=!fit;$('reel').classList.toggle('fit',fit);this.textContent=fit?'fit':'fill'};
-  var fs=$('rfs');
-  fs.addEventListener('pointerdown',function(e){dragR={x:e.clientX,p:p}});
-  fs.addEventListener('pointermove',function(e){if(!dragR)return;p=dragR.p-(e.clientX-dragR.x)/40});
-  fs.addEventListener('pointerup',function(){dragR=null});
-  $('rst').addEventListener('click',function(){on=!on});
-  reelCtl={stop:function(){cancelAnimationFrame(raf);var v=$('rv');if(v){v.pause();v.removeAttribute('src')}}};
+var REELBOX=null;
+function filmByL(l){return CH.film?CH.film.items.filter(function(it){return it.k==='w'+l})[0]:null}
+function renderReel(el,it){
+  if(!window.GJ_REELVIEW){el.innerHTML='<div class="sheet full"><p>The reel is missing.</p></div>';return}
+  var ctl=GJ_REELVIEW.mount(el,{
+    base:REELB,
+    film:filmByL,
+    viewFilm:function(l){var f=filmByL(l);if(f)go({lv:2,k:'film',id:f.id})},
+    box:function(){var b=REELBOX;REELBOX=null;return b}
+  });
+  reelCtl={id:it.id,stop:ctl.stop,state:ctl.state};
 }
 
 /* ---------- input ---------- */
@@ -1373,6 +1361,7 @@ function depthApi(){
     soundBoard:soundBoard,
     hit:hit,
     tileAt:tileAt,
+    reelFrom:function(b){REELBOX=b},
     tileBox:function(it){
       var items=boardItems(),i;
       for(i=0;i<items.length;i++)if(items[i]===it||items[i].id===it.id){

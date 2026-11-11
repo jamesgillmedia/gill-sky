@@ -208,16 +208,38 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 .stillbig{display:block;width:100%;max-height:70vh;object-fit:contain;background:#000;margin:0 auto}
 .poemcard span{display:block;font-weight:200;font-size:16px;line-height:1.5}
 .poemcard .sig{font-family:Syl,sans-serif;font-weight:700;font-size:24px;margin-top:8px}
-.reel{position:absolute;inset:0;background:#000;pointer-events:auto;display:flex;flex-direction:column}
-.reel .stage{position:relative;flex:1;min-height:0;background:#000}
-.reel .stage img,.reel .stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.reel.fit .stage img,.reel.fit .stage video{object-fit:contain;background:#000}
-.reel .ui{display:flex;align-items:center;gap:8px;padding:6px 10px;color:var(--dim);font-size:11px;letter-spacing:.08em}
-.reel .ui b{color:var(--ink);font-weight:300;letter-spacing:.04em}
-.reel .ui button{min-height:36px;padding:0 8px}
-.reel .fs{position:relative;height:44px;overflow:hidden;background:#05070c}
-.reel .fs .row{position:absolute;top:2px;height:40px;display:flex;will-change:transform}
-.reel .fs i{flex:0 0 40px;height:40px;background:#111 center/cover no-repeat}
+.rl{position:absolute;inset:0;z-index:1;background:rgba(3,6,10,.9);color:#e6eeff;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;pointer-events:auto;overflow:hidden}
+.rl-st{position:absolute;inset:0;overflow:hidden;outline:0;cursor:pointer;contain:strict}
+.rl-st img,.rl-st video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:transparent}
+.rl-st video{opacity:0}
+.rl-st video.on{opacity:1}
+.rl.fit .rl-st{inset:calc(96px + var(--st)) max(12px,var(--sr)) calc(150px + var(--sb)) max(12px,var(--sl))}
+.rl.fit .rl-st img,.rl.fit .rl-st video{object-fit:contain}
+.rl-st::after{content:'';position:absolute;inset:auto 0 0;height:190px;background:linear-gradient(to top,rgba(3,6,10,.7),rgba(3,6,10,0));pointer-events:none;z-index:1}
+.rl-st::before{content:'';position:absolute;inset:0 0 auto;height:120px;background:linear-gradient(to bottom,rgba(3,6,10,.55),rgba(3,6,10,0));pointer-events:none;z-index:1}
+.rl.fit .rl-st::after,.rl.fit .rl-st::before{display:none}
+.rl-ui{position:absolute;inset:0;pointer-events:none;font-family:Poppins,sans-serif;z-index:2}
+.rl-k{position:absolute;left:max(16px,var(--sl));top:calc(76px + var(--st));margin:0;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:#55DAA1;font-variant-numeric:tabular-nums;text-transform:uppercase}
+.rl-k::before{content:'reel';color:#c9d5e3;margin-right:10px}
+.rl.paused .rl-k::after{content:'paused';margin-left:10px;color:#c9d5e3}
+.rl-fit{position:absolute;right:max(8px,var(--sr));top:calc(66px + var(--st));margin:0;display:flex;align-items:center;pointer-events:auto}
+.rl-fit i{font-style:normal;color:#5d6f84;font-size:11px}
+.rl-fit button{height:40px;padding:0 7px;border:0;background:transparent;color:#9fb0c4;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.18em}
+.rl-fit button[aria-pressed=true]{color:#55DAA1}
+.rl-b{position:absolute;left:max(16px,var(--sl));right:16px;bottom:calc(112px + var(--sb));margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.rl-b b{font-weight:400;font-size:14px;letter-spacing:.02em;color:#e6eeff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.rl-b small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#a9b8c9}
+.rl-v{pointer-events:auto;margin-top:2px;padding:8px 0;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#55DAA1;text-decoration:none}
+.rl.nob .rl-b b,.rl.nol .rl-v{display:none}
+.rl-h{position:absolute;left:max(16px,var(--sl));top:calc(96px + var(--st));margin:0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#55DAA1;transition:opacity .5s}
+.rl.seen .rl-h{opacity:0}
+.rl-fs{position:absolute;left:0;right:0;bottom:calc(42px + var(--sb));height:56px;overflow:hidden;z-index:3;cursor:grab}
+.rl.scrub .rl-fs{cursor:grabbing}
+.rl-tr{position:absolute;left:0;top:8px;height:40px;display:flex;will-change:transform}
+.rl-tr b{flex:0 0 40px;height:40px;background-image:url(../media/pro2/reel/strip.webp);background-size:var(--bs);opacity:.5;filter:saturate(.75)}
+.rl-tr b.on{opacity:1;filter:none}
+.rl-mk{position:absolute;left:50%;top:2px;width:2px;height:52px;margin-left:-1px;background:#55DAA1;box-shadow:0 0 8px rgba(85,218,161,.6)}
+html.reelon #mmap{display:none !important}
 .snd{position:absolute;left:0;right:0;bottom:0;pointer-events:auto;
  padding:12px max(12px,var(--sr)) calc(10px + var(--sb)) max(12px,var(--sl));
  background:linear-gradient(transparent,rgba(4,7,11,.92) 30%)}

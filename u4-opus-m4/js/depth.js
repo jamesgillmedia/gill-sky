@@ -280,6 +280,12 @@ function openTile(api,it){
   }
   if(work.nov9&&work.chapter==='film'&&!it._shot){openStill(api,work,work.shots[0]);return}
   var kids=null;
+  if(work.kind==='reel'&&!it._shot&&api.openId){
+    still=null;filmLv=0;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);
+    if(api.reelFrom)api.reelFrom(api.tileBox?api.tileBox(work):null);
+    api.openId(work.id);
+    return;
+  }
   var filmish0=work.kind==='film'||work.kind==='reel';
   if(filmish0&&!it._shot){openFilm(api,work,null);return}
   if((work.chapter==='objects'||cur.k==='objects')&&!it._shot){
@@ -561,7 +567,12 @@ function sync(cur,api){
     if(!board||board.k!==cur.k)board=makeBoard(api,cur.k);
     if(piece&&piece.work&&piece.work.id!==cur.id)piece=null;
     if(!it)return;
-    if(it.kind==='film'||it.kind==='reel'){
+    if(it.kind==='reel'){
+      filmLv=0;filmWork=null;still=null;piece=null;snd=null;dropFly();setBleed(false);
+      if(soundOn)hideSound();
+      return;
+    }
+    if(it.kind==='film'){
       if(snd||soundOn||piece||(filmWork&&filmWork.id!==it.id)){
         snd=null;hideSound();dropFly();setBleed(false);piece=null;
       }
