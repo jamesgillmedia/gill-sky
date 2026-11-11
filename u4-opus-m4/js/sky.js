@@ -809,7 +809,9 @@ function drawWindow(){
   var title=db&&db.title?db.title:(cur.k==='progress'?'IN PROGRESS':String(cur.k).toUpperCase());
   var air=spec.key==='film'||spec.key==='photo'||spec.key==='objects'||spec.key==='sound';
   g.globalAlpha=Math.min(1,b*1.2)*(air?.96:.9);
+  if(spec.board){g.shadowColor='rgba(120,160,220,.22)';g.shadowBlur=22}
   g.fillStyle=air?'rgba(4,7,11,.74)':'#080c16';g.fillRect(spec.x0,spec.y0,spec.w,spec.winH);
+  g.shadowBlur=0;g.shadowColor='transparent';
   if(!air){g.strokeStyle='rgba(207,216,230,.32)';g.lineWidth=1;g.strokeRect(spec.x0+.5,spec.y0+.5,spec.w-1,spec.winH-1)}
   g.globalAlpha=b;g.textAlign='center';g.textBaseline='middle';
   g.font='400 15px "Julius Sans One",sans-serif';g.fillStyle='#e4ebf5';g.letterSpacing='6px';
@@ -822,7 +824,7 @@ function drawWindow(){
     g.fillText(cut(line,spec.w-28),spec.x0+spec.w/2,spec.y0+40);
   }else if(spec.board&&spec.key!=='about'&&b>.55){
     var cn=(db&&db.fine)?0:boardCount(spec.key,items);
-    if(cn){g.font='300 10px Poppins,sans-serif';g.fillStyle='rgba(228,235,245,.55)';g.fillText(cn,spec.x0+spec.w/2,spec.y0+37)}
+    if(cn){g.font='300 10px Poppins,sans-serif';g.fillStyle='rgba(228,235,245,.55)';g.fillText(cn,spec.x0+spec.w/2,spec.y0+33)}
   }
   g.save();
   g.beginPath();g.rect(spec.x0+1,spec.y0+(spec.head-6),spec.w-2,spec.winH-(spec.head-6));g.clip();
@@ -1199,6 +1201,7 @@ function renderReel(el,it){
 
 /* ---------- input ---------- */
 function bind(){
+  stage.addEventListener('pointerdown',function(){if(!HINTSEEN&&levelOf(cur)===1)seenHint()},true);
   var wc=$('wcrumb'),wr=$('wrail');
   function wjump(e){var b=e.target.closest('[data-lv]');if(!b)return;e.preventDefault();e.stopPropagation();jumpLevel(+b.getAttribute('data-lv'))}
   if(wc)wc.addEventListener('click',wjump);
@@ -1272,13 +1275,17 @@ function onMove(e){
   if(drag.over){
     var spec=gridSpec(boardKey());
     var t=clamp(drag.s0-(e.clientY-drag.y),0,spec.maxSc);
-    scr.x=scr.t=t;scr.v=0;return;
+    scr.x=scr.t=t;scr.v=0;
+    var tl=34/Math.max(.2,rest.s);
+    lyS.x=lyS.t=clamp((t-drag.s0)*.1/rest.s,-tl,tl);lyS.v=0;
+    return;
   }
   var lim=34/Math.max(.2,rest.s);
   lxS.x=lxS.t=clamp(drag.lx-dx/rest.s,-lim,lim);
   lyS.x=lyS.t=clamp(drag.ly-dy/rest.s,-lim,lim);
   lxS.v=lyS.v=0;
 }
+var LASTTAP={t:0,x:0,y:0,hit:null};
 function onUp(e){
   if(!drag||e.pointerId!==drag.id)return;
   var was=drag;drag=null;
@@ -1287,9 +1294,13 @@ function onUp(e){
   if(phase!=='sky')return;
   if(moved){
     if(was.chime){var c=was.chime;chime(c.f);c.fl=1}
-    if(!was.over){lxS.t=0;lyS.t=0;lxS.w=W_LOOK;lyS.w=W_LOOK}
+    lxS.t=0;lyS.t=0;lxS.w=W_LOOK;lyS.w=W_LOOK;
     return;
   }
+  var tn=now(),dbl=tn-LASTTAP.t<360&&Math.hypot(e.clientX-LASTTAP.x,e.clientY-LASTTAP.y)<40;
+  LASTTAP={t:tn,x:e.clientX,y:e.clientY,hit:LASTTAP.hit};
+  if(dbl&&!LASTTAP.hit&&cur.lv>=1&&phase==='sky'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())&&!isBio()){LASTTAP={t:0,x:0,y:0,hit:null};back();return}
+  LASTTAP.hit=hit(e.clientX,e.clientY);
   tap(e.clientX,e.clientY);
 }
 function onPtrDown(e){
@@ -1678,6 +1689,21 @@ function crumbNames(label){
   var lv=levelOf(cur),k=cur.k==='progress'?'in progress':cur.k;
   return ['ᑕᐣᓯ',k,'board',lv===3?label:'work'];
 }
+var HINTSEEN=false;
+function syncHint(){
+  var h=$('shint');if(!h)return;
+  try{if(sessionStorage.getItem('gj-m4-hint'))HINTSEEN=true}catch(e){}
+  var on=!HINTSEEN&&phase==='sky'&&levelOf(cur)===1&&cur.k!=='progress';
+  h.hidden=!on&&!h._fading;
+  h.classList.toggle('on',on);
+  if(on&&!h._t){h._t=setTimeout(function(){seenHint()},9000)}
+}
+function seenHint(){
+  HINTSEEN=true;try{sessionStorage.setItem('gj-m4-hint','1')}catch(e){}
+  var h=$('shint');if(!h)return;
+  clearTimeout(h._t);h.classList.remove('on');h._fading=1;
+  setTimeout(function(){h._fading=0;h.hidden=true},1300);
+}
 function syncCrumb(label){
   var cr=$('wcrumb'),rl=$('wrail'),bar=$('bar');if(!cr||!rl)return;
   var lv=levelOf(cur),show=phase==='sky'&&lv>0;
@@ -1809,6 +1835,7 @@ function ui(){
   if(window.GJ_DEPTH){var named=GJ_DEPTH.state();if(named&&named.label)label=named.label}
   where.textContent=label;
   syncCrumb(label);
+  syncHint();
   var bar=$('bar');if(bar)bar.classList.toggle('bio',!!(bioOn&&isBio()));
   stage.setAttribute('aria-label',label);
   syncHire();
