@@ -165,6 +165,7 @@ function placeChapter(c){
 function chapterAt(k,rx,ry){var a=(PORT?ANGP:ANG)[k]*Math.PI/180;return{x:Math.cos(a)*rx,y:Math.sin(a)*ry}}
 function layout(){
   DPR=Math.min(2,devicePixelRatio||1);W=innerWidth;H=innerHeight;PORT=H>W*1.05;
+  markLayout();
   cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';
   ORDER.forEach(function(k){placeChapter(CH[k])});
   var rx=PORT?300:500,ry=PORT?460:380,scale=1,box;
@@ -985,9 +986,23 @@ function markPair(){
   markPts=P.slice(0,N);
   markTo=nodes.slice(0,N);
 }
-function markScreen(p){var sc=Math.min(W,H)*(PORT?.52:.46)/250;return [W*.5+p[0]*sc,H*.30+p[1]*sc]}
+/* The mark sits in the top third in portrait (poem below it) and in the left column in landscape (poem in the right column). */
+var MG={sc:1,ox:0,oy:0};
+function markLayout(){
+  var de=document.documentElement;
+  if(PORT){
+    var sc=Math.min(W*.84/428,H*.17/210),top=H*.135;
+    MG={sc:sc,ox:W*.5,oy:top+105*sc};
+    de.style.setProperty('--ptop',Math.round(MG.oy+105*sc+H*.025)+'px');
+  }else{
+    MG={sc:Math.min(Math.min(W,H)*.46/250,W*.4/428),ox:W*.27,oy:H*.47};
+    de.style.removeProperty('--ptop');
+  }
+  de.classList.toggle('port',PORT);
+}
+function markScreen(p){return [MG.ox+p[0]*MG.sc,MG.oy+p[1]*MG.sc]}
 function drawMark(u){
-  var sc=Math.min(W,H)*(PORT?.52:.46)/250,ox=W*.5,oy=H*.30;
+  var sc=MG.sc,ox=MG.ox,oy=MG.oy;
   g.lineWidth=1;g.strokeStyle='rgba(200,220,240,'+(0.28*(1-u))+')';g.beginPath();
   STROKES.forEach(function(s){s.forEach(function(q,j){var x=ox+q[0]*sc,y=oy+q[1]*sc;if(j)g.lineTo(x,y);else g.moveTo(x,y)});g.stroke();g.beginPath()});
   markPts.forEach(function(p,i){
@@ -2066,25 +2081,8 @@ function fillPoem(){
   var letters='gill james'.split('').map(function(ch,i){
     return '<i style="animation-delay:'+(i*0.16).toFixed(2)+'s">'+(ch===' '?'&nbsp;':ch)+'</i>';
   }).join('');
-  el.innerHTML='<span class="wm"><span class="gj fade">'+letters+'</span></span><span id="typed"></span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
-  el.classList.remove('ready');
-  var start=function(){if(!el.isConnected)return;typePoem()};
-  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(start,start);
-  else start();
-}
-function typePoem(){
-  var host=$('typed');if(!host||host._go)return;host._go=1;
-  var lines=(data.poem||[]).slice(),n=0,pos=0;
-  var spans=lines.map(function(){var s=document.createElement('span');host.appendChild(s);return s});
-  (function tick(){
-    if(!host.isConnected||n>=lines.length)return;
-    pos++;spans[n].textContent=lines[n].slice(0,pos);
-    if(pos>=lines[n].length){
-      if(n===0){var poem=document.getElementById('poem');if(poem)poem.classList.add('ready')}
-      n++;pos=0;
-    }
-    setTimeout(tick,pos===0?260:38);
-  })();
+  var lines=(data.poem||[]).map(function(l){return '<span>'+esc(l).replace(/ (\S+)$/,'&nbsp;$1')+'</span>'}).join('');
+  el.innerHTML='<span class="wm"><span class="gj fade">'+letters+'</span></span><span id="typed">'+lines+'</span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
 }
 function dust(){
   var d=$('dust'),h='';
