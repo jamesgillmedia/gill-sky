@@ -65,6 +65,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | Opening orb fade | `c6435a4` | The opening bokeh shrinks and fades across the fly and is cleared before the sky, so the soft blobs no longer sit on the constellation at pinch p 1. The two solid finger dots are kept off that pinch. A depth pinch still throws its own bokeh. SHELL_REV 54. _progress/opening-orb-fade-390.jpg. | Player favicon |
 | Player favicon | `abc45a0` | player/index.html no longer requests img/favicon-32.png. The icon link is ../icons/apple-touch-icon.png, which returns 200. | Yara title pill |
 | Track bpm in data | `700947f` | data.json tracks gain bpm from the measured table: togo 92.7, gone 89.1, noproblem 84.7, lostintime 81.0, equals 116.2, ii 62.9. No tempo field was added or changed. SHELL_REV 55. | Player tracks.js bpm |
+| Player tracks bpm | `45e000e` | player/js/tracks.js gains the same bpm values. The unitless tempo scroll multipliers are unchanged: togo 0.72, gone 1.05, noproblem 0.88, lostintime 0.55, equals 1.25, ii 1.4. | Player glow on the beat |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
