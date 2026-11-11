@@ -49,7 +49,8 @@
     { k: 'lineA', name: 'Line opacity', min: 0.2, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
     { k: 'lineW', name: 'Line width', min: 0.5, max: 3.5, step: 0.05, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
     { k: 'starS', name: 'Star size', min: 0.5, max: 2.4, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
-    { k: 'starG', name: 'Star glow', min: 0.4, max: 2.4, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } }
+    { k: 'starG', name: 'Star glow', min: 0.4, max: 2.4, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
+    { k: 'pinch', name: 'Pinch depth', min: 0.4, max: 2.2, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } }
   ];
   var TKEY = 'gj-m4-tune';
   function tune() { return window.GJ_TUNE || null; }

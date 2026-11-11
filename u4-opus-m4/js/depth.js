@@ -63,14 +63,19 @@ function rush(u){FX.fly=u;FX.hot=1;if(u>0&&!BOK.length)spawn(16)}
 function hush(){FX.fly=0;FX.life=0;FX.t0=0;FX.hot=0;BOK=[]}
 function viewScale(){
   if(!PL.on)return 1;
-  var e=PL.e;
+  var e=PL.e, raw;
   if(e<0.38){
     var k=e/0.38;
-    return 1+1.2*(1-Math.pow(1-k,2));
+    raw=1+1.2*(1-Math.pow(1-k,2));
+  }else{
+    var k2=(e-0.38)/0.62;
+    var settle=1-Math.pow(1-k2,3);
+    raw=1.1-0.1*settle;
   }
-  var k2=(e-0.38)/0.62;
-  var settle=1-Math.pow(1-k2,3);
-  return 1.1-0.1*settle;
+  var sens=1, tune=window.GJ_TUNE;
+  if(tune&&tune.get){var v=tune.get('pinch'); if(v!=null&&isFinite(+v))sens=+v}
+  if(sens===1)return raw;
+  return 1+(raw-1)*sens;
 }
 function drawFx(g,W,H){
   var now=performance.now();

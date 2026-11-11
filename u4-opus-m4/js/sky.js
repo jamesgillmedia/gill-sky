@@ -45,8 +45,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1};
-var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1};
+var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1};
+var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1};
 var SPATIAL={map:1,stars:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
