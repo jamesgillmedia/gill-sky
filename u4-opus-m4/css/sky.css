@@ -382,3 +382,11 @@ html.wc #laytext{top:calc(80px + var(--st))}
  font:300 11px/1.45 Poppins,sans-serif;letter-spacing:.1em;color:rgba(228,235,245,.62);text-shadow:0 1px 8px rgba(4,7,11,.95);opacity:0;transition:opacity 1.2s ease}
 #shint.on{opacity:1}
 #shint[hidden]{display:none}
+
+/* Film sheets: every title, role, credit and caption wraps instead of being cut, and sits on the frames' centre axis */
+#layer .sheet.film h2.tt,#layer .sheet.film h2,#layer .sheet.film .role,#layer .sheet.film .credits,#layer .sheet.film .rel,#layer .sheet.film figcaption,#layer .sheet.film .meta{text-align:center}
+#layer .sheet.film h2.tt{font-size:13px;letter-spacing:.01em;text-transform:none;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:break-word;margin-left:0;margin-right:0}
+#layer .sheet.film h2.tt small{white-space:normal}
+#layer .sheet.film .credits li{white-space:normal;overflow-wrap:break-word;text-align:center}
+#layer .sheet.film .role,#layer .sheet.film .rel{overflow-wrap:break-word}
+#layer .sheet.film .heroframe.nat~*:last-child{margin-bottom:calc(132px + var(--sb))}

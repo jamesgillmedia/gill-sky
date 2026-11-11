@@ -1147,7 +1147,7 @@ function fitLongTitle(el){
   function pass(){
     for(var i=0;i<nodes.length;i++){
       var h=nodes[i],text=h.textContent||'';
-      if(text.length<18)continue;
+      if(text.length<18||h.closest('.sheet.film'))continue;
       h.style.whiteSpace='nowrap';
       h.style.letterSpacing='.01em';
       h.style.textTransform='none';
