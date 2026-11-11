@@ -82,8 +82,8 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 #dbg .dial{grid-column:1 / -1;display:flex;justify-content:flex-end;gap:6px;height:0;opacity:0;overflow:hidden;transition:height .22s ease-out,opacity .22s ease-out,margin .22s ease-out;margin:0}
 #dbg .rowc.dialon .dial{height:28px;opacity:1;margin:2px 0 2px}
 #dbg .dial button{font:300 10px/1 Poppins,system-ui,sans-serif;color:#dfe8f2;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.16);border-radius:7px;min-width:42px;height:26px;cursor:pointer;font-variant-numeric:tabular-nums}
-#dbg .seg{grid-column:2 / 4;display:flex;align-items:center;gap:2px}
-#dbg .seg button{height:30px;padding:0 9px;border:0;background:transparent;color:#9fb0c4;font:400 10px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;cursor:pointer}
+#dbg .seg{grid-column:2 / 4;display:flex;flex-wrap:wrap;align-items:center;gap:0 2px}
+#dbg .seg button{height:30px;padding:0 9px;white-space:nowrap;border:0;background:transparent;color:#9fb0c4;font:400 10px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;cursor:pointer}
 #dbg .seg button[aria-pressed=true]{color:#55DAA1}
 #dbg .seg i{font-style:normal;color:#5d6f84;font-size:10px}
 #dbg .list{font-size:10px;color:#9fb0c4;max-height:96px;overflow:auto}
@@ -138,13 +138,13 @@ function getNum(k,def){var v=Q.get(k);if(v===null||v==='')return def;v=parseFloa
 function applyLook(){
   var view=document.getElementById('gjview');
   var br=vals.br||0,ct=vals.ct||0,iv=(vals.inv||0)/100;
-  /* invert is a grey difference layer: |c - v| is the image at 0, an exact invert at 1 and a solarised, still-coloured graphic between; a hue sweep that returns to 0 at both ends adds the colour shift */
+  /* invert is a grey difference layer: |c - v| is the image at 0, a strong invert at 1 (capped at 0.8 and eased with sin so the top is gentle, not pure white) and a solarised, still-coloured graphic between; a hue sweep that returns to 0 at both ends adds the colour shift */
   var hue=iv>0?Math.sin(iv*Math.PI)*140:0;
   if(view){
     view.style.filter=(br||ct||iv)?'brightness('+(1+br/100*.8).toFixed(4)+') contrast('+(1+ct/100*.7).toFixed(4)+')'+(iv?' hue-rotate('+hue.toFixed(2)+'deg)':''):'';
   }
   if(invEl){
-    var gv=Math.round(iv*255);
+    var gv=Math.round(Math.sin(iv*Math.PI/2)*.8*255);
     invEl.style.display=iv>0?'block':'none';
     invEl.style.backgroundColor='rgb('+gv+','+gv+','+gv+')';
   }

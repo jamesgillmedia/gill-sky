@@ -26,13 +26,13 @@ function getNum(k,def){var v=Q.get(k);if(v===null||v==='')return def;v=parseFloa
 function applyLook(){
   var view=document.getElementById('gjview');
   var br=vals.br||0,ct=vals.ct||0,iv=(vals.inv||0)/100;
-  /* invert is a grey difference layer: |c - v| is the image at 0, an exact invert at 1 and a solarised, still-coloured graphic between; a hue sweep that returns to 0 at both ends adds the colour shift */
+  /* invert is a grey difference layer: |c - v| is the image at 0, a strong invert at 1 (capped at 0.8 and eased with sin so the top is gentle, not pure white) and a solarised, still-coloured graphic between; a hue sweep that returns to 0 at both ends adds the colour shift */
   var hue=iv>0?Math.sin(iv*Math.PI)*140:0;
   if(view){
     view.style.filter=(br||ct||iv)?'brightness('+(1+br/100*.8).toFixed(4)+') contrast('+(1+ct/100*.7).toFixed(4)+')'+(iv?' hue-rotate('+hue.toFixed(2)+'deg)':''):'';
   }
   if(invEl){
-    var gv=Math.round(iv*255);
+    var gv=Math.round(Math.sin(iv*Math.PI/2)*.8*255);
     invEl.style.display=iv>0?'block':'none';
     invEl.style.backgroundColor='rgb('+gv+','+gv+','+gv+')';
   }
