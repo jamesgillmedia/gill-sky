@@ -152,6 +152,7 @@ function objectBoard(api){
 }
 function makeBoard(api,k){
   if(k==='objects')return {k:k,title:'OBJECTS',items:objectBoard(api),fine:false,parent:null,work:null};
+  if(k==='sound'&&api.soundBoard)return {k:k,title:'SOUND',items:api.soundBoard(),fine:false,parent:null,work:null};
   if(k==='progress')return {k:k,title:'IN PROGRESS',items:api.progress(),fine:false,parent:null,work:null};
   var ch=api.ch(k);
   var items=ch?ch.items.slice():[];
