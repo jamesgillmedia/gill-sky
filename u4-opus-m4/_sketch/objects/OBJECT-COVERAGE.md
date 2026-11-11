@@ -2,7 +2,7 @@
 
 Scope: `u4-opus-m4/_sketch/objects/` only. Survey of the m4 media (`media/nov9/objects/`, `media/pro2/img/photo/`, `media/pro2/img/objects/`, `media/studio/`, `media/pro2/joio/`) to decide which objects get a 3D (2.5D, angle-ordered) orbit layer. Objects without enough angles stay gallery-only.
 
-Paths are relative to `u4-opus-m4/`. No private filenames are used (IMG_1936, IMG_1188, IMG_1189, IMG_6405, IMG_6606, IMG_6612, 22179A95, IMG_5722, IMG_1187, IMG_6881 appear nowhere below).
+Paths are relative to `u4-opus-m4/`. No private files are used or named here; every path below was checked to exist.
 
 ## How I grouped and scored
 
@@ -88,8 +88,8 @@ Different small cups and bowls mixed together, so the ring is thin and not one o
 |---|---|---|
 | `media/nov9/objects/IMG_1322.jpg` | raw clay cup, exterior, in hand | side |
 | `media/nov9/objects/IMG_1487.jpg` | pale cup in hand | 3/4 |
-| `media/pro2/img/objects/cup-hand-480.webp` | white cup looking in (480px only) | top |
-| `media/pro2/img/objects/unfired-480.webp` | textured white cup, close (480px only) | close |
+| `media/studio/cup-hand-480.webp` | white cup looking in (480px only) | top |
+| `media/studio/unfired-480.webp` | textured white cup, close (480px only) | close |
 | `media/nov9/objects/IMG_1279.jpg` | contact sheet of four small cups | context |
 
 Drive-only: `IMG_1323`, `IMG_1488`, `IMG_1280`, `IMG_1281`, `IMG_1282`, `IMG_1283`, `24C29571-4AD8-4992-965D-54FBC5B8C665` (wet cup in hand), `46B6C5AE-8A38-4A6D-825E-0EA7531E1333`, `IMG_2264` (dark pot).
