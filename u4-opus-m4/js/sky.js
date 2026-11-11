@@ -45,9 +45,9 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1};
-var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1};
-var SPATIAL={map:1,stars:1};
+var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1};
+var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1};
+var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
 function ease(u){u=clamp(u,0,1);return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2}
@@ -267,7 +267,7 @@ function fitBox(b,top,bot){
   return {x:(b.x0+b.x1)/2,y:(b.y0+b.y1)/2-(cy-H/2)/s,s:s};
 }
 function camFor(st){
-  if(!st||st.lv===0)return FAR;
+  if(!st||st.lv===0){var fs=tk('far');return fs===1?FAR:{x:FAR.x,y:FAR.y,s:FAR.s*fs}}
   if(st.lv===2&&st.id&&byId[st.id]&&byId[st.id].kind==='player'){
     var c=CH.sound,e=c.ex;return fitBox({x0:c.x+e.x0,y0:c.y+e.y0,x1:c.x+e.x1,y1:c.y+e.y1},70,160);
   }
@@ -279,9 +279,9 @@ function camFor(st){
     if(st.lv>=1&&st.b){
       var tx=fit.x,ty=fit.y;
       if(BTOUCH&&BTOUCH.k===st.k){tx+=(BTOUCH.x-fit.x)*.35;ty+=(BTOUCH.y-fit.y)*.35}
-      return {x:tx,y:ty,s:fit.s*1.45*1.3};
+      return {x:tx,y:ty,s:fit.s*1.45*1.3*tk('board')};
     }
-    return {x:fit.x,y:fit.y,s:fit.s*1.45};
+    return {x:fit.x,y:fit.y,s:fit.s*1.45*tk('mid')};
   }
   return FAR;
 }
