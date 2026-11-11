@@ -618,12 +618,13 @@ function drawNames(fa){
     var c=CH[k],p=sp(c.x,c.y+c.ex.y1),y=p[1]+20;
     if(y<48||y>H-8)return;
     var on=sel&&sel.type==='ch'&&sel.k===k;
-    g.globalAlpha=fa*(on?.9:.5);
-    g.font='400 11px "Julius Sans One",Poppins,sans-serif';
-    g.fillStyle=on?'rgb('+MINT+')':'rgba(228,235,245,.8)';
-    g.letterSpacing='3px';
+    g.globalAlpha=1;
+    g.font='400 13px "Julius Sans One",Poppins,sans-serif';
+    g.shadowColor='rgba(4,7,11,.92)';g.shadowBlur=8;g.shadowOffsetY=1;
+    g.fillStyle=on?'rgb('+MINT+')':'#f7f4ee';
+    g.letterSpacing='2.5px';
     g.fillText(k.toUpperCase(),p[0],y);
-    g.letterSpacing='0px';
+    g.letterSpacing='0px';g.shadowBlur=0;g.shadowOffsetY=0;
     g.globalAlpha=1;
   });
 }
@@ -1406,13 +1407,14 @@ function paintGrain(){
 }
 var GL={bands:[],burst:0,w:0,h:0,frame:null,prev:null};
 function calcCrop(v,W,H){
-  var vw=v.videoWidth,vh=v.videoHeight,top=vh*0.14,safe=vh*0.76;
-  var tx=vw*0.70,ty=vh*0.50,dar=W/Math.max(1,H),sw,sh,sx,sy;
-  if(vw/safe>dar){sh=safe;sw=sh*dar}else{sw=vw;sh=sw/dar}
-  sx=Math.max(0,Math.min(vw-sw,tx-sw/2));
-  if(sh>safe-top){sh=safe-top;sw=sh*dar;sx=Math.max(0,Math.min(vw-sw,tx-sw/2))}
-  sy=Math.max(top,Math.min(Math.max(top,safe-sh),ty-sh/2));
-  return {sx:sx,sy:sy,sw:sw,sh:sh,lx:(tx-sx)/sw,ly:(ty-sy)/sh};
+  var vw=v.videoWidth,vh=v.videoHeight;
+  var bx=0,by=vh*0.045,bw=vw,bh=vh*0.88;
+  var dar=W/Math.max(1,H),sw,sh;
+  if(bw/bh>dar){sh=bh;sw=sh*dar}else{sw=bw;sh=sw/dar}
+  var sx=Math.max(0,Math.min(vw-sw,bx+(bw-sw)/2));
+  var sy=Math.max(0,Math.min(vh-sh,by+(bh-sh)*0.22));
+  var fx=vw*0.58,fy=vh*0.40;
+  return {sx:sx,sy:sy,sw:sw,sh:sh,lx:(fx-sx)/sw,ly:(fy-sy)/sh};
 }
 function layoutCalc(){
   var stage=$('calcstage'),zoom=$('calczoom'),v=$('calc');
@@ -1822,7 +1824,10 @@ function fillPoem(){
     return '<i style="animation-delay:'+(i*0.16).toFixed(2)+'s">'+(ch===' '?'&nbsp;':ch)+'</i>';
   }).join('');
   el.innerHTML='<span class="wm"><span class="gj fade">'+letters+'</span></span><span id="typed"></span><span class="sig" lang="cr">ᑕᐣᓯ</span>';
-  typePoem();
+  el.classList.remove('ready');
+  var start=function(){if(!el.isConnected)return;typePoem()};
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(start,start);
+  else start();
 }
 function typePoem(){
   var host=$('typed');if(!host||host._go)return;host._go=1;
@@ -1831,7 +1836,10 @@ function typePoem(){
   (function tick(){
     if(!host.isConnected||n>=lines.length)return;
     pos++;spans[n].textContent=lines[n].slice(0,pos);
-    if(pos>=lines[n].length){n++;pos=0}
+    if(pos>=lines[n].length){
+      if(n===0){var poem=document.getElementById('poem');if(poem)poem.classList.add('ready')}
+      n++;pos=0;
+    }
     setTimeout(tick,pos===0?260:38);
   })();
 }
