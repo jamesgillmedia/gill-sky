@@ -745,7 +745,12 @@ function drawWindow(){
       g.globalAlpha=b;g.textAlign='left';g.textBaseline='top';
       g.font='300 10.5px Poppins,sans-serif';g.fillStyle='#e4ddd2';g.fillText(cut(capText,w),x,y+h+3);
       var ml=spec.key==='sound'?(songDur(it)?mmss(songDur(it)):(it.meta||'')):(it.role||it.meta||'');
-      if(ml){g.font='300 9px Poppins,sans-serif';g.fillStyle=it.role?'rgba('+MINT+',.85)':'rgba(228,221,210,.6)';g.fillText(cut(ml,w),x,y+h+15)}
+      if(ml){
+        var len=spec.key==='sound'&&/^\d+:\d\d$/.test(ml);
+        g.font=len?'300 10.5px Poppins,sans-serif':'300 9px Poppins,sans-serif';
+        g.fillStyle=it.role?'rgba('+MINT+',.85)':(len?'rgba(228,221,210,.85)':'rgba(228,221,210,.6)');
+        g.fillText(len?ml:cut(ml,w),x,y+h+15);
+      }
     }else if(b>.72&&spec.cap&&capText&&it.kind!=='track'&&spec.key!=='sound'){
       g.globalAlpha=b;g.font='300 9px Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';
       g.fillStyle='rgba(233,239,248,.78)';g.fillText(cut(capText,w),x,y+h+1);
