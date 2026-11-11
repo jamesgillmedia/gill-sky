@@ -73,8 +73,8 @@ var LS='gjv.', $=function(i){return document.getElementById(i)};
 var frame=$('frame'),pill=$('pill'),dot=$('dot'),sheet=$('sheet'),chips=$('chips');
 function get(k,d){try{var v=localStorage.getItem(LS+k);return v==null?d:JSON.parse(v)}catch(e){return d}}
 function set(k,v){try{localStorage.setItem(LS+k,JSON.stringify(v))}catch(e){}}
-var DF=new Intl.DateTimeFormat('en-US',{timeZone:'America/Edmonton',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
-function fmt(ts){return DF.format(new Date(ts))+' MT'}
+var DF=new Intl.DateTimeFormat('en-US',{timeZone:'America/Vancouver',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+function fmt(ts){return DF.format(new Date(ts))+' PT'}
 function idx(id){for(var i=0;i<B.length;i++)if(B[i].id===id)return i;return -1}
 
 var cur=-1,sel=-1,open=false;
