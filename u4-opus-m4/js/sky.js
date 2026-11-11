@@ -2128,7 +2128,27 @@ function syncExtras(){
     if(on)proof.style.opacity=String(Math.max(0,Math.min(1,farA())));
   }
   drawMap();
+  tuckMap();
   paintAbout();
+}
+/* On the Weird Kid page the map sits in the gap beside the credits, under the hero and above the gallery. */
+function tuckMap(){
+  var btn=$('mmap');if(!btn)return;
+  var sheet=document.querySelector('#layer .sheet.film.lv1.wk');
+  var c=sheet&&sheet.querySelector('.credits'),w=sheet&&sheet.querySelector('.framewall'),hero=sheet&&sheet.querySelector('.heroframe');
+  if(!sheet||!c||!w||!hero||innerWidth>=innerHeight){
+    if(btn._tucked){btn.style.top='';btn.style.height='';btn.style.width='';btn._tucked=0}
+    return;
+  }
+  var ct=c.getBoundingClientRect(),wt=w.getBoundingClientRect(),ht=hero.getBoundingClientRect();
+  if(ct.top<ht.bottom-2||wt.top-ct.top<52){
+    if(btn._tucked){btn.style.top='';btn.style.height='';btn.style.width='';btn._tucked=0}
+    return;
+  }
+  var h=Math.min(72,wt.top-ct.top-6);
+  btn.style.bottom='auto';btn.style.top=Math.round(ct.top)+'px';
+  btn.style.height=Math.round(h)+'px';btn.style.width=Math.round(h*.72)+'px';
+  btn._tucked=1;
 }
 function drawMap(){
   var btn=$('mmap'),cv=$('mmapc');if(!btn||!cv)return;

@@ -157,7 +157,7 @@ html.deep #bar .nav a,html.deep #hire{padding:0 1px}
 #mmap{transition:opacity .3s}
 html.mapdim #mmap{opacity:.32}
 html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
-#mmap canvas{width:76px;height:100px;display:block}
+#mmap canvas{width:100%;height:100%;display:block}
 #bar .nav{display:flex;flex:0 0 auto}
 #bar .nav a,#hire{min-height:36px;display:inline-grid;place-items:center;padding:0 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 #hire{color:var(--mint)}
@@ -398,6 +398,10 @@ html.wc #laytext{top:calc(80px + var(--st))}
 #layer .sheet.film .role,#layer .sheet.film .rel{overflow-wrap:break-word}
 #layer .sheet.film .heroframe.nat~*:last-child{margin-bottom:calc(132px + var(--sb))}
 
+#layer .sheet.film.lv1.wk{padding-top:calc(72px + var(--st))}
+#layer .sheet.film.lv1.wk .heroframe{flex:0 0 auto;height:58vh;min-height:58vh;margin-top:4px}
+#layer .sheet.film.lv1.wk .credits{margin:4px 92px 0 0}
+#layer .sheet.film.lv1.wk .framewall.under{padding:6px 0 calc(132px + var(--sb));margin-top:6px}
 #layer .sheet.film.lv1 .framewall.under{padding:14px 0 calc(132px + var(--sb));margin-top:6px}
 #layer .sheet.film.lv1 .framewall.under img{cursor:pointer}
 #layer .sheet.film.lv1 .heroframe.nat~*:last-child{margin-bottom:0}

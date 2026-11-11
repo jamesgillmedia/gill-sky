@@ -687,6 +687,7 @@ function titleParts(t){
 }
 function titleHtml(work){
   var p=titleParts(work&&work.title);
+  if(work&&work.id==='film/weird-kid')p={pre:'',name:'Weird Kid'};
   return '<h2 class="tt">'+(p.pre?'<small>'+esc(p.pre)+'</small>':'')+esc(p.name)+'</h2>';
 }
 function creditList(work){
@@ -959,8 +960,9 @@ function paintFilm(el,work){
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
     var keep=filmKeep;filmKeep=-1;
     var under=stillsWall(work);
-    el.innerHTML='<div class="sheet film lv1 full">'+titleHtml(work)+'<div class="heroframe'+(wk?'':' nat')+'">'+media+'</div>'+under+
-      (role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
+    var cred=(role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work);
+    var heroBox='<div class="heroframe'+(wk?'':' nat')+'">'+media+'</div>';
+    el.innerHTML='<div class="sheet film lv1 full'+(wk?' wk':'')+'">'+titleHtml(work)+(wk?heroBox+cred+under:heroBox+under+cred)+'</div>';
     if(!wk)fitHero(el.querySelector('.heroframe'));
     fitWall(el.querySelector('.framewall'));
     if(keep>0){var sh=el.querySelector('.sheet');if(sh)sh.scrollTop=keep}
@@ -1035,7 +1037,7 @@ function paintFilm(el,work){
     }
   }
   if(!list.length){list=[{src:poster,t:0,clip:clip}];focus=0}
-  var label=kiesza?'Kiesza':work.title;
+  var label=work.id==='film/weird-kid'?'Weird Kid':work.title;
   el.innerHTML='<div class="filmfield'+(kiesza?' kiesza':'')+'" id="filmfield"><canvas id="zfield"></canvas><h2>'+esc(label)+'</h2>'+
     '<div class="filmcap">'+credHtml(work)+'</div></div>';
   var host=document.getElementById('filmfield');
@@ -1269,7 +1271,7 @@ function state(){
     n:board?board.items.length:0, sound:soundOn?1:0,
     plunge:+(PL.e||0).toFixed(2), work:(filmWork&&filmWork.id)||(piece&&piece.work&&piece.work.id)||null,
     piece:piece?piece.lv:0,
-    label:(filmWork&&filmWork.id==='film/weird-kid'&&filmLv===5)?'Kiesza':''
+    label:(filmWork&&filmWork.id==='film/weird-kid')?'Weird Kid':''
   };
 }
 
