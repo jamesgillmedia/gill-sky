@@ -67,6 +67,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | Track bpm in data | `700947f` | data.json tracks gain bpm from the measured table: togo 92.7, gone 89.1, noproblem 84.7, lostintime 81.0, equals 116.2, ii 62.9. No tempo field was added or changed. SHELL_REV 55. | Player tracks.js bpm |
 | Player tracks bpm | `45e000e` | player/js/tracks.js gains the same bpm values. The unitless tempo scroll multipliers are unchanged: togo 0.72, gone 1.05, noproblem 0.88, lostintime 0.55, equals 1.25, ii 1.4. | Player glow on the beat |
 | Player beat glow | `31ecf8e` | The player glow repeats on 60/bpm from the track's bpm. Onset flashes stay: the low-band spike, the 280 ms gap, and the ripple are unchanged. The tempo scroll multiplier is untouched. | Yara title pill |
+| Photo board count | `3e2b324` | The line under PHOTO was the selected print's title, and every card title is the placeholder untitled. A title that is empty, untitled, or photograph N is no longer drawn; the board keeps the real count (56 photographs), matching Objects' 78 pieces. A print with a real title still shows that title. Checked 390x844 with Reduce Motion: selected photograph-01 shows the count, Objects still shows 78 pieces and the real title when a piece is selected. SHELL_REV 56. | Photo board map clear of the prints |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
