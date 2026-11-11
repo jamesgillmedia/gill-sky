@@ -804,6 +804,35 @@ function momentClip(src, work){
   if(m.clip&&!/\/sc\//.test(m.clip)&&!/youtube|youtu\.be/i.test(m.clip))return m.clip;
   return '';
 }
+function heroOf(work,poster){
+  var g=gallery(work),i;
+  for(i=0;i<g.length;i++)if(g[i].src&&masterSrc(g[i].src))return g[i].src;
+  return poster||'';
+}
+function fitHero(hf){
+  var im=hf&&hf.querySelector('img');
+  if(!im)return;
+  function set(){
+    if(!im.naturalWidth)return;
+    hf.style.setProperty('--ar',(im.naturalWidth/im.naturalHeight).toFixed(4));
+    hf.style.setProperty('--nw',im.naturalWidth+'px');
+  }
+  if(im.complete)set();else im.addEventListener('load',set);
+}
+function fitWall(wall){
+  if(!wall)return;
+  function one(im){
+    if(!im.naturalWidth||im.naturalWidth>=im.clientWidth-1)return;
+    im.style.width=im.naturalWidth+'px';
+    im.style.maxWidth='100%';
+    im.style.aspectRatio=im.naturalWidth+'/'+im.naturalHeight;
+    im.style.justifySelf='center';
+    im.style.objectFit='contain';
+  }
+  [].forEach.call(wall.querySelectorAll('img'),function(im){
+    if(im.complete)one(im);else im.addEventListener('load',function(){one(im)});
+  });
+}
 function masterSrc(src){
   return /\/frames\//.test(src)||/\/owtd\/stills\//.test(src)||/\/reel\/.+\.webp$/.test(src);
 }
@@ -828,6 +857,7 @@ function paintNeighbours(el,work){
     return s.src?'<img src="'+esc(s.src)+'" alt="">':'';
   }).join('');
   el.innerHTML='<div class="sheet film lv2 full">'+titleHtml(work)+'<div class="framewall near">'+wall+'</div></div>';
+  fitWall(el.querySelector('.framewall'));
 }
 function paintFilm(el,work){
   var m=work.media||{};
@@ -840,14 +870,16 @@ function paintFilm(el,work){
   if(filmLv===3&&document.querySelector('.enterframe'))return;
   if(filmLv!==3){dropFly();setBleed(false)}
   if(filmLv===1){
-    var hero=wk?'media/pro2/frames/22/12.webp':(poster||'');
+    var hero=wk?'media/pro2/frames/22/12.webp':heroOf(work,poster);
+    if(!wk&&/\/sc\//.test(clip))clip='';
     var media=(!wk&&clip)
       ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+'<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
       : (hero?'<img src="'+esc(hero)+'" alt="">':'');
     var role=work.role||'';
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
-    el.innerHTML='<div class="sheet film lv1 full">'+titleHtml(work)+'<div class="heroframe">'+media+'</div>'+
+    el.innerHTML='<div class="sheet film lv1 full">'+titleHtml(work)+'<div class="heroframe'+(wk?'':' nat')+'">'+media+'</div>'+
       (role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
+    if(!wk)fitHero(el.querySelector('.heroframe'));
     var v1=el.querySelector('video');
     if(v1){
       function showFrame(){if(v1.readyState>=2)v1.classList.add('live')}
@@ -867,6 +899,7 @@ function paintFilm(el,work){
       return '<img src="'+esc(s.src)+'" data-hi="'+hi+'"'+(shot?' data-clip="'+esc(shot)+'"':'')+' alt="">';
     }).join('');
     el.innerHTML='<div class="sheet film lv2 full">'+titleHtml(work)+'<div class="framewall">'+wall+'</div></div>';
+    fitWall(el.querySelector('.framewall'));
     if(filmLv===3){
       var imgs=el.querySelectorAll('.framewall img[data-hi="1"]');
       var im=imgs[filmFocus]||imgs[0];
