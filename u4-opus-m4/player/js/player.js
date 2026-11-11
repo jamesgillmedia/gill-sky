@@ -86,6 +86,8 @@ function post(now,sr){var s=0;for(var i=0;i<TD.length;i++){var v=(TD[i]-128)/128
   var bw=sr/512;function avg(a,b){var x=0,n=0;for(var k=Math.floor(a/bw);k<=Math.ceil(b/bw)&&k<FD.length;k++){x+=FD[k];n++}return x/n/255}
   L.rms=L.rms*.6+.4*Math.min(1,Math.sqrt(s/TD.length)*3.2);L.low=avg(35,160);L.mid=avg(300,2000);L.high=avg(3000,9000);
   L.avgLow=L.avgLow*.97+L.low*.03;if(L.low>L.avgLow*1.18&&L.low>.35&&now-L.lastBeat>280){L.lastBeat=now;L.beat=1;ripples.push({t0:now,a:.55+.45*L.low})}else L.beat*=.9}
+/* The glow's repeating pulse is the measured beat (60/bpm). Onset flashes stay on L.beat. */
+function beatGlow(){if(!T||!(T.bpm>0)||!au||au.paused)return 0;var ph=(au.currentTime*T.bpm/60)%1;return Math.pow(1-ph,2.4)}
 var SM=new Float32Array(256),WIN=new Float32Array(512);for(var iw=0;iw<512;iw++)WIN[iw]=.42-.5*Math.cos(2*Math.PI*iw/511)+.08*Math.cos(4*Math.PI*iw/511);
 function recFFT(){var o=Math.max(0,Math.floor(au.currentTime*PSR)-512),gv=FG.v;for(var i=0;i<512;i++)TD[i]=Math.max(0,Math.min(255,128+128*(PCM[o+i]||0)*gv));
   for(var k=0;k<120;k++){var re=0,im=0,w=2*Math.PI*k/512;for(var i=0;i<512;i++){var x=(PCM[o+i]||0)*WIN[i]*gv;re+=x*Math.cos(w*i);im-=x*Math.sin(w*i)}
@@ -160,7 +162,7 @@ function draw(now,dt){var c=g;c.setTransform(DPR,0,0,DPR,0,0);setView();DBG={sta
   /* water ripples on beats (the site's water, faint, centred on the vanishing point) */
   for(var i=ripples.length-1;i>=0;i--){var R=ripples[i],a=(now-R.t0)/1800;if(a>1){ripples.splice(i,1);continue}
     c.strokeStyle='rgba(190,220,245,'+(.32*R.a*(1-a)*m).toFixed(3)+')';c.lineWidth=1;c.beginPath();c.ellipse(W/2,H*.46,20+a*W*.7,(20+a*W*.7)*.62,0,0,7);c.stroke()}
-  var BT=L.beat*FL,live=1+L.rms*.55,glowK=(.55+.9*BT)*DIM;
+  var BT=Math.max(L.beat,beatGlow())*FL,live=1+L.rms*.55,glowK=(.55+.9*BT)*DIM;
   /* ---- the tunnel (only once the dive starts) ---- */
   var cur=[];
   if(m>0.002){var z0=Math.floor(cz/SP)+1,unf=ease((dive-.12)/.88),pts=new Array(FAR);
@@ -478,7 +480,7 @@ var BOKS=(function(){var sz=96,c=document.createElement('canvas');c.width=c.heig
   x.fillStyle=gr;x.beginPath();x.arc(sz/2,sz/2,sz/2-1,0,7);x.fill();return c})();
 var BOK=[];for(var ibk=0;ibk<14;ibk++)BOK.push({a:rnd(ibk+3)*6.28,b:rnd(ibk+9),sp:.15+rnd(ibk+4)*.1,ph:rnd(ibk+6)});
 function drawBokeh(c){if(mode==='sky'&&dive<0.08&&V.z<1.35)return;
-  var live=mode==='in'||mode==='diving'||dive>0.15,sw=Math.min(W,H),beat=(L.beat||0)*FL,rms=(L.rms||0)*FL;
+  var live=mode==='in'||mode==='diving'||dive>0.15,sw=Math.min(W,H),beat=Math.max(L.beat||0,beatGlow())*FL,rms=(L.rms||0)*FL;
   c.save();c.globalCompositeOperation='lighter';
   for(var i=0;i<BOK.length;i++){var b=BOK[i],spin=tw*(live?0.22:0.05)+b.a,near=(b.b+tw*(live?0.07:0.02))%1;
     var radp=(0.08+near*0.55)*Math.min(W,H)*(live?0.62:0.28);
