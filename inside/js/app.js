@@ -240,6 +240,7 @@ function apply(st, snap) {
   if (prev.lv >= 2 && st.lv < 2) Board.close();
   Object.assign(ST, {lv: st.lv, k: st.k || null, id: st.id || null});
   const it = st.id ? D.byId[st.id] : null;
+  if (st.lv === 2 && prev.lv === 3 && prev.id) Board.select(D.byId[prev.id]);
   if (st.lv === 0) flyTo(snap || Object.assign({yaw: 0, pitch: 0}, FAR));
   else if (st.lv === 1) flyTo(snap || chapterCam(st.k));
   else if (st.lv === 2) { Board.open(st.k, snap && snap.board); flyTo(Board.cam(snap && snap.board)); }
@@ -253,6 +254,7 @@ function apply(st, snap) {
     const enter = () => Room.enter(it, Board.tileOf(it), camera);
     if (prev.lv === 3) enter(); else setTimeout(enter, 60);
   }
+  Board.setPiece(st.lv >= 3 ? it : null);
   chrome();
 }
 
@@ -260,6 +262,7 @@ function apply(st, snap) {
 function titleOf(it) { const t = it && (it.title || ''); return t && t !== 'untitled' ? t : ''; }
 function chrome() {
   const root = document.documentElement;
+  if (ST.lv > 0) $('shint').classList.add('off');
   root.classList.toggle('deep', ST.lv > 0);
   root.classList.toggle('board', ST.lv === 2 || ST.lv === 3);
   root.classList.toggle('inside', ST.lv === 4);
@@ -278,7 +281,8 @@ function chrome() {
   if (ST.lv === 3 && it) {
     $('ptitle').textContent = titleOf(it) || (it.nov9 ? '' : it.title || '');
     $('prole').textContent = it.role || (it.meta || '');
-    $('pcred').textContent = (it.credits || []).slice(0, 3).join(' · ');
+    const role = it.role || it.meta || '';
+    $('pcred').textContent = (it.credits || []).filter(c => c !== role).slice(0, 3).join(' · ');
     $('penter').hidden = !Room.can(it);
     $('popen').href = pieceLink(it);
     pc.hidden = false;
@@ -402,6 +406,7 @@ function stepSky(t, dt) {
     const gs = (5 + 16 * s.b) * pulse * grow * (it && it.isNew ? 1.3 : 1);
     let a = focus * skyA;
     if (onBoard) a *= 1 - Board.bloom();
+    else if (!it && s.k === Board.key()) a *= 1 - .85 * Board.bloom();
     const th = it && thumbs.get(it.id);
     if (th && it.chapter !== 'objects') a *= 1 - th.material.opacity * .85;
     if (it && it.chapter === 'objects' && th && th.userData.ld) a *= 1 - th.material.opacity;
@@ -606,7 +611,7 @@ cv.addEventListener('pointermove', e => {
 function endPointer(e) {
   const p = PT.get(e.pointerId); if (!p) return;
   PT.delete(e.pointerId);
-  if (pinch) { if (PT.size < 2) { pinch = null; afterFree(); } if (PT.size === 1) { const id = [...PT.keys()][0], q = PT.get(id); drag = {id, moved: 99, lx: q.x, ly: q.y, lt: performance.now()}; dragV = {x: 0, y: 0}; } return; }
+  if (pinch) { if (PT.size < 2) { pinch = null; Board.pinch(1); afterFree(); } if (PT.size === 1) { const id = [...PT.keys()][0], q = PT.get(id); drag = {id, moved: 99, lx: q.x, ly: q.y, lt: performance.now()}; dragV = {x: 0, y: 0}; } return; }
   if (!drag || drag.id !== e.pointerId) return;
   const wasTap = drag.moved < 8 && performance.now() - p.t0 < 450;
   const fresh = performance.now() - drag.lt < 90;
@@ -668,6 +673,7 @@ $('hirex').addEventListener('click', () => { $('hirecard').hidden = true; $('hir
 let last = performance.now();
 function frame(t) {
   const dt = Math.min(.05, (t - last) / 1000); last = t;
+  if (ST.lv === 2 && !Room.active() && !Room.busy()) { const c = Board.cam(); goal.T.copy(c.T); goal.dist = c.dist; goal.yaw = 0; goal.pitch = 0; if (Board.moving() || drag) K = Math.max(K, 20); }
   stepCam(dt);
   Board.step(dt, t, camera);
   Room.step(dt, t, camera);
@@ -697,7 +703,7 @@ async function boot() {
   layout(PORT);
   try { await Promise.all(['300 12px Poppins', '200 12px Poppins', '13px "Julius Sans One"', '700 16px Syl'].map(f => document.fonts.load(f, f.indexOf('Syl') > 0 ? 'ᑕᐣᓯ' : 'a'))); } catch (e) {}
   buildField(); buildSky(); computeFar();
-  Board.init({scene, sky, D, TEX, loadTex, coverUV, ppuAt, W, H, camera, cam, MINT});
+  Board.init({scene, sky, D, TEX, loadTex, coverUV, ppuAt, W, H, camera, cam, MINT, pinching: () => !!pinch, skyAlpha: () => Room.skyAlpha()});
   Room.init({scene, sky, D, TEX, loadTex, coverUV, cam, goal, MINT, W, H});
   const st = parse(location.hash);
   history.replaceState({n: 0}, '', hashFor(st.lv ? st : {lv: 0}));
