@@ -390,3 +390,7 @@ html.wc #laytext{top:calc(80px + var(--st))}
 #layer .sheet.film .credits li{white-space:normal;overflow-wrap:break-word;text-align:center}
 #layer .sheet.film .role,#layer .sheet.film .rel{overflow-wrap:break-word}
 #layer .sheet.film .heroframe.nat~*:last-child{margin-bottom:calc(132px + var(--sb))}
+
+#layer .sheet.film.lv1 .framewall.under{padding:14px 0 calc(132px + var(--sb));margin-top:6px}
+#layer .sheet.film.lv1 .framewall.under img{cursor:pointer}
+#layer .sheet.film.lv1 .heroframe.nat~*:last-child{margin-bottom:0}

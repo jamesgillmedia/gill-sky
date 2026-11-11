@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<title>objects · 2.5D sketch</title>
+<meta name="theme-color" content="#04070b">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#04070b;color:#e9eef5;font:300 13px/1.4 Poppins,system-ui,sans-serif;overflow:hidden;overscroll-behavior:none}
+#stage{position:fixed;inset:0;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab;overflow:hidden}
+#stage.down{cursor:grabbing}
+#sky{position:absolute;inset:0;width:100%;height:100%;display:block}
+#glow{position:absolute;left:50%;top:50%;width:90vmin;height:90vmin;margin:-45vmin 0 0 -45vmin;border-radius:50%;pointer-events:none;
+ background:radial-gradient(circle,rgba(255,226,190,.16),rgba(255,226,190,.05) 40%,transparent 68%)}
+#cam{position:absolute;inset:0;perspective:900px;perspective-origin:50% 46%;pointer-events:none}
+#world{position:absolute;left:50%;top:46%;width:0;height:0;transform-style:preserve-3d;will-change:transform}
+.plane{position:absolute;left:0;top:0;overflow:hidden;background:#0a1016;transform-style:flat;backface-visibility:hidden;
+ -webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);
+ -webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);mask-composite:intersect}
+.plane img{position:absolute;display:block;max-width:none;pointer-events:none}
+#hud{position:fixed;left:0;right:0;top:0;padding:max(12px,env(safe-area-inset-top)) 14px 0;display:flex;align-items:center;gap:10px;z-index:3;pointer-events:none}
+#hud>*{pointer-events:auto}
+#hud h1{font:200 15px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;text-transform:lowercase;margin-right:auto;text-shadow:0 1px 8px #000}
+#hud button,#hud a{font:inherit;color:#e9eef5;background:rgba(10,16,24,.62);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 14px;min-height:36px;text-decoration:none;cursor:pointer}
+#hud button[aria-pressed=true]{background:rgba(255,226,190,.2);border-color:rgba(255,226,190,.7)}
+#foot{position:fixed;left:0;right:0;bottom:0;padding:0 14px max(14px,env(safe-area-inset-bottom));text-align:center;color:#9fb0c4;font-size:12px;z-index:3;pointer-events:none;text-shadow:0 1px 8px #000}
+#foot b{color:#e9eef5;font-weight:300}
+#tilt[hidden]{display:none}
+
+#gal{position:fixed;inset:0;z-index:2;background:#04070b;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:calc(64px + env(safe-area-inset-top)) 6px calc(110px + env(safe-area-inset-bottom));overscroll-behavior:contain}
+#gal[hidden]{display:none}
+#gal h2{margin:14px 10px 0;font:400 clamp(20px,5vw,32px)/1.15 "Julius Sans One",sans-serif;letter-spacing:.08em;text-transform:lowercase}
+#gal .sub{margin:6px 10px 14px;color:#9fb0c4;font-size:12px}
+.cutgrid{display:grid;grid-template-columns:1fr 1fr;gap:26px 16px;padding:4px 6px 48px}
+@media (orientation:landscape),(min-width:700px){.cutgrid{grid-template-columns:repeat(3,1fr)}}
+.cutgrid figure{margin:0;cursor:pointer}
+.cutgrid figure:nth-child(3n){transform:translate(14px,6px)}
+.cutgrid figure:nth-child(3n+1){transform:translate(-6px,0)}
+.cutgrid img{width:100%;display:block;object-fit:contain;max-height:48vh;background:transparent;filter:drop-shadow(0 16px 14px rgba(0,0,0,.6))}
+#stage{z-index:1}
+body.l2 #gal{pointer-events:none}
+#back[hidden]{display:none}
+#hud h1{pointer-events:none}
+</style>
+</head>
+<body>
+<div id="gal" aria-label="gallery"></div>
+<div id="stage" aria-label="2.5D object sketch: one finger orbits, two fingers resize, tilt the phone to look around">
+<canvas id="sky" aria-hidden="true"></canvas>
+<div id="glow" aria-hidden="true"></div>
+<div id="cam"><div id="world"></div></div>
+</div>
+<header id="hud">
+<button type="button" id="back" hidden aria-label="back to the gallery">&#8249;</button>
+<h1 id="ttl">joio cup</h1>
+<button type="button" id="bcup" aria-pressed="true">cup</button>
+<button type="button" id="bscoop" aria-pressed="false">scoop</button>
+<button type="button" id="tilt" hidden aria-pressed="false">tilt</button>
+<button type="button" id="reset" hidden>reset</button>
+</header>
+<p id="foot"><b id="hint">drag to orbit · pinch to resize</b></p>
+<script>
+(function(){
+'use strict';
+var P='../../media/';
+var OBJECTS={
+  cup:{title:'joio cup',
+    note:'8 joio cup photos from the Objects galleries + 2 joio process stills (media/pro2)',
+    planes:[
+      {s:'pro2/img/objects/joio-board-960.webp',w:84,x:-6,y:-2,z:-560,o:.6},
+      {s:'pro2/img/objects/cup-top-960.webp',w:48,x:24,y:-14,z:-400,o:.7},
+      {s:'pro2/img/objects/joio-latte-960.webp',w:42,x:-28,y:10,z:-250,o:.9},
+      {s:'pro2/img/objects/joio-pour-960.webp',w:38,x:27,y:14,z:-130,o:.95},
+      {s:'pro2/img/objects/cup-glaze-960.webp',w:52,x:0,y:0,z:0,o:1},
+      {s:'pro2/joio/c/16.webp',w:25,x:-31,y:-24,z:130,o:1},
+      {s:'pro2/img/objects/cup-moss-960.webp',w:29,x:31,y:-27,z:210,o:1},
+      {s:'pro2/joio/c/05.webp',w:21,x:-24,y:28,z:290,o:1},
+      {s:'pro2/img/objects/cup-rim-960.webp',w:36,x:4,y:19,z:380,o:.88}
+    ]},
+  scoop:{title:'scoop',
+    note:'the two scoop photos only (media/nov9, uncaptioned Objects tiles); the near planes are crops of those same two photos',
+    planes:[
+      {s:'nov9/objects/64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg',w:78,x:0,y:0,z:-520,o:.55},
+      {s:'nov9/objects/64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg',w:34,x:-26,y:6,z:-250,o:.95,crop:[.42,.5,3.1],ar:1},
+      {s:'nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',w:46,x:2,y:0,z:0,o:1},
+      {s:'nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',w:25,x:27,y:-14,z:200,o:1,crop:[.44,.2,2.7],ar:1},
+      {s:'nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',w:21,x:-28,y:22,z:320,o:1,crop:[.55,.76,2.6],ar:1}
+    ]}
+};
+var $=function(i){return document.getElementById(i)};
+var stage=$('stage'),world=$('world'),sky=$('sky'),g=sky.getContext('2d');
+var W=0,H=0,DPR=1,U=1;
+var S={yaw:0,pitch:0,scale:1,px:0,py:0};
+var T={yaw:0,pitch:0,scale:1,px:0,py:0};
+var V={yaw:0,pitch:0};
+var tilt={x:0,y:0,tx:0,ty:0,w:1,ref:null,on:false};
+var ptr={},ptrN=0,gest=null,downAt=0,upAt=0;
+var cur=null,planes=[];
+
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function lerp(a,b,t){return a+(b-a)*t}
+
+function seeded(seed){var s=seed>>>0;return function(){s=(s+0x6D2B79F5)>>>0;var t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+var STARS=[];
+function makeStars(){
+  var r=seeded(7),i;STARS=[];
+  for(i=0;i<170;i++){
+    var d=r();
+    STARS.push({x:r(),y:r(),z:.15+d*.85,r:.5+r()*1.3,b:.35+r()*.65,ph:r()*6.28});
+  }
+}
+var GLOW=(function(){
+  var c=document.createElement('canvas');c.width=c.height=48;var x=c.getContext('2d');
+  var gr=x.createRadialGradient(24,24,0,24,24,24);
+  gr.addColorStop(0,'rgba(255,255,255,.9)');gr.addColorStop(.25,'rgba(210,225,255,.35)');gr.addColorStop(1,'rgba(210,225,255,0)');
+  x.fillStyle=gr;x.fillRect(0,0,48,48);return c;
+})();
+function drawSky(t){
+  g.setTransform(DPR,0,0,DPR,0,0);
+  g.clearRect(0,0,W,H);
+  var ox=-S.yaw*3.2-S.px*.25,oy=S.pitch*3.2-S.py*.25,zs=.75+S.scale*.25;
+  STARS.forEach(function(s){
+    var x=(s.x*W+ox*s.z*3+W*10)%W,y=(s.y*H+oy*s.z*3+H*10)%H;
+    x=W/2+(x-W/2)*zs;y=H/2+(y-H/2)*zs;
+    var tw=.75+.25*Math.sin(t*.0011+s.ph);
+    g.globalAlpha=s.b*tw*(.5+s.z*.5);
+    if(s.r>1.25){var gs=s.r*7;g.drawImage(GLOW,x-gs,y-gs,gs*2,gs*2)}
+    g.fillStyle='#dfe9ff';g.beginPath();g.arc(x,y,s.r*s.z+.2,0,7);g.fill();
+  });
+  g.globalAlpha=1;
+}
+
+function layout(){
+  W=innerWidth;H=innerHeight;DPR=Math.min(2,devicePixelRatio||1);
+  sky.width=Math.round(W*DPR);sky.height=Math.round(H*DPR);
+  U=Math.min(W,H)/100;
+  placePlanes();
+}
+
+function placePlanes(){
+  planes.forEach(function(p){
+    var sp=p.spec,w=sp.w*U,h=w*p.ar;
+    var el=p.el;
+    el.style.width=w+'px';el.style.height=h+'px';
+    el.style.transform='translate3d('+(sp.x*U-w/2)+'px,'+(sp.y*U-h/2)+'px,'+(sp.z)+'px)';
+    p.fit();
+  });
+}
+function mountObject(key){
+  cur=OBJECTS[key];
+  world.innerHTML='';planes=[];
+  cur.planes.forEach(function(sp){
+    var el=document.createElement('div');el.className='plane';
+    var im=document.createElement('img');im.alt='';im.decoding='async';im.src=P+sp.s;
+    el.appendChild(im);world.appendChild(el);
+    var near=1-clamp((sp.z+560)/940,0,1);
+    el.style.opacity=String(sp.o);
+    el.style.filter='brightness('+(.55+.45*(1-near))+')'+(sp.z<-300?' blur(1.2px)':'');
+    var p={el:el,im:im,spec:sp,ar:sp.ar||1.25,fit:function(){}};
+    p.fit=function(){
+      var nw=im.naturalWidth,nh=im.naturalHeight;if(!nw)return;
+      var w=sp.w*U;
+      if(sp.crop){
+        var c=sp.crop,iw=w*c[2],ih=iw*nh/nw,h=w*p.ar;
+        im.style.width=iw+'px';im.style.height=ih+'px';
+        im.style.left=(-(c[0]*iw-w/2))+'px';im.style.top=(-(c[1]*ih-h/2))+'px';
+      }else{
+        p.ar=nh/nw;var hh=w*p.ar;
+        el.style.height=hh+'px';
+        im.style.width='100%';im.style.height='100%';im.style.left=im.style.top='0';
+        el.style.transform='translate3d('+(sp.x*U-w/2)+'px,'+(sp.y*U-hh/2)+'px,'+sp.z+'px)';
+      }
+    };
+    im.addEventListener('load',p.fit);
+    planes.push(p);
+  });
+  placePlanes();
+  $('ttl').textContent=cur.title;
+  $('bcup').setAttribute('aria-pressed',String(key==='cup'));
+  $('bscoop').setAttribute('aria-pressed',String(key==='scoop'));
+  resetView(true);
+}
+function resetView(hard){
+  T.yaw=T.pitch=T.px=T.py=0;T.scale=1;V.yaw=V.pitch=0;
+  if(hard)S.yaw=S.pitch=S.px=S.py=0,S.scale=1;
+}
+
+function onDown(e){
+  if(e.target.closest('#hud'))return;
+  ptr[e.pointerId]={x:e.clientX,y:e.clientY};ptrN=Object.keys(ptr).length;
+  try{stage.setPointerCapture(e.pointerId)}catch(_){}
+  stage.classList.add('down');
+  if(ptrN===1)gest={mode:'orbit',lx:e.clientX,ly:e.clientY,t:performance.now()};
+  if(ptrN===2)startPinch();
+  V.yaw=V.pitch=0;
+}
+function startPinch(){
+  var k=Object.keys(ptr),a=ptr[k[0]],b=ptr[k[1]];
+  gest={mode:'pinch',d:Math.hypot(a.x-b.x,a.y-b.y)||1,s0:T.scale,mx:(a.x+b.x)/2,my:(a.y+b.y)/2};
+}
+function onMove(e){
+  if(!ptr[e.pointerId]){
+    if(e.pointerType==='mouse'&&!tilt.on){tilt.tx=(e.clientX/W-.5)*2;tilt.ty=(e.clientY/H-.5)*2}
+    return;
+  }
+  ptr[e.pointerId]={x:e.clientX,y:e.clientY};
+  if(!gest)return;
+  if(gest.mode==='orbit'&&ptrN===1){
+    var dx=e.clientX-gest.lx,dy=e.clientY-gest.ly;
+    gest.lx=e.clientX;gest.ly=e.clientY;
+    T.yaw=clamp(T.yaw+dx*.24,-60,60);T.pitch=clamp(T.pitch-dy*.2,-34,34);
+    V.yaw=dx*.24;V.pitch=-dy*.2;
+  }else if(gest.mode==='pinch'&&ptrN>=2){
+    var k=Object.keys(ptr),a=ptr[k[0]],b=ptr[k[1]];
+    var d=Math.hypot(a.x-b.x,a.y-b.y),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;
+    T.scale=clamp(gest.s0*d/gest.d,.45,2.8);
+    T.px+=(mx-gest.mx);T.py+=(my-gest.my);
+    T.px=clamp(T.px,-W*.7,W*.7);T.py=clamp(T.py,-H*.7,H*.7);
+    gest.mx=mx;gest.my=my;
+  }
+}
+function onUp(e){
+  if(!ptr[e.pointerId])return;
+  delete ptr[e.pointerId];ptrN=Object.keys(ptr).length;
+  if(ptrN===1){var k=Object.keys(ptr)[0];gest={mode:'orbit',lx:ptr[k].x,ly:ptr[k].y,t:performance.now()}}
+  if(ptrN===0){gest=null;stage.classList.remove('down');upAt=performance.now()}
+}
+function onWheel(e){
+  e.preventDefault();
+  var k=e.ctrlKey?.012:.0016;
+  T.scale=clamp(T.scale*Math.exp(-e.deltaY*k),.45,2.8);
+}
+
+function enableTilt(){
+  function listen(){
+    window.addEventListener('deviceorientation',onOri,true);
+    tilt.on=true;tilt.ref=null;$('tilt').setAttribute('aria-pressed','true');
+    $('hint').textContent='tilt the phone · drag to orbit · pinch to resize';
+  }
+  var D=window.DeviceOrientationEvent;
+  if(D&&typeof D.requestPermission==='function'){
+    D.requestPermission().then(function(r){if(r==='granted')listen();else $('hint').textContent='tilt was not allowed · drag to orbit · pinch to resize'}).catch(function(){});
+  }else listen();
+}
+function disableTilt(){
+  window.removeEventListener('deviceorientation',onOri,true);
+  tilt.on=false;tilt.tx=tilt.ty=0;$('tilt').setAttribute('aria-pressed','false');
+}
+function onOri(e){
+  if(e.beta==null||e.gamma==null)return;
+  var ang=(screen.orientation&&screen.orientation.angle)||window.orientation||0,b=e.beta,gm=e.gamma,x,y;
+  if(ang===90){x=b;y=-gm}else if(ang===270||ang===-90){x=-b;y=gm}else if(ang===180){x=-gm;y=-b}else{x=gm;y=b}
+  if(!tilt.ref)tilt.ref={x:x,y:y};
+  tilt.tx=clamp((x-tilt.ref.x)/28,-1,1);
+  tilt.ty=clamp((y-tilt.ref.y)/28,-1,1);
+}
+
+var lastT=0;
+function frame(t){
+  var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
+  var touching=ptrN>0;
+  if(!touching){
+    T.yaw=clamp(T.yaw+V.yaw,-60,60);T.pitch=clamp(T.pitch+V.pitch,-34,34);
+    V.yaw*=Math.pow(1e-5,dt);V.pitch*=Math.pow(1e-5,dt);
+    if(Math.abs(V.yaw)<.01)V.yaw=0;if(Math.abs(V.pitch)<.01)V.pitch=0;
+  }
+  var wTarget=touching?0:1,kw=1-Math.exp(-dt*(touching?14:2.2));
+  tilt.w+=(wTarget-tilt.w)*kw;
+  var kt=1-Math.exp(-dt*7);
+  tilt.x+=(tilt.tx-tilt.x)*kt;tilt.y+=(tilt.ty-tilt.y)*kt;
+  var ks=1-Math.exp(-dt*16);
+  S.yaw+=(T.yaw-S.yaw)*ks;S.pitch+=(T.pitch-S.pitch)*ks;S.scale+=(T.scale-S.scale)*ks;
+  S.px+=(T.px-S.px)*ks;S.py+=(T.py-S.py)*ks;
+  var ry=S.yaw+tilt.x*tilt.w*20,rx=S.pitch-tilt.y*tilt.w*14;
+  world.style.transform='translate3d('+S.px.toFixed(1)+'px,'+S.py.toFixed(1)+'px,0) scale('+S.scale.toFixed(4)+') rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
+  var gl=$('glow');gl.style.transform='translate('+(-ry*1.2).toFixed(1)+'px,'+(rx*1.2).toFixed(1)+'px) scale('+(.8+S.scale*.2).toFixed(3)+')';
+  drawSky(t);
+  requestAnimationFrame(frame);
+}
+
+function init(){
+  makeStars();layout();
+  addEventListener('resize',layout);
+  stage.addEventListener('pointerdown',onDown);
+  stage.addEventListener('pointermove',onMove);
+  stage.addEventListener('pointerup',onUp);
+  stage.addEventListener('pointercancel',onUp);
+  stage.addEventListener('wheel',onWheel,{passive:false});
+  stage.addEventListener('touchmove',function(e){if(e.cancelable)e.preventDefault()},{passive:false});
+  $('bcup').addEventListener('click',function(){location.hash='cup'});
+  $('bscoop').addEventListener('click',function(){location.hash='scoop'});
+  $('reset').addEventListener('click',function(){resetView(false)});
+  var tb=$('tilt');
+  if(window.DeviceOrientationEvent&&('ontouchstart' in window||navigator.maxTouchPoints>0)){
+    tb.hidden=false;
+    tb.addEventListener('click',function(){tilt.on?disableTilt():enableTilt()});
+  }
+  addEventListener('hashchange',route);
+  route();
+  requestAnimationFrame(frame);
+}
+function route(){
+  var k=(location.hash||'').replace('#','');
+  if(!OBJECTS[k])k='cup';
+  mountObject(k);
+}
+window.GJ_OBJ3D={mount:mountObject,state:S,target:T,tilt:tilt,objects:OBJECTS,reset:resetView};
+init();
+})();
+</script>
+</body>
+</html>

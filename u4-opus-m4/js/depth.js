@@ -4,7 +4,7 @@
    near-lens bokeh brushes past, then the next level eases to a stop. */
 (function(){
 'use strict';
-var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0, filmSrc='', snd=null;
+var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0, filmSrc='', snd=null,filmFrom=0,filmKeep=-1;
 var PL={on:0,e:0,t0:0,busy:0,applied:0,pending:null,ox:0,oy:0};
 var FX={t0:0,life:0,fly:0};
 var BOK=[], SPR=null;
@@ -445,6 +445,12 @@ function planIn(x,y,api){
   if(soundOn)return function(){zoomSound()};
   if(snd&&!soundOn)return function(){openSound(api,trackOf(snd.work),false,snd.work)};
   if(filmLv===2){var fh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');return function(){enterFilm(x,y,api,fh)}}
+  if(filmLv===1){
+    var uh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');
+    if(uh&&x>=uh.box.l&&x<=uh.box.l+uh.box.w&&y>=uh.box.t&&y<=uh.box.t+uh.box.h)return function(){
+      var sh=document.querySelector('#layer .sheet');filmKeep=sh?sh.scrollTop:-1;filmFrom=1;enterFilm(x,y,api,uh);
+    };
+  }
   if(filmLv===3)return function(){dropFly();setBleed(false);filmLv=4;api.paint()};
   if(filmLv>=1){
     return function(){
@@ -828,7 +834,7 @@ function leaveFly(){
   var back=nodes[filmLv===3?filmFocus:(fly&&fly.i)||0]||nodes[0];
   var box=back?boxOf(back):null;
   shrinkBack(box,function(){
-    if(filmLv===3)filmLv=2;
+    if(filmLv===3){filmLv=filmFrom===1?1:2;filmFrom=0}
     else if(piece){piece.lv=2;piece.scale=1}
   });
 }
@@ -885,6 +891,7 @@ function enterFilm(x,y,api,preset){
   var clip=hit.el.getAttribute('data-clip')||momentClip(hit.src, filmWork);
   growInto(hit.box, hit.src, clip);
   if(fly)fly.i=hit.i;
+  api.paint();
 }
 function paintNeighbours(el,work){
   var frames=gallery(work),at=0,i;
@@ -898,6 +905,16 @@ function paintNeighbours(el,work){
   }).join('');
   el.innerHTML='<div class="sheet film lv2 full">'+titleHtml(work)+'<div class="framewall near">'+wall+'</div></div>';
   fitWall(el.querySelector('.framewall'));
+}
+function stillsWall(work){
+  var m=work.media||{},frames=gallery(work);
+  if(!frames.length&&m.frames)frames=m.frames.map(function(src){return {src:src}});
+  if(!frames.length)return '';
+  return '<div class="framewall under">'+frames.map(function(s){
+    if(!s.src)return '';
+    var hi=masterSrc(s.src)?1:0,shot=momentClip(s.src,work);
+    return '<img src="'+esc(s.src)+'" data-hi="'+hi+'"'+(shot?' data-clip="'+esc(shot)+'"':'')+' alt="">';
+  }).join('')+'</div>';
 }
 function paintFilm(el,work){
   var m=work.media||{};
@@ -917,9 +934,13 @@ function paintFilm(el,work){
       : (hero?'<img src="'+esc(hero)+'" alt="">':'');
     var role=work.role||'';
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
-    el.innerHTML='<div class="sheet film lv1 full">'+titleHtml(work)+'<div class="heroframe'+(wk?'':' nat')+'">'+media+'</div>'+
+    var keep=filmKeep;filmKeep=-1;
+    var under=stillsWall(work);
+    el.innerHTML='<div class="sheet film lv1 full">'+titleHtml(work)+'<div class="heroframe'+(wk?'':' nat')+'">'+media+'</div>'+under+
       (role?'<p class="role">'+esc(role)+'</p>':'')+credHtml(work)+relHtml(work)+'</div>';
     if(!wk)fitHero(el.querySelector('.heroframe'));
+    fitWall(el.querySelector('.framewall'));
+    if(keep>0){var sh=el.querySelector('.sheet');if(sh)sh.scrollTop=keep}
     var v1=el.querySelector('video');
     if(v1){
       function showFrame(){if(v1.readyState>=2)v1.classList.add('live')}
