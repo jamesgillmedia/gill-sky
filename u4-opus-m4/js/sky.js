@@ -648,7 +648,8 @@ function gridSpec(key){
   if(key==='sound'&&!fine)cols=1;
   if(hero)cols=1;
   var gap=hero?10:((key==='photo'||key==='objects')&&!fine?16:4),pad=hero?8:10,head=key==='about'?16:44;
-  var maxW=hero?Math.min(W-12,760):Math.min(W-20,680);
+  var room=boardRoom();
+  var maxW=Math.min(hero?Math.min(W-12,760):Math.min(W-20,680),room.w);
   var tw=(maxW-pad*2-gap*(cols-1))/cols;
   var sq=key==='progress'||((key==='photo'||key==='objects')&&fine);
   var th=key==='about'?40:hero?Math.min(tw*1.12,Math.max(320,H*.62)):sq?tw:(key==='sound'&&!fine?96:tw*9/16);
@@ -656,17 +657,18 @@ function gridSpec(key){
   var pitch=th+cap+6,rows=Math.ceil(n/cols);
   var contentH=head+rows*pitch+6;
   var maxH=(b&&b.fine)?Math.min(H-92,H*.84):(hero?Math.min(H-78,H*.9):Math.min(H-118,H*.74));
+  maxH=Math.min(maxH,room.bottom-room.top);
   var winH=Math.min(maxH,contentH);
-  var y0=Math.max(62,(H-winH)/2);
-  return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
+  var y0=Math.min(Math.max(room.top,(H-winH)/2),room.bottom-winH);
+  return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:room.x+(room.w-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
 }
 /* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
 var BSPEC=null;
 function boardSpec(key,items){
-  var n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+mapTop();
+  var room=boardRoom(),n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m;
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
-  var maxW=Math.min(W-20,680),pad=10,gap=8,head=44;
-  var cols=key==='about'?(W<520?1:2):key==='film'?(W<520?2:3):(W<520?3:W<860?4:6);
+  var maxW=Math.min(W-20,680,room.w),pad=10,gap=8,head=44,AW=maxW+20;
+  var cols=key==='about'?(AW<520?1:2):key==='film'?(AW<520?2:3):(AW<520?3:AW<860?4:6);
   if(key==='photo')gap=14;
   var tw=(maxW-pad*2-gap*(cols-1))/cols;
   var cap=(key==='film'||key==='objects'||key==='sound')?26:0;
@@ -714,10 +716,10 @@ function boardSpec(key,items){
     });
   }
   var contentH=head+bottom+10;
-  var floor=mapTop()-8;
-  var winH=Math.min(Math.min(floor-62,H*.86),contentH);
-  var y0=Math.min(Math.max(62,(H-winH)/2),floor-winH);
-  BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
+  var floor=room.bottom;
+  var winH=Math.min(Math.min(floor-room.top,H*.86),contentH);
+  var y0=Math.min(Math.max(room.top,(H-winH)/2),floor-winH);
+  BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:room.x+(room.w-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
   return BSPEC;
 }
 function tileRect(spec,i,scroll){
@@ -748,13 +750,20 @@ function wrap2(t,max){
   for(k=0;k<ws.length;k++){var tryA=a?a+' '+ws[k]:ws[k];if(g.measureText(tryA).width>max&&a)break;a=tryA}
   return [a,cut(ws.slice(k).join(' '),max)];
 }
-/* Top of the minimap; boards keep clear of it. */
-var MAPTOP=0;
-function mapTop(){
-  if(MAPTOP&&MAPTOP.h===H)return MAPTOP.y;
+/* The minimap box; boards keep clear of it: above it on a tall screen, beside it on a wide one. */
+var MAPBOX=null;
+function mapBox(){
+  var tm=Date.now();
+  if(MAPBOX&&MAPBOX.h===H&&MAPBOX.w===W&&tm-MAPBOX.at<400)return MAPBOX;
   var bt=$('mmap'),r=bt&&!bt.hidden?bt.getBoundingClientRect():null;
-  if(r&&r.height){MAPTOP={h:H,y:Math.round(r.top)};return MAPTOP.y}
-  return H-124;
+  if(r&&r.height){MAPBOX={w:W,h:H,l:Math.round(r.left),t:Math.round(r.top),at:tm};return MAPBOX}
+  return {w:W,h:H,l:W-84,t:H-124,tmp:1};
+}
+function mapTop(){return mapBox().t}
+function boardRoom(){
+  var m=mapBox(),top=62;
+  if(m.t-8-top>=H*.55)return {x:0,w:W,top:top,bottom:m.t-8,m:m.l+':'+m.t};
+  return {x:10,w:Math.max(200,m.l-18),top:Math.min(top,Math.round(H*.16)),bottom:H-8,m:m.l+':'+m.t};
 }
 function roundRect(g,x,y,w,h,r){
   g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);
