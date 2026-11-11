@@ -466,6 +466,7 @@ function planIn(x,y,api){
   }
   if(cur.lv>=2&&cur.id&&!filmLv&&!still){
     var wk=api.byId(cur.id);
+    if(wk&&wk.chapter==='about')return null;
     if(wk&&wk.chapter==='sound')return function(){openSound(api,trackOf(wk),false,wk)};
     if(wk&&wk.chapter==='objects'){
       var oph=piece&&piece.work&&piece.work.id===wk.id&&piece.lv===2?nearestStill(x,y,'#layer .cutgrid img, #layer .cutgrid video'):null;
