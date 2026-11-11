@@ -41,6 +41,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | versions viewer: keep the card and chip row inside safe padding | `3ea27a1` | Sheet gets 14px safe-area side padding; chips scroll horizontally inside it (edge fade, no run-off at the left); chip centring accounts for the row offset. _progress/versions-chips-inset-390.jpg. | MT dates |
 | versions viewer: show build times in Mountain time (America/Edmonton) | `3d5add5` | Build times are stored as UTC ISO stamps and formatted with Intl in America/Edmonton, e.g. 'Nov 10, 7:13 PM MT' for m4 (this sandbox's tzdata 2026e puts Alberta on UTC-6 after Nov 2026; devices use their own tz data). _progress/versions-mt-dates-390.jpg. | Framing audit, flash/pulse decouple |
 | versions viewer: combined fix | `81f4939` | Corrects the previous two commits, which each applied only their own part: this has all three together (preview in main area, card and chips inset, MT dates). Screenshots: _progress/versions-preview-render-390.jpg, versions-chips-inset-390.jpg, versions-mt-dates-390.jpg. | Framing audit, flash/pulse decouple |
+| Framing audit | `309b700` | _spec/FRAMING-AUDIT.md: 653 cut shots (590 fixable, 63 not: the source frame cuts the subject), 41 ok, 305 no person detected; 4 films have no stills. | Fix the fixable shots in batches via js/framing.js |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
