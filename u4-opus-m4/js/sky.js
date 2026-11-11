@@ -1337,7 +1337,7 @@ function bind(){
   stage.addEventListener('pointercancel',onUp);
   stage.addEventListener('touchstart',onTouch,{passive:false});
   stage.addEventListener('touchmove',onTouchMove,{passive:false});
-  stage.addEventListener('touchend',function(){pinch=null},{passive:true});
+  stage.addEventListener('touchend',function(){pinchLetGo();pinch=null},{passive:true});
   window.addEventListener('pointerdown',onPtrDown,true);
   window.addEventListener('pointermove',onPtrMove,true);
   window.addEventListener('pointerup',onPtrUp,true);
@@ -1458,12 +1458,22 @@ function onPtrMove(e){
   var d=Math.hypot(a.x-b.x,a.y-b.y),r=d/(pinch.d||1);
   pinch.x=(a.x+b.x)/2;pinch.y=(a.y+b.y)/2;
   if(OP.on){opMove(d,pinch.x,pinch.y);return}
-  if(r>1.18){pinch.done=1;deeper(pinch.x,pinch.y)}
-  else if(r<.84){pinch.done=1;back()}
+  if(r>1.18){pinch.done=1;if(window.GJ_DEPTH)GJ_DEPTH.followEnd();deeper(pinch.x,pinch.y)}
+  else if(r<.84){pinch.done=1;pinchBack(0)}
+  else if(window.GJ_DEPTH)GJ_DEPTH.follow(Math.min(1,r));
 }
+/* A pinch-out never lands twice: it waits for a still that is still opening, and is ignored just after a still has closed. */
+function pinchBack(n){
+  if(window.GJ_DEPTH){
+    if(GJ_DEPTH.holdOut()){GJ_DEPTH.followEnd();return}
+    if(GJ_DEPTH.busy()&&n<30){setTimeout(function(){pinchBack(n+1)},60);return}
+  }
+  back();
+}
+function pinchLetGo(){if(pinch&&!pinch.done&&window.GJ_DEPTH)GJ_DEPTH.followEnd()}
 function onPtrUp(e){
   delete PT[e.pointerId];
-  if(Object.keys(PT).length<2){if(OP.on)opRelease();pinch=null}
+  if(Object.keys(PT).length<2){if(OP.on)opRelease();pinchLetGo();pinch=null}
 }
 /* Opening pinch: two fingers drive the opening itself (p 0..1 = mark, fly, land frames, sky) and the layers follow them. */
 var OP={on:0,used:0,p:0,p0:0,d0:1,d:1,x:0,y:0,z:0,ox:0,oy:0},OFEND=.4,OSPAN=2.8;

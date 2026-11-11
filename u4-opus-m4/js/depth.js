@@ -827,12 +827,31 @@ function shrinkBack(box, done){
   var once=0;
   function fin(){if(once)return;once=1;if(el.parentNode)el.parentNode.removeChild(el);fly=null;if(done)done()}
   el.classList.remove('in');
+  if(el.style.transform){el.style.transition='left .9s cubic-bezier(.22,.7,.2,1),top .9s cubic-bezier(.22,.7,.2,1),width .9s cubic-bezier(.22,.7,.2,1),height .9s cubic-bezier(.22,.7,.2,1),transform .9s cubic-bezier(.22,.7,.2,1)'}
   el.style.transform='';
   if(box&&box.w){el.style.left=box.l+'px';el.style.top=box.t+'px';el.style.width=box.w+'px';el.style.height=box.h+'px'}
   el.addEventListener('transitionend',function(e){if(e.propertyName==='width'||e.propertyName==='left')fin()});
   setTimeout(fin,1000);
 }
+var COOL=0;
+/* While two fingers close on a full-screen still, the still shrinks with them; letting go early springs it back. */
+function follow(r){
+  var el=fly&&fly.el;
+  if(filmLv!==3||!el||!el.classList.contains('in')||(COOL&&performance.now()-COOL<1200))return false;
+  el.style.transition='none';
+  el.style.transform='scale('+Math.max(.6,Math.min(1,r)).toFixed(3)+')';
+  return true;
+}
+function followEnd(){
+  var el=fly&&fly.el;
+  if(!el||!el.style.transform||!el.classList.contains('in'))return;
+  el.style.transition='transform .3s cubic-bezier(.22,.7,.2,1)';
+  el.style.transform='';
+  setTimeout(function(){if(el.style.transition.indexOf('transform .3s')===0&&el.classList.contains('in'))el.style.transition=''},340);
+}
+function holdOut(){return !!COOL&&performance.now()-COOL<1200}
 function leaveFly(){
+  if(filmLv===3)COOL=performance.now();
   var sel=filmLv===3?'#layer .framewall img[data-hi="1"]':(piece&&piece.photo?'#layer .contact img':'#layer .cutgrid img, #layer .cutgrid video');
   var nodes=document.querySelectorAll(sel);
   var back=nodes[filmLv===3?filmFocus:(fly&&fly.i)||0]||nodes[0];
@@ -1257,7 +1276,7 @@ function state(){
 window.GJ_DEPTH={
   busy:function(){return !!PL.busy},
   tick:tick, fly:rush, burst:burst, viewScale:viewScale, drawFx:drawFx,
-  pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
+  follow:follow, followEnd:followEnd, holdOut:holdOut, pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
   paintField:paintField, board:function(){return board}, soundOn:function(){return soundOn},
   state:state,
   origin:function(){return {x:PL.ox||0,y:PL.oy||0}}
