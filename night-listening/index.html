@@ -1,48 +1,16 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#04060d">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="robots" content="noindex">
-<title>Night Listening</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#070910" />
+  <title>Night Listening</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-<canvas id="sky" aria-hidden="true"></canvas>
-
-<header class="mast">
-  <h1>Night Listening</h1>
-  <p id="hint" class="hint">tap a star · tap again to listen</p>
-</header>
-
-<div id="label" class="label" aria-hidden="true"><span class="t"></span><span class="d"></span></div>
-<div id="eras" class="eras"></div>
-
-<!-- Same actions for keyboard and screen readers -->
-<nav class="sr" aria-label="Songs"><ul id="srlist"></ul></nav>
-
-<section id="bar" class="bar" aria-label="Player" hidden>
-  <div class="row top">
-    <button id="pp" class="pp" type="button" aria-label="Play">
-      <svg viewBox="0 0 24 24" class="i-play"><path d="M8 5.5v13l10.5-6.5z"/></svg>
-      <svg viewBox="0 0 24 24" class="i-pause"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/></svg>
-    </button>
-    <div class="meta">
-      <div id="btitle" class="btitle"></div>
-      <div class="btime"><span id="tcur">0:00</span> / <span id="tlen">0:00</span></div>
-    </div>
-  </div>
-  <input id="prog" class="prog" type="range" min="0" max="1000" step="1" value="0" aria-label="Progress">
-  <div class="row knobs">
-    <label>vol <input id="vol" type="range" min="0" max="100" step="1" value="60"><output id="volv">60</output></label>
-    <label>flash <input id="flash" type="range" min="0" max="100" step="1" value="50"><output id="flashv">50</output></label>
-  </div>
-</section>
-
-<script src="songs.js"></script>
-<script src="app.js"></script>
+  <div id="night-root"></div>
+  <script src="songs.js"></script>
+  <script src="app.js"></script>
+  <script>startNightListening(document.getElementById("night-root"));</script>
 </body>
 </html>
