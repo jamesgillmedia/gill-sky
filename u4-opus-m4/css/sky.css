@@ -294,7 +294,7 @@ html.reelon #mmap{display:none !important}
  color:#f4f7ef;font-weight:300;text-shadow:0 1px 2px rgba(0,0,0,.85);pointer-events:none;
  background:linear-gradient(transparent 8%,rgba(4,7,11,.45) 28%,rgba(4,7,11,.62) 72%,transparent);padding:22px 10px}
 #laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{justify-content:flex-start;top:calc(68px + var(--st));bottom:calc(36px + var(--sb));overflow:auto;pointer-events:auto;padding-bottom:28px}
-#laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{background:rgba(4,7,11,.76);border-radius:18px;box-shadow:0 0 26px 14px rgba(4,7,11,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);padding-left:16px;padding-right:16px;bottom:auto;max-height:calc(100% - 104px - var(--st) - var(--sb))}
+#laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{background:rgba(4,7,11,.52);border-radius:18px;box-shadow:0 0 26px 14px rgba(4,7,11,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding-left:16px;padding-right:16px;bottom:auto;max-height:calc(100% - 104px - var(--st) - var(--sb))}
 #laytext.flick{opacity:.62}
 #laytext span{display:block;font-size:14.5px;line-height:1.55;letter-spacing:.01em}
 #laytext.lv1 span{font-size:30px;line-height:1.2;letter-spacing:.01em}
