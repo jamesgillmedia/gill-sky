@@ -395,6 +395,14 @@ h2.tt small{display:block;white-space:normal;font:300 11px/1.4 Poppins,sans-seri
 #ginside[hidden]{display:none}
 #ginside span{font-size:14px;color:rgba(228,235,245,.7)}
 #ginside:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+/* Item 2: the first-tap chip, "<count> · open ›" under a sky name, "open ›" under a tile. 44px tall to touch. */
+#ochip{position:absolute;z-index:8;left:0;top:0;display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;margin:0;border-radius:22px;
+ border:1px solid rgba(85,218,161,.45);background:rgba(3,5,10,.78);font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;color:#eef3f5;white-space:nowrap;cursor:pointer;will-change:transform}
+#ochip[hidden]{display:none}
+html.chipon #shint{opacity:0}
+#ochip .n{color:rgba(228,235,245,.62)}
+#ochip .o{color:var(--mint);text-transform:uppercase}
+#ochip:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 html.bleed #wcrumb,html.bleed #wrail,html.bleed #ginside{opacity:0;pointer-events:none}
 html.wc #layer .sheet.full,html.wc #layer .sheet.film,html.wc #layer .sheet.cutsheet{padding-top:calc(86px + var(--st))}
 html.wc #layer .sheet{padding-bottom:calc(46px + var(--sb))}

@@ -57,7 +57,9 @@
     { k: 'delay', name: 'Open delay', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1250 * v) + ' ms'; } },
     { k: 'open', name: 'Mark duration', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1100 * v) + ' ms'; } },
     { k: 'fade', name: 'Sky fade', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1680 * v) + ' ms'; } },
-    { k: 'flash', name: 'Flash', min: 0, max: 1, step: 0.01, fmt: function (v) { return Math.round(v * 100) + '%'; } }
+    { k: 'flash', name: 'Flash', min: 0, max: 1, step: 0.01, fmt: function (v) { return Math.round(v * 100) + '%'; } },
+    { k: 'snap', name: 'Pinch snap zone', min: 0, max: 0.5, step: 0.01, fmt: function (v) { return '\u00b1' + Math.round(v * 100) + '% of a layer'; } },
+    { k: 'full', name: 'Full pinch', min: 0.2, max: 1, step: 0.01, fmt: function (v) { return Math.round(v * 100) + '% of a layer'; } }
   ];
   var TKEY = 'gj-m4-tune';
   function tune() { return window.GJ_TUNE || null; }

@@ -1419,7 +1419,7 @@ window.GJ_DEPTH={
   busy:function(){return !!PL.busy},
   tick:tick, fly:rush, hush:hush, burst:burst, viewScale:viewScale, drawFx:drawFx,
   follow:follow, followEnd:followEnd, holdOut:holdOut, pinchIn:pinchIn, pinchOut:pinchOut, sync:sync, owns:owns, paintLayer:paintLayer,
-  paintField:paintField, board:function(){return board}, soundOn:function(){return soundOn},
+  paintField:paintField, board:function(){return board}, boardOf:function(k,api){return makeBoard(api,k)}, soundOn:function(){return soundOn},
   state:state,
   origin:function(){return {x:PL.ox||0,y:PL.oy||0}}
 };
