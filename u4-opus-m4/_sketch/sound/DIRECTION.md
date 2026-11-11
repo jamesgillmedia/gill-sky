@@ -17,12 +17,12 @@ The dark m4 sky (stars, m4's glow, the mark) with one real Lost Coffee song play
 
 | Signal | Drives |
 |---|---|
-| Bass band (bins about 0-6, ~0-1.4 kHz at 512/44.1k, low bins weighted) with an adaptive-threshold onset detector | beat and pulse: kick onsets fire the pulse; the shared `GJDBG.setBeat` is fed a real beat count so the sync slider and the flash sliders follow the music instead of the test BPM |
-| Mids (bins about 7-40) | star clusters: the seeded stars are split into clusters by seeded angle; each cluster has a band and swells/brightens with its energy |
-| Highs (bins about 41-120) | the sparkle layer: fine star twinkle and the smallest stars |
+| Low-band spectral flux (bins 0-15, about 0-1.5 kHz, lowest bins weighted) against its own adaptive average, local peak, 0.2 s refractory (the bass level itself also shows in the readout) | beat and pulse: kick onsets fire the pulse; the shared `GJDBG.setBeat` is fed a real beat count so the sync slider and the flash sliders follow the music instead of the test BPM |
+| Mids and highs (600 Hz to 9 kHz in six log-spaced slices; the songs carry little above 9 kHz) | star clusters: six seeded clusters, one slice each; the cluster swells and brightens with its own slice |
+| Highs (2.5-9 kHz) | the sparkle layer: fine star twinkle and the smallest stars |
 | RMS from the time-domain data | breathes the ambient fog (size/alpha of the fog washes) |
 | Waveform peaks (`peaks`, played-position window) | shape of the constellation lines: the lines connect the cluster centres and bow by the local peak value around the playhead |
-| Onset intervals | BPM estimate (median of recent inter-onset intervals folded into 60-180), shown in the debug panel |
+| Onset intervals | BPM estimate (smoothed histogram of inter-onset intervals, 1-3 onsets apart, folded into 60-180), shown in the debug panel; the beat clock follows media time and locks to on-phase onsets |
 
 Pulse timing comes only from the music's onsets. The Flash sliders (star flash, ambient flash) set intensity only, never timing. The sync slider offsets by position in the sky, exactly as in the other sketches.
 

@@ -4,7 +4,7 @@ import re, os
 here = os.path.dirname(os.path.abspath(__file__))
 css = open(os.path.join(here, 'debug.css')).read().rstrip('\n')
 js = open(os.path.join(here, 'debug.js')).read().rstrip('\n')
-for name in ('objects', 'opener'):
+for name in ('objects', 'opener', 'sound'):
     p = os.path.join(here, '..', name, 'index.html')
     if not os.path.exists(p):
         continue
