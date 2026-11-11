@@ -52,6 +52,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | Framing fix batch 8 | `9f43451` | Portrait full-screen spans (js/framing.js, SHELL_REV 44) for: just-the-beginning, ltl-dstryr, journeys-x-todd. Landscape untouched. | Next batch / queue |
 | Framing audit spans capped | `b62bb25` | Audit proposed spans capped at 64% of frame width so close-ups keep the head instead of shrinking to a letterbox strip. | Framing fix batches |
 | Flash/pulse decouple | `00d7c72` | sky.js drawSound: ring radius and swell use L.rms (loudness; the beat envelope was unreliable on the six tracks) unscaled; the flash slider (0-100, default 60) now scales only brightness and glow alpha (.35+.65*flash, same as song.js dim()). No Reduce Motion branch. SHELL_REV 45. | Arrival mark nudge |
+| versions viewer: Vancouver time | `123d5a6` | Build times format with Intl in America/Vancouver and the suffix PT (m4 shows 'Nov 10, 5:13 PM PT'). The only place a time is shown is the card line; no UTC or Mountain text remains (ISO stamps stay in the data, never displayed). _progress/versions-pt-dates-390.jpg. | Arrival mark nudge, board left edge, sound labels, pinch smoothing |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
