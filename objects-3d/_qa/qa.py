@@ -59,7 +59,8 @@ def walk_all(r, folder, tag):
     return order
 
 def main():
-    video = '--video' in sys.argv
+    video = '--video' in sys.argv or '--video-only' in sys.argv
+    if '--video-only' in sys.argv: VIEWPORTS.clear()
     with sync_playwright() as p:
         b = p.chromium.launch(executable_path='/usr/local/bin/google-chrome', args=ARGS)
         for vname, (W, H, touch) in VIEWPORTS.items():
