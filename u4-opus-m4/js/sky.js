@@ -45,8 +45,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1,stars:1,lineA:1,lineW:1};
-var TUNE={map:1,stars:1,lineA:1,lineW:1};
+var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1};
+var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1};
 var SPATIAL={map:1,stars:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
@@ -518,10 +518,11 @@ function nodePos(n){if(n.id)return posOf(n);return [n.x,n.y]}
 function star(q,b,c,mint,a,t){
   if(a<.02||q[0]<-20||q[0]>W+20||q[1]<-20||q[1]>H+20)return;
   var pulse=t?(1+.07*Math.sin(t/900+(q[0]+q[1])*.01)):1;
-  var gs=(5+16*b)*pulse*(mint?1.3:1);g.globalAlpha=a*(.45+.5*b);
+  var ss=tk('starS'),sg=tk('starG');
+  var gs=(5+16*b)*pulse*(mint?1.3:1)*sg;g.globalAlpha=a*(.45+.5*b);
   g.drawImage(mint?GLOW.m:c.glow,q[0]-gs,q[1]-gs,gs*2,gs*2);
   g.globalAlpha=a;g.fillStyle=mint?'rgb('+MINT+')':'#fff';
-  g.beginPath();g.arc(q[0],q[1],Math.max(1.1,1+b*1.6),0,7);g.fill();g.globalAlpha=1;
+  g.beginPath();g.arc(q[0],q[1],Math.max(1.1,(1+b*1.6)*ss),0,7);g.fill();g.globalAlpha=1;
 }
 function drawItem(it,bl,focus){
   var p=posOf(it),q=sp(p[0],p[1]);if(q[0]<-160||q[0]>W+160||q[1]<-160||q[1]>H+160)return;
