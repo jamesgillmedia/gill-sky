@@ -816,6 +816,8 @@ function paintFilm(el,work){
   var m=work.media||{};
   var clip=m.pv||m.clip||'';
   var poster=m.big||m.thumb||'';
+  /* The reel's frame 000 is near-black; open on its first real frame and that frame's clip. */
+  if(/reel\/a\/000\.webp$/.test(poster)&&m.thumb){poster=m.thumb;clip=clip||m.thumb.replace(/\.webp$/,'.mp4')}
   el.classList.add('on');
   var wk=work.id==='film/weird-kid';
   if(filmLv===3&&document.querySelector('.enterframe'))return;
