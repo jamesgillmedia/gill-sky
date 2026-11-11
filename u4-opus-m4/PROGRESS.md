@@ -1,23 +1,24 @@
-# u4-opus-m3 · progress
+# u4-opus-m4 · progress
 
 Read this first if you are picking the work up in a fresh run.
 
 ## Rules for this folder
-- Work only in `u4-opus-m3/` on branch `cursor/u4-opus-5d75`. Commit and push to that branch after every small step. **Never push to main, and never publish** until Gill says so.
+- Work only in `u4-opus-m4/` on branch `cursor/u4-opus-5d75`. Commit and push to that branch after every small step. Publish only when Gill says so, and only as a new folder on main.
+- `u4-opus-m3/` is published and must not be changed. m4 is a copy of it with three fixes: whole-word board captions and the "Gill James and Ryan" credit; ᑕᐣᓯ flying to FAR in one move from any level; and boards stopping above the minimap.
 - `RULEBOOK.md` (from `u4-spec.tgz`) overrides earlier steers. The far sky, top bar, camera, bloom, water, parallax, fly-through and minimap stay as in u3. Motion is the same with Reduce Motion on or off.
 - Hard rules from the brief still apply:
   - real media only, with no invented titles;
   - no YouTube;
   - no prefers-reduced-motion branches;
   - files under 25 MB;
-  - never edit u1, u2, u3, u4-opus-m1, u4-opus-m2 or any other existing folder.
+  - never edit u1, u2, u3, u4-opus-m1, u4-opus-m2, u4-opus-m3 or any other existing folder.
 
 ## Level path
 - FAR (`#`): the single GILL JAMES sky.
 - MID (`#film`): the chapter's constellation at u3's fit×1.45.
 - BOARD (`#film/board`): the same camera pushed in, with the board painted in the sky.
 - WORK (`#film/<slug>`): the piece, with its own inner steps.
-- Every step in is one history entry. Pinch-out, ‹, browser Back and Esc each go up exactly one step. Tapping ᑕᐣᓯ flies to FAR.
+- Every step in is one history entry. Pinch-out, ‹, browser Back and Esc each go up exactly one step. Tapping ᑕᐣᓯ (shown beside ‹ at every deep level) flies to FAR in one move with `history.go(-STEP)`.
 
 ## Done
 - Started as an exact copy of u3, not built on m2.
@@ -39,7 +40,7 @@ Read this first if you are picking the work up in a fresh run.
   - The Nov 9 items are not in the sky layout, so FAR and MID are unchanged.
 
 ## RULEBOOK status
-- Every line passes. See `_progress/CHECKLIST.md`, which has one screenshot per line in `_progress/check/`, plus `00-u3-vs-m3.png` and `m3-walk.mp4`.
+- Every line passes. See `_progress/CHECKLIST.md`, which has one screenshot per line in `_progress/check/`, plus `00-u3-vs-m4.png` and `m4-walk.mp4`.
 - Done:
   - airy MID;
   - Film 2-up 2.39 strips;
@@ -47,7 +48,7 @@ Read this first if you are picking the work up in a fresh run.
   - the Sound star-chart;
   - C1, C2, C3, C4 and C6;
   - the noscript list link lifted above the stage.
-- Waiting for Gill's review. Nothing is published, and main is untouched.
+- m4 is published at `/gill-sky/u4-opus-m4/` as a new folder on main.
 
 ## Possible next steps (only if Gill asks)
 - The JS-off list pages don't show the Nov 9 media yet.
