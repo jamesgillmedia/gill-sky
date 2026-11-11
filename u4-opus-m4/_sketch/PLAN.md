@@ -64,3 +64,5 @@ Honest finding: m4's arrival has the water photo, touch ripples, dust motes and 
 - Tilt button rule above (replaces the earlier "permission on first tap").
 - Objects coverage survey: `objects/OBJECT-COVERAGE.md` (work in progress). Only objects with real multi-angle photos get a 3D (2.5D) layer; the rest stay gallery-only.
 - Flash group in both debug panels (star flash, ambient flash, test beat BPM). Both default to 0.
+- Objects 3D: five-object angle-ordered ring (cup, scoop, dark, unfired, ashy), select switcher; tap in the gallery orients to that view.
+- Sound sketch queued after objects: `sound/DIRECTION.md` first, then build.

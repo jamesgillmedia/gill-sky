@@ -23,6 +23,8 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 .plane{position:absolute;left:0;top:0;overflow:hidden;background:#0a1016;backface-visibility:hidden;
  -webkit-mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);
  -webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent,#000 9%,#000 91%,transparent),linear-gradient(to bottom,transparent,#000 9%,#000 91%,transparent);mask-composite:intersect}
+.plane.ring{transform-origin:0 0}
+#ctx{transform-origin:50% 50%}
 .plane.card{-webkit-mask-image:none;mask-image:none;border:1px solid rgba(255,255,255,.28);box-shadow:0 10px 30px rgba(0,0,0,.6)}
 .plane img{position:absolute;display:block;max-width:none;pointer-events:none}
 #gal{position:absolute;inset:0;z-index:2;background:#04070b;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:calc(72px + env(safe-area-inset-top)) 6px calc(110px + env(safe-area-inset-bottom));overscroll-behavior:contain;transform-origin:50% 50%}
@@ -37,6 +39,8 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 .cutgrid figcaption{margin-top:6px;font-size:calc(10px*var(--tx));color:#7f93a8;letter-spacing:.04em}
 #hud{position:fixed;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) 12px 0;display:flex;align-items:center;gap:8px;z-index:3;pointer-events:none}
 #hud>*{pointer-events:auto}
+#hud select{font:inherit;font-size:calc(12px*var(--tx));color:#e9eef5;background:rgba(10,16,24,.5);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:7px 10px;min-height:34px;max-width:46vw;-webkit-appearance:none;appearance:none}
+#hud select option{background:#0a1016;color:#e9eef5}
 #hud .sig{font-family:Syl,"Noto Sans Canadian Aboriginal",sans-serif;font-weight:700;font-size:calc(16px*var(--icon-k));color:#fff;text-decoration:none;padding:6px 6px;line-height:1}
 #hud h1{font:200 calc(14px*var(--tx))/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;text-transform:lowercase;margin-right:auto;text-shadow:0 1px 8px #000;pointer-events:none}
 #hud button{font:inherit;font-size:calc(13px*var(--tx));color:#e9eef5;background:rgba(10,16,24,.62);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:8px 14px;min-height:36px;cursor:pointer}
@@ -115,14 +119,13 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 <div id="stage" aria-label="2.5D object sketch: one finger orbits, two fingers resize, tilt the phone to look around">
 <canvas id="sky" aria-hidden="true"></canvas>
 <div id="glow" aria-hidden="true"></div>
-<div id="cam"><div id="world"></div></div>
+<div id="cam"><div id="ctx" class="plane card" hidden><img alt=""></div><div id="world"></div></div>
 </div>
 <header id="hud">
 <button type="button" id="back" hidden aria-label="back one level">&#8249;</button>
 <a class="sig" id="sig" href="../../" lang="cr" aria-label="home">ᑕᐣᓯ</a>
 <h1 id="ttl">joio cup</h1>
-<button type="button" id="bcup" aria-pressed="true">cup</button>
-<button type="button" id="bscoop" aria-pressed="false">scoop</button>
+<select id="objsel" aria-label="object"></select>
 <button type="button" id="tilt" hidden aria-pressed="false" aria-label="tilt off, tap to turn on">tilt</button>
 <button type="button" id="reset" hidden>reset</button>
 </header>
@@ -388,39 +391,53 @@ return {pulse:pulse,flash:flash,beat:beatCount,sf:function(){return (vals.sf||0)
 var P='../../media/';
 var Q=new URLSearchParams(location.search);
 var OPT=Q.get('opt')==='2'?2:1;
+/* Each object lists its real views. az and el are visual estimates of where the camera stood (el 0 = at the object's level, 90 = straight in); the orbit turns the ring so the plane whose view matches the camera angle faces you. */
 var OBJECTS={
-  cup:{title:'joio cup',
-    gallery:[
-      ['pro2/img/objects/cup-glaze-960.webp','glazed cup in hand'],['pro2/img/objects/cup-top-960.webp','from above'],
-      ['pro2/img/objects/joio-latte-960.webp','latte'],['pro2/img/objects/joio-pour-960.webp','pour'],
-      ['pro2/img/objects/cup-moss-960.webp','planter, moss'],['pro2/img/objects/cup-rim-960.webp','crescent rim'],
-      ['pro2/img/objects/joio-hold-960.webp','holding'],['pro2/img/objects/joio-board-960.webp','on a board'],
-      ['pro2/joio/c/16.webp','process: cup'],['pro2/joio/c/05.webp','process: pour']],
-    planes:[
-      {n:'board',s:'pro2/img/objects/joio-board-960.webp',w:84,x:-6,y:-2,z:-560,o:.6},
-      {n:'from above',s:'pro2/img/objects/cup-top-960.webp',w:48,x:24,y:-14,z:-400,o:.7},
-      {n:'latte',s:'pro2/img/objects/joio-latte-960.webp',w:42,x:-28,y:10,z:-250,o:.9},
-      {n:'pour',s:'pro2/img/objects/joio-pour-960.webp',w:38,x:27,y:14,z:-130,o:.95},
-      {n:'cup in hand',s:'pro2/img/objects/cup-glaze-960.webp',w:52,x:0,y:0,z:0,o:1},
-      {n:'process: cup',s:'pro2/joio/c/16.webp',w:25,x:-31,y:-24,z:130,o:1},
-      {n:'planter',s:'pro2/img/objects/cup-moss-960.webp',w:29,x:31,y:-27,z:210,o:1},
-      {n:'process: pour',s:'pro2/joio/c/05.webp',w:21,x:-24,y:28,z:290,o:1},
-      {n:'rim',s:'pro2/img/objects/cup-rim-960.webp',w:36,x:4,y:19,z:380,o:.88}
-    ]},
-  scoop:{title:'scoop',
-    gallery:[
-      ['nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg','in hand, bowl up'],
-      ['pro2/img/photo/388e4910-960.webp','frontal, bowl and handle join'],
-      ['pro2/img/photo/0f25314d-960.webp','side profile of the bowl'],
-      ['nov9/objects/64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg','on the paddles, for scale']],
-    planes:[
-      {n:'context: on the paddles',s:'nov9/objects/64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg',w:36,x:-27,y:20,z:-330,o:.95,card:1},
-      {n:'side profile',s:'pro2/img/photo/0f25314d-960.webp',w:40,x:-25,y:-12,z:-140,o:1},
-      {n:'in hand, bowl up',s:'nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',w:46,x:0,y:0,z:0,o:1},
-      {n:'frontal',s:'pro2/img/photo/388e4910-960.webp',w:40,x:24,y:4,z:160,o:1},
-      {n:'frontal: bowl and handle join',s:'pro2/img/photo/388e4910-960.webp',w:24,x:-20,y:25,z:300,o:1,crop:[.5,.5,2.6],ar:1}
-    ]}
+  cup:{title:'joio cup',note:'14 stills of this cup, side to top',
+    views:[
+      {n:'3/4, in hand',s:'pro2/img/photo/0d93c0c1-960.webp',az:0,el:36,hero:1},
+      {n:'3/4, held',s:'nov9/objects/IMG_5841.jpg',az:62,el:32},
+      {n:'3/4, held low',s:'nov9/objects/IMG_5881.jpg',az:-62,el:26},
+      {n:'side, held',s:'pro2/img/photo/14af9fc6-960.webp',az:30,el:8},
+      {n:'close, speckled wall',s:'pro2/img/photo/e2aa7ba0-960.webp',az:-32,el:6},
+      {n:'side, latte on the counter',s:'pro2/img/photo/f51e0021-960.webp',az:118,el:12},
+      {n:'side, counter 3/4',s:'nov9/objects/IMG_6136.jpg',az:-118,el:14},
+      {n:'side, latte on a board',s:'nov9/objects/IMG_9126.jpg',az:180,el:8},
+      {n:'top, looking in',s:'pro2/img/photo/27a361ce-960.webp',az:-90,el:56},
+      {n:'top, latte',s:'pro2/img/photo/27a4c19d-960.webp',az:90,el:70},
+      {n:'top, held',s:'nov9/objects/IMG_5892.jpg',az:0,el:86},
+      {n:'context: on a board',s:'nov9/objects/IMG_6690.jpg',ctx:1}]},
+  scoop:{title:'ceramic oyster scoop',note:'4 stills, no more exist yet',
+    views:[
+      {n:'frontal, bowl and handle join',s:'pro2/img/photo/388e4910-960.webp',az:0,el:8,hero:1},
+      {n:'in hand, bowl up',s:'nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',az:-38,el:26},
+      {n:'side profile of the bowl',s:'pro2/img/photo/0f25314d-960.webp',az:72,el:8},
+      {n:'context: on the paddles, for scale',s:'nov9/objects/64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg',ctx:1}]},
+  dark:{title:'dark-glazed cups and bowls',note:'8 stills, may be more than one object; a thin ring',
+    views:[
+      {n:'side, black and white',s:'nov9/objects/DBBB3452-330C-4F73-8F21-65C1A57FE3AE.jpg',az:0,el:6,hero:1},
+      {n:'side, lighter',s:'nov9/objects/F3283192-39BF-4BE9-B6F2-8A88933AB63A.jpg',az:38,el:6},
+      {n:'side, on a shelf',s:'pro2/img/photo/efb2a65e-960.webp',az:-38,el:8},
+      {n:'3/4 low, yellow light',s:'nov9/objects/IMG_9147.jpg',az:78,el:16},
+      {n:'close, rim',s:'nov9/objects/2346BBC9-C359-4C43-9A58-DC2D47A870D5.jpg',az:180,el:30},
+      {n:'top, held',s:'nov9/objects/8F816FA1-7772-43DA-B2A8-B35EBE74B67C.jpg',az:-90,el:56},
+      {n:'top, black and white',s:'pro2/img/photo/9b41ba33-960.webp',az:90,el:72},
+      {n:'top, sooty hand',s:'pro2/img/photo/1bb06b0e-960.webp',az:0,el:86}]},
+  unfired:{title:'unfired raw clay cups',note:'5 stills here (Drive has 12), different cups; a thin ring',
+    views:[
+      {n:'side, raw clay, in hand',s:'nov9/objects/IMG_1322.jpg',az:0,el:6,hero:1},
+      {n:'3/4, pale cup in hand',s:'nov9/objects/IMG_1487.jpg',az:56,el:30},
+      {n:'top, white cup',s:'studio/cup-hand-480.webp',az:-56,el:70},
+      {n:'close, textured white',s:'studio/unfired-480.webp',az:180,el:14},
+      {n:'context: four small cups',s:'nov9/objects/IMG_1279.jpg',ctx:1}]},
+  ashy:{title:'ashy process bowls',note:'3 stills here (Drive has 7+), all from above; a thin ring',
+    views:[
+      {n:'3/4, sooty hand',s:'nov9/objects/IMG_4670.jpg',az:0,el:50,hero:1},
+      {n:'top, wide bowl',s:'nov9/objects/IMG_4404.jpg',az:90,el:78},
+      {n:'top, grey interior',s:'nov9/objects/IMG_4356.jpg',az:-90,el:60}]}
 };
+var ORDER=['cup','scoop','dark','unfired','ashy'];
+var RING_R=72,RING_W=38;
 var $=function(i){return document.getElementById(i)};
 var stage=$('stage'),gal=$('gal'),world=$('world'),sky=$('sky'),g=sky.getContext('2d');
 var W=0,H=0,DPR=1,U=1;
@@ -466,58 +483,72 @@ function layout(){
   U=Math.min(W,H)/100;placePlanes();
 }
 function placePlanes(){
+  var R=RING_R*U;
   planes.forEach(function(p){
-    var sp=p.spec,w=sp.w*U,h=w*p.ar;
+    var sp=p.spec,w=(p.ctx?64:RING_W)*U,h=w*p.ar;
     p.el.style.width=w+'px';p.el.style.height=h+'px';
-    p.el.style.transform='translate3d('+(sp.x*U-w/2)+'px,'+(sp.y*U-h/2)+'px,'+sp.z+'px)';
-    p.fit();
+    if(!p.ctx)p.el.style.transform='rotateY('+sp.az+'deg) rotateX('+sp.el+'deg) translateZ('+R+'px) translate('+(-w/2)+'px,'+(-h/2)+'px)';
   });
+  if(ctxEl.style.display!=='none'&&ctxView){
+    var cw=64*U,ch=cw*(ctxView.ar||1.3);
+    ctxEl.style.width=cw+'px';ctxEl.style.height=ch+'px';
+    ctxEl.style.left=(W/2-cw/2)+'px';ctxEl.style.top=(H*.46-ch/2)+'px';
+  }
+}
+var ctxEl=$('ctx'),ctxView=null;
+function normal(sp){
+  var az=sp.az*Math.PI/180,el=sp.el*Math.PI/180;
+  return [Math.cos(el)*Math.sin(az),-Math.sin(el),Math.cos(el)*Math.cos(az)];
 }
 function mountPlanes(){
-  world.innerHTML='';planes=[];
-  cur.planes.forEach(function(sp){
-    var el=document.createElement('div');el.className='plane'+(sp.card?' card':'');
+  world.innerHTML='';planes=[];ctxEl=$('ctx');ctxEl.hidden=true;ctxEl.style.display='none';ctxView=null;
+  cur.views.forEach(function(sp,i){
+    if(sp.ctx){
+      ctxView={ar:1.3,spec:sp};
+      var ci=ctxEl.querySelector('img');ci.src=P+sp.s;
+      ci.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
+      ci.onload=function(){ctxView.ar=ci.naturalHeight/ci.naturalWidth;placePlanes()};
+      ctxEl.hidden=false;ctxEl.style.display='block';ctxEl.style.opacity='.5';
+      planes.push({ctx:1,spec:sp,el:ctxEl,i:i,ar:1.3});
+      return;
+    }
+    var el=document.createElement('div');el.className='plane ring';
     var im=document.createElement('img');im.alt='';im.decoding='async';im.src=P+sp.s;
+    im.style.cssText='position:absolute;inset:0;width:100%;height:100%;object-fit:cover';
     el.appendChild(im);world.appendChild(el);
-    var near=1-clamp((sp.z+560)/940,0,1);
-    el.style.opacity=String(sp.o);
-    el.style.filter='brightness('+(.55+.45*(1-near))+')'+(sp.z<-300&&!sp.card?' blur(1.2px)':'');
-    var p={el:el,im:im,spec:sp,ar:sp.ar||1.25,fit:function(){}};
-    p.fit=function(){
-      var nw=im.naturalWidth,nh=im.naturalHeight;if(!nw)return;
-      var w=sp.w*U;
-      if(sp.crop){
-        var c=sp.crop,iw=w*c[2],ih=iw*nh/nw,h=w*p.ar;
-        im.style.width=iw+'px';im.style.height=ih+'px';
-        im.style.left=(-(c[0]*iw-w/2))+'px';im.style.top=(-(c[1]*ih-h/2))+'px';
-      }else{
-        p.ar=nh/nw;var hh=w*p.ar;
-        el.style.height=hh+'px';im.style.width='100%';im.style.height='100%';im.style.left=im.style.top='0';
-        el.style.transform='translate3d('+(sp.x*U-w/2)+'px,'+(sp.y*U-hh/2)+'px,'+sp.z+'px)';
-      }
-    };
-    im.addEventListener('load',p.fit);
+    var p={el:el,im:im,spec:sp,i:i,ar:1.25,n:normal(sp),f:0,op:-1};
+    im.addEventListener('load',function(){p.ar=im.naturalHeight/im.naturalWidth;placePlanes()});
     planes.push(p);
   });
   placePlanes();
 }
 function mountGallery(){
-  var h='<h2>'+cur.title+'</h2><p class="sub">'+cur.gallery.length+' photographs · pinch in or tap one to go into it</p><div class="cutgrid">';
-  cur.gallery.forEach(function(it,i){h+='<figure data-i="'+i+'"><img src="'+P+it[0]+'" alt="'+it[1]+'" loading="lazy"><figcaption>'+it[1]+'</figcaption></figure>'});
+  var h='<h2>'+cur.title+'</h2><p class="sub">'+cur.views.length+' photographs · '+cur.note+' · pinch in or tap one to go into it</p><div class="cutgrid">';
+  cur.views.forEach(function(it,i){h+='<figure data-i="'+i+'"><img src="'+P+it.s+'" alt="'+it.n+'" loading="lazy"><figcaption>'+it.n+'</figcaption></figure>'});
   gal.innerHTML=h+'</div>';
   gal.scrollTop=0;
 }
 function mountObject(key){
   curKey=key;cur=OBJECTS[key];
   mountGallery();mountPlanes();
-  $('ttl').textContent=cur.title;
-  $('bcup').setAttribute('aria-pressed',String(key==='cup'));
-  $('bscoop').setAttribute('aria-pressed',String(key==='scoop'));
+  $('ttl').textContent='';
+  $('objsel').value=key;
   resetView(true);
 }
+function heroView(){
+  for(var i=0;i<cur.views.length;i++)if(cur.views[i].hero)return cur.views[i];
+  return cur.views[0];
+}
+function faceTo(sp,hard){
+  var ty=-sp.az;
+  ty+=360*Math.round((T.yaw-ty)/360);
+  T.yaw=ty;T.pitch=-sp.el;V.yaw=V.pitch=0;
+  if(hard){S.yaw=T.yaw;S.pitch=T.pitch}
+}
 function resetView(hard){
-  T.yaw=T.pitch=T.px=T.py=0;T.scale=1;V.yaw=V.pitch=0;
-  if(hard){S.yaw=S.pitch=S.px=S.py=0;S.scale=1}
+  T.px=T.py=0;T.scale=1;
+  if(hard){S.px=S.py=0;S.scale=1;T.yaw=0}
+  faceTo(heroView(),hard);
 }
 
 function showLayer(n){
@@ -583,7 +614,7 @@ function onMove(e){
   if(gest.mode==='orbit'&&ptrN===1){
     var dx=e.clientX-gest.lx,dy=e.clientY-gest.ly;
     gest.lx=e.clientX;gest.ly=e.clientY;
-    T.yaw=clamp(T.yaw+dx*.24,-60,60);T.pitch=clamp(T.pitch-dy*.2,-34,34);
+    T.yaw=T.yaw+dx*.24;T.pitch=clamp(T.pitch-dy*.2,-86,14);
     V.yaw=dx*.24;V.pitch=-dy*.2;
   }else if(gest.mode==='pinch'&&ptrN>=2){
     var k=Object.keys(ptr),a=ptr[k[0]],b=ptr[k[1]];
@@ -626,6 +657,8 @@ function galMove(e){
 function galUp(e){delete GP[e.pointerId];if(Object.keys(GP).filter(function(x){return x!=='g'}).length<2){delete GP.g;gesture='none'}}
 function galTap(e){
   var f=e.target.closest('figure');if(!f||LAYER!==1)return;
+  var v=cur.views[+f.getAttribute('data-i')];
+  if(v&&!v.ctx&&!PL.on)faceTo(v,true);
   var r=f.getBoundingClientRect();layerGo(2,r.left+r.width/2,r.top+r.height/2);
 }
 
@@ -661,20 +694,36 @@ function onOri(e){
   tilt.ty=clamp((y-tilt.ref.y)/28,-1,1);
 }
 
+var FACE=null;
+function facing(ry,rx){
+  var a=ry*Math.PI/180,b=rx*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a),cb=Math.cos(b),sb=Math.sin(b),best=-2,bi=-1;
+  for(var i=0;i<planes.length;i++){
+    var p=planes[i];if(p.ctx)continue;
+    var n=p.n,x1=n[0]*ca+n[2]*sa,z1=-n[0]*sa+n[2]*ca,z2=n[1]*sb+z1*cb;
+    p.f=z2;
+    if(z2>best){best=z2;bi=i}
+    var u=clamp((z2-.72)/.26,0,1),op=.12+.88*(u*u*(3-2*u));
+    if(Math.abs(op-p.op)>.01){p.op=op;p.el.style.opacity=op.toFixed(3)}
+  }
+  FACE=bi;
+  if(ctxView){
+    ctxEl.style.transform='translate3d('+(Math.sin(a)*H*.05).toFixed(1)+'px,0,-'+(RING_R*U*1.7).toFixed(0)+'px)';
+  }
+}
 var lastT=0;
 function frame(t){
   var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
   pulseStep(t);
   var touching=ptrN>0;
   if(!touching){
-    T.yaw=clamp(T.yaw+V.yaw,-60,60);T.pitch=clamp(T.pitch+V.pitch,-34,34);
+    T.yaw=T.yaw+V.yaw;T.pitch=clamp(T.pitch+V.pitch,-86,14);
     V.yaw*=Math.pow(1e-5,dt);V.pitch*=Math.pow(1e-5,dt);
     if(Math.abs(V.yaw)<.01)V.yaw=0;if(Math.abs(V.pitch)<.01)V.pitch=0;
   }
   var spinOn=OPT===2&&LAYER===2&&!touching&&!PL.on;
   spinW+=((spinOn?1:0)-spinW)*(1-Math.exp(-dt*(spinOn?.8:6)));
   spinT+=dt*spinW;
-  var spin=Math.sin(spinT*.45)*30*spinW;
+  var spin=spinT*12;
   var kw=1-Math.exp(-dt*(touching?14:2.2));tilt.w+=((touching?0:1)-tilt.w)*kw;
   var kt=1-Math.exp(-dt*7);tilt.x+=(tilt.tx-tilt.x)*kt;tilt.y+=(tilt.ty-tilt.y)*kt;
   var ks=1-Math.exp(-dt*16);
@@ -683,8 +732,9 @@ function frame(t){
   if(S.entry){S.entry*=Math.pow(.02,dt);if(Math.abs(S.entry)<1)S.entry=0}
   var ry=S.yaw+spin+tilt.x*tilt.w*20,rx=S.pitch-tilt.y*tilt.w*14;
   world.style.transform='translate3d('+S.px.toFixed(1)+'px,'+S.py.toFixed(1)+'px,'+(S.entry||0).toFixed(1)+'px) scale('+S.scale.toFixed(4)+') rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
-  var gl=$('glow');gl.style.transform='translate('+(-ry*1.2).toFixed(1)+'px,'+(rx*1.2).toFixed(1)+'px) scale('+(.8+S.scale*.2).toFixed(3)+')';
+  var gl=$('glow');gl.style.transform='translate('+(-Math.sin(ry*.0174533)*80).toFixed(1)+'px,'+(Math.sin(rx*.0174533)*80).toFixed(1)+'px) scale('+(.8+S.scale*.2).toFixed(3)+')';
   S.ry=ry;S.rx=rx;
+  facing(ry,rx);
   drawSky(t);
   requestAnimationFrame(frame);
 }
@@ -714,8 +764,8 @@ function init(){
   gal.addEventListener('pointerup',galUp);
   gal.addEventListener('pointercancel',galUp);
   gal.addEventListener('click',galTap);
-  $('bcup').addEventListener('click',function(){location.hash='cup'});
-  $('bscoop').addEventListener('click',function(){location.hash='scoop'});
+  var sel=$('objsel');sel.innerHTML=ORDER.map(function(k){return '<option value="'+k+'">'+OBJECTS[k].title+'</option>'}).join('');
+  sel.addEventListener('change',function(){location.hash=sel.value});
   $('reset').addEventListener('click',function(){resetView(false)});
   $('back').addEventListener('click',function(){if(history.state&&history.state.L&&history.state.L!==BASE)history.back();else layerGo(BASE===1?1:2)});
   addEventListener('keydown',function(e){if(e.key==='Escape'&&LAYER!==BASE)history.back()});
@@ -741,7 +791,7 @@ function init(){
         ['touches',String(ptrN+Object.keys(GP).filter(function(x){return x!=='g'}).length)],['gesture',gesture]
       ];
     },
-    list:function(){return planes.map(function(p,i){return i+' · '+p.spec.n+' · z '+p.spec.z})}
+    list:function(){return planes.map(function(p,i){return i+' · '+p.spec.n+(p.ctx?' · context card':' · az '+p.spec.az+' el '+p.spec.el+' · face '+f(p.f,2)+(i===FACE?' *':''))})}
   });
   requestAnimationFrame(frame);
 }
