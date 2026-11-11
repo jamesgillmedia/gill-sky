@@ -299,6 +299,7 @@ html.reelon #mmap{display:none !important}
 #laytext span{display:block;font-size:14.5px;line-height:1.55;letter-spacing:.01em}
 #laytext.lv1 span{font-size:30px;line-height:1.2;letter-spacing:.01em}
 #laytext.lv2 span{font-size:15px;line-height:1.35}
+@media(min-width:900px){#laytext.lv2{right:auto;width:fit-content;max-width:62%;height:fit-content;margin:auto 0;padding:28px 40px;background:rgba(4,7,11,.52);border-radius:18px;box-shadow:0 0 26px 14px rgba(4,7,11,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);text-shadow:0 1px 3px rgba(0,0,0,.9)}#laytext.lv2 span{font-size:22px;line-height:1.4}}
 #layers .copy.sel,#layers .copy.sel *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 #lrail{position:absolute;z-index:3;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;align-items:center}
 #lrail i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);display:block}
