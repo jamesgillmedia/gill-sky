@@ -294,7 +294,7 @@ function openTile(api,it){
     else kids=shotsOf(work);
     if(kids&&kids.length>1){
       board={k:cur.k,title:work.title,items:tilesFrom(kids,work),fine:true,parent:board,work:work};
-      api.setCur({lv:1,k:cur.k,id:work.id});
+      api.setCur({lv:1,k:cur.k,id:work.id,b:1});
       api.arrive();
       preload(board.items,api);
       return;
@@ -546,6 +546,12 @@ function sync(cur,api){
   if(cur.lv===1){
     filmLv=0;still=null;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);
     if(soundOn)hideSound();
+    var fw=cur.id&&api.byId(cur.id),fk=fw&&shotsOf(fw);
+    if(fk&&fk.length>1){
+      if(!(board&&board.fine&&board.work===fw))board={k:cur.k,title:fw.title,items:tilesFrom(fk,fw),fine:true,parent:makeBoard(api,cur.k),work:fw};
+      preload(board.items,api);
+      return;
+    }
     if(!board||board.k!==cur.k||board.fine)board=makeBoard(api,cur.k);
     preload(board.items,api);
     return;

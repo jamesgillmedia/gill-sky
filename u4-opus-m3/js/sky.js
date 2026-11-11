@@ -1660,6 +1660,7 @@ function hashOf(c){
   if(!c||c.lv===0)return '#/';
   if(c.k==='progress'&&c.lv===1)return '#progress';
   if(c.k==='progress'&&c.id&&byId[c.id])return '#progress/'+byId[c.id].slug;
+  if(c.lv===1&&c.b&&c.id&&byId[c.id])return '#'+byId[c.id].chapter+'/'+byId[c.id].slug;
   if(c.lv===1&&c.b)return '#'+c.k+'/board';
   if(c.lv===1)return '#'+c.k;
   if(c.id&&byId[c.id])return '#'+byId[c.id].chapter+'/'+byId[c.id].slug;
@@ -1669,6 +1670,7 @@ function ui(){
   syncHist();
   var back=$('back'),where=$('where');
   back.hidden=cur.lv===0;
+  document.documentElement.classList.toggle('mapdim',onBoard()||(bioOn&&isBio()));
   var foot=$('foot');if(foot)foot.hidden=phase==='sky'||phase==='fly';
   var label='the sky';
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())label='sound';
