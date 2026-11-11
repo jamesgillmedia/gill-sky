@@ -1,6 +1,6 @@
 /* 3d/ only. Narrower scope than m4's sw.js, so it owns this folder: network first, cache as a fallback when offline.
    Bump REV with every save. Video and audio are never stored. */
-var REV = '3d-1';
+var REV = '3d-2';
 var CACHE = 'shell-' + (new URL('./', self.location).pathname) + '-' + REV;
 self.addEventListener('install', function (e) { self.skipWaiting() });
 self.addEventListener('activate', function (e) {

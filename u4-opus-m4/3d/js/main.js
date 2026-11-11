@@ -4,14 +4,15 @@
 import * as SE from './spirit-eye.js';
 const html = document.documentElement;
 const $ = s => document.querySelector(s);
-const WHERE = $('#where'), PANEL = $('#panel'), CAP = $('#cap'), HOMEB = $('#home');
+const WHERE = $('#where'), PANEL = $('#panel'), HOMEB = $('#home');
+const UNL = (() => { try { return sessionStorage.getItem('gj3.se') === '1' } catch (e) { return false } })();
+function saveUnlock() { try { sessionStorage.setItem('gj3.se', '1') } catch (e) {} }
 const LOG = []; function log(k, v) { LOG.push([Math.round(performance.now()), k, v]); if (LOG.length > 300) LOG.shift() }
 const LINK = k => '../#' + k + '/board';
 let PHOTOS = null; const photosP = window.GJ3_PHOTOS().then(p => (PHOTOS = p)).catch(e => { console.warn(e); return [] });
 const dataP = fetch('../data.json').then(r => r.json());
 function openReel(start, onClose) { photosP.then(p => { if (!p.length) return; html.classList.add('reelon'); window.GJ3_REEL.open({ photos: p, start: start || 0, onClose: () => { html.classList.remove('reelon'); if (onClose) onClose() } }); if (location.hash !== '#photo') history.replaceState(null, '', '#photo'); log('reel', 1) }) }
 /* ---------- caption (DOM, shared by both modes) ---------- */
-CAP.querySelector('.t').textContent = SE.data.title; CAP.querySelector('.b').textContent = SE.data.byline; CAP.querySelector('.p').textContent = SE.data.credit; CAP.querySelector('a').href = SE.data.page;
 /* ---------- no WebGL: plain anchor + chapter links; the reel still works ---------- */
 async function fallback() {
   html.classList.add('nogl'); SE.fallback($('#fb .se'));
@@ -66,7 +67,9 @@ function start() {
     lines.forEach(l => { x.font = l.f; x.fillStyle = l.c || '#e4ebf5'; x.textAlign = 'center'; x.textBaseline = 'middle'; if (l.ls) x.letterSpacing = l.ls; x.fillText(l.s, w / 2, l.y) }); return ctex(c) }
   function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
   /* ---------- the anchor ---------- */
-  const A = SE.mount(THREE, scene, GT);
+  const SEC = SE.mount(THREE, scene, { glowTex: GT, text: $('#setext'), dial: $('#sedial'), unlocked: UNL || !!location.hash.slice(1),
+    onUnlock: () => { saveUnlock(); html.classList.remove('selocked') }, pickCluster: (x, y) => pick(x, y), onLeave: C => leftSE(C) });
+  if (!SEC.unlocked) html.classList.add('selocked'); else saveUnlock();
   /* ---------- six clusters on an orbit around it ---------- */
   const CL = []; let RX = 30, RY = 20, ORB = 0; const ring = new THREE.LineLoop(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0x8fb0e0, transparent: true, opacity: .12, depthWrite: false })); scene.add(ring);
   function build(d) {
@@ -86,83 +89,84 @@ function start() {
     const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); tv = Math.tan(cam.fov * Math.PI / 360); th = tv * cam.aspect; U.uPx.value = R.getPixelRatio() * h / 780;
     const D = HOME.d; RX = Math.max(11, Math.min(32, D * th * .68)); RY = Math.max(12, Math.min(24, D * tv * .52));
     const pts = []; for (let j = 0; j < 96; j++) { const a = j / 96 * 6.283; pts.push(new THREE.Vector3(Math.cos(a) * RX, Math.sin(a) * RY, Math.sin(a * 2) * 4)) } ring.geometry.setFromPoints(pts);
-    if (FOC) aim(FOC, true);
+    if (FOC) aim(FOC, true); SEC.resize(w / h);
   }
   function cpos(C, out) { const a = C.a0 + ORB; return out.set(Math.cos(a) * RX, Math.sin(a) * RY, Math.sin(a * 2) * 4) }
   /* ---------- camera rig: target + orbit angles + distance ---------- */
-  const HOME = { d: 70, el: .1 };
-  const anchorDist = () => Math.max(A.h / 2 / (tv * .8), A.w / 2 / (th * .86));
+  const HOME = { d: 70, el: .3 };
   const clusterDist = () => Math.max(7.5 / (tv * .8), 7 / (th * .9));
   let FOC = null, MODE = 'open';/* open | home | anchor | cluster | reel */
   function setT(p, w) { T[0].t = p.x; T[1].t = p.y; T[2].t = p.z; T.forEach(s => s.w = w) }
   function face(w) { AZ.t = Math.round(AZ.x / 6.283) * 6.283; AZ.w = EL.w = w }
   const v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
   function aim(C, keep) { FOC = C; MODE = 'cluster'; cpos(C, v3); setT(v3, W_FLY); if (!keep) { DIST.t = clusterDist(); DIST.w = W_FLY; face(W_FLY); EL.t = .08 } showPanel(C); where(C.nm); log('cluster', C.k) }
-  function goAnchor() { FOC = null; MODE = 'anchor'; setT(v3.set(0, 0, 0), W_FLY); DIST.t = anchorDist(); DIST.w = W_FLY; face(W_FLY); EL.t = 0; showPanel(null); CAP.classList.add('on'); where(''); log('anchor', 1) }
-  function goHome(w) { FOC = null; MODE = 'home'; setT(v3.set(0, 0, 0), w || W_FLY); DIST.t = HOME.d; DIST.w = w || W_FLY; face(w || W_FLY); EL.t = HOME.el; showPanel(null); CAP.classList.remove('on'); where('everything'); log('home', 1) }
+  /* Spirit Eye hands the camera back: the rig starts exactly where the camera is (no jump), then glides */
+  const fw = new THREE.Vector3();
+  function adopt() { cam.getWorldDirection(fw); const d = Math.max(8, cam.position.length()); const tp = cam.position.clone().addScaledVector(fw, d); T.forEach((q, i) => { q.x = q.t = tp.getComponent(i); q.v = 0 });
+    const o = cam.position.clone().sub(tp); DIST.x = DIST.t = o.length(); DIST.v = 0; EL.x = EL.t = Math.asin(Math.max(-1, Math.min(1, o.y / DIST.x))); AZ.x = AZ.t = Math.atan2(o.x, o.z); AZ.v = EL.v = 0 }
+  function leftSE(C) { adopt(); if (C) aim(C); else goHome(); }
+  function goSE() { FOC = null; MODE = 'se'; showPanel(null); where(''); cam.getWorldDirection(fw); SEC.enterFrom(cam.position, cam.position.clone().addScaledVector(fw, 20)); log('se', 1) }
+  function goHome(w) { FOC = null; MODE = 'home'; setT(v3.set(0, 0, 0), w || W_FLY); DIST.t = HOME.d; DIST.w = w || W_FLY; face(w || W_FLY); EL.t = HOME.el; showPanel(null); where('everything'); log('home', 1) }
   function where(s) { WHERE.textContent = s }
   function showPanel(C) {
     if (!C) { PANEL.hidden = true; return } PANEL.hidden = false; PANEL.querySelector('.n').textContent = C.nm; PANEL.querySelector('.m').textContent = C.n + (C.k === 'photo' ? ' · the reel' : '');
     const a = PANEL.querySelector('a'); a.textContent = C.k === 'photo' ? 'open the reel ›' : 'open ' + C.nm + ' ›'; a.href = C.k === 'photo' ? '#photo' : LINK(C.k); a.dataset.k = C.k }
   PANEL.querySelector('a').addEventListener('click', e => { if (e.currentTarget.dataset.k === 'photo') { e.preventDefault(); reel() } });
-  function reel(start) { MODE = 'reel'; PANEL.hidden = true; CAP.classList.remove('on'); html.classList.add('reelon'); openReel(start, () => { html.classList.remove('reelon'); history.replaceState(null, '', location.pathname); const C = CL.find(c => c.k === 'photo'); if (C) aim(C); else goHome() }) }
+  function reel(start) { MODE = 'reel'; PANEL.hidden = true; html.classList.add('reelon'); openReel(start, () => { html.classList.remove('reelon'); history.replaceState(null, '', location.pathname); const C = CL.find(c => c.k === 'photo'); if (C) aim(C); else goHome() }) }
   function openC(C) { if (C.k === 'photo') reel(); else { log('nav', LINK(C.k)); location.href = LINK(C.k) } }
   /* ---------- input: drag = turn around the target, pinch / wheel = distance, tap = fly / open ---------- */
   const cv = $('#c'), PT = new Map(); let drag = null, pinch = null, lastIn = 0;
-  function seen() { lastIn = performance.now(); if (MODE === 'open') pullOut() }
-  cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId) } catch (x) {} PT.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now() });
+  function seen() { lastIn = performance.now() }
+  cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId) } catch (x) {} if (MODE === 'se') { SEC.down(e); return } PT.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: performance.now() });
     if (PT.size === 1) drag = { id: e.pointerId, moved: 0 }; else if (PT.size === 2) { drag = null; const a = [...PT.values()]; pinch = { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) } } });
-  cv.addEventListener('pointermove', e => { const p = PT.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  cv.addEventListener('pointermove', e => { if (MODE === 'se') { SEC.move(e); return } const p = PT.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
     if (pinch && PT.size >= 2) { const a = [...PT.values()], d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y); if (pinch.d > 0 && d > 0) zoom(pinch.d / d); pinch.d = d; return }
     if (drag && drag.id === e.pointerId) { drag.moved += Math.abs(dx) + Math.abs(dy); if (drag.moved < 6) return; seen(); const f = innerHeight / 2 / tv;
       AZ.t -= dx / f * 1.4; AZ.x = AZ.t; AZ.v = 0; EL.t = Math.max(-.7, Math.min(1.1, EL.t + dy / f * 1.2)); EL.x = EL.t; EL.v = 0 } });
-  function up(e) { const p = PT.get(e.pointerId); if (!p) return; PT.delete(e.pointerId); if (pinch) { if (PT.size < 2) pinch = null; drag = null; return }
+  function up(e) { if (MODE === 'se') { SEC.up(e); return } const p = PT.get(e.pointerId); if (!p) return; PT.delete(e.pointerId); if (pinch) { if (PT.size < 2) pinch = null; drag = null; return }
     if (drag && drag.id === e.pointerId && drag.moved < 10 && performance.now() - p.t0 < 400) tap(e.clientX, e.clientY); drag = null }
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
   ['touchstart', 'touchmove', 'gesturestart', 'gesturechange'].forEach(t => cv.addEventListener(t, e => e.preventDefault(), { passive: false }));
-  cv.addEventListener('wheel', e => { e.preventDefault(); const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1); zoom(Math.exp((e.ctrlKey ? dy * .01 : dy * .0015))) }, { passive: false });
+  cv.addEventListener('wheel', e => { e.preventDefault(); if (MODE === 'se') { SEC.wheel(e); return } const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1); zoom(Math.exp((e.ctrlKey ? dy * .01 : dy * .0015))) }, { passive: false });
   function zoom(k) { seen(); DIST.t = Math.max(3.5, Math.min(170, DIST.t * k)); DIST.w = 6;
-    if (k > 1.001 && FOC && DIST.t > clusterDist() * 2.2) goHome(); if (k > 1.001 && MODE === 'anchor' && DIST.t > anchorDist() * 2.4) goHome() }
+    if (k > 1.001 && FOC && DIST.t > clusterDist() * 2.2) goHome(); }
   function scr(p) { v4.copy(p).project(cam); return [(v4.x + 1) / 2 * innerWidth, (1 - v4.y) / 2 * innerHeight, v4.z] }
-  function pick(x, y) { let best = null, bd = 1e9; CL.forEach(C => { const s = C.scr, d = Math.hypot(s[0] - x, s[1] - y), lim = Math.max(60, Math.min(160, 900 / Math.max(1, cam.position.distanceTo(C.g.position)) * 6)); if (s[2] < 1 && d < lim && d < bd) { bd = d; best = C } }); return best }
-  function onAnchor(x, y) { const a = scr(new THREE.Vector3(-A.w / 2, A.h / 2, 0)), b = scr(new THREE.Vector3(A.w / 2, -A.h / 2, 0)); return a[2] < 1 && b[2] < 1 && x > Math.min(a[0], b[0]) && x < Math.max(a[0], b[0]) && y > Math.min(a[1], b[1]) && y < Math.max(a[1], b[1]) }
+  function pick(x, y) { let best = null, bd = 1e9; if (!SEC.unlocked) return null; CL.forEach(C => { const s = C.scr, d = Math.hypot(s[0] - x, s[1] - y), lim = Math.max(60, Math.min(160, 900 / Math.max(1, cam.position.distanceTo(C.g.position)) * 6)); if (s[2] < 1 && d < lim && d < bd) { bd = d; best = C } }); return best }
+  function onAnchor(x, y) { return SEC.hit(x, y, cam) }
   function tap(x, y) { seen(); const C = pick(x, y);
     if (C) { if (FOC === C) openC(C); else aim(C); return }
-    if (onAnchor(x, y)) { if (MODE === 'anchor') { log('nav', SE.data.page); location.href = SE.data.page } else goAnchor(); return }
+    if (onAnchor(x, y)) { goSE(); return }
     if (MODE !== 'home') goHome() }
-  HOMEB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); goHome() });
-  addEventListener('keydown', e => { if (window.GJ3_REEL.isOpen) return; seen(); if (e.key === 'Escape' || e.key === 'Home') goHome();
+  HOMEB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); if (MODE === 'se') { if (SEC.unlocked) SEC.leave() } else goHome() });
+  addEventListener('keydown', e => { if (window.GJ3_REEL.isOpen) return; if (MODE === 'se') { SEC.key(e); return } seen(); if (e.key === 'Escape' || e.key === 'Home') goHome();
     else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const i = FOC ? CL.indexOf(FOC) : -1, n = CL.length; aim(CL[(i + (e.key === 'ArrowRight' ? 1 : n - 1) + (i < 0 && e.key === 'ArrowLeft' ? 1 : 0)) % n]) }
     else if (e.key === 'Enter' && FOC) openC(FOC) });
-  /* ---------- the opening: framed on Spirit Eye, then pull out to the clusters ---------- */
-  let openT = 0;
-  function pullOut() { if (MODE !== 'open') return; clearTimeout(openT); goHome(W_OUT); CAP.classList.add('on'); setTimeout(() => { if (MODE === 'home') CAP.classList.remove('on') }, 1600); log('pullout', 1) }
   /* ---------- loop ---------- */
   let last = performance.now(), fc = 0, ft = last, fps = 0;
   function frame(now) { requestAnimationFrame(frame); const dt = Math.min(.05, (now - last) / 1000); last = now; fc++; if (now - ft >= 1000) { fps = fc * 1000 / (now - ft); fc = 0; ft = now }
     U.uT.value = now / 1000; ORB += dt * .0065; /* one slow orbit every ~16 min */
+    if (MODE === 'se' && !SEC.active) MODE = 'home';
+    if (html.classList.contains('sem') !== (MODE === 'se')) html.classList.toggle('sem', MODE === 'se');
+    if (MODE === 'se') { SEC.update(now, cam); cam.updateMatrixWorld() } else {
     if (FOC) { cpos(FOC, v3); T[0].t = v3.x; T[1].t = v3.y; T[2].t = v3.z }
     T.forEach(s => sstep(s, dt)); if (!drag) { sstep(AZ, dt); sstep(EL, dt) } sstep(DIST, dt);
     const ce = Math.cos(EL.x); cam.position.set(T[0].x + Math.sin(AZ.x) * ce * DIST.x, T[1].x + Math.sin(EL.x) * DIST.x, T[2].x + Math.cos(AZ.x) * ce * DIST.x);
-    cam.lookAt(T[0].x, T[1].x, T[2].x); cam.updateMatrixWorld();
-    const reelOn = MODE === 'reel' && window.GJ3_REEL.isOpen; A.group.visible = ring.visible = !reelOn;
-    CL.forEach(C => { cpos(C, C.g.position); C.g.visible = !reelOn; C.g.quaternion.copy(cam.quaternion); C.scr = scr(C.g.position);
+    cam.lookAt(T[0].x, T[1].x, T[2].x); cam.updateMatrixWorld(); SEC.update(now, cam) }
+    const reelOn = MODE === 'reel' && window.GJ3_REEL.isOpen; SEC.group.visible = !reelOn; ring.visible = !reelOn && SEC.unlocked;
+    CL.forEach(C => { cpos(C, C.g.position); C.g.visible = !reelOn && SEC.unlocked; C.g.quaternion.copy(cam.quaternion); C.scr = scr(C.g.position);
       const d = cam.position.distanceTo(C.g.position), on = FOC === C; C.lab.material.opacity = .6 + .4 * Math.min(1, 60 / d); C.lines.material.opacity = on ? .55 : .3;
       C.st.forEach(s => { const k = s.userData.k * (on ? 1.25 : 1); s.scale.set(k, k, 1) }) });
-    A.update(now, cam.position.length());
     R.render(scene, cam) }
   addEventListener('resize', layout);
   addEventListener('hashchange', () => { const h = location.hash.slice(1); if (h === 'photo') { if (!window.GJ3_REEL.isOpen) reel(0) } else { const C = CL.find(c => c.k === h); if (C) { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); aim(C) } } });
   Promise.all([dataP, document.fonts.load('84px "Julius Sans One"').catch(() => 0)]).then(a => {
     build(a[0]);
     const h = location.hash.slice(1), C0 = CL.find(c => c.k === h);
-    if (h === 'photo') { goHome(); T.forEach(s => s.x = s.t); DIST.x = DIST.t; EL.x = EL.t; reel(0) }
-    else if (C0) { goHome(); DIST.x = DIST.t; EL.x = EL.t; aim(C0) }
-    else { /* start framed close on the anchor, ease in, hold, then pull out */
-      const ad = anchorDist(); DIST.x = ad * 1.5; DIST.t = ad; DIST.w = 1.8; EL.x = EL.t = 0; MODE = 'open'; CAP.classList.add('on'); where('');
-      openT = setTimeout(pullOut, 3200) }
+    if (h === 'photo') { SEC.leave(); T.forEach(s => s.x = s.t); DIST.x = DIST.t; EL.x = EL.t; reel(0) }
+    else if (C0) { SEC.leave(); DIST.x = DIST.t; EL.x = EL.t; aim(C0) }
+    else { MODE = 'se'; where('') } /* Spirit Eye first; the viewer drives everything from here */
     requestAnimationFrame(frame); html.classList.add('ready'); log('ready', CL.length) }).catch(e => { console.warn(e); fallback() });
-  window.__s3 = { st: () => ({ mode: MODE, foc: FOC && FOC.k, dist: +DIST.x.toFixed(2), distT: +DIST.t.toFixed(2), el: +EL.x.toFixed(3), az: +AZ.x.toFixed(3), fps: Math.round(fps), stars: NSTAR, cl: CL.map(C => ({ k: C.k, x: Math.round(C.scr[0]), y: Math.round(C.scr[1]), z: +C.scr[2].toFixed(3) })), anchor: scr(new THREE.Vector3(0, 0, 0)).map(v => +v.toFixed(2)), reel: window.GJ3_REEL.isOpen }),
-    log: LOG, home: () => goHome(), anchor: goAnchor, aim: k => aim(CL.find(c => c.k === k)), pullOut: pullOut };
+  window.__s3 = { st: () => ({ mode: MODE, se: SEC.st(), foc: FOC && FOC.k, dist: +DIST.x.toFixed(2), distT: +DIST.t.toFixed(2), el: +EL.x.toFixed(3), az: +AZ.x.toFixed(3), fps: Math.round(fps), stars: NSTAR, cl: CL.map(C => ({ k: C.k, x: Math.round(C.scr[0]), y: Math.round(C.scr[1]), z: +C.scr[2].toFixed(3) })), anchor: scr(new THREE.Vector3(0, 0, 0)).map(v => +v.toFixed(2)), reel: window.GJ3_REEL.isOpen }),
+    log: LOG, home: () => goHome(), se: SEC, goSE: goSE, aim: k => aim(CL.find(c => c.k === k)) };
 }
 window.__s3log = LOG;

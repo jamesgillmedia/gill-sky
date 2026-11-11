@@ -69,3 +69,43 @@ html,body{margin:0;height:100%;background:var(--bg);color:#cfd8e6;overflow:hidde
 .rl-cell img{max-width:100%;max-height:100%;display:block;-webkit-user-drag:none}
 .rl-cell.on{outline:1px solid var(--mint);outline-offset:1px}
 .reelon #panel,.reelon #cap,.reelon #where,.reelon #home,.reelon #site{display:none}
+/* ---------- save 2 · Spirit Eye (js/spirit-eye.js) ---------- */
+.selocked #home{display:none}
+#setext{position:fixed;left:0;right:0;bottom:0;z-index:2;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+  padding:44px max(20px,env(safe-area-inset-left)) max(22px,calc(env(safe-area-inset-bottom) + 14px));box-sizing:border-box;text-align:center;
+  background:linear-gradient(rgba(4,6,12,0),rgba(4,6,12,.72) 38px,rgba(4,6,12,.86));pointer-events:none;opacity:0;transition:opacity .2s}
+#setext.on{opacity:1;pointer-events:auto;transition:opacity .25s}
+#setext:empty{display:none}
+#setext>*{max-width:620px;margin-left:auto;margin-right:auto;opacity:0;transform:none;transition:opacity .7s ease}
+#setext.on>*{opacity:1}
+#setext:not(.on)>*{transition-delay:0s!important;transition-duration:.15s}
+#setext h2{margin:0 auto 8px;font:300 clamp(15px,4vw,20px)/1.25 "Julius Sans One",sans-serif;letter-spacing:.2em;color:var(--ink)}
+#setext[data-k=arrival] h2{font-size:clamp(18px,5vw,26px);letter-spacing:.14em}
+#setext p{margin:0 auto 9px;font-size:13.5px;line-height:1.6;letter-spacing:.02em;color:rgba(222,232,244,.9)}
+#setext p.by{font-size:12px;letter-spacing:.12em;color:var(--dim)}
+#setext p.sub{font:300 14px/1.4 "Julius Sans One",sans-serif;letter-spacing:.12em;color:var(--mint2)}
+#setext p.pair b{font-weight:400;color:var(--ink);letter-spacing:.06em}
+#setext ul.cv{list-style:none;padding:0;margin:0 auto}
+#setext ul.cv li{margin:0 0 5px;font-size:13.5px;line-height:1.5;opacity:0;transition:opacity .7s}
+#setext.on ul.cv li{opacity:1}
+#setext ul.cv li::before{content:"-";margin-right:.25em;color:var(--dim)}
+#setext ul.plants{list-style:none;padding:0;margin:12px auto 0;display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:11px;line-height:1.45;letter-spacing:.04em;color:rgba(191,245,223,.78)}
+#sedial{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));margin-left:-24px;width:48px;height:48px;border-radius:50%;z-index:3;border:1px solid rgba(207,216,230,.28);background:rgba(4,6,12,.45);box-sizing:border-box}
+#sedial b{position:absolute;left:50%;top:50%;width:14px;height:22px;margin:-22px 0 0 -7px;transform-origin:7px 22px;transform:rotate(var(--a));cursor:pointer}
+#sedial b::after{content:"";position:absolute;left:6.5px;top:3px;width:1px;height:6px;background:rgba(230,238,242,.6)}
+#sedial b.lt::after{height:9px;top:1px;background:rgba(255,236,200,.9)}
+#sedial b.on::after{background:#fff}
+#sedial .sun{position:absolute;left:50%;top:50%;width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:#ffd58a;box-shadow:0 0 8px 3px rgba(255,213,138,.6);pointer-events:none}
+.sem #where{display:none}
+html:not(.sem) #sedial,html:not(.sem) #setext{display:none}
+.reelon #setext,.reelon #sedial{display:none}
+.nogl #setext,.nogl #sedial{display:none}
+.se-seq{max-width:640px;margin:0 auto;text-align:center}
+.se-s{margin:0 0 46px}.se-s img{width:100%;height:auto;display:block;border:1px solid var(--line);margin:0 0 14px}
+.se-s h2{font:300 18px/1.3 "Julius Sans One",sans-serif;letter-spacing:.18em;color:var(--ink);margin:0 0 8px}
+.se-s p{font-size:13.5px;line-height:1.6;margin:0 0 9px}.se-s p.by{font-size:12px;letter-spacing:.12em;color:var(--dim)}.se-s p.sub{font-family:"Julius Sans One",sans-serif;letter-spacing:.12em;color:var(--mint2)}
+.se-s ul{list-style:none;padding:0;margin:0}.se-s ul.cv li{margin:0 0 5px}.se-s ul.cv li::before{content:"-";margin-right:.25em}
+.se-s ul.plants{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;font-size:11px;color:rgba(191,245,223,.78);margin-top:10px}
+.se-s.light{height:62vh;position:relative;background:#06090b;border:1px solid var(--line)}
+.se-s.light .beam{position:absolute;left:50%;top:0;bottom:12%;width:44%;transform:translateX(-50%);clip-path:polygon(38% 0,62% 0,100% 100%,0 100%);background:linear-gradient(rgba(255,240,205,.55),rgba(255,236,190,.85))}
+.se-s.light::after{content:"";position:absolute;left:12%;right:12%;bottom:6%;height:14%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,246,222,.95),rgba(255,220,160,.35),transparent)}
