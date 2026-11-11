@@ -709,6 +709,7 @@ function boardSpec(key,items){
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
   var maxW=Math.min(W-28,680,room.w),pad=10,gap=8,head=44,AW=maxW+28;
   if(key==='film'||key==='objects'){pad=8;gap=6}
+  if(key==='film')gap=14;
   var cols=key==='about'?(AW<520?1:2):key==='film'?(AW<520?2:3):(AW<520?3:AW<860?4:6);
   if(key==='photo')gap=14;
   var tw=(maxW-pad*2-gap*(cols-1))/cols;
@@ -736,14 +737,11 @@ function boardSpec(key,items){
     });
     rects.forEach(function(r){bottom=Math.max(bottom,r.y+r.h)});
   }else if(key==='film'){
-    var colF=[],c0;
-    for(i=0;i<cols;i++)colF.push(i%2?Math.round((th+30)*.34):0);
-    items.forEach(function(it){
-      var c=0,cl=capLines(it,tw),chh=cl.t.length*12+(cl.m?12:0)+6;
-      for(c0=1;c0<cols;c0++)if(colF[c0]<colF[c]-1)c=c0;
-      var y=colF[c];
+    /* Straight rows: every tile in a row shares one top, one title line and one role line under it, so a row is as tall as a tile plus its caption. */
+    var chh=12+12+6,rowF=th+chh+FILM_ROWGAP;
+    items.forEach(function(it,j){
+      var r=Math.floor(j/cols),c=j%cols,cl=capLines(it,tw),y=r*rowF;
       rects.push({x:c*(tw+gap),y:y,w:tw,h:th,cl:cl,ch:chh});
-      colF[c]=y+th+chh+gap;
       bottom=Math.max(bottom,y+th+chh);
     });
   }else{
@@ -778,10 +776,12 @@ function realTitle(it){
   if(!t||t==='untitled'||/^photograph\s+\d+$/i.test(t))return '';
   return t;
 }
+var FILM_ROWGAP=18;
 function capLines(it,w){
   var t=realTitle(it);
   var m=it.role||it.meta||'';
-  return {t:t?wrap2(t,w-2):[],m:m};
+  g.font='300 10.5px Poppins,sans-serif';
+  return {t:t?[cut(t,w-2)]:[],m:m};
 }
 function tileRect(spec,i,scroll){
   if(spec.rects){var t=spec.rects[i]||{x:0,y:0,w:0,h:0};return {x:spec.x0+spec.pad+t.x,y:spec.y0+spec.head+t.y-scroll,w:t.w,h:t.h}}
@@ -880,7 +880,15 @@ function drawWindow(){
   }
   g.save();
   g.beginPath();g.rect(spec.x0+1,spec.y0+(spec.head-6),spec.w-2,spec.winH-(spec.head-6));g.clip();
-  if(spec.board&&(spec.key==='film'||spec.key==='objects')&&items.length>1){
+  if(spec.board&&spec.key==='film'&&items.length>1){
+    /* Straight rows: a short thread across the gutter joins each tile to its partner, clear of the titles. */
+    g.globalAlpha=.2*b;g.strokeStyle='rgba(207,216,230,1)';g.lineWidth=1;g.beginPath();
+    for(var fi=0;fi<items.length;fi++){
+      var fr=tileRect(spec,fi,scr.x),fcy=fr.y+fr.h/2;
+      if(fi%spec.cols<spec.cols-1&&fi+1<items.length){g.moveTo(fr.x+fr.w,fcy);g.lineTo(fr.x+fr.w+spec.gap,fcy)}
+    }
+    g.stroke();
+  }else if(spec.board&&spec.key==='objects'&&items.length>1){
     g.globalAlpha=.2*b;g.strokeStyle='rgba(207,216,230,1)';g.lineWidth=1;g.beginPath();
     for(var ti=0;ti<items.length;ti++){var tr=tileRect(spec,ti,scr.x),cx0=tr.x+tr.w/2,cy0=tr.y+tr.h/2;if(ti)g.lineTo(cx0,cy0);else g.moveTo(cx0,cy0)}
     g.stroke();
@@ -971,7 +979,7 @@ function drawWindow(){
       if(rr.cl.m){
         g.font='300 9px Poppins,sans-serif';
         g.fillStyle=it.role?'rgba('+MINT+',.85)':'rgba(228,221,210,.6)';
-        g.fillText(cut(rr.cl.m,w),x,y+h+3+rr.cl.t.length*12+1);
+        g.fillText(cut(rr.cl.m,w),x,y+h+3+13);
       }
     }else if(b>.72&&spec.board&&spec.cap>=20&&capText){
       g.globalAlpha=b;g.textAlign='left';g.textBaseline='top';
