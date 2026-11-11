@@ -441,8 +441,8 @@
       ]
     },
     "scoop": {
-      "title": "ceramic oyster scoop",
-      "note": "Cream, almost oyster-shaped bowl with a charred ridged handle. Only four unique stills exist across the Nov 9 drop and the older photography archive. Two of the four (front and side) are not in the Nov 9 batch.",
+      "title": "ice cream scoop",
+      "note": "Cream bowl with a charred ridged handle. Only four unique stills exist across the Nov 9 drop and the older photography archive. Two of the four (front and side) are not in the Nov 9 batch.",
       "count": 4,
       "angles_present": [
         "context",
@@ -461,7 +461,7 @@
           "thumb": "scoop/01-three-quarter-0456C57F-49C0-4B5D-B7DE-D67B647AC163-480.webp",
           "angle": "three-quarter",
           "source": "0456C57F-49C0-4B5D-B7DE-D67B647AC163.JPG",
-          "description": "Held in hand, bowl pointing up; cream oyster bowl and faceted charred handle.",
+          "description": "Held in hand, bowl pointing up; cream bowl and faceted charred handle.",
           "pixels": [
             960,
             1200
@@ -472,7 +472,7 @@
           "thumb": "scoop/02-in-hand-SCOOP-03-480.webp",
           "angle": "in-hand",
           "source": "scoop-03-in-hand-front.jpg (from older gilljames archive 6bd86d_388e4910\u2026; not in the Nov 9 Drive batch)",
-          "description": "Frontal view of the full oyster bowl and the join to the charred, ridged handle.",
+          "description": "Frontal view of the full bowl and the join to the charred, ridged handle.",
           "pixels": [
             960,
             1200
@@ -483,7 +483,7 @@
           "thumb": "scoop/03-side-SCOOP-04-480.webp",
           "angle": "side",
           "source": "scoop-04-in-hand-side-bowl.jpg (from older gilljames archive 6bd86d_0f25314d\u2026; not in the Nov 9 Drive batch)",
-          "description": "Side profile of the cream oyster bowl, handle going back behind the fingers.",
+          "description": "Side profile of the cream bowl, handle going back behind the fingers.",
           "pixels": [
             960,
             1200

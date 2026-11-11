@@ -14,7 +14,7 @@ Picks were made by looking at the photographs, not just the catalogue captions. 
 | dark-glazed cups and bowls | 6 | side, three-quarter, top | No underside or foot view; No handle (these cups are handleless) |
 | unfired raw clay cups | 6 | context, side, three-quarter, top | No dedicated underside still (a bowl interior appears in the studio sheet); No handle |
 | ashy process bowls | 9 | side, three-quarter, top, underside | No underside or true side of the small grey cup or the tan-rim bowl (only of the wide bowl); No handle |
-| ceramic oyster scoop | 4 | context, in-hand, side, three-quarter | No underside of the bowl; No handle seen end-on, and no clean product-style rotation |
+| ice cream scoop | 4 | context, in-hand, side, three-quarter | No underside of the bowl; No handle seen end-on, and no clean product-style rotation |
 
 ## joio cup (`joio-cup/`)
 
@@ -102,15 +102,15 @@ Three related process pieces, not one object: a wide hemispherical sooty bowl, a
 - The ring mixes three related process pieces. The wide bowl is the only one with a complete side–three-quarter–top–underside set.
 - In-home stills of the small grey cup (IMG_4351–4356) were left out because they show hallways, chairs and other rooms.
 
-## ceramic oyster scoop (`scoop/`)
+## ice cream scoop (`scoop/`)
 
-Cream, almost oyster-shaped bowl with a charred ridged handle. Only four unique stills exist across the Nov 9 drop and the older photography archive. Two of the four (front and side) are not in the Nov 9 batch.
+Cream bowl with a charred ridged handle. Only four unique stills exist across the Nov 9 drop and the older photography archive. Two of the four (front and side) are not in the Nov 9 batch.
 
 | # | File | Angle | Source | Description |
 |---|---|---|---|---|
-| 1 | `01-three-quarter-0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg` | three-quarter | `0456C57F-49C0-4B5D-B7DE-D67B647AC163.JPG` | Held in hand, bowl pointing up; cream oyster bowl and faceted charred handle. |
-| 2 | `02-in-hand-SCOOP-03.jpg` | in-hand | `scoop-03-in-hand-front.jpg (from older gilljames archive 6bd86d_388e4910…; not in the Nov 9 Drive batch)` | Frontal view of the full oyster bowl and the join to the charred, ridged handle. |
-| 3 | `03-side-SCOOP-04.jpg` | side | `scoop-04-in-hand-side-bowl.jpg (from older gilljames archive 6bd86d_0f25314d…; not in the Nov 9 Drive batch)` | Side profile of the cream oyster bowl, handle going back behind the fingers. |
+| 1 | `01-three-quarter-0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg` | three-quarter | `0456C57F-49C0-4B5D-B7DE-D67B647AC163.JPG` | Held in hand, bowl pointing up; cream bowl and faceted charred handle. |
+| 2 | `02-in-hand-SCOOP-03.jpg` | in-hand | `scoop-03-in-hand-front.jpg (from older gilljames archive 6bd86d_388e4910…; not in the Nov 9 Drive batch)` | Frontal view of the full bowl and the join to the charred, ridged handle. |
+| 3 | `03-side-SCOOP-04.jpg` | side | `scoop-04-in-hand-side-bowl.jpg (from older gilljames archive 6bd86d_0f25314d…; not in the Nov 9 Drive batch)` | Side profile of the cream bowl, handle going back behind the fingers. |
 | 4 | `04-context-64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg` | context | `64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.HEIC` | Lying on a pile of wooden paddles on a speckled counter, for scale. |
 
 **Coverage gaps**
