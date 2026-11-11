@@ -176,11 +176,11 @@ function stepCam(dt) {
   const tk = 1 - Math.exp(-6 * dt);
   cam.tilt += ((drag ? -dragV.x * .00022 : 0) - cam.tilt) * tk; cam.tiltY += ((drag ? -dragV.y * .00018 : 0) - cam.tiltY) * tk;
   cam.tilt = Math.max(-.12, Math.min(.12, cam.tilt)); cam.tiltY = Math.max(-.1, Math.min(.1, cam.tiltY));
-  if (Room.active()) { Room.place(camera, dt); return; }
-  const yw = cam.yaw + cam.tilt, pt = cam.pitch + cam.tiltY;
+  const yw = cam.yaw + (Room.active() ? 0 : cam.tilt), pt = cam.pitch + (Room.active() ? 0 : cam.tiltY);
   camera.position.set(cam.T.x + cam.dist * Math.sin(yw) * Math.cos(pt), cam.T.y + cam.dist * Math.sin(pt), cam.T.z + cam.dist * Math.cos(yw) * Math.cos(pt));
   camera.up.set(0, 1, 0);
   camera.lookAt(cam.T);
+  if (Room.active()) Room.place(camera, dt);
 }
 
 /* ---------- state ---------- */
@@ -252,7 +252,7 @@ function apply(st, snap) {
   } else if (st.lv === 4) {
     if (Board.key() !== it.chapter) { Board.open(it.chapter, null, it); flyTo(Board.pieceCam(it), 40); }
     const enter = () => Room.enter(it, Board.tileOf(it), camera);
-    if (prev.lv === 3) enter(); else setTimeout(enter, 60);
+    if (prev.lv === 3) enter(); else setTimeout(() => { if (ST.lv === 4 && ST.id === it.id && !Room.active()) enter(); }, 900);
   }
   Board.setPiece(st.lv >= 3 ? it : null);
   chrome();
