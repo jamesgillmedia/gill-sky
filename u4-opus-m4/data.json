@@ -3029,6 +3029,7 @@
  "tracks": [
   {
    "k": "togo",
+   "bpm": 92.7,
    "title": "To Go",
    "artist": "Lost Coffee",
    "file": "media/pro2/audio/to-go.mp3",
@@ -3135,6 +3136,7 @@
   },
   {
    "k": "gone",
+   "bpm": 89.1,
    "title": "Gone Are the Days of Yesterday",
    "artist": "Mothers Moniker",
    "file": "media/pro2/audio/gone-are-the-days.mp3",
@@ -3241,6 +3243,7 @@
   },
   {
    "k": "noproblem",
+   "bpm": 84.7,
    "title": "No Problem",
    "artist": "Lost Coffee",
    "file": "media/pro2/audio/no-problem.mp3",
@@ -3347,6 +3350,7 @@
   },
   {
    "k": "lostintime",
+   "bpm": 81.0,
    "title": "Lost in Time",
    "artist": "Lost Coffee",
    "file": "media/pro2/audio/lost-in-time.mp3",
@@ -3453,6 +3457,7 @@
   },
   {
    "k": "equals",
+   "bpm": 116.2,
    "title": "=",
    "artist": "Lost Coffee",
    "file": "media/pro2/audio/equals.mp3",
@@ -3559,6 +3564,7 @@
   },
   {
    "k": "ii",
+   "bpm": 62.9,
    "title": "ii",
    "artist": "Lost Coffee",
    "file": "media/pro2/audio/ii.mp3",
