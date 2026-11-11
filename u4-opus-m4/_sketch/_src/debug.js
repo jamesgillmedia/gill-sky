@@ -5,9 +5,16 @@ var open=false,idleT=0,dragN=0,fps=60,ft=16.7,lastT=0,uiT=0,grainOn=false,grainE
 var LOOK=[
   {id:'br',label:'brightness',min:-100,max:100,step:.1,def:0,param:'br',detent:1.2,group:'look'},
   {id:'ct',label:'contrast',min:-100,max:100,step:.1,def:0,param:'ct',detent:1.2,group:'look'},
-  {id:'gr',label:'grain',min:0,max:100,step:.1,def:0,param:'gr',group:'look'}
+  {id:'gr',label:'grain',min:0,max:100,step:.1,def:0,param:'gr',group:'look'},
+  {id:'inv',label:'invert',min:0,max:100,step:.1,def:0,param:'inv',group:'look'},
+  {id:'sf',label:'star flash',min:0,max:100,step:.1,def:0,param:'sf',group:'look'},
+  {id:'af',label:'ambient flash',min:0,max:100,step:.1,def:0,param:'af',group:'look'},
+  {id:'bpm',label:'test beat',unit:'bpm',min:60,max:180,step:.1,def:100,param:'bpm',group:'flash beat'},
+  {id:'sync',label:'sync',min:0,max:100,step:.1,def:0,param:'sync',group:'flash beat',ls:'gj.sync'}
 ];
-function isLook(k){return k.id==='br'||k.id==='ct'||k.id==='gr'}
+var LOOKIDS={br:1,ct:1,gr:1,inv:1,sf:1,af:1,bpm:1,sync:1};
+function isLook(k){return !!LOOKIDS[k.id]}
+var beatAcc=0,beatSrc=null,fogEl=null,fogG=null,invEl=null,fogLevel=1,fogT=0,fogBlobs=null;
 function dec(step){var s=String(step),i=s.indexOf('.');return i<0?0:s.length-i-1}
 function r(v,step){return +(+v).toFixed(Math.max(dec(step),0))}
 function setP(k,v,def){
@@ -18,8 +25,17 @@ function setP(k,v,def){
 function getNum(k,def){var v=Q.get(k);if(v===null||v==='')return def;v=parseFloat(v);return isFinite(v)?v:def}
 function applyLook(){
   var view=document.getElementById('gjview');
-  var br=vals.br||0,ct=vals.ct||0;
-  if(view)view.style.filter=(br||ct)?'brightness('+(1+br/100*.8).toFixed(4)+') contrast('+(1+ct/100*.7).toFixed(4)+')':'';
+  var br=vals.br||0,ct=vals.ct||0,iv=(vals.inv||0)/100;
+  /* invert is a grey difference layer: |c - v| is the image at 0, an exact invert at 1 and a solarised, still-coloured graphic between; a hue sweep that returns to 0 at both ends adds the colour shift */
+  var hue=iv>0?Math.sin(iv*Math.PI)*140:0;
+  if(view){
+    view.style.filter=(br||ct||iv)?'brightness('+(1+br/100*.8).toFixed(4)+') contrast('+(1+ct/100*.7).toFixed(4)+')'+(iv?' hue-rotate('+hue.toFixed(2)+'deg)':''):'';
+  }
+  if(invEl){
+    var gv=Math.round(iv*255);
+    invEl.style.display=iv>0?'block':'none';
+    invEl.style.backgroundColor='rgb('+gv+','+gv+','+gv+')';
+  }
   var gr=vals.gr||0;
   grainOn=gr>0;
   if(grainEl){
@@ -36,14 +52,59 @@ function makeGrain(){
   grainEl.style.backgroundImage='url('+c.toDataURL()+')';
   document.body.appendChild(grainEl);
 }
+function makeView(){
+  var view=document.getElementById('gjview');if(!view)return;
+  fogEl=document.createElement('canvas');fogEl.id='gjfog';fogEl.width=128;fogEl.height=72;fogEl.setAttribute('aria-hidden','true');
+  fogG=fogEl.getContext('2d');
+  var hud=document.getElementById('hud');
+  view.insertBefore(fogEl,hud&&hud.parentNode===view?hud:null);
+  invEl=document.createElement('div');invEl.id='gjinv';invEl.setAttribute('aria-hidden','true');
+  view.appendChild(invEl);
+}
+/* ---- shared beat, star flash and ambient flash ----
+   The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
+   Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
+function frac(x){return x-Math.floor(x)}
+function beatCount(){return beatSrc?beatSrc():beatAcc}
+function pulse(pos){
+  var off=(vals.sync||0)/100*.9*Math.max(0,Math.min(1,pos||0));
+  var ph=frac(beatCount()-off);
+  return ph<.05?ph/.05:Math.exp(-(ph-.05)*4.2);
+}
+function flash(pos){var f=(vals.sf||0)/100;return f>0?f*pulse(pos):0}
+function drawFog(t){
+  if(!fogEl)return;
+  var af=(vals.af||0)/100;
+  if(af<=0){if(fogEl.style.display!=='none')fogEl.style.display='none';return}
+  fogEl.style.display='block';
+  var w=fogEl.width,h=fogEl.height,g=fogG;
+  g.clearRect(0,0,w,h);g.globalCompositeOperation='lighter';
+  var N=6,i;
+  for(i=0;i<N;i++){
+    var ang=i*2.39996+t*.00005*(i%2?1:-1),rad=i===0?0:.2+.05*i;
+    var fx=.5+Math.cos(ang)*rad*1.1,fy=.5+Math.sin(ang)*rad*.8;
+    var pos=Math.min(1,Math.hypot(fx-.5,(fy-.5)*1.6)/.62);
+    var e=pulse(pos),lv=af*(.3+.7*e)*fogLevel;
+    var col=i%2?'160,190,240':'85,218,161',R=w*(.55+.06*Math.sin(t*.0004+i));
+    var gr=g.createRadialGradient(fx*w,fy*h,0,fx*w,fy*h,R);
+    gr.addColorStop(0,'rgba('+col+','+(lv*.42).toFixed(3)+')');gr.addColorStop(.5,'rgba('+col+','+(lv*.14).toFixed(3)+')');gr.addColorStop(1,'rgba('+col+',0)');
+    g.fillStyle=gr;g.fillRect(0,0,w,h);
+  }
+  g.globalCompositeOperation='source-over';
+}
 function allControls(){return LOOK.concat(cfg.controls||[])}
 function init(c){
   cfg=c;
   allControls().forEach(function(k){
     if(k.kind==='seg'||k.kind==='bool'){vals[k.id]=Q.get(k.param)!==null?Q.get(k.param):k.def}
-    else vals[k.id]=Math.max(k.min,Math.min(k.max,getNum(k.param,k.def)));
+    else{
+      var v0=getNum(k.param,NaN);
+      if(!isFinite(v0)&&k.ls){try{v0=parseFloat(localStorage.getItem(k.ls))}catch(e){}}
+      if(!isFinite(v0))v0=k.def;
+      vals[k.id]=Math.max(k.min,Math.min(k.max,v0));
+    }
   });
-  makeGrain();applyLook();
+  makeGrain();makeView();applyLook();
   allControls().forEach(function(k){
     if(!isLook(k)&&k.onChange&&!k.noInit&&(Q.get(k.param)!==null||k.always))k.onChange(vals[k.id],true)
   });
@@ -62,7 +123,7 @@ function build(){
     if(!groups[grp]){groups[grp]=[];order.push(grp)}
     groups[grp].push(k);
   });
-  order.sort(function(a,b){var o={variant:0,size:1,look:2};return (o[a]==null?1:o[a])-(o[b]==null?1:o[b])});
+  order.sort(function(a,b){var o={variant:0,size:1,look:2,'flash beat':3};return (o[a]==null?1:o[a])-(o[b]==null?1:o[b])});
   order.forEach(function(gn){
     h+='<div class="sec">'+gn+'</div>';
     groups[gn].forEach(function(k){h+=ctlHtml(k)});
@@ -99,7 +160,7 @@ function commit(k,v,fromRange){
     if(!fromRange)o.range.value=String(v);
     if(document.activeElement!==o.nb)o.nb.value=v.toFixed(2);
   }
-  setP(k.param,v,k.def);
+  if(k.ls){try{localStorage.setItem(k.ls,String(v))}catch(e){}}else setP(k.param,v,k.def);
   if(isLook(k))applyLook();
   if(k.onChange)k.onChange(v);
 }
@@ -161,11 +222,14 @@ function bump(){clearTimeout(idleT);if(!open)return;idleT=setTimeout(function(){
   var ae=document.activeElement;
   if(dragN>0||(ae&&root.contains(ae)&&ae.tagName==='INPUT'&&ae.type==='number')){bump();return}
   close()},3000)}
+function f2b(v){return (Math.floor(v)%1000)+'.'+Math.floor(frac(v)*100)}
 function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c]})}
 function loop(t){
   requestAnimationFrame(loop);
   var dt=t-(lastT||t);lastT=t;
   if(dt>0&&dt<500){ft+=(dt-ft)*.08;fps+=(1000/dt-fps)*.08}
+  if(dt>0&&dt<250)beatAcc+=dt*(vals.bpm||100)/60000;
+  drawFog(t);
   if(grainOn&&grainEl){
     var gx=(Math.random()*256)|0,gy=(Math.random()*256)|0;
     grainEl.style.transform='translate3d('+(-gx)+'px,'+(-gy)+'px,0)';
@@ -174,6 +238,7 @@ function loop(t){
   uiT=t;
   var rows=cfg.rows?cfg.rows():[];
   rows=rows.concat([
+    ['beat / pulse',(beatSrc?'song':f2b(beatAcc))+' · '+(vals.bpm||100).toFixed(1)+' bpm · '+pulse(0).toFixed(2)],
     ['fps / frame',fps.toFixed(1)+' / '+ft.toFixed(2)+' ms'],
     ['dpr / viewport',(window.devicePixelRatio||1).toFixed(2)+' / '+innerWidth+'x'+innerHeight],
     ['reduce motion',window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches?'on (same motion)':'off']
@@ -181,5 +246,5 @@ function loop(t){
   infoEl.innerHTML=rows.map(function(x){return '<span>'+esc(x[0])+'</span><span>'+esc(x[1])+'</span>'}).join('');
   if(cfg.list&&listEl){var l=cfg.list();listEl.innerHTML=l.map(function(s){return '<div>'+esc(s)+'</div>'}).join('')}
 }
-return {init:init,frame:function(){},val:function(id){return vals[id]},isOn:function(){return on},setP:setP,open:openPanel,close:close,state:function(){return {on:on,open:open,fps:fps}}};
+return {pulse:pulse,flash:flash,beat:beatCount,sf:function(){return (vals.sf||0)/100},af:function(){return (vals.af||0)/100},bpm:function(){return vals.bpm||100},sync:function(){return (vals.sync||0)/100},setBeat:function(fn){beatSrc=fn},fogLevel:function(v){fogLevel=v},init:init,frame:function(){},val:function(id){return vals[id]},isOn:function(){return on},setP:setP,open:openPanel,close:close,state:function(){return {on:on,open:open,fps:fps}}};
 })();
