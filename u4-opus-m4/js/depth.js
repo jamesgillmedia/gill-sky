@@ -869,6 +869,100 @@ function followEnd(){
   setTimeout(function(){if(el.style.transition.indexOf('transform .3s')===0&&el.classList.contains('in'))el.style.transition=''},340);
 }
 function holdOut(){return !!COOL&&performance.now()-COOL<1200}
+/* Swipe or arrow keys step through the stills of the same film while one fills the screen.
+   The next still fades in over this one as the finger moves (same drag rule as the reel: horizontal, past a small slop), and the ends stop. */
+var SW=null,SWB=0;
+function stillNodes(){return document.querySelectorAll('#layer .framewall img[data-hi="1"]')}
+function stillOpen(){return filmLv===3&&!!filmWork&&fly&&fly.el&&fly.el.classList.contains('in')&&!holdOut()}
+function stillLayer(i){
+  var n=stillNodes()[i],host=document.getElementById('layer');
+  if(!n||!host)return null;
+  var src=n.getAttribute('src'),clip=n.getAttribute('data-clip')||momentClip(src,filmWork);
+  var el=document.createElement('div');
+  el.className='enterframe in'+(/22\/12\.webp/.test(src||'')?' face':'');
+  el.innerHTML='<img src="'+esc(src)+'" alt="">'+(clip?'<video muted loop autoplay playsinline poster="'+esc(src)+'" src="'+esc(clip)+'"></video>':'');
+  el.style.transition='none';el.style.left='0px';el.style.top='0px';
+  el.style.width=innerWidth+'px';el.style.height=innerHeight+'px';el.style.opacity='0';
+  host.appendChild(el);
+  applyFraming(el,src,clip);
+  var v=el.querySelector('video');
+  if(v){var p=v.play();if(p&&p.catch)p.catch(function(){})}
+  return {el:el,i:i,src:src};
+}
+function stillCommit(L){
+  var old=fly.el;
+  SWB=1;
+  L.el.style.transition='opacity .26s ease';
+  void L.el.offsetWidth;
+  L.el.style.opacity='1';
+  fly={el:L.el,i:L.i};
+  filmFocus=L.i;filmSrc=L.src;
+  var node=stillNodes()[L.i];
+  if(node&&node.scrollIntoView)node.scrollIntoView({block:'center'});
+  setTimeout(function(){
+    if(old.parentNode&&old!==fly.el)old.parentNode.removeChild(old);
+    if(fly&&fly.el===L.el)L.el.style.transition='';
+    SWB=0;
+  },300);
+}
+function stillRevert(L){
+  var el=fly&&fly.el;
+  if(L&&L.el.parentNode)L.el.parentNode.removeChild(L.el);
+  if(!el||!el.style.transform)return;
+  el.style.transition='transform .25s cubic-bezier(.22,.7,.2,1)';
+  el.style.transform='';
+  setTimeout(function(){if(el.style.transition.indexOf('transform .25s')===0)el.style.transition=''},280);
+}
+function swCancel(){
+  if(!SW)return;
+  var s=SW;SW=null;
+  if(s.on)stillRevert(s.L);
+}
+addEventListener('pointerdown',function(e){
+  if(!e.isPrimary){swCancel();return}
+  SW=null;
+  if(SWB||!stillOpen()||(e.pointerType==='mouse'&&e.button))return;
+  if(!e.target.closest||!e.target.closest('#layer'))return;
+  SW={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),on:0,L:null,dir:0,dx:0};
+},true);
+addEventListener('pointermove',function(e){
+  if(!SW||e.pointerId!==SW.id)return;
+  if(!stillOpen()){swCancel();return}
+  var dx=e.clientX-SW.x,dy=e.clientY-SW.y;
+  if(!SW.on){
+    if(Math.abs(dx)>10&&Math.abs(dx)>Math.abs(dy)*1.2)SW.on=1;else return;
+  }
+  var dir=dx<0?1:-1,to=filmFocus+dir;
+  if(SW.dir!==dir){
+    if(SW.L&&SW.L.el.parentNode)SW.L.el.parentNode.removeChild(SW.L.el);
+    SW.dir=dir;
+    SW.L=(to>=0&&to<stillNodes().length)?stillLayer(to):null;
+  }
+  var prog=Math.max(0,Math.min(1,Math.abs(dx)/(innerWidth*.5)));
+  fly.el.style.transition='none';
+  fly.el.style.transform='translateX('+(dx*(SW.L?.28:.1)).toFixed(1)+'px)';
+  if(SW.L)SW.L.el.style.opacity=prog.toFixed(3);
+  SW.dx=dx;
+},true);
+function swEnd(e){
+  if(!SW||e.pointerId!==SW.id)return;
+  var s=SW;SW=null;
+  if(!s.on)return;
+  var dt=Math.max(1,performance.now()-s.t),adx=Math.abs(s.dx);
+  var go=s.L&&e.type==='pointerup'&&stillOpen()&&(adx>innerWidth*.22||(adx>28&&adx/dt>.45));
+  if(go)stillCommit(s.L);else stillRevert(s.L);
+}
+addEventListener('pointerup',swEnd,true);
+addEventListener('pointercancel',swEnd,true);
+addEventListener('keydown',function(e){
+  if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+  if(e.target&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))return;
+  if(SW||SWB||!stillOpen())return;
+  var L=stillLayer(filmFocus+(e.key==='ArrowRight'?1:-1));
+  if(!L)return;
+  e.preventDefault();
+  stillCommit(L);
+});
 function leaveFly(){
   if(filmLv===3)COOL=performance.now();
   var sel=filmLv===3?'#layer .framewall img[data-hi="1"]':(piece&&piece.photo?'#layer .contact img':'#layer .cutgrid img, #layer .cutgrid video');
