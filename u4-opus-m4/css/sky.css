@@ -308,6 +308,7 @@ html.reelon #mmap{display:none !important}
 .heroframe video.live{opacity:1}
 .enterframe{position:fixed;z-index:12;overflow:hidden;background:#000;transition:left .9s cubic-bezier(.22,.7,.2,1),top .9s cubic-bezier(.22,.7,.2,1),width .9s cubic-bezier(.22,.7,.2,1),height .9s cubic-bezier(.22,.7,.2,1)}
 html:has(.enterframe.in) #layer .sheet{touch-action:none}
+html.skyin #bar.on,html.skyin #mmap,html.skyin #foot{opacity:var(--skyin,1);transition:none}
 .enterframe img,.enterframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 42%}
 .enterframe.face img{object-position:62% 38%}
 .enterframe.face video{object-position:72% 56%}

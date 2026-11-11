@@ -45,8 +45,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
-var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
+var TDEF={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
+var TUNE={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
@@ -216,6 +216,12 @@ function layout(){
       c.ex={x0:c.ex.x0*starK,y0:c.ex.y0*starK,x1:c.ex.x1*starK,y1:c.ex.y1*starK};
     });
   }
+  /* Wider spacing makes a wider sky, so FAR refits and all five still sit on screen. At 1 and 1 the fit above stands untouched. */
+  if(mapK!==1||starK!==1){
+    box=bbox();
+    ORDER.forEach(function(k){var c=CH[k],hw=c.bw*.5;box.x0=Math.min(box.x0,c.x-hw);box.x1=Math.max(box.x1,c.x+hw)});
+    scale=Math.min((W-28)/(box.x1-box.x0),(H-78-36)/(box.y1-box.y0));
+  }
   /* In progress sits beside ᑕᐣᓯ, a small cluster in the inner sky, clear of the five chapters. */
   var nC=Math.max(cluster.length,1);
   cluster.forEach(function(it,i){
@@ -373,6 +379,25 @@ function frame(t){
   requestAnimationFrame(frame);
 }
 
+/* Mark-first opening: when the sky is reached from the opening, the centre mark appears alone on the dark, holds, then the rest of the sky fades in over it. A touch skips the wait. */
+var SKYIN={t0:0,on:0};
+function skyIntro(){
+  if(!SKYIN.t0)return null;
+  var t=now()-SKYIN.t0,o=tk('open'),m=clamp(t/(450*o),0,1),k=clamp((t-1350*o)/(1300*tk('fade')),0,1);
+  if(k>=1){skyIntroEnd();return null}
+  return {m:m,s:k*k*(3-2*k)};
+}
+function skyIntroEnd(){
+  SKYIN.t0=0;
+  if(SKYIN.on){SKYIN.on=0;cv.style.opacity='';document.documentElement.classList.remove('skyin');document.documentElement.style.removeProperty('--skyin')}
+}
+function skyIntroPaint(SI){
+  if(!SI){if(SKYIN.on)skyIntroEnd();return}
+  SKYIN.on=1;
+  cv.style.opacity=SI.s.toFixed(3);
+  document.documentElement.classList.add('skyin');
+  document.documentElement.style.setProperty('--skyin',SI.s.toFixed(3));
+}
 function farA(){var z=rest.s/Math.max(1e-4,FAR.s);return clamp(1-(z-1.15)/1.5,0,1)}
 function draw(t){
   var sc=window.GJ_DEPTH?GJ_DEPTH.viewScale():1;
@@ -382,7 +407,8 @@ function draw(t){
   g.clearRect(-W,-H,W*3,H*3);
   if(phase==='arrive'||phase==='fly'){drawMark(phase==='fly'?ease(flyU):0);drawGlow();paintFx();return}
   if(phase==='land'){drawGlow();paintFx();return}
-  var fa=farA(),lk=look;
+  var fa=farA(),lk=look,SI=skyIntro();
+  skyIntroPaint(SI);
   FIELD.forEach(function(L){
     g.globalAlpha=L.a*(.35+.65*Math.min(1,fa+.4));
     L.pts.forEach(function(p){
@@ -400,13 +426,18 @@ function draw(t){
   ORDER.forEach(function(k){drawChapter(k,t,fa)});
   drawCluster(fa);
   drawThreads(fa);
-  drawCentre(fa*(cur.lv===0?1:0));
+  var cA=fa*(cur.lv===0?1:0);
+  if(!SI)drawCentre(cA);
   if(fa>.25&&cur.lv===0)drawNames(fa);
   drawWindow();
   drawRelated();
   if(cur.lv===2&&cur.id&&byId[cur.id]&&byId[cur.id].kind==='player'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn()))drawSound(t);
   if(sc!==1)g.setTransform(DPR,0,0,DPR,0,0);
   paintFx();
+  if(SI&&cA>.04){
+    var fxc=document.getElementById('fx');
+    if(fxc){var fg2=fxc.getContext('2d'),gs=g;fg2.setTransform(DPR,0,0,DPR,0,0);g=fg2;try{drawCentre(cA*SI.m)}finally{g=gs}}
+  }
   /* The opening pinch keeps its own marks off the sky. Other pinches still show the two fingers. */
   if(pinch&&PT&&!OP.hold){
     var ids=Object.keys(PT),dotA=OP.used?Math.max(0,1-OP.p):0.85;
@@ -457,7 +488,7 @@ function drawChapter(k,t,fa){
   var imgs=washImgs(k),showWash=fa>.2&&bl<.35&&imgs.length;
   if(showWash){
     var i=Math.floor(t/4200)%imgs.length,u=(t%4200)/4200,im=imgs[i],im2=imgs[(i+1)%imgs.length];
-    var rad=Math.max(90,Math.max(c.bw,c.bh)*.48*rest.s);
+    var rad=Math.max(64,Math.max(c.bw,c.bh)*.48*rest.s);
     g.save();g.beginPath();g.ellipse(cp[0],cp[1],rad,rad*.78,0,0,7);g.clip();
     g.globalAlpha=.2*(1-u)*focus;cover(im,cp[0]-rad,cp[1]-rad*.78,rad*2,rad*1.56);
     g.globalAlpha=.2*u*focus;cover(im2,cp[0]-rad,cp[1]-rad*.78,rad*2,rad*1.56);
@@ -1385,6 +1416,7 @@ function renderReel(el,it){
 /* ---------- input ---------- */
 function bind(){
   stage.addEventListener('pointerdown',function(){if(!HINTSEEN&&levelOf(cur)===1)seenHint()},true);
+  window.addEventListener('pointerdown',function(){if(SKYIN.t0)skyIntroEnd()},true);
   var wc=$('wcrumb'),wr=$('wrail');
   function wjump(e){var b=e.target.closest('[data-lv]');if(!b)return;e.preventDefault();e.stopPropagation();jumpLevel(+b.getAttribute('data-lv'))}
   if(wc)wc.addEventListener('click',wjump);
@@ -2350,7 +2382,9 @@ function ripples(){
   for(var i=0;i<3;i++)rippleAt(r.width*(0.46+i*0.06),r.height*(0.62+i*0.02));
 }
 function enterSky(instant){
+  var from=phase;
   phase='sky';
+  if(from==='arrive'||from==='fly'||from==='land')SKYIN.t0=now();else skyIntroEnd();
   try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
   setChrome();
   if(!history.state||!history.state.u1){STEP=0;HL[0]=0;history.replaceState({u1:1,cur:snap(cur),n:0},'',hashOf(cur))}
