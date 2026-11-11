@@ -391,53 +391,62 @@ return {setSeg:setSeg,pulse:pulse,flash:flash,beat:beatCount,sf:function(){retur
 <script>
 (function(){
 'use strict';
-var P='../../media/';
+var P='rings/';
 var Q=new URLSearchParams(location.search);
 var OPT=Q.get('opt')==='2'?2:1;
-/* Each object lists its real views. az and el are visual estimates of where the camera stood (el 0 = at the object's level, 90 = straight in); the orbit turns the ring so the plane whose view matches the camera angle faces you. */
+/* Views are only the approved rings package (objects/rings). az and el place each still on the orbit; they are not extra angles. Labels the package does not have are not added: no underside for the joio cup, the dark-glazed set or the scoop, and no context still for the joio cup or the dark-glazed set. Context stills sit on the fixed card. The ashy captions name the piece, because these are three process pieces. */
 var OBJECTS={
-  cup:{title:'joio cup',note:'side to top',
+  cup:{title:'joio cup',note:'one cup, side to top',
     views:[
-      {n:'3/4, in hand',s:'pro2/img/photo/0d93c0c1-960.webp',az:0,el:36,hero:1},
-      {n:'3/4, held',s:'nov9/objects/IMG_5841.jpg',az:62,el:32},
-      {n:'3/4, held low',s:'nov9/objects/IMG_5881.jpg',az:-62,el:26},
-      {n:'side, held',s:'pro2/img/photo/14af9fc6-960.webp',az:30,el:8},
-      {n:'close, speckled wall',s:'pro2/img/photo/e2aa7ba0-960.webp',az:-32,el:6},
-      {n:'side, latte on the counter',s:'pro2/img/photo/f51e0021-960.webp',az:118,el:12},
-      {n:'side, counter 3/4',s:'nov9/objects/IMG_6136.jpg',az:-118,el:14},
-      {n:'side, latte on a board',s:'nov9/objects/IMG_9126.jpg',az:180,el:8},
-      {n:'top, looking in',s:'pro2/img/photo/27a361ce-960.webp',az:-90,el:56},
-      {n:'top, latte',s:'pro2/img/photo/27a4c19d-960.webp',az:90,el:70},
-      {n:'top, held',s:'nov9/objects/IMG_5892.jpg',az:0,el:86},
-      {n:'context: on a board',s:'nov9/objects/IMG_6690.jpg',ctx:1}]},
-  scoop:{title:'ceramic oyster scoop',note:'4 stills, no more exist yet',
+      {n:'side',s:'joio-cup/01-side-IMG_9126.jpg',th:'joio-cup/01-side-IMG_9126-480.webp',az:-48,el:8},
+      {n:'side',s:'joio-cup/02-side-16B39E13-2667-41A0-BDF7-EC4D14309DE1.jpg',th:'joio-cup/02-side-16B39E13-2667-41A0-BDF7-EC4D14309DE1-480.webp',az:0,el:8},
+      {n:'side',s:'joio-cup/03-side-IMG_5881.jpg',th:'joio-cup/03-side-IMG_5881-480.webp',az:48,el:8},
+      {n:'three-quarter',s:'joio-cup/04-three-quarter-IMG_0952.jpg',th:'joio-cup/04-three-quarter-IMG_0952-480.webp',az:-68,el:26},
+      {n:'three-quarter',s:'joio-cup/05-three-quarter-IMG_6136.jpg',th:'joio-cup/05-three-quarter-IMG_6136-480.webp',az:-20,el:29},
+      {n:'three-quarter',s:'joio-cup/06-three-quarter-IMG_5841.jpg',th:'joio-cup/06-three-quarter-IMG_5841-480.webp',az:28,el:32,hero:1},
+      {n:'three-quarter',s:'joio-cup/07-three-quarter-IMG_6166.jpg',th:'joio-cup/07-three-quarter-IMG_6166-480.webp',az:76,el:35},
+      {n:'three-quarter',s:'joio-cup/08-three-quarter-IMG_5901.jpg',th:'joio-cup/08-three-quarter-IMG_5901-480.webp',az:124,el:38},
+      {n:'top',s:'joio-cup/09-top-IMG_5892.jpg',th:'joio-cup/09-top-IMG_5892-480.webp',az:-56,el:56},
+      {n:'top',s:'joio-cup/10-top-IMG_1342.jpg',th:'joio-cup/10-top-IMG_1342-480.webp',az:-8,el:70},
+      {n:'top',s:'joio-cup/11-top-IMG_5925.jpg',th:'joio-cup/11-top-IMG_5925-480.webp',az:40,el:84},
+    ]},
+  scoop:{title:'ceramic oyster scoop',note:'kept flat',
     views:[
-      {n:'frontal, bowl and handle join',s:'pro2/img/photo/388e4910-960.webp',az:0,el:8,hero:1},
-      {n:'in hand, bowl up',s:'nov9/objects/0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',az:-38,el:26},
-      {n:'side profile of the bowl',s:'pro2/img/photo/0f25314d-960.webp',az:72,el:8},
-      {n:'context: on the paddles, for scale',s:'nov9/objects/64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg',ctx:1}]},
-  dark:{title:'dark-glazed cups and bowls',note:'8 stills, may be more than one object; a thin ring',
+      {n:'side',s:'scoop/03-side-SCOOP-04.jpg',th:'scoop/03-side-SCOOP-04-480.webp',az:0,el:8},
+      {n:'three-quarter',s:'scoop/01-three-quarter-0456C57F-49C0-4B5D-B7DE-D67B647AC163.jpg',th:'scoop/01-three-quarter-0456C57F-49C0-4B5D-B7DE-D67B647AC163-480.webp',az:28,el:20},
+      {n:'in-hand',s:'scoop/02-in-hand-SCOOP-03.jpg',th:'scoop/02-in-hand-SCOOP-03-480.webp',az:-18,el:10,hero:1},
+      {n:'context',s:'scoop/04-context-64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586.jpg',th:'scoop/04-context-64521049469__FE6EAC94-47E0-4BE1-B5CA-50AE12B31586-480.webp',ctx:1},
+    ]},
+  dark:{title:'dark-glazed cups and bowls',note:'may be more than one cup',
     views:[
-      {n:'side, black and white',s:'nov9/objects/DBBB3452-330C-4F73-8F21-65C1A57FE3AE.jpg',az:0,el:6,hero:1},
-      {n:'side, lighter',s:'nov9/objects/F3283192-39BF-4BE9-B6F2-8A88933AB63A.jpg',az:38,el:6},
-      {n:'side, on a shelf',s:'pro2/img/photo/efb2a65e-960.webp',az:-38,el:8},
-      {n:'3/4 low, yellow light',s:'nov9/objects/IMG_9147.jpg',az:78,el:16},
-      {n:'close, rim',s:'nov9/objects/2346BBC9-C359-4C43-9A58-DC2D47A870D5.jpg',az:180,el:30},
-      {n:'top, held',s:'nov9/objects/8F816FA1-7772-43DA-B2A8-B35EBE74B67C.jpg',az:-90,el:56},
-      {n:'top, black and white',s:'pro2/img/photo/9b41ba33-960.webp',az:90,el:72},
-      {n:'top, sooty hand',s:'pro2/img/photo/1bb06b0e-960.webp',az:0,el:86}]},
-  unfired:{title:'unfired raw clay cups',note:'5 stills here (Drive has 12), different cups; a thin ring',
+      {n:'side',s:'dark-glazed/01-side-DBBB3452-330C-4F73-8F21-65C1A57FE3AE.jpg',th:'dark-glazed/01-side-DBBB3452-330C-4F73-8F21-65C1A57FE3AE-480.webp',az:-24,el:8,hero:1},
+      {n:'side',s:'dark-glazed/02-side-IMG_4075.jpg',th:'dark-glazed/02-side-IMG_4075-480.webp',az:24,el:8},
+      {n:'three-quarter',s:'dark-glazed/03-three-quarter-IMG_9147.jpg',th:'dark-glazed/03-three-quarter-IMG_9147-480.webp',az:4,el:26},
+      {n:'three-quarter',s:'dark-glazed/04-three-quarter-94F05E1B-D06B-4651-86C3-D5A3BD2783B8.jpg',th:'dark-glazed/04-three-quarter-94F05E1B-D06B-4651-86C3-D5A3BD2783B8-480.webp',az:52,el:38},
+      {n:'top',s:'dark-glazed/05-top-8F816FA1-7772-43DA-B2A8-B35EBE74B67C.jpg',th:'dark-glazed/05-top-8F816FA1-7772-43DA-B2A8-B35EBE74B67C-480.webp',az:-32,el:56},
+      {n:'top',s:'dark-glazed/06-top-2346BBC9-C359-4C43-9A58-DC2D47A870D5.jpg',th:'dark-glazed/06-top-2346BBC9-C359-4C43-9A58-DC2D47A870D5-480.webp',az:16,el:84},
+    ]},
+  unfired:{title:'unfired raw clay cups',note:'several different cups',
     views:[
-      {n:'side, raw clay, in hand',s:'nov9/objects/IMG_1322.jpg',az:0,el:6,hero:1},
-      {n:'3/4, pale cup in hand',s:'nov9/objects/IMG_1487.jpg',az:56,el:30},
-      {n:'top, white cup',s:'studio/cup-hand-480.webp',az:-56,el:70},
-      {n:'close, textured white',s:'studio/unfired-480.webp',az:180,el:14},
-      {n:'context: four small cups',s:'nov9/objects/IMG_1279.jpg',ctx:1}]},
-  ashy:{title:'ashy process bowls',note:'3 stills here (Drive has 7+), all from above; a thin ring',
+      {n:'side',s:'unfired-clay/01-side-IMG_1322.jpg',th:'unfired-clay/01-side-IMG_1322-480.webp',az:0,el:8},
+      {n:'three-quarter',s:'unfired-clay/02-three-quarter-24C29571-4AD8-4992-965D-54FBC5B8C665.jpg',th:'unfired-clay/02-three-quarter-24C29571-4AD8-4992-965D-54FBC5B8C665-480.webp',az:-20,el:26},
+      {n:'three-quarter',s:'unfired-clay/03-three-quarter-46B6C5AE-8A38-4A6D-825E-0EA7531E1333.jpg',th:'unfired-clay/03-three-quarter-46B6C5AE-8A38-4A6D-825E-0EA7531E1333-480.webp',az:28,el:32},
+      {n:'three-quarter',s:'unfired-clay/04-three-quarter-IMG_1487.jpg',th:'unfired-clay/04-three-quarter-IMG_1487-480.webp',az:76,el:38},
+      {n:'top',s:'unfired-clay/05-top-IMG_1488.jpg',th:'unfired-clay/05-top-IMG_1488-480.webp',az:-8,el:72},
+      {n:'context',s:'unfired-clay/06-context-IMG_1280.jpg',th:'unfired-clay/06-context-IMG_1280-480.webp',ctx:1},
+    ]},
+  ashy:{title:'ashy process bowls',note:'three process pieces, not one object',
     views:[
-      {n:'3/4, sooty hand',s:'nov9/objects/IMG_4670.jpg',az:0,el:50,hero:1},
-      {n:'top, wide bowl',s:'nov9/objects/IMG_4404.jpg',az:90,el:78},
-      {n:'top, grey interior',s:'nov9/objects/IMG_4356.jpg',az:-90,el:60}]}
+      {n:'side · wide bowl',s:'ashy-bowls/01-side-IMG_4405.jpg',th:'ashy-bowls/01-side-IMG_4405-480.webp',az:-24,el:8},
+      {n:'side · small grey cup',s:'ashy-bowls/05-side-IMG_4454.jpg',th:'ashy-bowls/05-side-IMG_4454-480.webp',az:24,el:8},
+      {n:'three-quarter · wide bowl',s:'ashy-bowls/02-three-quarter-IMG_4415.jpg',th:'ashy-bowls/02-three-quarter-IMG_4415-480.webp',az:-44,el:26},
+      {n:'three-quarter · small grey cup',s:'ashy-bowls/06-three-quarter-IMG_4441.jpg',th:'ashy-bowls/06-three-quarter-IMG_4441-480.webp',az:4,el:30},
+      {n:'three-quarter · tan-rim bowl',s:'ashy-bowls/07-three-quarter-IMG_4660.jpg',th:'ashy-bowls/07-three-quarter-IMG_4660-480.webp',az:52,el:34},
+      {n:'three-quarter · tan-rim bowl',s:'ashy-bowls/08-three-quarter-IMG_4670.jpg',th:'ashy-bowls/08-three-quarter-IMG_4670-480.webp',az:100,el:38},
+      {n:'top · wide bowl',s:'ashy-bowls/03-top-IMG_4404.jpg',th:'ashy-bowls/03-top-IMG_4404-480.webp',az:-32,el:56},
+      {n:'top · tan-rim bowl',s:'ashy-bowls/09-top-IMG_4675.jpg',th:'ashy-bowls/09-top-IMG_4675-480.webp',az:16,el:84},
+      {n:'underside · wide bowl',s:'ashy-bowls/04-underside-IMG_4426.jpg',th:'ashy-bowls/04-underside-IMG_4426-480.webp',az:180,el:-12},
+    ]},
 };
 var ORDER=['cup','scoop','dark','unfired','ashy'];
 var RING_R=72,RING_W=38;
@@ -527,7 +536,7 @@ function mountPlanes(){
 }
 function mountGallery(){
   var h='<h2>'+cur.title+'</h2><p class="sub">'+cur.views.length+' photographs · '+cur.note+' · pinch in or tap one to go into it</p><div class="cutgrid">';
-  cur.views.forEach(function(it,i){h+='<figure data-i="'+i+'"><img src="'+P+it.s+'" alt="'+it.n+'" loading="lazy"><figcaption>'+it.n+'</figcaption></figure>'});
+  cur.views.forEach(function(it,i){h+='<figure data-i="'+i+'"><img src="'+P+(it.th||it.s)+'" alt="'+it.n+'" loading="lazy"><figcaption>'+it.n+'</figcaption></figure>'});
   gal.innerHTML=h+'</div>';
   gal.scrollTop=0;
 }

@@ -112,3 +112,7 @@ All three are looking in from above, so the repo has no side view of an ashy bow
 ## What I need from Gill
 
 To make the three thin rings real orbits, copy these Drive stills into the repo (nov9 objects folder): the unfired set, the ashy set and the two dark-glazed stills named above. The scoop stays at 4 stills.
+
+## Wired from the approved package
+
+The orbit and the gallery now use only `objects/rings/` (the approved package: joio-cup 11, dark-glazed 6, unfired-clay 6, ashy-bowls 9, scoop 4). Older `media/` paths are no longer shown. F3283192 is not in this set. The ashy ring is captioned as three process pieces (wide bowl, small grey cup, tan-rim bowl). No underside was added for the joio cup, the dark-glazed set or the scoop, and no context still was added for the joio cup or the dark-glazed set. Angle labels and the gaps are the ones in `objects/rings/MANIFEST.md`.
