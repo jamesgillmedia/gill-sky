@@ -640,14 +640,14 @@ function init(){
     controls:[
       {id:'opt',label:'option',kind:'seg',opts:[['1','option 1'],['2','option 2']],def:'1',param:'opt',group:'variant',noInit:true,
         onChange:function(v){var u=new URL(location.href);u.searchParams.set('opt',v);location.href=u.pathname+u.search+u.hash}},
-      {id:'icon',label:'icon size',unit:'px',min:8,max:32,step:.1,def:16,param:'icon',group:'size',onChange:function(v){root.style.setProperty('--icon',v+'px')}},
+      {id:'icon',label:'icon size',unit:'%',min:50,max:200,step:.1,def:100,param:'icon',group:'size',onChange:function(v){root.style.setProperty('--icon',(16*v/100).toFixed(3)+'px')}},
       {id:'title',label:'title size',unit:'px',min:13,max:52,step:.1,def:26,param:'title',group:'size',onChange:function(v){root.style.setProperty('--title',v+'px')}}
     ],
     rows:function(){
       return [
         ['layer',LAYER+(LAYER===1?' · gallery':' · 3D constellation')],['phase',PL.on?'transition':'idle'],
         ['option',String(OPT)+(OPT===1?' · gallery first':' · 3D first')],['object',curKey],
-        ['pinch depth (e)',f(PL.on?PL.e:(LAYER===2?1:0),3)],['scale',f(S.scale,3)],
+        ['icon px',f(16*(GJDBG.val('icon')||100)/100,2)+' px'],['pinch depth (e)',f(PL.on?PL.e:(LAYER===2?1:0),3)],['scale',f(S.scale,3)],
         ['orbit yaw / pitch',f(S.ry||0)+' / '+f(S.rx||0)],['tilt x / y / w',f(tilt.x,3)+' / '+f(tilt.y,3)+' / '+f(tilt.w,2)+(tilt.on?'':' (off)')],
         ['touches',String(ptrN+Object.keys(GP).filter(function(x){return x!=='g'}).length)],['gesture',gesture]
       ];
