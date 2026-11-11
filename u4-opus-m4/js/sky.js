@@ -778,9 +778,11 @@ function mapBox(){
 }
 function mapTop(){return mapBox().t}
 function boardRoom(){
-  var m=mapBox(),top=62;
-  if(m.t-8-top>=H*.55)return {x:0,w:W,top:top,bottom:m.t-8,m:m.l+':'+m.t};
-  return {x:10,w:Math.max(200,m.l-18),top:Math.min(top,Math.round(H*.16)),bottom:H-8,m:m.l+':'+m.t};
+  var m=mapBox(),top=62,cr=$('wcrumb');
+  if(cr&&!cr.hidden){var cb=cr.getBoundingClientRect();if(cb.height)top=Math.max(top,Math.round(cb.bottom)+2)}
+  var rail=$('wrail'),rb=rail&&!rail.hidden?36:0;
+  if(m.t-8-top>=H*.55)return {x:0,w:W,top:top,bottom:m.t-8,m:m.l+':'+m.t+':'+top};
+  return {x:10,w:Math.max(200,m.l-18),top:top,bottom:H-8-rb,m:m.l+':'+m.t+':'+top};
 }
 function roundRect(g,x,y,w,h,r){
   g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);
@@ -1209,6 +1211,10 @@ function renderReel(el){
 
 /* ---------- input ---------- */
 function bind(){
+  var wc=$('wcrumb'),wr=$('wrail');
+  function wjump(e){var b=e.target.closest('[data-lv]');if(!b)return;e.preventDefault();e.stopPropagation();jumpLevel(+b.getAttribute('data-lv'))}
+  if(wc)wc.addEventListener('click',wjump);
+  if(wr){wr.addEventListener('click',wjump);wr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')wjump(e)})}
   stage.addEventListener('pointerdown',onDown);
   stage.addEventListener('pointermove',onMove);
   stage.addEventListener('pointerup',onUp);
@@ -1255,7 +1261,7 @@ function onDown(e){
   noteTouch(e.clientX,e.clientY);
   var card=$('hirecard');
   if(card&&!card.hidden&&!e.target.closest('#hire')){hireOpen(false);return}
-  if(e.target.closest('#bar,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
+  if(e.target.closest('#bar,#wcrumb,#wrail,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
   if(phase==='arrive'||phase==='land'){rippleAt(e.clientX,e.clientY);drag={x:e.clientX,y:e.clientY,id:e.pointerId,t:now()};moved=false;return}
   if(phase!=='sky')return;
   var over=false;
@@ -1659,7 +1665,53 @@ function stepOut(){
 var STEP=0,BTOUCH=null,PEND=null;
 function snap(c){return {lv:c.lv,k:c.k,id:c.id,b:c.b?1:0}}
 function onBoard(){return cur.lv>=2||(cur.lv===1&&(!!cur.b||cur.k==='progress'))}
-function pushStep(){STEP++;history.pushState({u1:1,cur:snap(cur),n:STEP},'',hashOf(cur))}
+function pushStep(){STEP++;HL[STEP]=levelOf(cur);history.pushState({u1:1,cur:snap(cur),n:STEP},'',hashOf(cur))}
+/* One source of truth for the level: 0 sky, 1 chapter (MID), 2 board, 3 work. The crumb and the rail both read it. */
+var HL={};
+function levelOf(c){
+  if(!c||!c.lv)return 0;
+  if(c.lv>=2||c.id)return 3;
+  if(c.b||c.k==='progress')return 2;
+  return 1;
+}
+function canJump(L){
+  if(L===0)return levelOf(cur)>0;
+  if(L>=levelOf(cur))return false;
+  for(var n=STEP-1;n>=0;n--)if(HL[n]===L)return true;
+  return false;
+}
+function jumpLevel(L){
+  if(L===0){farHome();return}
+  if(L>=levelOf(cur))return;
+  for(var n=STEP-1;n>=0;n--)if(HL[n]===L){history.go(n-STEP);return}
+}
+function crumbNames(label){
+  var lv=levelOf(cur),k=cur.k==='progress'?'in progress':cur.k;
+  return ['ᑕᐣᓯ',k,'board',lv===3?label:'work'];
+}
+function syncCrumb(label){
+  var cr=$('wcrumb'),rl=$('wrail'),bar=$('bar');if(!cr||!rl)return;
+  var lv=levelOf(cur),show=phase==='sky'&&lv>0;
+  cr.hidden=rl.hidden=!show;
+  document.documentElement.classList.toggle('wc',show);
+  if(!show)return;
+  var nm=crumbNames(label),i,h='',r='';
+  for(i=0;i<=lv;i++){
+    var here=i===lv,can=!here&&canJump(i);
+    if(i)h+='<i aria-hidden="true">›</i>';
+    if(i===0)h+='<button type="button" class="sig" lang="cr" data-lv="0" aria-label="the whole sky">ᑕᐣᓯ</button>';
+    else if(here)h+='<b aria-current="page">'+esc(nm[i])+'</b>';
+    else h+=can?'<button type="button" data-lv="'+i+'">'+esc(nm[i])+'</button>':'<span>'+esc(nm[i])+'</span>';
+  }
+  for(i=0;i<4;i++){
+    var cls=i===lv?'here':i<lv?'up':'',tap=i<lv&&canJump(i);
+    r+='<li class="'+cls+(tap?' tap':'')+'"'+(tap?' data-lv="'+i+'" role="button" tabindex="0"':'')+' aria-label="'+esc(i===0?'sky':nm[i])+(i===lv?' (here)':'')+'"><span>'+esc(i===0?'sky':nm[i])+'</span></li>';
+  }
+  var key=h+'|'+r;
+  if(cr._key!==key){cr._key=key;cr.innerHTML=h;rl.innerHTML='<ol>'+r+'</ol>'}
+  var bb=bar?bar.getBoundingClientRect():null;
+  cr.style.top=Math.max(40,Math.round(bb?bb.bottom-6:46))+'px';
+}
 function syncHist(){
   if(PEND&&window.GJ_DEPTH){
     if(STEP!==PEND.s)PEND=null;
@@ -1667,6 +1719,7 @@ function syncHist(){
   }
   var h=history.state;if(!h||!h.u1||h.n!==STEP)return;
   var want=hashOf(cur);
+  HL[STEP]=levelOf(cur);
   if(location.hash!==want||JSON.stringify(h.cur)!==JSON.stringify(snap(cur)))history.replaceState({u1:1,cur:snap(cur),n:STEP},'',want);
 }
 function bioSig(){return bioOn+':'+bioLv+':'+bioMoon}
@@ -1766,6 +1819,7 @@ function ui(){
   }
   if(window.GJ_DEPTH){var named=GJ_DEPTH.state();if(named&&named.label)label=named.label}
   where.textContent=label;
+  syncCrumb(label);
   var bar=$('bar');if(bar)bar.classList.toggle('bio',!!(bioOn&&isBio()));
   stage.setAttribute('aria-label',label);
   syncHire();
@@ -1962,7 +2016,7 @@ function enterSky(instant){
   phase='sky';
   try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
   setChrome();
-  if(!history.state||!history.state.u1){STEP=0;history.replaceState({u1:1,cur:snap(cur),n:0},'',hashOf(cur))}
+  if(!history.state||!history.state.u1){STEP=0;HL[0]=0;history.replaceState({u1:1,cur:snap(cur),n:0},'',hashOf(cur))}
   arriveAt(cur,instant);
 }
 function decide(){
@@ -2000,8 +2054,9 @@ function seed(st){
   if(st.lv>=1&&st.k!=='progress')chain.push({lv:1,k:st.k,id:null,b:0});
   if(st.lv>=2||st.k==='progress'||st.b)chain.push({lv:1,k:st.k,id:null,b:1});
   if(st.lv>=2)chain.push({lv:2,k:st.k,id:st.id,b:0});
+  HL={};HL[0]=0;
   history.replaceState({u1:1,cur:chain[0],n:0},'',hashOf(chain[0]));
-  for(var i=1;i<chain.length;i++)history.pushState({u1:1,cur:chain[i],n:i},'',hashOf(chain[i]));
+  for(var i=1;i<chain.length;i++){HL[i]=levelOf(chain[i]);history.pushState({u1:1,cur:chain[i],n:i},'',hashOf(chain[i]))}
   STEP=chain.length-1;
   cur=chain[chain.length-1];
   if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());

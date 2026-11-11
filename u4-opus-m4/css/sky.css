@@ -326,3 +326,30 @@ html.bleed #proof,html.bleed #mmap{display:none !important}
 .beside a{display:block;margin-top:4px;font-size:10px;letter-spacing:.04em;color:#e8eef6;text-decoration:underline;text-underline-offset:2px}
 h2.tt{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 h2.tt small{display:block;white-space:normal;font:300 11px/1.4 Poppins,sans-serif;letter-spacing:.04em;text-transform:none;color:rgba(228,221,210,.66);margin-bottom:4px}
+
+/* where you are: a tappable crumb under the bar and a depth rail whose stops are the real levels (sky, chapter, board, work) */
+#wcrumb{position:absolute;z-index:7;left:max(8px,var(--sl));right:max(8px,var(--sr));top:46px;display:flex;align-items:center;gap:1px;min-height:26px;margin:0;pointer-events:none;
+ font:300 11.5px/1.2 Poppins,sans-serif;letter-spacing:.02em;color:rgba(228,235,245,.78);text-shadow:0 1px 6px rgba(4,7,11,.95),0 0 2px rgba(4,7,11,.9);white-space:nowrap;overflow:hidden}
+#wcrumb[hidden],#wrail[hidden]{display:none}
+#wcrumb>*{flex:0 0 auto;pointer-events:none}
+#wcrumb button{pointer-events:auto;padding:5px 5px;min-height:26px;color:rgba(228,235,245,.82);text-decoration:underline;text-decoration-color:rgba(255,255,255,.3);text-underline-offset:3px}
+#wcrumb button:active{color:#fff}
+#wcrumb .sig{font-family:Syl,sans-serif;font-weight:700;font-size:15px;color:#fff;text-decoration:none;padding:3px 5px}
+#wcrumb i{font-style:normal;color:rgba(255,255,255,.4)}
+#wcrumb b{flex:0 1 auto;min-width:0;font-weight:400;color:#fff;padding:5px 5px;overflow:hidden;text-overflow:ellipsis}
+#wcrumb span{padding:5px 5px;color:rgba(228,235,245,.5)}
+#wrail{position:absolute;z-index:7;left:max(10px,var(--sl));bottom:calc(10px + var(--sb));margin:0;pointer-events:none;transition:opacity .3s}
+#wrail ol{list-style:none;margin:0;padding:3px 7px;display:flex;gap:2px;align-items:center;border-radius:999px;background:rgba(3,5,10,.62);border:1px solid rgba(255,255,255,.1)}
+#wrail li{display:flex;align-items:center;gap:5px;padding:5px 5px;font:300 10px/1 Poppins,sans-serif;letter-spacing:.05em;color:rgba(255,255,255,.4)}
+#wrail li::before{content:"";width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.3);flex:none}
+#wrail li span{display:none;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#wrail li.up::before{background:rgba(255,255,255,.75)}
+#wrail li.tap{pointer-events:auto;cursor:pointer}
+#wrail li.here{color:var(--mint)}
+#wrail li.here::before{width:7px;height:7px;background:var(--mint);box-shadow:0 0 8px var(--mint)}
+#wrail li.here span{display:inline}
+html.bleed #wcrumb,html.bleed #wrail{opacity:0;pointer-events:none}
+html.wc #layer .sheet.full,html.wc #layer .sheet.film,html.wc #layer .sheet.cutsheet{padding-top:calc(86px + var(--st))}
+html.wc #layer .sheet{padding-bottom:calc(46px + var(--sb))}
+html.wc .filmfield h2{top:calc(80px + var(--st))}
+html.wc #laytext{top:calc(80px + var(--st))}
