@@ -770,8 +770,12 @@ function frameSpan(node,ar,a,b){
   st.inset='auto';st.height='auto';st.objectFit='fill';st.aspectRatio=String(ar);
   st.width=(100/v).toFixed(3)+'%';st.left=(-L*100/v).toFixed(3)+'%';st.top='50%';st.transform='translateY(-50%)';
 }
+/* Portrait-only spans for Film stills (js/framing.js): key = folder/name, value = [aspect ratio, left, right]. Landscape is never touched. */
+function folderName(u){u=String(u||'');var n=u.lastIndexOf('/'),f=u.lastIndexOf('/',n-1);return u.slice(f+1)}
 function applyFraming(el,src,clip){
   var fi=FRAMING[baseName(clip)],fs=FRAMING[baseName(src)],img=el.querySelector('img'),v=el.querySelector('video');
+  var pf=innerWidth<innerHeight&&window.GJ_FRAMING?GJ_FRAMING[folderName(src)]:null;
+  if(pf&&!fi){frameSpan(v||img,pf[0],pf[1],pf[2]);if(v&&img)frameSpan(img,pf[0],pf[1],pf[2]);return}
   if(fs&&fs.span&&img&&!(fi&&v))frameSpan(img,fs.ar,fs.span[0],fs.span[1]);
   if(!(fi&&v))return;
   var shot=-1;
