@@ -63,6 +63,7 @@ Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f
 | Weird Kid page | `9441690` | Hero still and its cover crop are unchanged (58vh, object-fit cover). Credits sit under the hero and the first gallery row peeks above the fold. The artist line is only in the credits; the title, breadcrumb and bottom pill say Weird Kid. The mini-map sits in the gap beside the credits, covering neither the hero nor the credits. Pinching the hero still goes deeper (film level 2). SHELL_REV 52. _progress/weird-kid-page-390.jpg. | Back to the Start hero and gallery |
 | Back to the Start page | `332b2a6` | Hero is frames/20/56.webp, the rider shot, at its native 960x440 (no upscale). The gallery stays the film's own 21 frames at 960px. Credits: Old Man Canyon, and Gill James (co-director with Jet Pace, cinematographer, producer). SHELL_REV 53. _progress/back-to-the-start-hero-390.jpg. | Yara title pill |
 | Opening orb fade | `c6435a4` | The opening bokeh shrinks and fades across the fly and is cleared before the sky, so the soft blobs no longer sit on the constellation at pinch p 1. The two solid finger dots are kept off that pinch. A depth pinch still throws its own bokeh. SHELL_REV 54. _progress/opening-orb-fade-390.jpg. | Player favicon |
+| Player favicon | `abc45a0` | player/index.html no longer requests img/favicon-32.png. The icon link is ../icons/apple-touch-icon.png, which returns 200. | Yara title pill |
 
 ### A. u3-r2/r3 fixes
 Ported (each was missing from m4):
