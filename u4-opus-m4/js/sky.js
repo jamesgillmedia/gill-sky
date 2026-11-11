@@ -45,8 +45,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1};
-var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1};
+var TDEF={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1};
+var TUNE={map:1,stars:1,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
@@ -349,7 +349,7 @@ function washImgs(k){
 
 function frame(t){
   var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
-  if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/1680,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush()}}
+  if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/(1680*tk('fade')),0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush()}}
   if(phase==='land'&&!OP.on&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   if(OP.used)opLayers(dt);
   stepSprings(dt);if(playing)listen();
@@ -1051,8 +1051,9 @@ var MP={t0:0},MS=null,ARR={on:0,done:0,wd:0,md:0,tm:0,hook:0};
 function markProg(){
   if(MP.t0<0)return {d:1,a:.35};
   if(!MP.t0)return {d:0,a:1};
-  var t=now()-MP.t0,d=clamp(t/1100,0,1);
-  return {d:1-Math.pow(1-d,2),a:1-.65*clamp((t-1100)/600,0,1)};
+  var draw=1100*tk('open'),dim=600*tk('open');
+  var t=now()-MP.t0,d=clamp(t/draw,0,1);
+  return {d:1-Math.pow(1-d,2),a:1-.65*clamp((t-draw)/dim,0,1)};
 }
 function armArrival(){
   if(ARR.on)return;
@@ -1067,7 +1068,7 @@ function armArrival(){
   }
   if(ARR.done){MP.t0=-1;po.classList.add('seq','again');pa.classList.add('seq','again');$('dive').classList.add('show');return}
   ARR.wd=ARR.md=0;MP.t0=0;
-  clearTimeout(ARR.tm);ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250);
+  clearTimeout(ARR.tm);ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250*tk('delay'));
 }
 function arrBegin(){
   if(!ARR.on||ARR.done||!(ARR.wd&&ARR.md))return;
@@ -1581,7 +1582,7 @@ function opRelease(){
   OP.on=0;
   if(phase==='fly'){
     if(flyU<.3){phase='arrive';flyU=0;setChrome()}
-    else flyT=now()-flyU*1680;
+    else flyT=now()-flyU*1680*tk('fade');
   }else if(phase==='land')landT=now();
 }
 var OPL=['water','path','horizon','dust','poem','moon'],OPK={water:1.4,path:1.7,horizon:1.0,dust:1.15,poem:.7,moon:.35};
@@ -2391,6 +2392,16 @@ function seed(st){
 }
 
 applyCtl();
+/* Open delay stretches the water and moon fade with the fallback, so the mark still waits for them. 1 removes the override. */
+function applyDelay(){
+  var dly=tk('delay'),de=document.documentElement;
+  if(dly===1)de.style.removeProperty('--gj-delay');
+  else de.style.setProperty('--gj-delay',String(dly));
+  if(ARR.on&&!ARR.done){
+    clearTimeout(ARR.tm);
+    ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250*dly);
+  }
+}
 /* The debug panel is the only caller. Defaults stay 1, so a normal visit never reads a dial. */
 window.GJ_TUNE={
   get:function(k){return tk(k)},
@@ -2398,17 +2409,20 @@ window.GJ_TUNE={
   defaults:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=TDEF[k]});return o},
   set:function(patch){
     if(!patch)return;
-    var spatial=false;
+    var spatial=false,delay=false;
     Object.keys(patch).forEach(function(k){
       if(!(k in TDEF))return;
       var v=+patch[k];if(!isFinite(v))return;
       TUNE[k]=v;
       if(SPATIAL[k])spatial=true;
+      if(k==='delay')delay=true;
     });
     if(spatial&&ready){layout();arriveAt(cur,true)}
+    if(delay)applyDelay();
   },
   reset:function(){
     Object.keys(TDEF).forEach(function(k){TUNE[k]=TDEF[k]});
+    applyDelay();
     if(ready){layout();arriveAt(cur,true)}
   }
 };

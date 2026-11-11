@@ -53,7 +53,10 @@
     { k: 'pinch', name: 'Pinch depth', min: 0.4, max: 2.2, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
     { k: 'far', name: 'Far zoom', min: 0.6, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
     { k: 'mid', name: 'Mid zoom', min: 0.6, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
-    { k: 'board', name: 'Board zoom', min: 0.6, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } }
+    { k: 'board', name: 'Board zoom', min: 0.6, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
+    { k: 'delay', name: 'Open delay', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1250 * v) + ' ms'; } },
+    { k: 'open', name: 'Mark duration', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1100 * v) + ' ms'; } },
+    { k: 'fade', name: 'Sky fade', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1680 * v) + ' ms'; } }
   ];
   var TKEY = 'gj-m4-tune';
   function tune() { return window.GJ_TUNE || null; }
