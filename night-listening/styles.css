@@ -120,11 +120,11 @@ html, body {
 #night .float-label.on { opacity: 1; }
 
 #night .float-label .anchor {
-  transform: translate(14px, -50%);
+  transform: translate(14px, calc(-50% + var(--dy, 0px)));
 }
 
 #night .float-label.flip .anchor {
-  transform: translate(calc(-100% - 14px), -50%);
+  transform: translate(calc(-100% - 14px), calc(-50% + var(--dy, 0px)));
   text-align: right;
 }
 

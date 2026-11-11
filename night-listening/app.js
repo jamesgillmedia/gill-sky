@@ -237,6 +237,9 @@
     var anim = null;
     var vw = 1, vh = 1;
     var selectedId = null;
+    var labelSize = {};
+    var labelBox = {};
+    var floatSize = { id: null, w: 0, h: 0 };
     var active = null;
     var playing = false;
     var pausedAt = 0;
@@ -526,12 +529,35 @@
         var ny = b.minY * cam.scale + ty - 18;
         var el = nameEls[g.name];
         el.style.transform = "translate3d(" + nx + "px," + ny + "px,0) translate(-50%,-100%)";
+        if (!labelSize[g.name]) labelSize[g.name] = { w: el.offsetWidth, h: el.offsetHeight };
+        var ls = labelSize[g.name];
+        labelBox[g.name] = { l: nx - ls.w / 2, r: nx + ls.w / 2, t: ny - ls.h, b: ny };
       });
       if (selectedId && screenPos[selectedId]) {
         var p = screenPos[selectedId];
         floatEl.style.transform = "translate3d(" + p.x + "px," + p.y + "px,0)";
-        floatEl.classList.toggle("flip", p.x > vw * 0.58);
+        var flip = p.x > vw * 0.58;
+        floatEl.classList.toggle("flip", flip);
         floatEl.classList.add("on");
+        var dy = 0;
+        if (vw >= 900) {
+          if (floatSize.id !== selectedId) {
+            var anc = floatEl.firstChild;
+            floatSize = { id: selectedId, w: anc.offsetWidth, h: anc.offsetHeight };
+          }
+          var fl = flip ? p.x - 14 - floatSize.w : p.x + 14;
+          var ft = p.y - floatSize.h / 2;
+          var gap = 16;
+          Object.keys(labelBox).forEach(function (name) {
+            var lb = labelBox[name];
+            if (fl > lb.r + gap || fl + floatSize.w < lb.l - gap) return;
+            if (ft > lb.b + gap || ft + floatSize.h < lb.t - gap) return;
+            var down = lb.b + gap - ft;
+            var up = ft + floatSize.h - (lb.t - gap);
+            dy = (lb.t + lb.b) / 2 < p.y ? Math.max(dy, down) : Math.min(dy, -up);
+          });
+        }
+        floatEl.style.setProperty("--dy", dy + "px");
       } else {
         floatEl.classList.remove("on");
       }
