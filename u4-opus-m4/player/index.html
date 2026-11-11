@@ -20,6 +20,10 @@
     <button type="button" class="dive" id="dive">▶ dive in</button>
   </section>
   <section class="player" id="player" aria-label="player">
+    <div class="ctl" role="group" aria-label="sound controls">
+      <label class="cl"><span>vol</span><input type="range" id="cvol" min="0" max="100" step="1" aria-label="volume"></label>
+      <label class="cl"><span>flash</span><input type="range" id="cfl" min="0" max="100" step="1" aria-label="flash brightness"></label>
+    </div>
     <div class="sc-row">
       <button type="button" class="ib sc-b" id="pp" aria-label="pause">❚❚</button>
       <div class="sc-lab"><span class="l1"><b id="ttl">TO GO</b> <span id="art">LOST COFFEE</span></span>

@@ -68,3 +68,18 @@ a{color:inherit;text-decoration:none}
 .picks{max-width:min(360px,94vw);gap:5px}
 .picks button{padding:0 10px;font-size:10.5px}
 .sl small{max-width:280px}
+
+/* volume + flash: thin ranges in the same quiet style; absolute so the waveform rail never moves; right edge stops short of the host mini-map */
+.player .ctl{position:absolute;left:max(10px,var(--sl));right:max(96px,calc(var(--sr) + 96px));bottom:calc(100% - 8px);display:flex;gap:14px}
+.cl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(201,211,214,.72);text-shadow:0 0 8px #03050a}
+.cl span{flex:none}
+.cl input{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;background:transparent;cursor:pointer;touch-action:pan-y;--p:100%}
+.cl input::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(85,218,161,.75) var(--p),rgba(220,232,240,.28) var(--p))}
+.cl input::-moz-range-track{height:1px;background:rgba(220,232,240,.28)}
+.cl input::-moz-range-progress{height:1px;background:rgba(85,218,161,.75)}
+.cl input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5.5px;border-radius:50%;border:0;background:#e8f1f4;box-shadow:0 0 6px rgba(190,225,255,.5)}
+.cl input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;border:0;background:#e8f1f4;box-shadow:0 0 6px rgba(190,225,255,.5)}
+.cl input:focus-visible{outline:1px solid rgba(85,218,161,.8);outline-offset:-10px;border-radius:6px}
+/* every CSS flash in the player follows --flash (0 = steady and dim, 1 = as it was) */
+.sc-rail .tk.on{opacity:calc(.35 + .65*var(--flash,.6))}
+.sc-head{opacity:calc(.5 + .5*var(--flash,.6))}

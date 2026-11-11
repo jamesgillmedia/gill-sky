@@ -3,6 +3,35 @@
   if(!boxes.length)return;
   document.documentElement.classList.add('js');
   var live=[];
+  function rd(k,d){try{var v=parseFloat(localStorage.getItem(k));return isFinite(v)?Math.max(0,Math.min(1,v)):d}catch(e){return d}}
+  var VOL=rd('gj.vol',1),FLASH=rd('gj.flash',.6),ctls=[],redraws=[];
+  function dim(){return .35+.65*FLASH}
+  function applyAll(){
+    document.documentElement.style.setProperty('--flash',FLASH);
+    live.forEach(function(a){a.volume=VOL});
+    ctls.forEach(function(c){c.sync()});
+    redraws.forEach(function(f){f()});
+  }
+  function put(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  window.addEventListener('storage',function(e){
+    if(e.key==='gj.vol'||e.key==='gj.flash'){VOL=rd('gj.vol',1);FLASH=rd('gj.flash',.6);applyAll()}
+  });
+  function controls(box){
+    var row=document.createElement('div');
+    row.className='ctl';
+    row.setAttribute('role','group');
+    row.setAttribute('aria-label','sound controls');
+    row.innerHTML='<label class="cl"><span>vol</span><input type="range" min="0" max="100" step="1" aria-label="volume"></label>'+
+      '<label class="cl"><span>flash</span><input type="range" min="0" max="100" step="1" aria-label="flash brightness"></label>';
+    var iv=row.querySelectorAll('input')[0],ifl=row.querySelectorAll('input')[1];
+    function paint(i,v){i.value=Math.round(v*100);i.style.setProperty('--p',Math.round(v*100)+'%');i.setAttribute('aria-valuetext',Math.round(v*100)+'%')}
+    function sync(){paint(iv,VOL);paint(ifl,FLASH)}
+    iv.addEventListener('input',function(){VOL=iv.value/100;put('gj.vol',VOL);applyAll()});
+    ifl.addEventListener('input',function(){FLASH=ifl.value/100;put('gj.flash',FLASH);applyAll()});
+    ctls.push({sync:sync});
+    sync();
+    box.appendChild(row);
+  }
   function mmss(s){
     s=Math.max(0,Math.round(s||0));
     return (s/60|0)+':'+(s%60<10?'0':'')+(s%60);
@@ -18,6 +47,7 @@
     audio.preload='auto';
     audio.src=src;
     audio.hidden=true;
+    audio.volume=VOL;
     box.appendChild(audio);
     var peaks=[],dur=0,head=0,hold=0,mark=null;
     function duration(){
@@ -58,7 +88,7 @@
           var xi=4+mark.u*(w-8);
           var idx=Math.max(0,Math.min(n-1,Math.floor(mark.u*n)));
           var py=Math.max(3,peaks[idx]*(h*0.46));
-          g.fillStyle='rgba(85,218,161,'+(0.55*a).toFixed(3)+')';
+          g.fillStyle='rgba(85,218,161,'+(0.55*a*dim()).toFixed(3)+')';
           g.beginPath();
           g.arc(xi,h/2,Math.max(3,py*0.22),0,6.3);
           g.fill();
@@ -94,6 +124,8 @@
     });
     audio._play=play;
     live.push(audio);
+    redraws.push(draw);
+    controls(box);
     function seek(ev){
       var d=isFinite(audio.duration)&&audio.duration>0?audio.duration:dur;
       if(!rail||!(d>0))return;
@@ -154,4 +186,5 @@
     draw();
   }
   [].forEach.call(boxes,arm);
+  applyAll();
 })();

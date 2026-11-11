@@ -34,6 +34,10 @@ var cur={lv:0,k:null,id:null},sel=null,phase='boot';
 var flyU=1,flyT=0,markPts=[],markTo=[];
 var landI=0,landT=0,lands=[];
 var drag=null,pinch=null,moved=false,PT={};
+function lsr(k,d){try{var v=parseFloat(localStorage.getItem(k));return isFinite(v)?Math.max(0,Math.min(1,v)):d}catch(x){return d}}
+var GVOL=lsr('gj.vol',1),GFL=lsr('gj.flash',.6);
+function applyCtl(){document.documentElement.style.setProperty('--flash',GFL);if(au)au.volume=GVOL}
+addEventListener('storage',function(e){if(e.key==='gj.vol'){GVOL=lsr('gj.vol',1);applyCtl()}if(e.key==='gj.flash'){GFL=lsr('gj.flash',.6);applyCtl()}});
 var song=null,playing=false,au=null,AC=null,AN=null,FD=null,TD=null,L={rms:0,beat:0};
 var CHIMES=[],reelCtl=null,lastT=0,ready=false;
 var GLOW={};
@@ -1000,15 +1004,15 @@ function drawSound(t){
   c.node.forEach(function(n,i){if(!n)return;var tr=songAt[i];if(!tr)return;
     var p=nodePos(n),q=sp(p[0],p[1]);
     var on=song&&song.k===tr.k;star(q,on?.9:.55,c,on,1);
-    if(playing&&on){var pulse=1+L.rms*1.8;g.globalAlpha=.35+L.rms*.5;g.strokeStyle='rgba('+MINT+','+(0.4+L.rms)+')';g.beginPath();g.arc(q[0],q[1],8+10*L.rms*pulse,0,7);g.stroke();g.globalAlpha=1}
+    if(playing&&on){var fr=L.rms*GFL,dm=.35+.65*GFL,pulse=1+fr*1.8;g.globalAlpha=(.35+fr*.5)*dm;g.strokeStyle='rgba('+MINT+','+(0.4+fr)+')';g.beginPath();g.arc(q[0],q[1],8+10*fr*pulse,0,7);g.stroke();g.globalAlpha=1}
     if(on){g.font='300 10px Poppins,sans-serif';g.textAlign='center';g.fillStyle='rgb('+MINT+')';g.fillText(tr.title,q[0],q[1]-14)}
   });
   if(playing){
     var o=sp(c.x,c.y),peaks=song.peaks||[],head=(au&&song.dur)?au.currentTime/song.dur:0;
     for(var i=0;i<18;i++){
       var pi=Math.floor(((head*peaks.length+i*3)%peaks.length+peaks.length)%peaks.length);
-      var rad=18+(peaks[pi]||.2)*70+L.rms*26;
-      g.strokeStyle='rgba(255,182,176,'+(0.08+0.25*(1-i/18))+')';g.beginPath();g.arc(o[0],o[1],rad+i*7,0,7);g.stroke();
+      var rad=18+(peaks[pi]||.2)*70+L.rms*GFL*26;
+      g.strokeStyle='rgba(255,182,176,'+((0.08+0.25*(1-i/18))*(.35+.65*GFL))+')';g.beginPath();g.arc(o[0],o[1],rad+i*7,0,7);g.stroke();
     }
   }
   drawWF();
@@ -1162,7 +1166,7 @@ function paintRail(t){
 }
 function renderPlayer(el){
   pauseAu();
-  if(!au){au=document.createElement('audio');au.preload='none';au.crossOrigin='anonymous';document.body.appendChild(au);
+  if(!au){au=document.createElement('audio');au.volume=GVOL;au.preload='none';au.crossOrigin='anonymous';document.body.appendChild(au);
     au.addEventListener('ended',function(){playing=false});
     au.addEventListener('timeupdate',drawWF)}
   el.innerHTML='<div class="snd"><div class="row"><button type="button" class="play" id="splay">play</button><div class="who"><b id="sttl"></b><small id="sart"></small></div><span id="tc"></span></div><canvas class="wf" id="wf"></canvas><p class="lic"><a href="mailto:'+esc(data.email)+'?subject=music%20licensing">licensing · '+esc(data.email)+'</a></p></div>';
@@ -2078,6 +2082,7 @@ function seed(st){
   if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
 }
 
+applyCtl();
 window.__u1={
   get phase(){return phase},get cur(){return snap(cur)},get step(){return STEP},
   get sel(){return sel},get ready(){return ready},
