@@ -455,6 +455,8 @@ function planIn(x,y,api){
   var cur=api.cur();
   if(soundOn)return function(){zoomSound()};
   if(snd&&!soundOn)return function(){openSound(api,trackOf(snd.work),false,snd.work)};
+  /* Reel 2026 stays in its column. A tap used to cover the screen with the Demo Reel clip, then scatter the stills. */
+  if(filmWork&&filmWork.id==='film/reel-2026'&&filmLv>=1)return null;
   if(filmLv===2){var fh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');return function(){enterFilm(x,y,api,fh)}}
   if(filmLv===1){
     var uh=nearestStill(x,y,'#layer .framewall img[data-hi="1"]');

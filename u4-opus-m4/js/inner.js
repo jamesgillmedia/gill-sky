@@ -365,7 +365,7 @@ function subHit(x,y){
 function shotsOf(it){
   if(!it)return [];
   if(it.shots&&it.shots.length)return it.shots;
-  if(it.kind==='reel'||it.slug==='reel-2026'||it.k==='w0')return reelShots();
+  if(it.kind==='reel'||it.slug==='demo-reel')return reelShots();
   if(it.kind==='film')return filmShots(it);
   var src=it.media&&(it.media.big||it.media.thumb);
   if(it.chapter==='photo'&&it.kind==='photo'&&src)return crops(src,'');
