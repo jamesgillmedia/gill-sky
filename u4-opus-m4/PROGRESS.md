@@ -2,16 +2,21 @@
 
 Read this first if you are picking the work up in a fresh run.
 
-## Rules for this folder
-- Work only in `u4-opus-m4/` on branch `cursor/u4-opus-5d75`. Commit and push to that branch after every small step. Publish only when Gill says so, and only as a new folder on main.
-- `u4-opus-m3/` is published and must not be changed. m4 is a copy of it with three fixes: whole-word board captions and the "Gill James and Ryan" credit; ᑕᐣᓯ flying to FAR in one move from any level; and boards stopping above the minimap.
-- `RULEBOOK.md` (from `u4-spec.tgz`) overrides earlier steers. The far sky, top bar, camera, bloom, water, parallax, fly-through and minimap stay as in u3. Motion is the same with Reduce Motion on or off.
-- Hard rules from the brief still apply:
-  - real media only, with no invented titles;
-  - no YouTube;
-  - no prefers-reduced-motion branches;
-  - files under 25 MB;
-  - never edit u1, u2, u3, u4-opus-m1, u4-opus-m2, u4-opus-m3 or any other existing folder.
+## Rules for this folder (merge run, approved by Gill, spec wins)
+- `_spec/DESIGN-SPEC.md` is the source of truth; `RULEBOOK.md` is older and loses where they conflict.
+- Work only in `u4-opus-m4/`. Every small step is committed and pushed to branch `cursor/u4-opus-5d75` AND to `main` (this folder only). Pages redeploys https://jamesgillmedia.github.io/gill-sky/u4-opus-m4/ in about 1-2 min. No review gate.
+- The first published m4 stays recoverable at main `2d77656`. No frozen copy.
+- Never touch the gill-sky root, any other folder, or the gilljames repo (read-only reference).
+- Real media and copy only; no YouTube; no `prefers-reduced-motion` branches; no private/held files (spec section 4); never vidA.mp4 after 9 s; the bio is verbatim.
+
+## Merge run log (step, commit, what changed, what is next)
+Step 0 commit (spec added before any code change): `e195ff7b5df79ac89c39988f4d0f880c02775e3e`
+
+| Step | Commit | What changed | Next |
+|---|---|---|---|
+| 0 | `e195ff7` | `_spec/DESIGN-SPEC.md` + `spec-img/` added, no code touched | A |
+
+LOGROWS
 
 ## Level path
 - FAR (`#`): the single GILL JAMES sky.
