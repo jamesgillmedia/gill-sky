@@ -683,7 +683,7 @@ function drawWindow(){
     if(spec.key==='objects'&&spec.board)y+=(i%3)*3;
     if(y>spec.y0+spec.winH||y+h<spec.y0)return;
     g.globalAlpha=Math.min(1,b*1.4);
-    if(spec.key==='photo'&&!spec.board&&!(db&&db.fine)&&it._im&&it.ld){
+    if(spec.key==='photo'&&!(db&&db.fine)&&it._im&&it.ld){
       g.save();g.translate(x+w/2,y+h/2);g.rotate(((i%5)-2)*0.025);
       cover(it._im,-w/2,-h/2,w,h,it._crop);g.restore();
     }else if(spec.key==='objects'&&!(db&&db.fine)){
@@ -694,7 +694,7 @@ function drawWindow(){
         g.font='300 11px Poppins,sans-serif';g.textAlign='center';g.textBaseline='middle';
         g.fillStyle='rgba(228,236,244,.72)';g.fillText('no picture of this piece',x+w/2,y+h/2);
       }
-    }else if(spec.key==='sound'&&!spec.board&&!(db&&db.fine)){
+    }else if(spec.key==='sound'&&!(db&&db.fine)){
       g.fillStyle='rgba(8,14,22,.72)';g.fillRect(x,y,w,h);
       loadImg(it);
       if(it._im&&it.ld){g.save();g.globalAlpha=0.5;cover(it._im,x,y,Math.min(w*0.34,h),h);g.restore();g.globalAlpha=Math.min(1,b*1.4)}
