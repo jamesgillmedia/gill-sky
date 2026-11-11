@@ -18,6 +18,16 @@ var SH = {"film":{"t":"150,220,255","s":[[0.105,0.21,0.92,0],[0.89,0.13,0.74,0],
 var STROKES = [[[-58.5,-96],[-156.5,-95],[-203.5,-61],[-213.5,1],[-203.5,63],[-156.5,97],[-58.5,97]],[[-26.5,-97],[25.5,-94],[44.5,-51],[25.5,-8],[-26.5,-5]],[[99.5,105],[99.5,20],[149.5,15],[191.5,-11],[211.5,-55],[214.5,-105]]];
 var $=function(id){return document.getElementById(id)};
 var cv=$('cv'),g=cv.getContext('2d'),stage=$('stage');
+/* item 12 · Text size: every canvas label goes through one multiplier (tune 'text', default 1×). The context's font setter scales the px
+   size; the getter hands back the unscaled font, so code that reads g.font and shrinks it (cut0) never double-scales. */
+var FONTD=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'font');
+function textScaled(c){
+  if(!c||c._ts||!FONTD)return c;c._ts=1;var uf=FONTD.get.call(c);
+  Object.defineProperty(c,'font',{configurable:true,get:function(){return uf},set:function(v){uf=v;var k=TUNE?+TUNE.text:1;
+    FONTD.set.call(c,(k&&k!==1&&isFinite(k))?String(v).replace(/([\d.]+)px/,function(m,n){return (+n*k).toFixed(2)+'px'}):v)}});
+  return c;
+}
+textScaled(g);
 var W=0,H=0,DPR=1,PORT=false;
 var data=null,CH={},byId={},progress=[],cluster=[];
 /* site-3d's critically damped spring (sstep). Level changes use its glide
@@ -29,7 +39,7 @@ var W_GLIDE=4.8,W_LOOK=9.5;
 var cxS=S(0,W_GLIDE),cyS=S(0,W_GLIDE),csS=S(.3,W_GLIDE);
 var bxS=S(0,W_GLIDE),pxS=S(0,W_GLIDE),lxS=S(0,W_LOOK),lyS=S(0,W_LOOK),scr=S(0,10);
 var rest={x:0,y:0,s:.3},look={x:0,y:0},FAR={x:0,y:0,s:.3};
-var bloom=0,bloomK=null,pbloom=0,scrK=null;
+var bloom=0,bloomK=null,pbloom=0,scrK=null,PREVB=null,FV=1;
 var cur={lv:0,k:null,id:null},sel=null,phase='boot';
 var flyU=1,flyT=0,markPts=[],markTo=[];
 var landI=0,landT=0,lands=[];
@@ -45,8 +55,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:.97,stars:.98,lineA:1,lineW:.8,starS:.6,starG:1.05,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,snap:.15,full:.5};
-var TUNE={map:.97,stars:.98,lineA:1,lineW:.8,starS:.6,starG:1.05,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,snap:.15,full:.5};
+var TDEF={map:.97,stars:.98,lineA:1,lineW:.8,starS:.6,starG:1.05,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,snap:.15,full:.5,text:1,icon:1};
+var TUNE={map:.97,stars:.98,lineA:1,lineW:.8,starS:.6,starG:1.05,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,snap:.15,full:.5,text:1,icon:1};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
@@ -445,7 +455,28 @@ function camFor(st){
   }
   return FAR;
 }
-function aim(s,t,instant){s.t=t;s.w=instant?40:W_GLIDE;if(instant){s.x=t;s.v=0}}
+function aim(s,t,instant){s.t=t;s.w=instant?40:W_GLIDE;if(instant){s.x=t;s.v=0;if(s===cxS||s===cyS||s===csS)TW=null}}
+/* Item 5: a hop is a fixed-length tween (1 s, ease in-out, log-space zoom, the same path as the pinch), not the
+   spring's long tail, so the tiles stop moving when it lands instead of drifting for another second. Velocities are
+   kept up to date so the star streak (depthStep) still reads them. RM identical. */
+var TW=null,TW_MS=1000;
+function camTween(to){
+  if(TW&&Math.abs(TW.to.x-to.x)<1e-6&&Math.abs(TW.to.y-to.y)<1e-6&&Math.abs(TW.to.s-to.s)<1e-7)return;
+  var a={x:cxS.x,y:cyS.x,s:Math.max(.02,csS.x)};
+  cxS.t=to.x;cyS.t=to.y;csS.t=to.s;cxS.w=cyS.w=csS.w=W_GLIDE;
+  if(Math.abs(a.x-to.x)*to.s<.05&&Math.abs(a.y-to.y)*to.s<.05&&Math.abs(a.s/to.s-1)<1e-4){TW=null;return}
+  /* chapter to chapter: the hop rises through a wider view so both stay in sight (no empty middle) */
+  var dist=Math.hypot(to.x-a.x,to.y-a.y),sm=Math.min(a.s,to.s),need=Math.min(W,H)*1.1/Math.max(1,dist*1.6),A=0;
+  if(dist*sm>Math.min(W,H)*.6)A=clamp(1-need/sm,0,.78);
+  TW={a:a,to:{x:to.x,y:to.y,s:to.s},t0:now(),A:A,fromFar:FV>.5};
+}
+function stepTween(dt){
+  var u=clamp((now()-TW.t0)/TW_MS,0,1),c=fzLerp(TW.a,TW.to,ease(u)),d=Math.max(1e-3,dt);
+  if(TW.A)c.s*=1-TW.A*Math.sin(Math.PI*ease(u));
+  cxS.v=(c.x-cxS.x)/d;cyS.v=(c.y-cyS.x)/d;csS.v=(c.s-csS.x)/d;
+  cxS.x=c.x;cyS.x=c.y;csS.x=c.s;
+  if(u>=1){cxS.x=TW.to.x;cyS.x=TW.to.y;csS.x=TW.to.s;cxS.v=cyS.v=csS.v=0;TW=null}
+}
 
 function cam(){return {x:rest.x+look.x,y:rest.y+look.y,s:rest.s}}
 function sp(x,y){var c=cam();return [(x-c.x)*c.s+W/2,(y-c.y)*c.s+H/2]}
@@ -453,7 +484,18 @@ function wp(x,y){var c=cam();return [(x-W/2)/c.s+c.x,(y-H/2)/c.s+c.y]}
 
 function stepSprings(dt){
   if(!drag){sstep(lxS,dt);sstep(lyS,dt)}
-  sstep(cxS,dt);sstep(cyS,dt);sstep(csS,dt);sstep(bxS,dt);sstep(pxS,dt);
+  if(TW)stepTween(dt);else{sstep(cxS,dt);sstep(cyS,dt);sstep(csS,dt)}
+  sstep(bxS,dt);sstep(pxS,dt);
+  /* the chapter being left keeps its tiles while they fade (overlap, no empty frame) */
+  if(PREVB){
+    /* during the tween the old chapter holds until the new one is coming into view, then fades (40% overlap) */
+    if(TW&&PREVB.v0!=null){var pu=clamp((now()-TW.t0)/TW_MS,0,1);PREVB.v=PREVB.v0*(1-smooth(cur.lv===0?.6:.45,cur.lv===0?.97:.9,pu))}
+    else PREVB.v*=Math.exp(-dt/.3);
+    if(PREVB.v<.02)PREVB=null}
+  var twu=TW?clamp((now()-TW.t0)/TW_MS,0,1):1;
+  if(TW&&TW.fromFar&&cur.lv>0)FV=Math.min(FV,1-smooth(.15,.75,twu));
+  else FV+=((cur.lv===0?1:0)-FV)*(1-Math.exp(-dt/.22));
+  ORDER.forEach(function(k){var c=CH[k],tg=(cur.lv===0||cur.k===k||cur.k==='progress')?1:(PREVB&&PREVB.k===k?Math.max(.28,PREVB.v):(TW&&TW.fromFar?1-.72*smooth(.2,.8,twu):.28));c.fo=c.fo==null?tg:c.fo+(tg-c.fo)*(1-Math.exp(-dt/.25))});
   if(!drag||cur.lv<1)sstep(scr,dt);
   rest.x=cxS.x;rest.y=cyS.x;rest.s=Math.max(.02,csS.x);
   look.x=lxS.x;look.y=lyS.x;
@@ -465,8 +507,9 @@ function arriveAt(st,instant){
   var player=st.lv===2&&st.id&&byId[st.id]&&byId[st.id].kind==='player';
   var b1=(st.lv>=1&&st.k&&st.k!=='progress'&&!player)?1:0;
   var p1=(st.k==='progress')?1:0;
+  if(!instant&&bloomK&&CH[bloomK]&&bloomK!==st.k&&bloom>.05)PREVB={k:bloomK,v:bloom,v0:bloom};
   if(b1>0||p1>0)bloomK=st.k;
-  aim(cxS,to.x,instant);aim(cyS,to.y,instant);aim(csS,to.s,instant);
+  if(instant){aim(cxS,to.x,true);aim(cyS,to.y,true);aim(csS,to.s,true);PREVB=null}else camTween(to);
   aim(bxS,b1,instant);aim(pxS,p1,instant);
   aim(lxS,0,instant);aim(lyS,0,instant);
   if(st.k!==scrK||st.lv===0){aim(scr,0,instant);scrK=st.lv===0?null:st.k}
@@ -570,14 +613,14 @@ function draw(t){
   skyIntroPaint(SI);
   drawField(fa);
   /* spokes */
-  if(fa>.05&&cur.lv===0){g.strokeStyle='rgba(170,200,235,'+(0.13*fa)+')';g.beginPath();
+  if(fa*FV>.05){g.strokeStyle='rgba(170,200,235,'+(0.13*fa*FV)+')';g.beginPath();
     ORDER.forEach(function(k){var a=sp(0,0),b=sp(CH[k].x,CH[k].y);g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1])});g.stroke()}
   ORDER.forEach(function(k){drawChapter(k,t,fa)});
   drawCluster(fa);
   drawThreads(fa);
-  var cA=fa*(cur.lv===0?1:0);
+  var cA=fa*FV;
   if(!SI)drawCentre(cA);
-  if(fa>.25&&cur.lv===0)drawNames(fa);
+  if(fa>.25&&FV>.03){g.save();g.globalAlpha=1;NAMEA=FV;drawNames(fa);NAMEA=1;g.restore()}
   if(sel||CHIPK)syncChip();
   drawWindow();
   drawRelated();
@@ -586,7 +629,7 @@ function draw(t){
   paintFx();
   if(SI&&cA>.04){
     var fxc=document.getElementById('fx');
-    if(fxc){var fg2=fxc.getContext('2d'),gs=g;fg2.setTransform(DPR,0,0,DPR,0,0);g=fg2;try{drawCentre(cA*SI.m)}finally{g=gs}}
+    if(fxc){var fg2=textScaled(fxc.getContext('2d')),gs=g;fg2.setTransform(DPR,0,0,DPR,0,0);g=fg2;try{drawCentre(cA*SI.m)}finally{g=gs}}
   }
   /* The opening pinch keeps its own marks off the sky. Other pinches still show the two fingers. */
   if(pinch&&PT&&!OP.hold){
@@ -631,8 +674,8 @@ function drawGlow(){
 }
 
 function drawChapter(k,t,fa){
-  var c=CH[k],focus=(cur.lv===0||cur.k===k||cur.k==='progress')?1:.28;
-  var bl=(bloomK===k)?bloom:0;
+  var c=CH[k],focus=c.fo!=null?c.fo:((cur.lv===0||cur.k===k||cur.k==='progress')?1:.28);
+  var bl=(bloomK===k)?bloom:(PREVB&&PREVB.k===k?PREVB.v:0);
   var cp=sp(c.x,c.y),R=Math.max(c.bw,c.bh)*.6*rest.s;
   if(cp[0]<-R-240||cp[0]>W+R+240||cp[1]<-R-240||cp[1]>H+R+240)return;
   var imgs=washImgs(k),showWash=fa>.2&&bl<.35&&imgs.length;
@@ -715,7 +758,7 @@ function drawItem(it,bl,focus){
   if(it.chapter==='objects'&&!inWin&&e<0.5){
     loadImg(it);
     if(it._im&&it.ld){
-      var rad=Math.max(11,18*focus);
+      var rad=Math.max(11,18*focus)*tk('icon');
       g.save();g.beginPath();g.arc(q[0],q[1],rad,0,7);g.clip();
       cover(it._im,q[0]-rad,q[1]-rad,rad*2,rad*2);g.restore();
     }
@@ -725,9 +768,9 @@ function drawItem(it,bl,focus){
   if(it.chapter==='sound'&&!inWin&&(e<0.5||midI)){
     loadImg(it);
     var peaks=waveFor(it);
-    if(midI){star(q,it.b||.5,c,mint,focus);it._mr=[q[0]-18,q[1]-10,36,32]}
+    if(midI){star(q,it.b||.5,c,mint,focus);var ik=tk('icon');it._mr=[q[0]-18*ik,q[1]-10*ik,36*ik,32*ik]}
     else if(it._im&&it.ld){
-      var cr=14;
+      var cr=14*tk('icon');
       g.save();g.beginPath();g.arc(q[0],q[1],cr,0,7);g.clip();
       cover(it._im,q[0]-cr,q[1]-cr,cr*2,cr*2);g.restore();
     }else star(q,it.b||.5,c,mint,focus*(selOn?1:0.9));
@@ -746,8 +789,8 @@ function drawItem(it,bl,focus){
   if(inWin)return;
   if(e>.02){
     var tw0=it.tw*rest.s,th0=it.th*rest.s;
-    if(midI&&MIDW[it.chapter]){var mf=CH[it.chapter].mfit,ar=it.chapter==='film'?1/2.39:(it.tw?it.th/it.tw:1);tw0=mf?mf.w:MIDW[it.chapter];th0=tw0*ar;if(it.chapter==='about')th0=18}
-    var w=lerp(6,tw0,e),h=lerp(6,th0,e),x=q[0]-w/2,y=q[1]-h/2;
+    if((midI||(PREVB&&PREVB.k===it.chapter))&&MIDW[it.chapter]){var mf=CH[it.chapter].mfit,ar=it.chapter==='film'?1/2.39:(it.tw?it.th/it.tw:1);tw0=mf?mf.w:MIDW[it.chapter];th0=tw0*ar;if(it.chapter==='about')th0=18}
+    var IK=tk('icon'),w=lerp(6,tw0*IK,e),h=lerp(6,th0*IK,e),x=q[0]-w/2,y=q[1]-h/2;
     if(midI)it._mr=[x,y,w,h];
     g.globalAlpha=focus*Math.min(1,e*1.3);
     if(it._im&&it.ld)cover(it._im,x,y,w,h);
@@ -835,13 +878,14 @@ function drawCentre(a){
   }
   g.globalAlpha=1;
 }
+var NAMEA=1;
 function drawNames(fa){
   g.textAlign='center';g.textBaseline='alphabetic';
   ORDER.forEach(function(k){
     var c=CH[k],p=sp(c.x,c.y+c.ex.y1),y=p[1]+20;
     if(y<48||y>H-8)return;
     var on=sel&&sel.type==='ch'&&sel.k===k;
-    g.globalAlpha=1;
+    g.globalAlpha=NAMEA;
     g.font='400 13px "Julius Sans One",Poppins,sans-serif';
     g.shadowColor='rgba(4,7,11,.92)';g.shadowBlur=8;g.shadowOffsetY=1;
     g.fillStyle=on?'rgb('+MINT+')':'#f7f4ee';
@@ -1644,7 +1688,7 @@ function onDown(e){
   if(phase==='arrive'||phase==='land'){rippleAt(e.clientX,e.clientY);drag={x:e.clientX,y:e.clientY,id:e.pointerId,t:now()};moved=false;return}
   if(phase!=='sky')return;
   var over=false;
-  if(cur.lv===1&&boardKey()){
+  if(cur.lv===1&&onBoard()&&boardKey()){ /* only a board scrolls; at a chapter (mid) the drag looks around */
     var spec=gridSpec(boardKey());
     over=spec.maxSc>4&&e.clientX>=spec.x0&&e.clientX<=spec.x0+spec.w&&e.clientY>=spec.y0&&e.clientY<=spec.y0+spec.winH;
   }
@@ -1683,6 +1727,7 @@ function onUp(e){
   if(phase!=='sky')return;
   if(moved){
     if(was.chime){var c=was.chime;chime(c.f);c.fl=1}
+    if(swipeChapter(was,e))return;
     lxS.t=0;lyS.t=0;lxS.w=W_LOOK;lyS.w=W_LOOK;
     return;
   }
@@ -2120,6 +2165,20 @@ function chipOpen(e){
   if(!sel)return;
   if(cur.lv===0&&sel.type==='ch'){var k=sel.k;sel=null;syncChip();go({lv:1,k:k,id:null});return}
   openSel();syncChip();
+}
+/* Item 7: at a chapter (not its board) a horizontal swipe past a quarter of the width, or a flick, moves to the
+   next chapter in map order (swipe left = next), wrapping at the ends, with the usual hop (the star streak).
+   It is its own gesture: nothing gets selected. Short or vertical drags keep looking around. */
+function swipeChapter(was,e){
+  if(phase!=='sky'||cur.lv!==1||onBoard()||!CH[cur.k]||isBio()||was.over)return false;
+  if(window.GJ_DEPTH&&(GJ_DEPTH.soundOn()||GJ_DEPTH.busy()))return false;
+  var dx=e.clientX-was.x,dy=e.clientY-was.y,dt=Math.max(1,now()-was.t);
+  if(Math.abs(dx)<Math.abs(dy)*1.5)return false;
+  if(!(Math.abs(dx)>W*.25||(Math.abs(dx)>48&&Math.abs(dx)/dt>.55)))return false;
+  var i=ORDER.indexOf(cur.k);if(i<0)return false;
+  var nk=ORDER[(i+(dx<0?1:-1)+ORDER.length)%ORDER.length];
+  sel=null;syncChip();go({lv:1,k:nk,id:null});
+  return true;
 }
 function selKey(h){return h.type+':'+(h.id||h.k||'')}
 function tileAt(x,y){
@@ -2772,7 +2831,7 @@ function jumpMap(e){
   var best=null,bd=1e9;
   ORDER.forEach(function(k){var c=CH[k],d=Math.hypot(c.x-wx,c.y-wy);if(d<bd){bd=d;best=k}});
   if(best&&bd<180)go({lv:1,k:best,id:null});
-  else {cxS.t=wx;cyS.t=wy}
+  else {TW=null;cxS.t=wx;cyS.t=wy}
 }
 function syncHire(){
   var b=$('hire'),c=$('hirecard');if(!b)return;
@@ -2987,6 +3046,7 @@ window.__u1={
   get bio(){return {on:bioOn?1:0,lv:bioLv,exit:bioExit?1:0}},
   byId:function(id){return byId[id]},
   get map(){return {s:+rest.s.toFixed(3),prog:progress.map(function(it){var q=sp(it.cx,it.cy);return {t:it.title,x:Math.round(q[0]),y:Math.round(q[1])}}),ch:ORDER.map(function(k){var q=sp(CH[k].x,CH[k].y);return {k:k,x:Math.round(q[0]),y:Math.round(q[1])}})}},
+
   get fz(){return FZ?{u:+FZ.u.toFixed(4),k:FZ.k}:null},
   get cam(){return {x:+rest.x.toFixed(3),y:+rest.y.toFixed(3),s:+rest.s.toFixed(4)}},
   get names(){if(cur.lv!==0)return null;var o={};ORDER.forEach(function(k){var b=nameBox(k);o[k]={x:Math.round(b.x),y:Math.round((b.t+b.b)/2)}});return o},

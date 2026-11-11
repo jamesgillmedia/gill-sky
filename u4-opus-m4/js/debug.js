@@ -1,6 +1,14 @@
 /* Debug panel. Off unless the URL has ?debug=1 (remembered for this tab; ?debug=0 clears it).
    The readout only reads __u1 / GJ_DEPTH. Tune writes through GJ_TUNE, and only while this panel is on. */
 (function () {
+  /* item 12 · Invert (opt-in, off by default): the whole page, canvas and video included. Remembered for this tab only. */
+  function inv(v) { document.documentElement.classList.toggle('gjinv', !!v); try { if (v) sessionStorage.setItem('gj.invert', '1'); else sessionStorage.removeItem('gj.invert'); } catch (e) {} }
+  (function () {
+    var s = document.createElement('style'); s.textContent = 'html.gjinv{filter:invert(1)}html.gjinv #gjdbg{filter:invert(1)}'; document.head.appendChild(s);
+    var keep = false; try { keep = sessionStorage.getItem('gj.invert') === '1'; } catch (e) {}
+    if (keep) inv(true);
+  })();
+  window.GJ_TOOLS = { invert: inv, inverted: function () { return document.documentElement.classList.contains('gjinv'); } };
   var on = false, q = /[?&]debug=([^&]*)/.exec(location.search);
   try {
     if (q) { if (q[1] === '0') sessionStorage.removeItem('gjdbg'); else sessionStorage.setItem('gjdbg', '1'); }
@@ -24,11 +32,14 @@
     '#gjdbg .acts{display:flex;gap:8px;margin-top:4px}' +
     '#gjdbg .acts button{flex:1;height:36px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#dfe8f2;font:300 11px Poppins,sans-serif;letter-spacing:.04em}' +
     '#gjdbg a.go{display:block;margin-top:10px;padding:9px 12px;text-align:center;border-radius:16px;border:1px solid rgba(85,218,161,.55);color:#55DAA1;text-decoration:none;background:rgba(85,218,161,.1);letter-spacing:.08em}';
+  css += '#gjdbg .tools{margin:8px 0}#gjdbg .tg{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer}#gjdbg .tg input{width:20px;height:20px;accent-color:#55DAA1}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var root = document.createElement('div'); root.id = 'gjdbg';
-  root.innerHTML = '<div class="tab" role="button" aria-label="debug">dbg</div><div class="sheet"><h4>m4 debug</h4><div id="gjdbgrows"></div><div class="tune"><h4>tune</h4><div id="gjdbgtune"></div><div class="acts"><button type="button" id="gjdbgcopy">copy values</button><button type="button" id="gjdbgreset">reset</button></div></div><a class="go" href="_versions/">builds</a></div>';
+  root.innerHTML = '<div class="tab" role="button" aria-label="debug">dbg</div><div class="sheet"><h4>m4 debug</h4><div id="gjdbgrows"></div><div class="tools"><h4>tools</h4><label class="tg"><input type="checkbox" id="gjinv"> Invert</label></div><div class="tune"><h4>tune</h4><div id="gjdbgtune"></div><div class="acts"><button type="button" id="gjdbgcopy">copy values</button><button type="button" id="gjdbgreset">reset</button></div></div><a class="go" href="_versions/">builds</a></div>';
   document.body.appendChild(root);
+  var invB = document.getElementById('gjinv'); invB.checked = GJ_TOOLS.inverted();
+  invB.addEventListener('change', function () { inv(invB.checked); });
   ['pointerdown', 'pointermove', 'touchstart', 'touchmove', 'mousedown', 'wheel', 'click'].forEach(function (t) {
     root.addEventListener(t, function (e) { e.stopPropagation(); });
   });
@@ -59,7 +70,9 @@
     { k: 'fade', name: 'Sky fade', min: 0.45, max: 2.2, step: 0.01, fmt: function (v) { return Math.round(1680 * v) + ' ms'; } },
     { k: 'flash', name: 'Flash', min: 0, max: 1, step: 0.01, fmt: function (v) { return Math.round(v * 100) + '%'; } },
     { k: 'snap', name: 'Pinch snap zone', min: 0, max: 0.5, step: 0.01, fmt: function (v) { return '\u00b1' + Math.round(v * 100) + '% of a layer'; } },
-    { k: 'full', name: 'Full pinch', min: 0.2, max: 1, step: 0.01, fmt: function (v) { return Math.round(v * 100) + '% of a layer'; } }
+    { k: 'full', name: 'Full pinch', min: 0.2, max: 1, step: 0.01, fmt: function (v) { return Math.round(v * 100) + '% of a layer'; } },
+    { k: 'text', name: 'Text size', min: 0.6, max: 2, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
+    { k: 'icon', name: 'Icon size', min: 0.6, max: 2, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } }
   ];
   var TKEY = 'gj-m4-tune';
   function tune() { return window.GJ_TUNE || null; }

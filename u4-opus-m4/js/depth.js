@@ -1424,3 +1424,46 @@ window.GJ_DEPTH={
   origin:function(){return {x:PL.ox||0,y:PL.oy||0}}
 };
 })();
+/* item 9: clips are never looped. Every <video> that plays on its own (frames, grids, hero bleeds, stills, the zoom clip) loses `loop`
+   when it enters the page; on 'ended' it hard-cuts (the flip) to the next clip of the same set — the [data-clip] cells and the field's
+   shot list around it, skipping clips already playing beside it — and plays on. A clip with no other clip in its set starts again.
+   Exempt, by design: #calc and #moons (the About backdrops stay ambient loops), the reel (.rl, it runs its own ended→next). */
+(function(){
+'use strict';
+var EXEMPT='#calc,#moons,.rl video';
+function own(v){return v&&v.tagName==='VIDEO'&&!v.matches(EXEMPT)}
+function unloop(v){if(own(v)&&(v.loop||v.hasAttribute('loop'))){v.loop=false;v.removeAttribute('loop')}}
+function sweep(n){
+  if(!n||n.nodeType!==1)return;
+  if(n.tagName==='VIDEO')unloop(n);
+  else if(n.querySelectorAll)n.querySelectorAll('video').forEach(unloop);
+}
+function setOf(v){
+  var box=v.closest('.cutsheet,.filmfield,.sheet,.herobleed,#layer')||v.parentNode,seen={},out=[];
+  function add(c,p){if(c&&!seen[c]){seen[c]=1;out.push({clip:c,src:p||''})}}
+  var host=v.closest('.filmfield');
+  if(host&&host._list)host._list.forEach(function(s){if(s)add(s.clip,s.src)});
+  if(box)box.querySelectorAll('[data-clip]').forEach(function(n){add(n.getAttribute('data-clip'),n.getAttribute('src')||'')});
+  return {box:box,list:out};
+}
+function next(v){
+  var cur=v.getAttribute('src')||'',S=setOf(v),L=S.list,busy={};
+  if(S.box)S.box.querySelectorAll('video').forEach(function(o){if(o!==v)busy[o.getAttribute('src')||'']=1});
+  var at=-1;for(var i=0;i<L.length;i++)if(L[i].clip===cur||(v.currentSrc&&v.currentSrc.indexOf(L[i].clip)>=0)){at=i;break}
+  for(var k=1;k<=L.length;k++){var c=L[(at+k+L.length)%L.length];if(c&&c.clip!==cur&&!busy[c.clip])return c}
+  return null;
+}
+document.addEventListener('ended',function(e){
+  var v=e.target;if(!own(v))return;
+  var n=next(v);
+  if(n){if(n.src)v.poster=n.src;v.src=n.clip}
+  else{try{v.currentTime=0}catch(x){}}
+  var p=v.play();if(p&&p.catch)p.catch(function(){});
+},true);
+function start(){
+  sweep(document.body);
+  new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(sweep)})}).observe(document.body,{childList:true,subtree:true});
+}
+if(document.body)start();else document.addEventListener('DOMContentLoaded',start);
+window.GJ_NOLOOP={next:next,sweep:sweep};
+})();

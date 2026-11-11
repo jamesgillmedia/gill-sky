@@ -16,6 +16,53 @@
   window.addEventListener('storage',function(e){
     if(e.key==='gj.vol'||e.key==='gj.flash'){VOL=rd('gj.vol',1);FLASH=rd('gj.flash',.6);applyAll()}
   });
+
+  /* item 11: every slider can be dragged from any point on its 44 px track (iOS range inputs only move from the thumb) */
+  function trackDrag(i){
+    if(i._td)return;i._td=1;
+    var id=null;
+    function at(e){var r=i.getBoundingClientRect(),u=Math.max(0,Math.min(1,(e.clientX-r.left-6)/Math.max(1,r.width-12)));
+      var v=Math.round(+i.min+u*(i.max-i.min));if(+i.value!==v){i.value=v;i.dispatchEvent(new Event('input',{bubbles:true}))}}
+    i.addEventListener('pointerdown',function(e){if(e.button)return;id=e.pointerId;try{i.setPointerCapture(id)}catch(x){}e.preventDefault();at(e)});
+    i.addEventListener('pointermove',function(e){if(id===e.pointerId)at(e)});
+    function end(e){if(id!==e.pointerId)return;id=null;i.dispatchEvent(new Event('change',{bubbles:true}))}
+    i.addEventListener('pointerup',end);i.addEventListener('pointercancel',end);
+  }
+  /* item 11: hold the player (~450 ms, no movement) and a dial opens with every sound slider together. A tap never opens it.
+     After one adjustment it closes on its own (700 ms after you let go), or after 3 s idle, or on a tap outside. */
+  var HOLD=450,dial=null,dialT=0;
+  function closeDial(){clearTimeout(dialT);if(dial){dial.remove();dial=null}}
+  function idleDial(ms){clearTimeout(dialT);dialT=setTimeout(closeDial,ms)}
+  function openDial(x,y){
+    closeDial();
+    dial=document.createElement('div');dial.className='sdial';dial.setAttribute('role','dialog');dial.setAttribute('aria-label','sound');
+    dial.innerHTML='<label class="cl"><span>vol</span><input type="range" min="0" max="100" step="1" aria-label="volume"></label>'+
+      '<label class="cl"><span>flash</span><input type="range" min="0" max="100" step="1" aria-label="flash brightness"></label>';
+    document.body.appendChild(dial);
+    var r=dial.getBoundingClientRect(),W=innerWidth,H=innerHeight;
+    dial.style.left=Math.max(8,Math.min(W-r.width-8,x-r.width/2))+'px';
+    dial.style.top=Math.max(8,Math.min(H-r.height-8,y-r.height-24))+'px';
+    var ins=dial.querySelectorAll('input'),dv=ins[0],df=ins[1];
+    function paintD(){dv.value=Math.round(VOL*100);dv.style.setProperty('--p',dv.value+'%');df.value=Math.round(FLASH*100);df.style.setProperty('--p',df.value+'%')}
+    paintD();
+    dv.addEventListener('input',function(){VOL=dv.value/100;put('gj.vol',VOL);applyAll();paintD();idleDial(3000)});
+    df.addEventListener('input',function(){FLASH=df.value/100;put('gj.flash',FLASH);applyAll();paintD();idleDial(3000)});
+    [dv,df].forEach(function(i){trackDrag(i);i.addEventListener('change',function(){idleDial(700)})});
+    idleDial(3000);
+  }
+  document.addEventListener('pointerdown',function(e){if(dial&&!dial.contains(e.target))closeDial()},true);
+  function holdOpen(box){
+    var h=null;
+    box.addEventListener('pointerdown',function(e){
+      if(e.button||e.target.closest('button,a,input,.rail,.ctl'))return;
+      var x=e.clientX,y=e.clientY,id=e.pointerId;
+      h={id:id,x:x,y:y,t:setTimeout(function(){h=null;openDial(x,y)},HOLD)};
+    });
+    function cancel(e){if(h&&(!e||e.pointerId===h.id)){clearTimeout(h.t);h=null}}
+    box.addEventListener('pointermove',function(e){if(h&&e.pointerId===h.id&&Math.hypot(e.clientX-h.x,e.clientY-h.y)>10)cancel(e)});
+    box.addEventListener('pointerup',cancel);box.addEventListener('pointercancel',cancel);
+    box.addEventListener('contextmenu',function(e){if(dial)e.preventDefault()});
+  }
   function controls(box){
     var row=document.createElement('div');
     row.className='ctl';
@@ -28,6 +75,7 @@
     function sync(){paint(iv,VOL);paint(ifl,FLASH)}
     iv.addEventListener('input',function(){VOL=iv.value/100;put('gj.vol',VOL);applyAll()});
     ifl.addEventListener('input',function(){FLASH=ifl.value/100;put('gj.flash',FLASH);applyAll()});
+    trackDrag(iv);trackDrag(ifl);holdOpen(box);
     ctls.push({sync:sync});
     sync();
     box.appendChild(row);
@@ -122,6 +170,15 @@
         play.textContent='pause';
       }else{audio.pause();play.textContent='play'}
     });
+    /* item 10: momo-card.js swaps the box to another song (src, wave key, title) */
+    box._song={audio:audio,load:function(src2,key2,t1,t2){
+      if(!audio.paused)audio.pause();audio.src=src2;dur=0;head=0;mark=null;peaks=[];
+      var l1=box.querySelector('.l1');if(l1&&t1!=null){l1.innerHTML='';var b=document.createElement('b');b.textContent=t1;l1.appendChild(b);l1.appendChild(document.createTextNode(' '+(t2||'')))}
+      if(rail&&t1)rail.setAttribute('aria-label',t1);
+      fetch(waves).then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(j){peaks=(j.peaks&&j.peaks[key2])||[];draw()}).catch(function(){draw()});
+      audio.load();label();draw();
+    },play:function(){if(!audio.paused)return;live.forEach(function(o){if(o!==audio){o.pause();var b=o._play;if(b)b.textContent='play'}});var p=audio.play();if(p&&p.catch)p.catch(function(){});if(play)play.textContent='pause'},
+      pause:function(){audio.pause();if(play)play.textContent='play'}};
     audio._play=play;
     live.push(audio);
     redraws.push(draw);
@@ -186,5 +243,6 @@
     draw();
   }
   [].forEach.call(boxes,arm);
+  window.GJ_SDIAL={open:function(x,y){openDial(x,y)},close:closeDial,isOpen:function(){return !!dial},HOLD:HOLD};
   applyAll();
 })();

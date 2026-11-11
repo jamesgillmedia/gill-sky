@@ -466,10 +466,18 @@ function pup(e){if(PR!==e.pointerId)return;PR=null;rail.classList.remove('drag')
 au.addEventListener('progress',function(){if(wantAt==null||!canSeek(wantAt))return;try{au.currentTime=wantAt}catch(x){}wantAt=null});
 rail.addEventListener('pointerup',pup);rail.addEventListener('pointercancel',pup);
 rail.addEventListener('keydown',function(e){var d=e.key==='ArrowRight'?5:e.key==='ArrowLeft'?-5:0;if(d){var nt=Math.max(0,Math.min(T.dur-.05,(wantAt!=null?wantAt:au.currentTime)+d));railT=nt;tz=ringAt(nt);placeTime(nt)}});
-au.addEventListener('ended',function(){au.currentTime=0;tz=0;au.play()});
+/* item 10: a song that ends hands on to the next one (last -> first), instead of restarting itself */
+au.addEventListener('ended',function(){var i=KEYS.indexOf(TK),nk=KEYS[(i+1)%KEYS.length];UPK=nk;pickTrack(nk,true);tz=0;var p=au.play();if(p&&p.catch)p.catch(function(){})});
 addEventListener('resize',function(){rs();clampPan();uiRects()});if(document.fonts&&document.fonts.ready)document.fonts.ready.then(function(){uiRects();if(V.z<1.001&&mode==='sky'){fitLayout();clampPan()}});
 (function(){var cv_=document.getElementById('cvol'),cf_=document.getElementById('cfl');
   function lab(el,v){el.setAttribute('aria-valuetext',Math.round(v*100)+'%');el.style.setProperty('--p',Math.round(v*100)+'%')}
+  /* item 11: drag from any point on the 44 px track (iOS ranges otherwise move only from the thumb) */
+  function trackDrag(i){if(!i||i._td)return;i._td=1;var id=null;
+    function at(e){var r=i.getBoundingClientRect(),u=Math.max(0,Math.min(1,(e.clientX-r.left-6)/Math.max(1,r.width-12)));var v=Math.round(+i.min+u*(i.max-i.min));if(+i.value!==v){i.value=v;i.dispatchEvent(new Event('input',{bubbles:true}))}}
+    i.addEventListener('pointerdown',function(e){if(e.button)return;id=e.pointerId;try{i.setPointerCapture(id)}catch(x){}e.preventDefault();e.stopPropagation();at(e)});
+    i.addEventListener('pointermove',function(e){if(id===e.pointerId)at(e)});
+    function end(e){if(id===e.pointerId)id=null}i.addEventListener('pointerup',end);i.addEventListener('pointercancel',end)}
+  trackDrag(cv_);trackDrag(cf_);
   if(cv_){cv_.value=Math.round(VOL*100);lab(cv_,VOL);cv_.addEventListener('input',function(){var v=cv_.value/100;lab(cv_,v);setVol(v)})}
   if(cf_){cf_.value=Math.round(FL*100);lab(cf_,FL);cf_.addEventListener('input',function(){var v=cf_.value/100;lab(cf_,v);setFlash(v)})}
   addEventListener('storage',function(e){if(e.key==='gj.vol'){var v=lsr('gj.vol',1);setVol(v,1);if(cv_){cv_.value=Math.round(v*100);lab(cv_,v)}}

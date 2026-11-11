@@ -1,11 +1,11 @@
 /* The Demo Reel as a WORK-level stop in the sky: every distinct shot of Reel 2026 and the 2025 Cinematography Demo Reel (GJ_REEL, in order)
-   drifts right to left along a filmstrip; the shot under the centre line fills the work. Hard cuts, the still at once, its muted clip when it can play.
+   drifts right to left along a filmstrip; the shot under the centre line fills the work. Hard cuts, the still at once, its muted clip when it can play; each clip plays to its end, then the next (no loop).
    Tap = pause / play. Drag or swipe the picture or the strip = scrub, the frames flip as fast as you move. Fill or fit, remembered.
    Ported from site-v3-pro2 js/reel.js and css/reel.css. It lives in the sky's own #layer (the camera and history are the sky's), not in a page
    of its own, and its motion is the same whatever the Reduce Motion setting is. */
 (function(){
 'use strict';
-var RATE=1.1,TW=40,COLS=16,KEY='gj-reel-fit',EASE='cubic-bezier(.2,.8,.2,1)';
+var TW=40,COLS=16,KEY='gj-reel-fit',EASE='cubic-bezier(.2,.8,.2,1)';
 var lastShot=0;
 function mount(el,hooks){
   var S=window.GJ_REEL||[];
@@ -28,14 +28,14 @@ function mount(el,hooks){
   el.innerHTML='';el.appendChild(root);
   var stage=root.querySelector('.rl-st'),img=root.querySelector('.rl-im'),track=root.querySelector('.rl-tr'),ctr=root.querySelector('.rl-n'),
     lab=root.querySelector('.rl-b b'),rsrc=root.querySelector('.rl-b small'),view=root.querySelector('.rl-v'),fitB=root.querySelector('.rl-fit');
-  var p=lastShot+.5,cur=-1,playing=true,raf=0,lastT=0,tween=null,drag=null,wheelT=0,wheeling=false,pool=[],stillCache={},dead=false;
+  var p=lastShot,cur=-1,playing=true,raf=0,lastT=0,tween=null,drag=null,wheelT=0,wheeling=false,pool=[],stillCache={},dead=false;
   var h='',rows=Math.ceil(N/COLS),i,k;
   for(k=0;k<3;k++)for(i=0;i<N;i++)h+='<b style="background-position:'+(-(i%COLS)*TW)+'px '+(-Math.floor(i/COLS)*TW)+'px"></b>';
   track.innerHTML=h;track.style.setProperty('--bs',(COLS*TW)+'px '+(rows*TW)+'px');
   for(var j=0;j<3;j++){
-    var v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.loop=true;v.playsInline=true;
+    var v=document.createElement('video');v.muted=true;v.defaultMuted=true;v.loop=false;v.playsInline=true;
     ['muted','playsinline','webkit-playsinline','disablepictureinpicture'].forEach(function(a){v.setAttribute(a,'')});
-    v.setAttribute('aria-hidden','true');v.preload='auto';v.addEventListener('playing',onPlaying);stage.appendChild(v);pool.push({v:v,i:-1});
+    v.setAttribute('aria-hidden','true');v.preload='auto';v.addEventListener('playing',onPlaying);v.addEventListener('ended',onEnded);stage.appendChild(v);pool.push({v:v,i:-1});
   }
   function setFit(m){
     root.classList.toggle('fit',m==='fit');
@@ -53,6 +53,18 @@ function mount(el,hooks){
     return best;
   }
   function onPlaying(e){var o=pool.filter(function(q){return q.v===e.target})[0];if(o&&o.i===mod(cur)&&!busy())o.v.classList.add('on')}
+  /* item 9: no loop, no timer cut. The current shot plays to its 'ended', then the strip hard-cuts (the flip) to the next shot;
+     the strip still drifts, but in step with the clip's own clock. A shot whose clip can't play holds its still for its own length (S[n].d). */
+  function onEnded(e){var o=pool.filter(function(q){return q.v===e.target})[0];if(!o||dead||o.i!==mod(cur)||!playing||busy()||tween)return;nextShot()}
+  function nextShot(){p=Math.floor(p)+1;place()}
+  var hold=0;
+  function drift(dt){
+    var n=mod(cur),q=vidFor(n,false),v=q&&q.v,d=v&&v.duration;
+    if(v&&d>0&&isFinite(d)&&!v.paused&&!v.error){hold=0;p=Math.floor(p)+Math.min(.999,v.currentTime/d);return}
+    hold+=dt;var len=Math.max(.6,(S[n].d||1.5))+(v&&!v.error&&v.readyState<2?1.5:0);
+    p=Math.floor(p)+Math.min(.999,hold/len);
+    if(hold>=len){hold=0;nextShot()}
+  }
   function busy(){return !!(drag&&drag.moved)||wheeling}
   function playCur(){
     if(dead)return;
@@ -64,7 +76,7 @@ function mount(el,hooks){
   function quiet(){pool.forEach(function(o){o.v.classList.remove('on');if(!o.v.paused)o.v.pause()})}
   function show(n){
     n=mod(n);if(n===mod(cur)&&cur>=0)return;
-    var prev=cur;cur=n;lastShot=n;
+    var prev=cur;cur=n;lastShot=n;hold=0;
     img.src=still(n).src;
     root.classList.toggle('tall',S[n].h>S[n].w);
     ctr.textContent=pad(n+1)+' / '+pad(N);
@@ -74,6 +86,7 @@ function mount(el,hooks){
     var marks=track.children,c;
     if(prev>=0)for(c=0;c<3;c++){var o=marks[c*N+mod(prev)];if(o)o.classList.remove('on')}
     for(c=0;c<3;c++){var m=marks[c*N+n];if(m)m.classList.add('on')}
+    var fresh=vidFor(n,false);if(fresh&&fresh.v.readyState>=1){try{fresh.v.currentTime=0}catch(e){}}
     quiet();if(!busy()){playCur();vidFor(mod(n+1),true)}
   }
   function place(){
@@ -88,7 +101,7 @@ function mount(el,hooks){
       var kk=Math.min(1,(t-tween.t0)/tween.ms),e=1-Math.pow(1-kk,3);
       p=tween.a+(tween.b-tween.a)*e;
       if(kk>=1){p=tween.b;tween=null;if(!playing)playCur()}
-    }else if(playing&&!drag&&!wheeling)p+=dt*RATE;
+    }else if(playing&&!drag&&!wheeling)drift(dt);
     place();raf=requestAnimationFrame(frame);
   }
   function startLoop(){lastT=0;if(!raf)raf=requestAnimationFrame(frame)}
@@ -111,7 +124,7 @@ function mount(el,hooks){
   function onUp(e){
     if(!drag)return;
     var d=drag;drag=null;root.classList.remove('scrub');
-    if(d.moved){glide(Math.floor(p)+.5,260);if(playing)setTimeout(function(){if(!busy())playCur()},270);return}
+    if(d.moved){glide(Math.floor(p)+.02,260);if(playing)setTimeout(function(){if(!busy())playCur()},270);return}
     if(e.type==='pointercancel'||d.strip)return;
     toggle();
   }
@@ -121,13 +134,13 @@ function mount(el,hooks){
     if(!wheeling){wheeling=true;root.classList.add('scrub');quiet();root.classList.add('seen')}
     tween=null;p+=d/60;startLoop();
     clearTimeout(wheelT);
-    wheelT=setTimeout(function(){wheeling=false;root.classList.remove('scrub');glide(Math.floor(p)+.5,260);if(playing)setTimeout(playCur,270)},160);
+    wheelT=setTimeout(function(){wheeling=false;root.classList.remove('scrub');glide(Math.floor(p)+.02,260);if(playing)setTimeout(playCur,270)},160);
   }
   function onKey(e){
     var key=e.key;
     if(key===' '||(key==='Enter'&&e.target===stage)){e.preventDefault();toggle()}
-    else if(key==='ArrowRight'||key==='ArrowDown'){e.preventDefault();setPlay(false);glide(Math.floor(p)+1.5)}
-    else if(key==='ArrowLeft'||key==='ArrowUp'){e.preventDefault();setPlay(false);glide(Math.floor(p)-.5)}
+    else if(key==='ArrowRight'||key==='ArrowDown'){e.preventDefault();setPlay(false);glide(Math.floor(p)+1.02)}
+    else if(key==='ArrowLeft'||key==='ArrowUp'){e.preventDefault();setPlay(false);glide(Math.floor(p)-.98)}
   }
   function onVis(){if(dead)return;if(document.hidden)stopLoop();else startLoop()}
   stage.addEventListener('pointerdown',onDown);
