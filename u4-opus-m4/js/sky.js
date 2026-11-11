@@ -1,5 +1,5 @@
 /* u1 · one sky.
-   Far: five constellations around ᑕᐣᓯ, lit by the work, no counts.
+   Far: six constellations around ᑕᐣᓯ, lit by the work, no counts.
    Then a chapter board (stars bloom into titled thumbnails).
    Then the piece: Scope, the filmstrip, the waveform, the feed.
    Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
@@ -10,11 +10,11 @@ var PROOF = true;
 var PRO2 = 'media/pro2/';
 var REELB = PRO2 + 'reel/';
 var JOIOB = PRO2 + 'joio/';
-var ORDER = ['film','photo','objects','sound','about'];
-var ANG = {about:-90,photo:-18,objects:54,sound:126,film:198};
-var ANGP = {about:-90,photo:-36,objects:36,sound:144,film:216};
+var ORDER = ['film','photo','objects','space','sound','about'];
+var ANG = {about:-90,photo:-30,objects:30,space:90,sound:150,film:210};
+var ANGP = {about:-90,photo:-34,objects:24,space:90,sound:156,film:214};
 var MINT = '85,218,161';
-var SH = {"film":{"t":"150,220,255","s":[[0.105,0.21,0.92,0],[0.89,0.13,0.74,0],[0.93,0.81,0.96,0],[0.065,0.86,0.68,0],[0.209,0.266,0.34,0],[0.33,0.252,0.44,0],[0.465,0.272,0.3,0],[0.685,0.23,0.4,0],[0.809,0.261,0.3,0],[0.201,0.781,0.4,0],[0.297,0.725,0.28,0],[0.431,0.764,0.44,0],[0.533,0.752,0.3,0],[0.679,0.775,0.38,0],[0.816,0.721,0.3,0],[0.075,0.53,0.36,0],[0.485,0.5,0.5,0],[0.98,0.44,0.22,1],[0.025,0.3,0.2,1],[0.58,0.04,0.2,1],[0.35,0.95,0.24,1]],"e":[[0,1],[1,2],[2,3],[3,15]]},"photo":{"t":"170,245,212","s":[[0.505,0.51,1,0],[0.521,0.164,0.82,0],[0.686,0.425,0.62,0],[0.654,0.71,0.9,0],[0.49,0.851,0.58,0],[0.33,0.64,0.78,0],[0.336,0.268,0.66,0],[0.586,0.449,0.3,0],[0.564,0.618,0.36,0],[0.486,0.667,0.28,0],[0.433,0.551,0.38,0],[0.447,0.42,0.3,0],[0.522,0.344,0.34,0],[0.15,0.2,0.24,1],[0.84,0.86,0.2,1],[0.88,0.22,0.3,1]],"e":[[1,2],[2,3],[3,4],[5,6],[6,1],[1,7],[2,8],[3,9],[4,10],[5,11],[6,12]]},"objects":{"t":"255,236,205","s":[[0.32,0.37,0.78,0],[0.585,0.33,0.98,0],[0.605,0.89,0.74,0],[0.305,0.92,0.6,0],[0.465,0.12,0.5,0],[0.735,0.09,0.7,0],[0.755,0.63,0.55,0],[0.45,0.64,0.2,0],[0.18,0.22,0.26,1],[0.89,0.4,0.22,1],[0.8,0.92,0.3,1],[0.31,0.65,0.3,0]],"e":[[0,1],[1,2],[2,3],[3,11],[11,0],[4,5],[5,6],[0,4],[1,5],[2,6]]},"sound":{"t":"255,182,176","s":[[0.058,0.493,0.35,0],[0.143,0.434,0.45,0],[0.195,0.295,0.63,0],[0.186,0.645,0.45,0],[0.282,0.392,0.53,0],[0.338,0.216,0.8,0],[0.347,0.763,0.55,0],[0.441,0.135,0.92,0],[0.442,0.812,0.62,0],[0.498,0.253,0.71,0],[0.567,0.183,0.86,0],[0.57,0.827,0.58,0],[0.659,0.355,0.57,0],[0.718,0.259,0.66,0],[0.719,0.711,0.47,0],[0.807,0.434,0.44,0],[0.886,0.419,0.5,0],[0.941,0.497,0.35,0],[0.26,0.93,0.2,1],[0.61,0.06,0.24,1],[0.9,0.88,0.26,1],[0.15,0.7,0.3,1]],"e":[[2,3],[5,6],[7,8],[10,11],[13,14],[0,1],[1,2],[2,4],[4,5],[5,7],[7,9],[9,10],[10,12],[12,13],[13,15],[15,16],[16,17]]},"about":{"t":"214,222,236","s":[[0.309,0.271,0.7,0],[0.209,0.272,0.45,0],[0.113,0.366,0.6,0],[0.067,0.587,0.85,0],[0.103,0.808,0.5,0],[0.202,0.903,0.6,0],[0.31,0.882,0.55,0],[0.361,0.254,0.5,0],[0.46,0.301,0.4,0],[0.475,0.408,0.7,0],[0.422,0.569,0.42,0],[0.362,0.556,0.5,0],[0.583,0.94,0.65,0],[0.589,0.61,0.55,0],[0.681,0.587,0.5,0],[0.738,0.451,0.45,0],[0.748,0.224,0.9,0],[0.932,0.127,0.5,0],[0.963,0.206,0.8,0],[0.956,0.305,0.55,0],[0.917,0.366,0.36,0],[0.88,0.28,0.2,0],[0.45,0.92,0.22,1],[0.5,0.1,0.2,1]],"e":[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[7,8],[8,9],[9,10],[10,11],[12,13],[13,14],[14,15],[15,16],[17,18],[18,19],[19,20]]}};
+var SH = {"film":{"t":"150,220,255","s":[[0.105,0.21,0.92,0],[0.89,0.13,0.74,0],[0.93,0.81,0.96,0],[0.065,0.86,0.68,0],[0.209,0.266,0.34,0],[0.33,0.252,0.44,0],[0.465,0.272,0.3,0],[0.685,0.23,0.4,0],[0.809,0.261,0.3,0],[0.201,0.781,0.4,0],[0.297,0.725,0.28,0],[0.431,0.764,0.44,0],[0.533,0.752,0.3,0],[0.679,0.775,0.38,0],[0.816,0.721,0.3,0],[0.075,0.53,0.36,0],[0.485,0.5,0.5,0],[0.98,0.44,0.22,1],[0.025,0.3,0.2,1],[0.58,0.04,0.2,1],[0.35,0.95,0.24,1]],"e":[[0,1],[1,2],[2,3],[3,15]]},"photo":{"t":"170,245,212","s":[[0.505,0.51,1,0],[0.521,0.164,0.82,0],[0.686,0.425,0.62,0],[0.654,0.71,0.9,0],[0.49,0.851,0.58,0],[0.33,0.64,0.78,0],[0.336,0.268,0.66,0],[0.586,0.449,0.3,0],[0.564,0.618,0.36,0],[0.486,0.667,0.28,0],[0.433,0.551,0.38,0],[0.447,0.42,0.3,0],[0.522,0.344,0.34,0],[0.15,0.2,0.24,1],[0.84,0.86,0.2,1],[0.88,0.22,0.3,1]],"e":[[1,2],[2,3],[3,4],[5,6],[6,1],[1,7],[2,8],[3,9],[4,10],[5,11],[6,12]]},"objects":{"t":"255,236,205","s":[[0.32,0.37,0.78,0],[0.585,0.33,0.98,0],[0.605,0.89,0.74,0],[0.305,0.92,0.6,0],[0.465,0.12,0.5,0],[0.735,0.09,0.7,0],[0.755,0.63,0.55,0],[0.45,0.64,0.2,0],[0.18,0.22,0.26,1],[0.89,0.4,0.22,1],[0.8,0.92,0.3,1],[0.31,0.65,0.3,0]],"e":[[0,1],[1,2],[2,3],[3,11],[11,0],[4,5],[5,6],[0,4],[1,5],[2,6]]},"sound":{"t":"255,182,176","s":[[0.058,0.493,0.35,0],[0.143,0.434,0.45,0],[0.195,0.295,0.63,0],[0.186,0.645,0.45,0],[0.282,0.392,0.53,0],[0.338,0.216,0.8,0],[0.347,0.763,0.55,0],[0.441,0.135,0.92,0],[0.442,0.812,0.62,0],[0.498,0.253,0.71,0],[0.567,0.183,0.86,0],[0.57,0.827,0.58,0],[0.659,0.355,0.57,0],[0.718,0.259,0.66,0],[0.719,0.711,0.47,0],[0.807,0.434,0.44,0],[0.886,0.419,0.5,0],[0.941,0.497,0.35,0],[0.26,0.93,0.2,1],[0.61,0.06,0.24,1],[0.9,0.88,0.26,1],[0.15,0.7,0.3,1]],"e":[[2,3],[5,6],[7,8],[10,11],[13,14],[0,1],[1,2],[2,4],[4,5],[5,7],[7,9],[9,10],[10,12],[12,13],[13,15],[15,16],[16,17]]},"about":{"t":"214,222,236","s":[[0.309,0.271,0.7,0],[0.209,0.272,0.45,0],[0.113,0.366,0.6,0],[0.067,0.587,0.85,0],[0.103,0.808,0.5,0],[0.202,0.903,0.6,0],[0.31,0.882,0.55,0],[0.361,0.254,0.5,0],[0.46,0.301,0.4,0],[0.475,0.408,0.7,0],[0.422,0.569,0.42,0],[0.362,0.556,0.5,0],[0.583,0.94,0.65,0],[0.589,0.61,0.55,0],[0.681,0.587,0.5,0],[0.738,0.451,0.45,0],[0.748,0.224,0.9,0],[0.932,0.127,0.5,0],[0.963,0.206,0.8,0],[0.956,0.305,0.55,0],[0.917,0.366,0.36,0],[0.88,0.28,0.2,0],[0.45,0.92,0.22,1],[0.5,0.1,0.2,1]],"e":[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[7,8],[8,9],[9,10],[10,11],[12,13],[13,14],[14,15],[15,16],[17,18],[18,19],[19,20]]},"space":{"t":"205,192,255","s":[[0.5,0.1,0.95,0],[0.1,0.4,0.7,0],[0.9,0.4,0.75,0],[0.27,0.45,0.6,0],[0.73,0.45,0.62,0],[0.27,0.9,0.55,0],[0.73,0.9,0.58,0],[0.5,0.68,0.4,0],[0.08,0.9,0.3,0],[0.16,0.16,0.24,1],[0.88,0.78,0.26,1]],"e":[[0,1],[0,2],[1,3],[3,4],[4,2],[3,5],[4,6],[8,5],[5,6]]}};
 var STROKES = [[[-58.5,-96],[-156.5,-95],[-203.5,-61],[-213.5,1],[-203.5,63],[-156.5,97],[-58.5,97]],[[-26.5,-97],[25.5,-94],[44.5,-51],[25.5,-8],[-26.5,-5]],[[99.5,105],[99.5,20],[149.5,15],[191.5,-11],[211.5,-55],[214.5,-105]]];
 var $=function(id){return document.getElementById(id)};
 var cv=$('cv'),g=cv.getContext('2d'),stage=$('stage');
@@ -66,6 +66,8 @@ function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){retur
 
 function boot(d){
   data=d;
+  /* chapter order (swipe, wrap, layout) comes from data.json; ANG/ANGP only place them */
+  var dk=d.chapters.map(function(c){return c.k}).filter(function(k){return ANG[k]!=null});if(dk.length)ORDER=dk;
   d.chapters.forEach(function(ch){
     var c=CH[ch.k]={k:ch.k,tint:ch.tint,items:[],skyItems:[],node:[],dec:[],sky:[],arm:[],x:0,y:0};
     ch.cards.forEach(function(card){
@@ -82,9 +84,10 @@ function boot(d){
     var it={id:'sound/track/'+t.k,chapter:'sound',k:t.k,slug:t.k,title:t.title,role:'Lost Coffee',year:null,meta:'Lost Coffee',kind:'track',track:t,media:{},credits:[],related:[],also:[],in_progress:true,body:'',isNew:false,ox:0,oy:0,sx:0,sy:0,gx:0,gy:0,cx:0,cy:0,px:0,py:0,b:.6,sh:0,tw:52,th:29};
     byId[it.id]=it;progress.push(it);
   });
-  cluster=['objects/hand-carved-piece','objects/design-board','objects/wireframe-board','objects/materials-board','sound/to-go','sound/track/noproblem','sound/track/lostintime','sound/track/equals','sound/track/ii'].map(function(id){return byId[id]}).filter(Boolean);
+  cluster=['objects/hand-carved-piece','space/design-board','space/wireframe-board','space/materials-board','sound/to-go','sound/track/noproblem','sound/track/lostintime','sound/track/equals','sound/track/ii'].map(function(id){return byId[id]}).filter(Boolean);
   cluster.forEach(function(it){var c=CH[it.chapter];if(c)c.skyItems=c.skyItems.filter(function(x){return x!==it})});
   addNov9();
+  spacePicks();
   d.tracks.forEach(function(t){
     var id='sound/track/'+t.k;if(byId[id])return;
     byId[id]={id:id,chapter:'sound',k:t.k,slug:t.k,title:t.title,role:t.artist,year:null,meta:t.artist,kind:'track',track:t,media:{},credits:[],related:[],also:[],in_progress:false,body:'',isNew:false,ox:0,oy:0,sx:0,sy:0,gx:0,gy:0,cx:0,cy:0,px:0,py:0,b:.6,sh:0,tw:52,th:29};
@@ -94,13 +97,26 @@ function boot(d){
   song=d.tracks[0];
   buildGlow();buildField();layout();
   fillPoem();dust();
-  lands=landFrames();
+  lands=landFrames(); /* kept, unused: the opening card (js/opening.js) replaced the four land frames */
+  if(window.GJ_OPEN)GJ_OPEN.mount(openCards());
   bind();
   decide();
   ready=true;
   requestAnimationFrame(frame);
 }
 
+/* Item K: r9's Space practice picks (Nov 9: forest mist, slatted screen, church arch, carved reliefs) also sit on the Space board.
+   They stay on their Photo / Objects boards too; never in the sky layout. */
+var SPACE_PICKS=['IMG_6549','IMG_6550','IMG_6552','IMG_5840','IMG_9354','IMG_2498','IMG_7571','IMG_7443'];
+function spacePicks(){
+  var c=CH.space;if(!c)return;
+  SPACE_PICKS.forEach(function(n){
+    var src=null;['photo','objects'].forEach(function(k){(NOV9I[k]||[]).forEach(function(it){if(it.slug==='nov9-'+n.toLowerCase())src=it})});
+    if(!src)return;
+    var it=Object.assign({},src,{id:'space/'+src.slug,chapter:'space',of:'',kind:'object'});
+    byId[it.id]=it;c.items.push(it);
+  });
+}
 /* Gill's Nov 9 media live on the boards and in pieces only, never in the sky layout. */
 var NOV9I={};
 function addNov9(){
@@ -264,7 +280,7 @@ function drawField(fa){
 }
 
 function placeChapter(c){
-  var S=SH[c.k],items=c.skyItems,cw=c.k==='photo'||c.k==='objects'?60:74,chh=c.k==='photo'||c.k==='objects'?78:56;
+  var S=SH[c.k],items=c.skyItems,sq=c.k==='photo'||c.k==='objects'||c.k==='space',cw=sq?60:74,chh=sq?78:56;
   if(c.k==='about'){cw=120;chh=40}
   var n=Math.max(items.length,1),A=Math.max(n*cw*chh*1.35,380*190),q=PORT?.92:.5;
   var bw=Math.sqrt(A/q),bh=bw*q;if(c.k==='about')bw=Math.max(bw,PORT?300:420);
@@ -311,7 +327,7 @@ function layout(){
     if(overlap){rx*=1.05;ry*=1.05;continue}
     break;
   }
-  /* Spread the five centres after the fit, and keep FAR at the fitted scale,
+  /* Spread the six centres after the fit, and keep FAR at the fitted scale,
      so a multiplier of 1 is this map and any other value actually moves them apart. */
   var mapK=tk('map');
   if(mapK!==1){ORDER.forEach(function(k){var c=CH[k],p=chapterAt(k,rx*mapK,ry*mapK);c.x=p.x;c.y=p.y})}
@@ -336,13 +352,13 @@ function layout(){
       c.ex={x0:c.ex.x0*starK,y0:c.ex.y0*starK,x1:c.ex.x1*starK,y1:c.ex.y1*starK};
     });
   }
-  /* Wider spacing makes a wider sky, so FAR refits and all five still sit on screen. At 1 and 1 the fit above stands untouched. */
+  /* Wider spacing makes a wider sky, so FAR refits and all six still sit on screen. At 1 and 1 the fit above stands untouched. */
   if(mapK!==1||starK!==1){
     box=bbox();
     ORDER.forEach(function(k){var c=CH[k],hw=c.bw*.5;box.x0=Math.min(box.x0,c.x-hw);box.x1=Math.max(box.x1,c.x+hw)});
     scale=Math.min((W-28)/(box.x1-box.x0),(H-78-36)/(box.y1-box.y0));
   }
-  /* In progress sits beside ᑕᐣᓯ, a small cluster in the inner sky, clear of the five chapters. */
+  /* In progress sits beside ᑕᐣᓯ, a small cluster in the inner sky, clear of the six chapters. */
   var nC=Math.max(cluster.length,1);
   cluster.forEach(function(it,i){
     var a=-Math.PI/2+i/nC*Math.PI*2;
@@ -402,7 +418,7 @@ function insets(){
   d.remove();return INS;
 }
 function safeBox(){var i=insets(),side=W>=700?24:12;return {l:side+i.l,r:W-side-i.r,t:82+i.t,b:H-120-i.b,side:side}}
-var MIDW={film:46,photo:34,objects:40,sound:0,about:58};
+var MIDW={film:46,photo:34,objects:40,space:40,sound:0,about:58};
 function midTile(k,K){
   if(k==='sound')return {w:36,h:32,lab:14};
   if(k==='about')return {w:58*Math.min(K,1.4),h:18,lab:14};
@@ -557,7 +573,7 @@ function frame(t){
      v1r2 fade guard (FDT), on purpose. */
   var rdt=Math.min(.25,(t-(lastT||t))/1000),dt=Math.min(.05,rdt);lastT=t;
   if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/(1680*tk('fade')),0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush()}}
-  if(phase==='land'&&!OP.on&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
+  if(phase==='land'&&!OP.on&&!opCard()&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   if(OP.used)opLayers(dt);
   stepSprings(rdt);depthStep(dt);if(playing)listen();
   if(CHIMES.length)chStep(dt);
@@ -995,7 +1011,7 @@ function boardSpec(key,items){
 function boardCount(key,items){
   var n=0;
   items.forEach(function(it){if(key==='sound'?it.kind==='track':true)n++});
-  var noun={film:'works',photo:'photographs',objects:'pieces',sound:'songs'}[key];
+  var noun={film:'works',photo:'photographs',objects:'pieces',space:'pieces',sound:'songs'}[key];
   return noun&&n?n+' '+noun:'';
 }
 function realTitle(it){
@@ -1301,7 +1317,7 @@ function armArrival(){
       el.addEventListener('transitionend',function(e){if(e.target===el&&e.propertyName==='opacity'&&ARR.on){ARR[p[1]]=1;arrBegin()}});
     });
   }
-  if(ARR.done){MP.t0=-1;po.classList.add('seq','again');pa.classList.add('seq','again');$('dive').classList.add('show');return}
+  if(ARR.done){MP.t0=-1;po.classList.add('seq','again');pa.classList.add('seq','again');$('dive').classList.add('show');armWait();return}
   ARR.wd=ARR.md=0;MP.t0=0;
   clearTimeout(ARR.tm);ARR.tm=setTimeout(function(){ARR.wd=ARR.md=1;arrBegin()},1250*tk('delay'));
 }
@@ -1310,10 +1326,17 @@ function arrBegin(){
   ARR.done=1;clearTimeout(ARR.tm);
   MP.t0=now();
   $('poem').classList.add('seq');$('path').classList.add('seq');$('dive').classList.add('show');
+  armWait();
+}
+/* Waiting on the opening also shows the title card: OPEN_WAIT ms after the mark starts, the water dives by itself. */
+var OPEN_WAIT=7000;
+function armWait(){
+  clearTimeout(ARR.wt);
+  ARR.wt=setTimeout(function(){if(phase==='arrive'&&!OP.on&&!SKIPPING&&ARR.on)dive()},OPEN_WAIT*tk('delay'));
 }
 function disarmArrival(){
   if(!ARR.on)return;
-  ARR.on=0;clearTimeout(ARR.tm);
+  ARR.on=0;clearTimeout(ARR.tm);clearTimeout(ARR.wt);
   ['poem','path'].forEach(function(id){$(id).classList.remove('seq','again')});$('dive').classList.remove('show');
 }
 function markScreen(p){return [MG.ox+p[0]*MG.sc,MG.oy+p[1]*MG.sc]}
@@ -1723,7 +1746,7 @@ function onUp(e){
   if(!drag||e.pointerId!==drag.id)return;
   var was=drag;drag=null;
   if(phase==='arrive'){skipToSky();return}
-  if(phase==='land'){if(!moved)nextLand();return}
+  if(phase==='land'){if(!moved&&!opCard())nextLand();return} /* the opening card handles its own taps (tap = sky) */
   if(phase!=='sky')return;
   if(moved){
     if(was.chime){var c=was.chime;chime(c.f);c.fl=1}
@@ -1988,7 +2011,7 @@ function opMove(d,x,y){
   flyU=1;
   if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush();
   if(phase!=='land'){phase='land';landI=i;landT=now();showLand();setChrome()}
-  else if(landI!==i){landI=i;landT=now();showLand()}
+  else if(landI!==i&&!opCard()){landI=i;landT=now();showLand()}
 }
 function opCommit(){
   var d=OP.d,x=OP.x,y=OP.y;
@@ -2007,6 +2030,7 @@ var OPL=['water','path','horizon','dust','poem','moon'],OPK={water:1.4,path:1.7,
 function opClear(){
   OPL.forEach(function(id){var el=$(id);if(el)el.style.transform=''});
   var im=$('landimg');if(im)im.style.transform='';
+  var oc=$('opc');if(oc)oc.style.transform='';
   var dust=$('dust');if(dust&&!OP.on){dust.style.transition='';dust.style.opacity=''}
 }
 function opLayers(dt){
@@ -2026,6 +2050,12 @@ function opLayers(dt){
     el.style.transformOrigin=ox+'px '+oy+'px';
     el.style.transform='scale('+sc.toFixed(4)+')';
   });
+  var oc=$('opc');
+  if(oc){
+    var fo=phase==='land'?clamp((z-OFEND)/(1-OFEND),0,1):0;
+    oc.style.transformOrigin=ox+'px '+oy+'px';
+    oc.style.transform=fo>0?'scale('+(1+.3*fo).toFixed(4)+')':'';
+  }
   var im=$('landimg');
   if(im){
     var f=phase==='land'?clamp((z-OFEND)/(1-OFEND)*lands.length-landI,0,1):0;
@@ -2858,6 +2888,18 @@ function dust(){
   for(var i=0;i<16;i++)h+='<i style="left:'+(rnd(i)*100).toFixed(1)+'%;top:'+(rnd(i+9)*100).toFixed(1)+'%;opacity:'+(0.2+rnd(i+3)*.6).toFixed(2)+'"></i>';
   d.innerHTML=h;
 }
+/* The opening title card's cards, from the data: Weird Kid first, then the preview-cards order. To Go carries the live
+   small Momo loop tile (momo-480) and its song (never autoplayed). Missing ids are skipped. */
+function openCards(){
+  var ids=['film/weird-kid','sound/to-go','film/one-with-the-devil','objects/hand-carved-piece','film/sleepwalker','film/repeat-feat-jessie-reyez'];
+  return ids.map(function(id){
+    var it=byId[id];if(!it)return null;var m=it.media||{};
+    var c={id:id,title:it.title,role:it.role||'',meta:it.meta||'',still:m.big||m.thumb||'',clip:m.pv||m.clip||'',kind:it.chapter==='sound'?'sound':it.chapter==='film'?'film':'object',portrait:m.h>m.w};
+    if(id==='sound/to-go'){c.clip='';c.momo=['media/pro2/img/sound/momo-480.webm','media/pro2/img/sound/momo-480.mp4'];c.momoPoster='media/pro2/img/sound/momo-480.jpg';c.audio='media/pro2/audio/to-go.mp3'}
+    return c;
+  }).filter(Boolean);
+}
+function opCard(){return !!(window.GJ_OPEN&&GJ_OPEN.on)}
 function landFrames(){
   function src(id){var it=byId[id];return it&&it.media&&(it.media.big||it.media.thumb)||''}
   return [
@@ -2879,10 +2921,12 @@ function setChrome(){
   if(phase==='arrive')armArrival();else disarmArrival();
   $('bar').classList.toggle('on',phase==='sky');
   $('land').classList.toggle('on',phase==='land');
+  if(phase!=='land'&&window.GJ_OPEN)GJ_OPEN.hide();
   syncHire();
 }
 var landTok=0;
 function showLand(){
+  if(window.GJ_OPEN&&GJ_OPEN.show({stay:Q.get('land')==='1',done:function(){if(phase==='land')enterSky(false)}})){setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush();return}
   var L=lands[landI]||lands[0];
   var img=$('landimg');
   var tok=++landTok;

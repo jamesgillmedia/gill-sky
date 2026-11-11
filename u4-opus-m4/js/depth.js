@@ -375,7 +375,7 @@ function cupFirst(shots){
   return clips;
 }
 function spiritBeside(){
-  return '<div class="beside"><a href="#objects/spirit-eye" data-open="objects/spirit-eye"><img src="media/pro2/img/objects/spirit-eye.webp" alt="">Spirit Eye</a></div>';
+  return '<div class="beside"><a href="#space/spirit-eye" data-open="space/spirit-eye"><img src="media/pro2/img/objects/spirit-eye.webp" alt="">Spirit Eye</a></div>';
 }
 function bindSpirit(root){
   var link=root&&root.querySelector&&root.querySelector('[data-open]');
@@ -531,7 +531,7 @@ function planOut(api){
   };
   if(fly&&((piece&&piece.lv>1)||filmLv===3))return function(){leaveFly()};
   if(piece&&piece.scale>1.12)return function(){piece.scale=Math.max(1,piece.scale/1.22);api.paint()};
-  if(joioReturn&&cur.id==='objects/spirit-eye'){
+  if(joioReturn&&cur.id==='space/spirit-eye'){
     return function(){
       var back=joioReturn;joioReturn=null;
       var w=api.byId(back.id);

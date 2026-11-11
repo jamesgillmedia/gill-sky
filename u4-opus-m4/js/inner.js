@@ -300,9 +300,10 @@ function build(ctx){
   if(joio)joio.shots=joioShots();
   var cedar=byId['objects/hand-carved-piece'];
   if(cedar)cedar.shots=cedarShots();
-  if(!byId['objects/spirit-eye']){
-    addItem(byId,ch,{
-      id:'objects/spirit-eye',chapter:'objects',slug:'spirit-eye',title:'Spirit Eye of skwácháýs',
+  /* item K: Spirit Eye moved from Objects into Space (Gill, 9:03 AM Nov 11) */
+  if(!byId['space/spirit-eye']&&ctx.CH.space){
+    addItem(byId,ctx.CH.space,{
+      id:'space/spirit-eye',chapter:'space',slug:'spirit-eye',title:'Spirit Eye of skwácháýs',
       role:'public art concept',
       meta:"recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive",
       body:"Spirit Eye of skwácháýs. A public art concept recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive.",
@@ -314,6 +315,7 @@ function build(ctx){
       ],
       related:[],also:[],in_progress:false,isNew:false,ox:0,oy:0,sx:0,sy:0,gx:0,gy:0
     });
+    var sc=ctx.CH.space,se=byId['space/spirit-eye'];sc.items.splice(sc.items.indexOf(se),1);sc.items.splice(1,0,se);sc.skyItems.push(se);
   }
   if(!byId['objects/process']){
     addItem(byId,ch,{
@@ -323,8 +325,8 @@ function build(ctx){
       credits:[],shots:cedarShots().slice(5),related:[],also:[],in_progress:false,isNew:false,body:'',ox:0,oy:0,sx:0,sy:0,gx:0,gy:0
     });
   }
-  subs=[byId['objects/joio'],byId['objects/spirit-eye'],byId['objects/hand-carved-piece'],byId['objects/process']].filter(Boolean);
-  subs.forEach(function(it,i){it._sub=i;it._subLabel=['cups and paddles','skwácháýs','hand-carved','making'][i]});
+  subs=[byId['objects/joio'],byId['objects/hand-carved-piece'],byId['objects/process']].filter(Boolean);
+  subs.forEach(function(it,i){it._sub=i;it._subLabel=['cups and paddles','hand-carved','making'][i]});
 }
 function drawSubs(g,W,H,bloom){
   if(!subs.length||bloom<.15)return;

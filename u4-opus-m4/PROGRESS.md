@@ -317,3 +317,49 @@ Plan: `/workspace/build-guidance/opus-m4-next-plan.md` (approved by Gill 2026-11
 - Checks: 41 pages, 1149 local links/srcs, 0 missing; 0 YouTube; 0 private or held photo names. Phone + desktop, RM on and off: 0 horizontal overflow on stay-gold, work, list and reel-20; weird-kid "next ›" → `film/sleepwalker/`; 0 errors; 0 responses ≥400. Screenshots: `/workspace/opus-itemJ/{phone,desktop}-*.png`.
 - Regression after items 9–12 (`/workspace/opus-item12/chk`): landings 0 px at all 6 stops, phone and desktop, RM on and off. Walk 10/11; 06-devil fails only locally (no Range support).
 - sw `SHELL_REV` 94.
+
+## Item 10 fix: To Go card uses the live small Momo loop tile only (11:45 AM MST)
+- Gill did not approve the Momo v2 card / frame-extraction art. `sound/to-go/momo2-sheet.webp` is removed from the branch.
+- `momo-card.js` no longer draws a sprite: it moves the page's own `figure.momo` video (media/pro2/img/sound/momo-480.webm/.mp4,
+  poster momo-480.jpg, autoplay muted loop playsinline, exactly as the live page) into the To Go card's corner tile.
+- `sound/to-go/index.html` = the live file plus one line (`<script src="momo-card.js">`); the tile's loop attribute stays as live.
+- Kept: swipe/arrow/wheel snap, two-tap (select, then play), ended -> next (last -> first), standalone player ended -> next.
+- Checks (`opus-check/togo10.py`, Range server 18981, phone/desktop x motion/reduce): swipe L/R, arrow, tap1 select, tap2 play,
+  ended1 -> next 425-430 ms, last -> first 425-448 ms, 0 errors; momo video in card: loop true, poster momo-480.jpg, src momo-480.webm,
+  playing; no momo2 request. Screenshot `/workspace/opus-item10b/phone-card-momo.png`.
+
+## Item K: Space is the sixth chapter (43c0e7d, 609d2cf; 11:46 AM MST)
+- data.json: new `space` chapter after objects (film, photo, objects, space, sound, about); the design, wireframe and materials
+  boards move out of objects; new card `space/cedar-studio` ("Yellow cedar studio", the real title of /workspace/cedar-studio/sketch3d;
+  meta "concept, not engineered", the warning on the pavilion + pod drawings). Media: 7 renders/sketches from /workspace/cedar-studio
+  (pavilion golden/night/inside/exploded, sketch 1-3) as 480/960 webp in media/space/cedar/ (316 KB). No placeholder was needed.
+- Spirit Eye of skwácháýs moves from Objects to Space (inner.js; depth.js "beside" link and joio return now #space/spirit-eye); no longer in Objects.
+- Nov 9 Space photos (IMG_6549, 6550, 6552, 5840, 9354, 2498, 7571, 7443; none private or held) join the Space board via spacePicks().
+- sky.js: ORDER now comes from data.json chapter order (ANG/ANGP only place them); six angles (about -90, photo -30, objects 30,
+  space 90, sound 150, film 210; portrait variant); SH.space constellation; chip counts from the data ("13 pieces").
+- Static: space/<slug>/ pages for all five cards, objects/<board>/ redirect to space/<board>/, LIST has a "space" group (tools/space_pages.py).
+- Checks (opus-check/space.py, swipeK.py, hops.py; phone 390x844 + desktop 1440x900, motion + reduce): #space lands lv1;
+  #space/board = 13 pieces; #space/cedar-studio and #space/spirit-eye open at lv2; objects board no longer holds the boards;
+  swipe objects->space->sound and about->film wrap; landing vs tap 0 px; offscreen 0 labels off-screen in every chapter;
+  hops branch == main (43-45 s, 0 console errors beyond the baseline favicon 404). Shots /workspace/opus-itemK2/.
+
+## Opening title card (approved 9:44 AM): one swipeable full-screen To Go-style card, Weird Kid first
+- New `js/opening.js` (GJ_OPEN), loaded before sky.js and cached by sw.js. sky.js: `openCards()` builds the cards from data.json
+  (Weird Kid, To Go, One With the Devil, hand-carved piece, Sleepwalker, Repeat; titles/roles/meta from the data, stills = media.big,
+  clips = media.pv). `landFrames()` stays in sky.js, unused (still assigned to `lands`, never shown while GJ_OPEN is mounted).
+- Tap on the opening: straight to the sky (unchanged skipToSky); the card never shows.
+- Waiting: 7 s after the mark starts (OPEN_WAIT x the existing delay tune) the water dives by itself; after the fly the card shows.
+- Pinch: the existing opening pinch (OP) drives mark -> fly -> card; the rest of the pinch scales the card and carries on into the sky.
+- Card: full-screen (12 px inset), still + clip, Julius title, mint role, meta, shot counter "01 / 06" top-left, dots, the sky canvas
+  drawn behind (#land transparent in card mode). Reel drift: the strip creeps 6% of a card with the clip's time, then glides on at
+  `ended` (no loop); a still holds 4 s. To Go: the live momo-480 tile (webm/mp4 + poster) + a play button; audio never autoplays;
+  the song plays only from its button, pauses when you leave the card, ended -> next card. After all six the sky opens.
+- Swipe, arrows, sideways wheel move between cards (wraps); a tap on the card, Enter or Esc goes to the sky. Same with Reduce Motion.
+- Checks (`opus-check/open.py`, phone 390x844 + desktop 1440x900, motion + reduce, all four identical): tap skip -> sky, card never on;
+  wait -> card after 9.2-9.4 s on "01 / 06" Weird Kid, pv/22.mp4 playing, loop false, no audio; creep p .014 -> .030 in 0.5 s;
+  swipe left -> 02 / 06 To Go, momo-480.webm playing, poster momo-480.jpg, no song; play button (88x44) -> song plays, still on the card;
+  swipe right -> 01 / 06, song paused; ArrowRight -> 02; Weird Kid ended -> next after 2.7-2.9 s; swipe right at 01 -> 06 / 06 (wrap);
+  tap card -> sky; pinch .55 -> fly, card (Weird Kid); further pinch -> sky; waiting through all six -> sky at 35.9 s; 0 errors, 0 bad responses.
+  Shots /workspace/opus-open/ (phone-05-land1-fixed.png after a CSS fix: sky.css `#land p` was positioning the role/meta lines).
+- Open questions for Gill: OPEN_WAIT 7 s; one pass then the sky (vs looping the cards); tap = sky rather than the preview's two-tap;
+  the pv clips are 1.3-3 s, so the cards move quickly until the full-length re-exports land; Weird Kid's pv has a dark top band.

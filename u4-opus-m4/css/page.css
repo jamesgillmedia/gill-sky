@@ -88,7 +88,8 @@ html.js .sketch{display:block}
 .mc.sel{border-color:rgba(85,218,161,.85);box-shadow:0 0 0 1px rgba(85,218,161,.5)}
 .mc.on .mc-cap b::after{content:" \25B8";color:#55daa1}
 .mc-im,.mc-wf{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
-.mc-momo{position:absolute;right:10px;top:10px;width:30%;aspect-ratio:160/210;border-radius:8px;background:url(../sound/to-go/momo2-sheet.webp) 0 0/900% 600% no-repeat;opacity:.92}
+.mc-momo{position:absolute;right:10px;top:10px;width:32%;aspect-ratio:1/1;border-radius:10px;overflow:hidden}
+.mc-momo video{display:block;width:100%;height:100%;object-fit:cover;opacity:.88}
 .mc-cap{position:absolute;left:0;right:0;bottom:0;padding:28px 14px 12px;background:linear-gradient(transparent,rgba(4,7,11,.86))}
 .mc-cap b{display:block;font-family:"Julius Sans One",sans-serif;font-weight:400;font-size:20px;letter-spacing:.06em;color:#eef3f5}
 .mc-cap small{display:block;margin-top:4px;font-size:12px;letter-spacing:.12em;color:#9fb0b6}

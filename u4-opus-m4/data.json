@@ -2619,90 +2619,6 @@
      "isNew": false
     },
     {
-     "id": "objects/design-board",
-     "chapter": "objects",
-     "k": "w11",
-     "slug": "design-board",
-     "title": "design board",
-     "role": "",
-     "year": null,
-     "meta": "carving + design",
-     "kind": "object",
-     "media": {
-      "thumb": "media/pro2/img/objects/boards-480.webp",
-      "big": "media/pro2/img/objects/boards-960.webp",
-      "clip": "",
-      "pv": "",
-      "frames": [],
-      "url": "",
-      "embed": "",
-      "w": 828,
-      "h": 1800
-     },
-     "credits": [],
-     "related": [],
-     "also": [],
-     "in_progress": true,
-     "body": "",
-     "isNew": false
-    },
-    {
-     "id": "objects/wireframe-board",
-     "chapter": "objects",
-     "k": "w12",
-     "slug": "wireframe-board",
-     "title": "wireframe board",
-     "role": "",
-     "year": null,
-     "meta": "carving + design",
-     "kind": "object",
-     "media": {
-      "thumb": "media/pro2/img/objects/wire-480.webp",
-      "big": "media/pro2/img/objects/wire-960.webp",
-      "clip": "",
-      "pv": "",
-      "frames": [],
-      "url": "",
-      "embed": "",
-      "w": 900,
-      "h": 1518
-     },
-     "credits": [],
-     "related": [],
-     "also": [],
-     "in_progress": true,
-     "body": "",
-     "isNew": false
-    },
-    {
-     "id": "objects/materials-board",
-     "chapter": "objects",
-     "k": "w13",
-     "slug": "materials-board",
-     "title": "materials board",
-     "role": "",
-     "year": null,
-     "meta": "carving + design",
-     "kind": "object",
-     "media": {
-      "thumb": "media/pro2/img/objects/materials-480.webp",
-      "big": "media/pro2/img/objects/materials-960.webp",
-      "clip": "",
-      "pv": "",
-      "frames": [],
-      "url": "",
-      "embed": "",
-      "w": 960,
-      "h": 1080
-     },
-     "credits": [],
-     "related": [],
-     "also": [],
-     "in_progress": true,
-     "body": "",
-     "isNew": false
-    },
-    {
      "id": "objects/joio",
      "chapter": "objects",
      "k": "w14",
@@ -2729,6 +2645,155 @@
      "in_progress": false,
      "body": "",
      "isNew": true
+    }
+   ]
+  },
+  {
+   "k": "space",
+   "nm": "space",
+   "tint": "205,192,255",
+   "cards": [
+    {
+     "id": "space/cedar-studio",
+     "chapter": "space",
+     "k": "s1",
+     "slug": "cedar-studio",
+     "title": "Yellow cedar studio",
+     "role": "",
+     "year": null,
+     "meta": "concept, not engineered",
+     "kind": "object",
+     "media": {
+      "thumb": "media/space/cedar/pavilion-golden-480.webp",
+      "big": "media/space/cedar/pavilion-golden-960.webp",
+      "clip": "",
+      "pv": "",
+      "frames": [],
+      "url": "",
+      "embed": "",
+      "w": 960,
+      "h": 383
+     },
+     "credits": [],
+     "related": [],
+     "also": [],
+     "in_progress": false,
+     "body": "Yellow cedar studio: 3D sketches and the pavilion + pod. Concept, not engineered.",
+     "isNew": false,
+     "shots": [
+      {
+       "src": "media/space/cedar/pavilion-golden-960.webp",
+       "title": "pavilion + pod · golden hour"
+      },
+      {
+       "src": "media/space/cedar/pavilion-night-960.webp",
+       "title": "pavilion + pod · night"
+      },
+      {
+       "src": "media/space/cedar/pavilion-inside-960.webp",
+       "title": "pavilion + pod · inside"
+      },
+      {
+       "src": "media/space/cedar/pavilion-exploded-960.webp",
+       "title": "pavilion + pod · explode"
+      },
+      {
+       "src": "media/space/cedar/sketch-1-960.webp",
+       "title": "1 · Plank House Bent"
+      },
+      {
+       "src": "media/space/cedar/sketch-2-960.webp",
+       "title": "2 · Panel Box"
+      },
+      {
+       "src": "media/space/cedar/sketch-3-960.webp",
+       "title": "3 · Pavilion + Pod"
+      }
+     ]
+    },
+    {
+     "id": "space/design-board",
+     "chapter": "space",
+     "k": "w11",
+     "slug": "design-board",
+     "title": "design board",
+     "role": "",
+     "year": null,
+     "meta": "carving + design",
+     "kind": "object",
+     "media": {
+      "thumb": "media/pro2/img/objects/boards-480.webp",
+      "big": "media/pro2/img/objects/boards-960.webp",
+      "clip": "",
+      "pv": "",
+      "frames": [],
+      "url": "",
+      "embed": "",
+      "w": 828,
+      "h": 1800
+     },
+     "credits": [],
+     "related": [],
+     "also": [],
+     "in_progress": true,
+     "body": "",
+     "isNew": false
+    },
+    {
+     "id": "space/wireframe-board",
+     "chapter": "space",
+     "k": "w12",
+     "slug": "wireframe-board",
+     "title": "wireframe board",
+     "role": "",
+     "year": null,
+     "meta": "carving + design",
+     "kind": "object",
+     "media": {
+      "thumb": "media/pro2/img/objects/wire-480.webp",
+      "big": "media/pro2/img/objects/wire-960.webp",
+      "clip": "",
+      "pv": "",
+      "frames": [],
+      "url": "",
+      "embed": "",
+      "w": 900,
+      "h": 1518
+     },
+     "credits": [],
+     "related": [],
+     "also": [],
+     "in_progress": true,
+     "body": "",
+     "isNew": false
+    },
+    {
+     "id": "space/materials-board",
+     "chapter": "space",
+     "k": "w13",
+     "slug": "materials-board",
+     "title": "materials board",
+     "role": "",
+     "year": null,
+     "meta": "carving + design",
+     "kind": "object",
+     "media": {
+      "thumb": "media/pro2/img/objects/materials-480.webp",
+      "big": "media/pro2/img/objects/materials-960.webp",
+      "clip": "",
+      "pv": "",
+      "frames": [],
+      "url": "",
+      "embed": "",
+      "w": 960,
+      "h": 1080
+     },
+     "credits": [],
+     "related": [],
+     "also": [],
+     "in_progress": true,
+     "body": "",
+     "isNew": false
     }
    ]
   },
