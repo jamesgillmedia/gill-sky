@@ -29,6 +29,6 @@ Film can go deepest. Every other medium has at least four levels and a real bott
 - Photo: loose stacks, contact sheet, one print, grain crops of that same print.
 - Sound: star chart, the player, inside the waveform, then among the stars as the audio moves.
 - Objects: the board, the object close-up, process and detail, then a full-bleed joio clip with Spirit Eye beside it.
-- About: the calculator, seven layers, then the moon grid.
+- About: the calculator, the bio layers (five since 2026-11-11), then the moon grid with the final bio on it.
 
 A full-bleed picture is a middle layer when the chapter still has a level under it. If a piece has no clip, the still pushes slowly. Nothing is invented to fill a gap. An empty level says so, quietly.

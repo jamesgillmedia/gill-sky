@@ -5,7 +5,7 @@
 :root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--mint:#55DAA1;--line:rgba(255,255,255,.16);
  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-text-size-adjust:100%}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:none;touch-action:pan-x pan-y;-webkit-text-size-adjust:100%}
 body{font:300 14px/1.45 Poppins,Syl,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 button,a{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;cursor:pointer}
@@ -279,7 +279,7 @@ html.reelon #mmap{display:none !important}
 .matte .tie a{color:inherit;text-decoration:underline;text-underline-offset:3px}
 #layers{position:absolute;inset:0;z-index:5;overflow:hidden;background:#04070b}
 #layers[hidden]{display:none}
-/* While the seven layers are open they are the page. The static bio sheet in #layer stays out of the way, and every other use of #layer is untouched. */
+/* While the six layers are open they are the page. The static bio sheet in #layer stays out of the way, and every other use of #layer is untouched. */
 #layers.on~#layer{display:none}
 #calcstage{position:absolute;inset:0;overflow:hidden;z-index:0}
 #calczoom{position:absolute;inset:0;transform-origin:52% 66%;transition:transform .48s ease}
@@ -288,13 +288,15 @@ html.reelon #mmap{display:none !important}
 #moons{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .75s ease;z-index:1}
 #layers.exit #calcstage,#layers.exit #laytext,#layers.exit #lrail{opacity:0;transition:opacity .75s ease}
 #layers.exit #moons{opacity:1}
+#layers.exit.atmoon #laytext{opacity:1;transition:opacity .75s ease}
+#layers.exit.atmoon #moons{opacity:.5}
 #layers.exit.moonfade #moons{opacity:0;transition:opacity 1.2s ease}
 #grain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:.16;mix-blend-mode:overlay;z-index:2}
 #laytext{position:absolute;z-index:3;left:7%;right:12%;top:calc(52px + var(--st));bottom:14%;display:flex;flex-direction:column;justify-content:center;
  color:#f4f7ef;font-weight:300;text-shadow:0 1px 2px rgba(0,0,0,.85);pointer-events:none;
  background:linear-gradient(transparent 8%,rgba(4,7,11,.45) 28%,rgba(4,7,11,.62) 72%,transparent);padding:22px 10px}
-#laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{justify-content:flex-start;top:calc(68px + var(--st));bottom:calc(36px + var(--sb));overflow:auto;pointer-events:auto;padding-bottom:28px}
-#laytext.lv4,#laytext.lv5,#laytext.lv6,#laytext.lv7{background:rgba(4,7,11,.52);border-radius:18px;box-shadow:0 0 26px 14px rgba(4,7,11,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding-left:16px;padding-right:16px;bottom:auto;max-height:calc(100% - 104px - var(--st) - var(--sb))}
+#laytext.lv4,#laytext.lv5,#laytext.lv6{touch-action:pan-y;justify-content:flex-start;top:calc(68px + var(--st));bottom:calc(36px + var(--sb));overflow:auto;pointer-events:auto;padding-bottom:28px}
+#laytext.lv4,#laytext.lv5,#laytext.lv6{background:rgba(4,7,11,.52);border-radius:18px;box-shadow:0 0 26px 14px rgba(4,7,11,.42);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding-left:16px;padding-right:16px;bottom:auto;max-height:calc(100% - 104px - var(--st) - var(--sb))}
 #laytext.flick{opacity:.62}
 #laytext span{display:block;font-size:14.5px;line-height:1.55;letter-spacing:.01em}
 #laytext.lv1 span{font-size:30px;line-height:1.2;letter-spacing:.01em}
@@ -387,7 +389,13 @@ h2.tt small{display:block;white-space:normal;font:300 11px/1.4 Poppins,sans-seri
 #wrail li.here{color:var(--mint)}
 #wrail li.here::before{width:7px;height:7px;background:var(--mint);box-shadow:0 0 8px var(--mint)}
 #wrail li.here span{display:inline}
-html.bleed #wcrumb,html.bleed #wrail{opacity:0;pointer-events:none}
+/* Objects chapter and board: one quiet way into Inside (../inside/), beside the depth rail. 44px target; no motion. */
+#ginside{position:absolute;z-index:7;left:max(10px,var(--sl));bottom:calc(4px + var(--sb));display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;
+ border-radius:22px;border:1px solid rgba(255,255,255,.18);background:rgba(3,5,10,.62);font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mint);white-space:nowrap}
+#ginside[hidden]{display:none}
+#ginside span{font-size:14px;color:rgba(228,235,245,.7)}
+#ginside:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+html.bleed #wcrumb,html.bleed #wrail,html.bleed #ginside{opacity:0;pointer-events:none}
 html.wc #layer .sheet.full,html.wc #layer .sheet.film,html.wc #layer .sheet.cutsheet{padding-top:calc(86px + var(--st))}
 html.wc #layer .sheet{padding-bottom:calc(46px + var(--sb))}
 html.wc .filmfield h2{top:calc(80px + var(--st))}
@@ -427,3 +435,6 @@ html:not(.port) #dive{left:27%}
 #layer .songsel{outline:1.5px solid rgb(85,218,161);outline-offset:2px;box-shadow:0 0 14px rgba(85,218,161,.45)}
 #songtitle{position:fixed;left:50%;bottom:calc(64px + var(--sb,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.86);border:1px solid rgba(85,218,161,.55);color:#e8f1f4;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
 #songtitle.on{opacity:1}
+
+/* Item B: scrollers inside the stage scroll with one finger but never start a browser pinch-zoom. */
+#layer .sheet,#layer .cutsheet,#apro,#laytext{touch-action:pan-y}

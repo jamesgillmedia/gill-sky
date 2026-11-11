@@ -45,8 +45,8 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
-var TUNE={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
+var TDEF={map:.97,stars:.98,lineA:1,lineW:.8,starS:.6,starG:1.05,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
+var TUNE={map:.97,stars:.98,lineA:1,lineW:.8,starS:.6,starG:1.05,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
@@ -135,12 +135,109 @@ function buildGlow(){
   GLOW.w=glow('205,225,255');GLOW.m=glow(MINT);GLOW.c=glow('160,190,240');
   ORDER.forEach(function(k){CH[k].glow=glow(CH[k].tint)});
 }
-var FIELD=[];
+/* Depth field: 4 layers, 378 stars. Each star has a home on a torus a margin
+   wider than the screen (pans wrap off-screen, never on it) and a phase in a
+   zoom cycle: zoom pushes it out from the screen centre by up to DZ.E, nearer
+   layers faster, and it fades at both ends of its cycle so nothing pops.
+   Pans slide by f*sqrt(z), not f*z, so a pan at sound zoom never moves a star
+   past the margin in one frame. Size grows only by 1+DZ.g*f*ln(z).
+   Every length is a share of the short side. */
+var FIELD=[],HOP=0,FN=0,FDT=1/60,POPW=0,POPA=0;
+var DZ={E:2.4,K:.36,slide:.85,g:.16,cap:1.45,streak:.06,tau:.05,dimR:.075,fin:.35};
+/* v1r2: a star's drawn alpha rises toward its target with time constant DZ.fin (s), driven by the frame dt
+   (FDT, already capped at 50 ms by the loop), and falls at once. A dropped frame therefore cannot take a
+   star from unseen to bright in one step; a star that wraps restarts from 0. Settled frames are unchanged. */
 function buildField(){
-  [[0,220,.15,.45,.5],[1,110,.4,.6,.9],[2,48,.72,.85,1.3]].forEach(function(L){
-    var pts=[];for(var i=0;i<L[1];i++)pts.push({x:rnd(L[0]*1000+i)*2400-1200,y:rnd(L[0]*3000+i)*2400-1200,b:.15+.85*Math.pow(rnd(L[0]*700+i),2),r:.4+L[4]*rnd(L[0]*90+i)});
-    FIELD.push({f:L[2],a:L[3],pts:pts});
+  [[0,150,.22,.42,.42],[1,110,.48,.58,.72],[2,78,.86,.74,.9],[3,40,1.25,.9,1.05]].forEach(function(L){
+    var pts=[];for(var i=0;i<L[1];i++)pts.push({u:rnd(L[0]*1000+i),v:rnd(L[0]*3000+i),ph:rnd(L[0]*5100+i),b:.15+.85*Math.pow(rnd(L[0]*700+i),2),r:.4+L[4]*rnd(L[0]*90+i),px:0,py:0,pn:-9});
+    FIELD.push({i:L[0],f:L[2],a:L[3],near:L[0]>=2,pts:pts});
   });
+}
+var SOFT=null;
+function softDot(){
+  if(SOFT)return SOFT;
+  var c=document.createElement('canvas');c.width=c.height=32;var q=c.getContext('2d'),gr=q.createRadialGradient(16,16,0,16,16,16);
+  gr.addColorStop(0,'rgba(228,236,248,1)');gr.addColorStop(.28,'rgba(220,230,245,.7)');gr.addColorStop(.6,'rgba(210,224,242,.18)');gr.addColorStop(1,'rgba(210,224,242,0)');
+  q.fillStyle=gr;q.fillRect(0,0,32,32);return SOFT=c;
+}
+function depthZoom(){return rest.s/Math.max(1e-4,FAR.s)}
+function fieldUnit(){return Math.min(W,H)||390}
+function smooth(a,b,v){v=clamp((v-a)/(b-a),0,1);return v*v*(3-2*v)}
+function layerView(L){
+  var z=Math.max(1e-3,depthZoom()),lz=Math.log(z),m=fieldUnit();
+  var sc=clamp(1+DZ.g*L.f*lz,.8,DZ.cap);
+  /* nearer layers thin a little as the camera closes in, instead of growing */
+  var na=L.near?clamp(1-.1*L.f*Math.max(0,lz),.62,1):1;
+  return {f:L.f,n:L.pts.length,cyc:DZ.K*L.f*lz,scale:sc,slide:L.f*DZ.slide,alpha:na,
+    su:clamp(Math.sqrt(m/900),.72,1.1),M:m*(.16+DZ.streak),ox:-rest.x*FAR.s*Math.sqrt(z)*L.f*DZ.slide-look.x*L.f*140,oy:-rest.y*FAR.s*Math.sqrt(z)*L.f*DZ.slide-look.y*L.f*140};
+}
+function depthStep(dt){
+  var m=fieldUnit(),pan=Math.hypot(cxS.v,cyS.v)*rest.s,zr=Math.abs(csS.v)/Math.max(.02,csS.x);
+  var target=clamp(pan/(.9*m)+zr*.5,0,1);
+  HOP+=(target-HOP)*(1-Math.exp(-dt*14));
+  FDT=dt||FDT;
+}
+/* Screen points the near dust keeps clear of: the mark, constellation nodes, names. */
+function fieldMask(){
+  var out=[],pad=fieldUnit()*DZ.dimR;
+  function add(p){if(p[0]>-pad&&p[0]<W+pad&&p[1]>-pad&&p[1]<H+pad)out.push(p)}
+  if(cur.lv===0)add(sp(0,0));
+  ORDER.forEach(function(k){
+    var c=CH[k];if(!c)return;
+    if(cur.lv===0)add([sp(c.x,c.y+c.ex.y1)[0],sp(c.x,c.y+c.ex.y1)[1]+16]);
+    (c.skyItems||[]).forEach(function(it){if(it.sh)add(sp(it.sx,it.sy))});
+  });
+  cluster.forEach(function(it){add(sp(it.cx,it.cy))});
+  return out;
+}
+function drawField(fa){
+  var m=fieldUnit(),cx=W/2,cy=H/2,mask=null,dimR=m*DZ.dimR,lnE=Math.log(DZ.E);
+  var cap=m*DZ.streak,streak=HOP>.04,spr=softDot();FN++;
+  FIELD.forEach(function(L){
+    var lv=layerView(L),M=lv.M,TW=W+2*M,TH=H+2*M;
+    var base=L.a*(.35+.65*Math.min(1,fa+.4))*lv.alpha;
+    if(L.near&&!mask)mask=fieldMask();
+    L.pts.forEach(function(p){
+      var rx=p.u*TW+lv.ox,ry=p.v*TH+lv.oy,wi=Math.floor(rx/TW)*7919+Math.floor(ry/TH);
+      var qx=rx-Math.floor(rx/TW)*TW-M,qy=ry-Math.floor(ry/TH)*TH-M;
+      var c=p.ph+lv.cyc,ci=Math.floor(c);c-=ci;
+      var e=Math.exp(lnE*c),x=cx+(qx-cx)*e,y=cy+(qy-cy)*e;
+      var a=smooth(.02,.32,c)*(1-smooth(.6,.97,c));
+      var cont=p.pn===FN-1,ok=cont,dx=x-p.px,dy=y-p.py,pa=ok?p.pa:0,jump=ok&&(wi!==p.wi||ci!==p.ci);
+      if(jump&&p.pon)POPW++;
+      p.px=x;p.py=y;p.pn=FN;p.pa=0;p.wi=wi;p.ci=ci;p.pon=0;
+      if(jump){ok=false;pa=0}
+      if(x<-M||x>W+M||y<-M||y>H+M||a<.01)return;
+      var rr=p.r*lv.su*lv.scale,al=base*(.25+p.b*.6)*a;
+      if(L.near&&mask.length){
+        var dmin=1e9;for(var j=0;j<mask.length;j++){var mx=mask[j][0]-x,my=mask[j][1]-y,d=mx*mx+my*my;if(d<dmin)dmin=d}
+        al*=.2+.8*smooth(dimR*.45,dimR,Math.sqrt(dmin));
+      }
+      if(cont&&al>pa)al=pa+(al-pa)*(1-Math.exp(-FDT/DZ.fin));
+      if(al<.01){if(cont&&al>0){p.pa=al}return}
+      var on=x>=-rr&&x<=W+rr&&y>=-rr&&y<=H+rr;
+      p.pa=al;p.pon=on&&al>.02?1:0;
+      if(jump&&on&&al>.02)POPW++;
+      if(ok&&on&&pa<.01&&al>.12)POPA++;
+      if(L.near){
+        if(streak&&ok){
+          var k=DZ.tau/Math.max(1/240,FDT),sx=dx*k,sy=dy*k,sl=Math.hypot(sx,sy);
+          if(sl<M){
+            if(sl>cap){sx*=cap/sl;sy*=cap/sl;sl=cap}
+            if(sl>rr*1.5){
+              g.globalAlpha=al*HOP*.85;g.strokeStyle='rgb(220,230,245)';g.lineWidth=Math.max(.6,rr*.9);g.lineCap='round';
+              g.beginPath();g.moveTo(x-sx,y-sy);g.lineTo(x,y);g.stroke();
+            }
+          }
+        }
+        g.globalAlpha=al;var d2=rr*4.4;g.drawImage(spr,x-d2/2,y-d2/2,d2,d2);
+      }else{
+        g.globalAlpha=1;g.fillStyle='rgba(220,230,245,'+al.toFixed(3)+')';
+        g.beginPath();g.arc(x,y,rr,0,7);g.fill();
+      }
+    });
+  });
+  g.globalAlpha=1;
 }
 
 function placeChapter(c){
@@ -358,7 +455,7 @@ function frame(t){
   if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/(1680*tk('fade')),0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush()}}
   if(phase==='land'&&!OP.on&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
   if(OP.used)opLayers(dt);
-  stepSprings(dt);if(playing)listen();
+  stepSprings(dt);depthStep(dt);if(playing)listen();
   if(CHIMES.length)chStep(dt);
   bStep(dt);
   if(window.GJ_DEPTH){
@@ -410,17 +507,7 @@ function draw(t){
   if(phase==='land'){drawGlow();paintFx();return}
   var fa=farA(),lk=look,SI=skyIntro();
   skyIntroPaint(SI);
-  FIELD.forEach(function(L){
-    g.globalAlpha=L.a*(.35+.65*Math.min(1,fa+.4));
-    L.pts.forEach(function(p){
-      var x=(p.x-lk.x*L.f*140)*1+W/2-(rest.x*rest.s)*L.f*0.15;
-      var y=(p.y-lk.y*L.f*140)*1+H/2-(rest.y*rest.s)*L.f*0.15;
-      x=((x%W)+W)%W;y=((y%H)+H)%H;
-      g.fillStyle='rgba(220,230,245,'+(0.25+p.b*.6)+')';
-      g.beginPath();g.arc(x,y,p.r,0,7);g.fill();
-    });
-  });
-  g.globalAlpha=1;
+  drawField(fa);
   /* spokes */
   if(fa>.05&&cur.lv===0){g.strokeStyle='rgba(170,200,235,'+(0.13*fa)+')';g.beginPath();
     ORDER.forEach(function(k){var a=sp(0,0),b=sp(CH[k].x,CH[k].y);g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1])});g.stroke()}
@@ -1423,7 +1510,7 @@ function bind(){
   if(wc)wc.addEventListener('click',wjump);
   if(wr){wr.addEventListener('click',wjump);wr.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')wjump(e)})}
   $('layer').addEventListener('click',layerTap);
-  /* The seven layers step deeper from a click or tap (a mouse has no pinch), unless the click is picking text or a link. */
+  /* The bio layers step deeper from a click or tap (a mouse has no pinch), unless the click is picking text or a link. */
   $('layers').addEventListener('click',function(e){
     if(phase!=='sky'||!bioOn||bioExit||bioMoon)return;
     if(e.target.closest&&e.target.closest('a,button,input'))return;
@@ -1437,11 +1524,17 @@ function bind(){
   stage.addEventListener('pointercancel',onUp);
   stage.addEventListener('touchstart',onTouch,{passive:false});
   stage.addEventListener('touchmove',onTouchMove,{passive:false});
-  stage.addEventListener('touchend',function(){pinchLetGo();pinch=null},{passive:true});
+  stage.addEventListener('touchend',touchDone,{passive:true});
+  stage.addEventListener('touchcancel',touchDone,{passive:true});
+  document.addEventListener('touchstart',gTrack,{capture:true,passive:true});
+  document.addEventListener('touchend',gTrack,{capture:true,passive:true});
+  document.addEventListener('touchmove',function(e){if(e.touches.length>1&&e.cancelable)e.preventDefault()},{passive:false});
+  ['gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});
   window.addEventListener('pointerdown',onPtrDown,true);
   window.addEventListener('pointermove',onPtrMove,true);
   window.addEventListener('pointerup',onPtrUp,true);
   window.addEventListener('pointercancel',onPtrUp,true);
+  window.addEventListener('wheel',onBioWheel,{passive:false});
   window.addEventListener('message',function(e){if(e.data==='sound-out')back()});
   $('dive').addEventListener('click',function(e){e.stopPropagation();skipToSky()});
   $('back').addEventListener('click',function(e){e.stopPropagation();back()});
@@ -1478,10 +1571,11 @@ function bind(){
 }
 function onDown(e){
   if(e.target.closest('#hirecard'))return;
+  if(e.pointerType==='touch'&&(G.n>1||Object.keys(PT).length>1))return; /* a second finger never re-arms the tap */
   noteTouch(e.clientX,e.clientY);
   var card=$('hirecard');
   if(card&&!card.hidden&&!e.target.closest('#hire')){hireOpen(false);return}
-  if(e.target.closest('#bar,#wcrumb,#wrail,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
+  if(e.target.closest('#bar,#wcrumb,#wrail,#ginside,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
   if(phase==='arrive'||phase==='land'){rippleAt(e.clientX,e.clientY);drag={x:e.clientX,y:e.clientY,id:e.pointerId,t:now()};moved=false;return}
   if(phase!=='sky')return;
   var over=false;
@@ -1527,6 +1621,8 @@ function onUp(e){
     lxS.t=0;lyS.t=0;lxS.w=W_LOOK;lyS.w=W_LOOK;
     return;
   }
+  if(e.type==='pointercancel')return;
+  if(e.pointerType==='touch'&&G.max>1)return; /* a multi-finger gesture is never a tap */
   var tn=now(),dbl=tn-LASTTAP.t<360&&Math.hypot(e.clientX-LASTTAP.x,e.clientY-LASTTAP.y)<40;
   LASTTAP={t:tn,x:e.clientX,y:e.clientY,hit:LASTTAP.hit};
   if(dbl&&!LASTTAP.hit&&cur.lv>=1&&phase==='sky'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())&&!isBio()){LASTTAP={t:0,x:0,y:0,hit:null};back();return}
@@ -1561,6 +1657,7 @@ function onPtrDown(e){
   if(e.pointerType==='mouse'&&!e.buttons)return;
   PT[e.pointerId]={x:e.clientX,y:e.clientY};
   var ids=Object.keys(PT);
+  if(ids.length===1&&pinch&&pinch.done&&!OP.on)pinch=null;
   if(ids.length===2){
     var a=PT[ids[0]],b=PT[ids[1]];
     pinch={d:Math.hypot(a.x-b.x,a.y-b.y),done:0,x:(a.x+b.x)/2,y:(a.y+b.y)/2};
@@ -1577,6 +1674,10 @@ function onPtrMove(e){
   var d=Math.hypot(a.x-b.x,a.y-b.y),r=d/(pinch.d||1);
   pinch.x=(a.x+b.x)/2;pinch.y=(a.y+b.y)/2;
   if(OP.on){opMove(d,pinch.x,pinch.y);return}
+  pinchAt(r);
+}
+function pinchAt(r){
+  if(!pinch||pinch.done)return;
   if(r>1.18){pinch.done=1;if(window.GJ_DEPTH)GJ_DEPTH.followEnd();deeper(pinch.x,pinch.y)}
   else if(r<.84){pinch.done=1;pinchBack(0)}
   else if(window.GJ_DEPTH)GJ_DEPTH.follow(Math.min(1,r));
@@ -1589,10 +1690,23 @@ function pinchBack(n){
   }
   back();
 }
+/* Desktop trackpad pinch (ctrl+wheel) on the bio layers only: one gesture = one layer, in or out.
+   The general wheel / ctrl-wheel zoom for the sky is item 3. */
+var BW={acc:0,t:0,used:0};
+function onBioWheel(e){
+  if(!e.ctrlKey||phase!=='sky'||!bioOn||!isBio()||bioExit)return;
+  e.preventDefault();
+  /* a gesture ends after 250 ms without wheel events; each gesture moves at most one layer */
+  var tm=now();if(tm-BW.t>250){BW.acc=0;BW.used=0}BW.t=tm;
+  if(BW.used)return;
+  BW.acc+=e.deltaY;
+  if(BW.acc<=-40){BW.used=1;deeper(innerWidth/2,innerHeight/2)}
+  else if(BW.acc>=40){BW.used=1;back()}
+}
 function pinchLetGo(){if(pinch&&!pinch.done&&window.GJ_DEPTH)GJ_DEPTH.followEnd()}
 function onPtrUp(e){
   delete PT[e.pointerId];
-  if(Object.keys(PT).length<2){if(OP.on)opRelease();pinchLetGo();pinch=null;OP.hold=0}
+  if(Object.keys(PT).length<2){if(OP.on)opRelease();if(!(pinch&&pinch.tch)){pinchLetGo();pinch=null}OP.hold=0}
 }
 /* Opening pinch: two fingers drive the opening itself (p 0..1 = mark, fly, land frames, sky) and the layers follow them. */
 var OP={on:0,used:0,hold:0,p:0,p0:0,d0:1,d:1,x:0,y:0,z:0,ox:0,oy:0},OFEND=.4,OSPAN=2.8;
@@ -1668,11 +1782,50 @@ function opLayers(dt){
     im.style.transform=f>0?'scale('+(1+.3*f).toFixed(4)+')':'';
   }
 }
+/* Gesture input (items B + I). Touch events keep arriving after the browser cancels the pointers
+   (pointercancel once a one-finger scroll starts on a scrolling sheet or bio text), so:
+   - G counts fingers for the whole gesture; a gesture that ever had 2+ fingers is never a tap.
+   - The pinch is also measured from touches whenever the pointer pinch is not tracking two fingers;
+     both paths share pinchAt() and its thresholds, so it works the same on every layer.
+   - Each touch target gets its own non-passive touchmove/touchend listeners, so when a repaint
+     (paintBio, renderLayer) removes the node under the fingers the gesture is still guarded and measured.
+   - Page zoom is blocked: 2-finger touchmove at the document, iOS gesture events, ctrl+wheel in the bio
+     (the general wheel zoom is item 3). */
+var G={n:0,max:0};
+function touchPair(e){var a=e.touches[0],b=e.touches[1];return {d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2}}
+function gTrack(e){
+  G.n=e.touches.length;
+  if(e.type==='touchstart'){
+    if(G.n===1){G.max=1;if(pinch&&pinch.done&&!OP.on)pinch=null}
+    else G.max=Math.max(G.max,G.n);
+    var tg=e.target;
+    if(tg&&tg.addEventListener&&!tg._gjg){tg._gjg=1;
+      tg.addEventListener('touchmove',function(ev){if(!stage.contains(ev.target))onTouchMove(ev)},{passive:false});
+      tg.addEventListener('touchend',function(ev){if(!stage.contains(ev.target))touchDone(ev)},{passive:true});
+      tg.addEventListener('touchcancel',function(ev){if(!stage.contains(ev.target))touchDone(ev)},{passive:true});
+    }
+  }
+}
 function onTouch(e){
-  if(e.touches.length===2){drag=null;if(e.cancelable)e.preventDefault()}
+  if(e.touches.length>=2){
+    drag=null;if(e.cancelable)e.preventDefault();
+    if(!pinch&&!opening()&&phase==='sky'){var q=touchPair(e);pinch={d:q.d,done:0,x:q.x,y:q.y,tch:1}}
+  }
 }
 function onTouchMove(e){
-  if(e.touches.length>=2&&e.cancelable)e.preventDefault();
+  if(e.touches.length<2)return;
+  if(e.cancelable)e.preventDefault();
+  if(OP.on||opening()||phase!=='sky')return;
+  if(Object.keys(PT).length>=2&&pinch&&!pinch.tch)return; /* the pointer pinch has it */
+  var q=touchPair(e);
+  if(!pinch)pinch={d:q.d,done:0,x:q.x,y:q.y,tch:1};
+  if(pinch.done)return;
+  if(!pinch.tch){pinch.tch=1;pinch.td=q.d}
+  var base=pinch.td||pinch.d||1;pinch.x=q.x;pinch.y=q.y;pinchAt(q.d/base);
+}
+function touchDone(e){
+  G.n=e.touches?e.touches.length:0;
+  if(G.n<2){pinchLetGo();pinch=null}
 }
 function tap(x,y){
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())return;
@@ -1793,6 +1946,7 @@ function openSel(){
   sel=null;
 }
 var bioOn=0,bioLv=1,bioExit=0,bioMoon=0,grainOn=0;
+function bioN(){return (window.GJ_BIO&&GJ_BIO.layers&&GJ_BIO.layers.length)||6}
 function isBio(){return phase==='sky'&&cur.k==='about'&&cur.lv===2&&cur.id==='about/bio'}
 function bioActive(){return isBio()&&!bioExit}
 function paintGrain(){
@@ -1816,7 +1970,7 @@ function calcCrop(v,W,H){
 function layoutCalc(){
   var stage=$('calcstage'),zoom=$('calczoom'),v=$('calc');
   if(!stage||!zoom)return;
-  var z=1+(Math.max(1,Math.min(7,bioLv))-1)*0.30;
+  var z=1+(Math.max(1,Math.min(bioN(),bioLv))-1)*0.30;
   var ox=52,oy=66,crop=null;
   if(v&&v.videoWidth&&stage.clientWidth){
     crop=calcCrop(v,stage.clientWidth,stage.clientHeight);
@@ -1842,7 +1996,7 @@ function drawGlitch(t){
   if(!GL.frame||GL.frame.length!==d.length){GL.frame=new Uint8ClampedArray(d.length);GL.prev=new Uint8ClampedArray(d.length)}
   var src=GL.frame,prev=GL.prev,i;
   src.set(d);
-  var depth=(Math.max(1,Math.min(7,bioLv))-1)/6;
+  var depth=(Math.max(1,Math.min(bioN(),bioLv))-1)/Math.max(1,bioN()-1);
   var shift=Math.round(1+depth*16+(GL.burst>0?2+depth*8:0));
   var mix=0.16+depth*0.84;
   var dim=0.28+depth*0.42;
@@ -1896,7 +2050,7 @@ function paintBio(flick){
   var text=texts[bioLv-1]||'';
   var box=$('laytext');
   if(box){
-    box.className='copy lv'+bioLv+(bioLv===7?' sel':'');
+    box.className='copy lv'+bioLv+(bioLv===bioN()?' sel':'');
     box.innerHTML=text.split('\n').map(function(line){return line?'<span>'+esc(line)+'</span>':'<br>'}).join('');
     if(flick){
       box.classList.add('flick');
@@ -1906,7 +2060,7 @@ function paintBio(flick){
   }
   var rail=$('lrail');
   if(rail){
-    var dots='',i;for(i=1;i<=7;i++)dots+='<i'+(i===bioLv?' class="on"':'')+'></i>';
+    var dots='',i;for(i=1;i<=bioN();i++)dots+='<i'+(i===bioLv?' class="on"':'')+'></i>';
     rail.innerHTML=dots+'<b>'+bioLv+'</b>';
   }
   var v=$('calc');
@@ -1917,13 +2071,19 @@ function syncBio(){
   var el=$('layers');if(!el)return;
   if(bioExit)return;
   var active=isBio();
-  if(!active){el.hidden=true;el.classList.remove('on','exit','moonfade');bioOn=0;bioMoon=0;return}
+  if(!active){el.hidden=true;el.classList.remove('on','exit','moonfade','atmoon');bioOn=0;bioMoon=0;return}
   if(!bioOn)bioLv=1;
-  bioOn=1;if(bioLv<1)bioLv=1;if(bioLv>7)bioLv=7;
+  bioOn=1;if(bioLv<1)bioLv=1;if(bioLv>bioN())bioLv=bioN();
   el.hidden=false;el.classList.add('on');
-  if(bioMoon){el.classList.add('exit');el.classList.remove('moonfade');return}
-  el.classList.remove('exit','moonfade');
+  if(bioMoon){bioLv=bioN();paintBio(false);paintMoon();el.classList.add('exit','atmoon');el.classList.remove('moonfade');return}
+  el.classList.remove('exit','moonfade','atmoon');
   paintGrain();paintBio(false);
+}
+function paintMoon(){
+  var box=$('laytext'),text=(window.GJ_BIO&&(GJ_BIO.moon||GJ_BIO.layers[GJ_BIO.layers.length-1]))||'';
+  if(!box||!text)return;
+  box.className='copy lv'+bioN()+' sel moon';
+  box.innerHTML=text.split('\n').map(function(line){return line?'<span>'+esc(line)+'</span>':'<br>'}).join('');
 }
 function enterMoon(){
   bioMoon=1;
@@ -1943,7 +2103,9 @@ function enterMoon(){
     }
     var p=moon.play();if(p&&p.catch)p.catch(function(){});
   }
-  el.classList.add('exit');
+  /* The moon page carries the final bio (GJ_BIO.moon) over the dimmed moon grid; it stays selectable. */
+  paintMoon();
+  el.classList.add('exit','atmoon');
   el.classList.remove('moonfade');
   ui();
 }
@@ -1951,20 +2113,21 @@ function bioDeeper(){
   if(bioExit)return true;
   if(!isBio())return false;
   if(bioMoon)return true;
-  if(bioLv>=7){enterMoon();return true}
+  if(bioLv>=bioN()){enterMoon();return true}
   bioLv++;paintBio(true);ui();return true;
 }
 function startMoonExit(){
   if(bioExit)return;
   bioExit=1;bioMoon=0;
   var el=$('layers');if(!el){bioExit=0;return}
+  el.classList.remove('atmoon');
   var moon=$('moons');
   if(moon){moon.muted=true;var p=moon.play();if(p&&p.catch)p.catch(function(){})}
   el.classList.add('exit');
   setTimeout(function(){el.classList.add('moonfade')},760);
   setTimeout(function(){
     bioExit=0;bioOn=0;bioLv=1;bioMoon=0;
-    el.hidden=true;el.classList.remove('on','exit','moonfade');
+    el.hidden=true;el.classList.remove('on','exit','moonfade','atmoon');
     cur={lv:1,k:'about',id:null,b:1};
     if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
     arriveAt(cur,false);
@@ -1976,7 +2139,7 @@ function bioBack(){
   if(bioMoon){
     bioMoon=0;
     var el=$('layers');
-    if(el)el.classList.remove('exit','moonfade');
+    if(el)el.classList.remove('exit','moonfade','atmoon');
     paintBio(true);ui();
     return true;
   }
@@ -2089,7 +2252,7 @@ function syncCrumb(label){
   var lv=levelOf(cur),show=phase==='sky'&&lv>0;
   cr.hidden=rl.hidden=!show;
   document.documentElement.classList.toggle('wc',show);
-  if(!show)return;
+  if(!show){syncInside(null);return}
   var nm=crumbNames(label),i,h='',r='';
   for(i=0;i<=lv;i++){
     var here=i===lv,can=!here&&canJump(i);
@@ -2106,6 +2269,19 @@ function syncCrumb(label){
   if(cr._key!==key){cr._key=key;cr.innerHTML=h;rl.innerHTML='<ol>'+r+'</ol>'}
   var bb=bar?bar.getBoundingClientRect():null;
   cr.style.top=Math.max(40,Math.round(bb?bb.bottom-6:46))+'px';
+  syncInside(rl);
+}
+/* 'go inside' link: only at the Objects chapter and its board (lv1), placed just right of the depth rail,
+   or above it if the mini-map leaves no room. Never moves anything else. */
+function syncInside(rl){
+  var gi=$('ginside');if(!gi)return;
+  var show=phase==='sky'&&cur.lv===1&&cur.k==='objects'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn());
+  if(gi.hidden===show)gi.hidden=!show;
+  if(!show)return;
+  var rb=rl&&!rl.hidden?rl.getBoundingClientRect():null,m=mapBox(),gw=gi.offsetWidth||110;
+  var x=rb&&rb.width?Math.round(rb.right+8):10,b='';
+  if(x+gw>m.l-8){x=rb&&rb.width?Math.round(rb.left):10;b='calc(54px + var(--sb))'}
+  gi.style.left=x+'px';gi.style.bottom=b;
 }
 function syncHist(){
   if(PEND&&window.GJ_DEPTH){
@@ -2529,12 +2705,35 @@ window.__u1={
   pinchIn:function(x,y){deeper(x,y)},
   pinchOut:function(){back()},
   open:function(id){var it=byId[id];if(!it)return;go({lv:2,k:it.chapter,id:it.id})},
+  get pinch(){return {pt:Object.keys(PT).length,on:pinch?1:0,done:pinch?pinch.done:0,tch:pinch&&pinch.tch?1:0}},
   get bio(){return {on:bioOn?1:0,lv:bioLv,exit:bioExit?1:0}},
   byId:function(id){return byId[id]},
   get map(){return {s:+rest.s.toFixed(3),prog:progress.map(function(it){var q=sp(it.cx,it.cy);return {t:it.title,x:Math.round(q[0]),y:Math.round(q[1])}}),ch:ORDER.map(function(k){var q=sp(CH[k].x,CH[k].y);return {k:k,x:Math.round(q[0]),y:Math.round(q[1])}})}},
   get mid(){if(cur.lv!==1||onBoard())return null;return midItems().map(function(it){var p=posOf(it),q=sp(p[0],p[1]);return {id:it.id,t:it.title,x:Math.round(q[0]),y:Math.round(q[1]),r:it._mr||null,l:it._ml||null}})},
   get rects(){if(cur.lv<1||!onBoard())return null;var spec=gridSpec(boardKey());return {key:spec.key,cap:spec.cap,win:[spec.x0,spec.y0,spec.w,spec.winH],rects:boardItems().map(function(it,i){var t=spec.rects?spec.rects[i]:null;return t?{x:t.x,y:t.y+(spec.key==='objects'?(i%3)*3:0),w:t.w,h:t.h,a:spec.key==='photo'?((i%5)-2)*0.025:0,cap:!!(it._cap||it.title)}:null})}},
   get tiles(){if(cur.lv<1)return [];var spec=gridSpec(boardKey()),items=boardItems();return items.map(function(it,i){var rc=tileRect(spec,i,scr.x);return {id:it.id,t:it.title,x:Math.round(rc.x+rc.w/2),y:Math.round(rc.y+rc.h/2)}})}
+};
+
+window.__depth={
+  tune:DZ,
+  state:function(){
+    var z=depthZoom(),r3=function(v){return +(+v).toFixed(3)};
+    return {
+      z:r3(z),hop:r3(HOP),view:[W,H],unit:fieldUnit(),pops:POPW+POPA,popsWrap:POPW,popsAppear:POPA,frames:FN,
+      cam:{x:+rest.x.toFixed(1),y:+rest.y.toFixed(1),s:r3(rest.s)},
+      layers:FIELD.map(function(L){
+        var v=layerView(L),c=v.cyc-Math.floor(v.cyc);
+        return {f:L.f,n:v.n,near:L.near,scale:r3(v.scale),slide:r3(v.slide),alpha:r3(v.alpha),cycle:r3(v.cyc),spreadMean:r3(L.pts.reduce(function(s,p){var q=p.ph+v.cyc;q-=Math.floor(q);return s+Math.pow(DZ.E,q)},0)/L.pts.length),offset:[+v.ox.toFixed(1),+v.oy.toFixed(1)],margin:+v.M.toFixed(1),sizeUnit:r3(v.su),maxDotPx:r3(2*v.su*v.scale*L.pts.reduce(function(m,p){return Math.max(m,p.r)},0))};
+      })
+    };
+  },
+  goTo:function(name){
+    var k=String(name||'').toLowerCase();
+    if(k==='far'||k==='sky'){go({lv:0,k:null,id:null});return this.state()}
+    if(!CH[k])return this.state();
+    go({lv:1,k:k,id:null});
+    return this.state();
+  }
 };
 
 fetch('data.json').then(function(r){return r.json()}).then(boot).catch(function(err){
