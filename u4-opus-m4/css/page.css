@@ -64,7 +64,7 @@ html.js .sketch{display:block}
 
 /* volume + flash on the song pages: thin ranges under the waveform, same quiet style */
 .sketch .ctl{display:flex;gap:14px;margin:4px 0 0}
-.sketch .cl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:rgba(201,211,214,.72)}
+.sketch .cl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#f2f8fa}
 .sketch .cl span{flex:none}
 .sketch .cl input{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;background:transparent;cursor:pointer;--p:100%}
 .sketch .cl input::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(85,218,161,.75) var(--p),rgba(220,232,240,.28) var(--p))}
