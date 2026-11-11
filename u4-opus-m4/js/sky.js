@@ -323,8 +323,9 @@ function washImgs(k){
 
 function frame(t){
   var dt=Math.min(.05,(t-(lastT||t))/1000);lastT=t;
-  if(phase==='fly'){flyU=clamp((t-flyT)/1680,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
-  if(phase==='land'&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
+  if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/1680,0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome()}}
+  if(phase==='land'&&!OP.on&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
+  if(OP.used)opLayers(dt);
   stepSprings(dt);if(playing)listen();
   if(CHIMES.length)chStep(dt);
   bStep(dt);
@@ -1363,22 +1364,91 @@ function onPtrDown(e){
     var a=PT[ids[0]],b=PT[ids[1]];
     pinch={d:Math.hypot(a.x-b.x,a.y-b.y),done:0,x:(a.x+b.x)/2,y:(a.y+b.y)/2};
     drag=null;
+    if(opening())opEngage(pinch);
   }
 }
 function onPtrMove(e){
   if(!PT[e.pointerId])return;
   PT[e.pointerId]={x:e.clientX,y:e.clientY};
   var ids=Object.keys(PT);
-  if(ids.length<2||!pinch||pinch.done)return;
+  if(ids.length<2||!pinch||(pinch.done&&!OP.on))return;
   var a=PT[ids[0]],b=PT[ids[1]];
   var d=Math.hypot(a.x-b.x,a.y-b.y),r=d/(pinch.d||1);
   pinch.x=(a.x+b.x)/2;pinch.y=(a.y+b.y)/2;
+  if(OP.on){opMove(d,pinch.x,pinch.y);return}
   if(r>1.18){pinch.done=1;deeper(pinch.x,pinch.y)}
   else if(r<.84){pinch.done=1;back()}
 }
 function onPtrUp(e){
   delete PT[e.pointerId];
-  if(Object.keys(PT).length<2)pinch=null;
+  if(Object.keys(PT).length<2){if(OP.on)opRelease();pinch=null}
+}
+/* Opening pinch: two fingers drive the opening itself (p 0..1 = mark, fly, land frames, sky) and the layers follow them. */
+var OP={on:0,used:0,p:0,p0:0,d0:1,d:1,x:0,y:0,z:0,ox:0,oy:0},OFEND=.4,OSPAN=2.8;
+function opening(){return phase==='arrive'||phase==='fly'||phase==='land'}
+function opP(){
+  if(phase==='arrive')return 0;
+  if(phase==='fly')return flyU*OFEND;
+  if(phase==='land')return OFEND+(1-OFEND)*(landI/Math.max(1,lands.length));
+  return 1;
+}
+function opEngage(pz){
+  OP.on=1;OP.p0=OP.p=opP();OP.d0=pz.d||1;OP.d=OP.d0;OP.x=pz.x;OP.y=pz.y;
+  if(!OP.used){OP.used=1;OP.z=OP.p;OP.ox=pz.x;OP.oy=pz.y}
+  pz.done=1;
+  try{sessionStorage.setItem(seenKey(),'1')}catch(e){}
+}
+function opMove(d,x,y){
+  OP.d=d;OP.x=x;OP.y=y;
+  var p=clamp(OP.p0+Math.log(d/OP.d0)/Math.log(OSPAN),0,1);
+  OP.p=p;
+  if(p>=1){opCommit();return}
+  if(p<=0){if(phase!=='arrive'){phase='arrive';flyU=0;landTok++;setChrome()}return}
+  if(p<OFEND){
+    if(phase!=='fly'){phase='fly';landTok++;setChrome()}
+    flyU=p/OFEND;return;
+  }
+  var i=Math.min(lands.length-1,Math.floor((p-OFEND)/(1-OFEND)*lands.length));
+  flyU=1;
+  if(phase!=='land'){phase='land';landI=i;landT=now();showLand();setChrome()}
+  else if(landI!==i){landI=i;landT=now();showLand()}
+}
+function opCommit(){
+  var d=OP.d,x=OP.x,y=OP.y;
+  OP.on=0;OP.used=0;opClear();
+  enterSky(true);
+  if(Object.keys(PT).length>=2)pinch={d:d,done:0,x:x,y:y};
+}
+function opRelease(){
+  OP.on=0;
+  if(phase==='fly'){
+    if(flyU<.3){phase='arrive';flyU=0;setChrome()}
+    else flyT=now()-flyU*1680;
+  }else if(phase==='land')landT=now();
+}
+var OPL=['water','path','horizon','dust','poem','moon'],OPK={water:1.4,path:1.7,horizon:1.0,dust:1.15,poem:.7,moon:.35};
+function opClear(){
+  OPL.forEach(function(id){var el=$(id);if(el)el.style.transform=''});
+  var im=$('landimg');if(im)im.style.transform='';
+}
+function opLayers(dt){
+  var tgt=OP.on?OP.p:opP(),k=1-Math.exp(-dt*22);
+  OP.z+=(tgt-OP.z)*k;OP.ox+=(OP.x-OP.ox)*k;
+  if(!OP.on){OP.ox=OP.x}
+  if(!OP.on&&phase==='arrive'&&OP.z<.003){OP.used=0;opClear();return}
+  var ox=OP.ox||W/2,oy=OP.on?OP.y:(OP.y||H*.46),z=OP.z;
+  OPL.forEach(function(id){
+    var el=$(id);if(!el)return;
+    var sc=1+z*OPK[id];
+    el.style.transformOrigin=ox+'px '+oy+'px';
+    el.style.transform='scale('+sc.toFixed(4)+')';
+  });
+  var im=$('landimg');
+  if(im){
+    var f=phase==='land'?clamp((z-OFEND)/(1-OFEND)*lands.length-landI,0,1):0;
+    im.style.transformOrigin=ox+'px '+oy+'px';
+    im.style.transform=f>0?'scale('+(1+.3*f).toFixed(4)+')':'';
+  }
 }
 function onTouch(e){
   if(e.touches.length===2){drag=null;if(e.cancelable)e.preventDefault()}
