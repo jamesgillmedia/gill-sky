@@ -94,6 +94,12 @@ function addNov9(){
   });
 }
 /* Sound board: every song as one stretch of a single dotted waveform, then the player and the streaming rows. */
+/* Text links under the Sound waveform: [text, isLink]. Lost Coffee's two services share one line. */
+function soundSegs(it){
+  if(it.id==='sound/lost-coffee-apple-music')return [[' · ',0],['Apple Music',1]];
+  if(it.kind==='player'||it.id==='sound/waveform')return [[it.title||'',1],[' · '+(it.meta||''),0]];
+  return [[it.title||'',0],[' · ',0],[it.meta||'',1]];
+}
 function soundBoard(){
   var out=(data.tracks||[]).map(function(t){return byId['sound/track/'+t.k]}).filter(Boolean);
   return out.concat(CH.sound.items.filter(function(it){return it.id!=='sound/to-go'}));
@@ -448,9 +454,12 @@ function midLabels(list,bl){
     return false;
   }
   g.font='300 9.5px Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';
+  var seen={};
+  list.forEach(function(it){if(it._mr&&it.title){var c0=cut(it.title,Math.max(it._mr[2]+16,64));seen[c0]=(seen[c0]||0)+1}});
   list.forEach(function(it){
     var r=it._mr;if(!r)return;
     var t=it.title||'';if(!t||/^photograph\s+\d+$/i.test(t)||t==='untitled')return;
+    if(seen[cut(t,Math.max(r[2]+16,64))]>1&&t.indexOf(' · ')>0)t=t.slice(t.lastIndexOf(' · ')+3);
     var cx=r[0]+r[2]/2;
     if(cx<4||cx>W-4||r[1]+r[3]<64||r[1]>H-12)return;
     var txt=cut(t,Math.max(r[2]+16,64)),lw=g.measureText(txt).width;
@@ -666,8 +675,11 @@ function boardSpec(key,items){
     cap=0;
     items.forEach(function(it,j){
       if(it.kind==='track'){var r=Math.floor(nt/3),c=nt%3;rects.push({x:c*segW,y:r*rowS,w:segW,h:rowS});nt++;return}
-      var y0s=Math.ceil(nt/3)*rowS+22,k2=j-nt;
-      rects.push({x:0,y:y0s+k2*(46+gap),w:maxW-pad*2,h:46});
+      var y0s=Math.ceil(nt/3)*rowS+24,prev=rects[rects.length-1],segs=soundSegs(it),lw=0;
+      g.font='300 10.5px Poppins,sans-serif';
+      segs.forEach(function(sg){lw+=g.measureText(sg[0]).width});
+      if(it.id==='sound/lost-coffee-apple-music'&&prev&&prev.text)rects.push({x:prev.x+prev.w,y:prev.y,w:lw,h:18,text:1});
+      else rects.push({x:0,y:prev&&prev.text?prev.y+22:y0s,w:lw,h:18,text:1});
     });
     rects.forEach(function(r){bottom=Math.max(bottom,r.y+r.h)});
   }else if(key==='film'){
@@ -817,12 +829,12 @@ function drawWindow(){
         g.fillText('cover art: gap',spec.x0+spec.pad,y+h+6);
       }
     }else if(spec.key==='sound'&&!(db&&db.fine)){
-      g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);
-      g.textAlign='left';g.textBaseline='middle';
-      g.font='400 13px "Julius Sans One",sans-serif';g.fillStyle=sel&&sel.id===it.id?'rgb('+MINT+')':'#e4ddd2';
-      g.fillText(cut(it.title,w-24),x+12,y+h*.38);
-      g.font='300 10px Poppins,sans-serif';g.fillStyle='rgba(228,221,210,.62)';
-      g.fillText(cut(it.meta||'',w-24),x+12,y+h*.7);
+      g.textAlign='left';g.textBaseline='middle';g.font='300 10.5px Poppins,sans-serif';
+      var tx=x,on=sel&&sel.id===it.id;
+      soundSegs(it).forEach(function(sg){
+        g.fillStyle=sg[1]?(on?'rgb('+MINT+')':'#e4ddd2'):'rgba(228,221,210,.62)';
+        g.fillText(sg[0],tx,y+h/2);tx+=g.measureText(sg[0]).width;
+      });
     }else if(spec.key==='about'&&spec.board){
       g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);
       g.textAlign='left';g.textBaseline='middle';
@@ -838,7 +850,7 @@ function drawWindow(){
       g.fillText(cut(it._text||it.title,w-8),x+w/2,y+h/2);
     }else{var tint=CH[it.chapter]?CH[it.chapter].tint:'160,176,196';g.fillStyle='rgba('+tint+',.18)';g.fillRect(x,y,w,h);
       if(!it._im){g.font='300 11px Poppins,sans-serif';g.fillStyle='rgba(233,239,248,.82)';g.textAlign='center';g.textBaseline='middle';g.fillText(cut(it.title,w-12),x+w/2,y+h/2)}}
-    if(sel&&sel.id===it.id){g.strokeStyle='rgba('+MINT+',.95)';g.lineWidth=1.5;g.strokeRect(x-1,y-1,w+2,h+2);g.lineWidth=1}
+    if(sel&&sel.id===it.id&&!(spec.key==='sound'&&it.kind!=='track')){g.strokeStyle='rgba('+MINT+',.95)';g.lineWidth=1.5;g.strokeRect(x-1,y-1,w+2,h+2);g.lineWidth=1}
     var capText=it._cap||it.title;
     if(/^photograph\s+\d+$/i.test(capText||'')||capText==='untitled')capText='';
     if(b>.72&&spec.board&&spec.cap>=20&&capText){
