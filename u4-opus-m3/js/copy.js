@@ -36,7 +36,7 @@ window.GJ_COPY={credits:{
   w31:{t:'Hike',b:'Wild Leaf'},
   w32:{t:'Canoe',b:'Wild Leaf'},
   w33:{t:'Mandie',b:''},
-  w34:{t:'Just The Beginning',b:'BONSAI'},
+  w34:{t:'Just The Beginning',b:''},
   w35:{t:'Ltl Dstryr',b:'Mansions'},
   w36:{t:'Journeys x Todd',b:'FIAT'}
 }};
