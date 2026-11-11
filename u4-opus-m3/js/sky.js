@@ -65,6 +65,7 @@ function boot(d){
   });
   cluster=['objects/hand-carved-piece','objects/design-board','objects/wireframe-board','objects/materials-board','sound/to-go','sound/track/noproblem','sound/track/lostintime','sound/track/equals','sound/track/ii'].map(function(id){return byId[id]}).filter(Boolean);
   cluster.forEach(function(it){var c=CH[it.chapter];if(c)c.skyItems=c.skyItems.filter(function(x){return x!==it})});
+  addNov9();
   if(window.GJ_INNER)GJ_INNER.build({PRO2:PRO2,JOIOB:JOIOB,CH:CH,byId:byId});
   mergeCredits();
   song=d.tracks[0];
@@ -77,6 +78,17 @@ function boot(d){
   requestAnimationFrame(frame);
 }
 
+/* Gill's Nov 9 media live on the boards and in pieces only, never in the sky layout. */
+var NOV9I={};
+function addNov9(){
+  (window.NOV9||[]).forEach(function(f){
+    if(!CH[f.k])return;
+    var slug='nov9-'+f.name.toLowerCase();
+    var it={id:f.k+'/'+slug,chapter:f.k,k:'nov9',slug:slug,title:'',role:'',year:null,meta:'',kind:f.k==='film'?'still':(f.k==='photo'?'photo':'object'),of:f.of||'',nov9:1,
+      media:{thumb:f.thumb,big:f.big,w:f.w,h:f.h},shots:[{src:f.big,clip:f.clip||'',nov9:1}],credits:[],related:[],also:[],in_progress:false,body:'',isNew:false,ox:0,oy:0,sx:0,sy:0,gx:0,gy:0,cx:0,cy:0,px:0,py:0,b:.6,sh:0,tw:52,th:29};
+    byId[it.id]=it;(NOV9I[f.k]=NOV9I[f.k]||[]).push(it);
+  });
+}
 function mergeCredits(){
   var C=window.GJ_COPY&&GJ_COPY.credits;if(!C)return;
   Object.keys(byId).forEach(function(id){
@@ -1193,6 +1205,7 @@ function depthApi(){
     byId:function(id){return byId[id]},
     ch:function(k){return CH[k]},
     progress:function(){return progress},
+    nov9:function(k){return NOV9I[k]||[]},
     hit:hit,
     tileAt:tileAt,
     tileBox:function(it){
@@ -1810,7 +1823,7 @@ function parseHash(h){
   if(!CH[b[0]])return {lv:0,k:null,id:null};
   if(!b[1])return {lv:1,k:b[0],id:null};
   if(b[1]==='board')return {lv:1,k:b[0],id:null,b:1};
-  var card=CH[b[0]].items.filter(function(it){return it.slug===b[1]})[0];
+  var card=CH[b[0]].items.filter(function(it){return it.slug===b[1]})[0]||byId[b[0]+'/'+b[1]];
   return {lv:card?2:1,k:b[0],id:card?card.id:null};
 }
 function seed(st){
@@ -1836,7 +1849,7 @@ window.__u1={
   get bio(){return {on:bioOn?1:0,lv:bioLv,exit:bioExit?1:0}},
   byId:function(id){return byId[id]},
   get map(){return {s:+rest.s.toFixed(3),prog:progress.map(function(it){var q=sp(it.cx,it.cy);return {t:it.title,x:Math.round(q[0]),y:Math.round(q[1])}}),ch:ORDER.map(function(k){var q=sp(CH[k].x,CH[k].y);return {k:k,x:Math.round(q[0]),y:Math.round(q[1])}})}},
-  get tiles(){if(cur.lv<1)return [];var spec=gridSpec(boardKey()),items=boardItems();return items.slice(0,8).map(function(it,i){var rc=tileRect(spec,i,scr.x);return {id:it.id,t:it.title,x:Math.round(rc.x+rc.w/2),y:Math.round(rc.y+rc.h/2)}})}
+  get tiles(){if(cur.lv<1)return [];var spec=gridSpec(boardKey()),items=boardItems();return items.map(function(it,i){var rc=tileRect(spec,i,scr.x);return {id:it.id,t:it.title,x:Math.round(rc.x+rc.w/2),y:Math.round(rc.y+rc.h/2)}})}
 };
 
 fetch('data.json').then(function(r){return r.json()}).then(boot).catch(function(err){

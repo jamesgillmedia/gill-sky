@@ -140,14 +140,23 @@ function objectTiles(api){
 var OBJECT_ORDER=['joio-co-cup-from-above','glazed-joio-co-cup-in-hand','latte-in-a-joio-co-cup','planter-cup-with-moss','joio-co-cup','crescent-rim-of-a-cup','holding-a-joio-co-cup','joio-co-cup-on-a-board','hand-carved-piece','carved-spoon','design-board','wireframe-board','materials-board','joio','spirit-eye'];
 function objectBoard(api){
   var out=[];
-  OBJECT_ORDER.forEach(function(slug){var it=api.byId('objects/'+slug);if(it)out.push(it)});
-  return out.length?out:objectTiles(api);
+  var extra=api.nov9?api.nov9('objects'):[],placed={};
+  OBJECT_ORDER.forEach(function(slug){
+    var it=api.byId('objects/'+slug);if(!it)return;
+    out.push(it);
+    extra.forEach(function(x){if(x.of===it.id){out.push(x);placed[x.id]=1}});
+  });
+  if(!out.length)return objectTiles(api);
+  extra.forEach(function(x){if(!placed[x.id])out.push(x)});
+  return out;
 }
 function makeBoard(api,k){
   if(k==='objects')return {k:k,title:'OBJECTS',items:objectBoard(api),fine:false,parent:null,work:null};
   if(k==='progress')return {k:k,title:'IN PROGRESS',items:api.progress(),fine:false,parent:null,work:null};
   var ch=api.ch(k);
-  return {k:k,title:String(k||'').toUpperCase(),items:ch?ch.items.slice():[],fine:false,parent:null,work:null};
+  var items=ch?ch.items.slice():[];
+  if(api.nov9&&(k==='film'||k==='photo'))items=items.concat(api.nov9(k));
+  return {k:k,title:String(k||'').toUpperCase(),items:items,fine:false,parent:null,work:null};
 }
 function preload(items,api){
   var seen={};
@@ -268,6 +277,7 @@ function openTile(api,it){
     openSound(api,trackOf(work),false,work);
     return;
   }
+  if(work.nov9&&work.chapter==='film'&&!it._shot){openStill(api,work,work.shots[0]);return}
   var kids=null;
   var filmish0=work.kind==='film'||work.kind==='reel';
   if(filmish0&&!it._shot){openFilm(api,work,null);return}
@@ -299,6 +309,18 @@ function openTile(api,it){
   api.arrive();
 }
 function pieceShots(work, api){
+  var more=api.nov9?api.nov9('objects'):[];
+  if(work.nov9){
+    var own0=work.shots.slice();
+    if(work.of)more.forEach(function(x){if(x.of===work.of&&x!==work)own0=own0.concat(x.shots)});
+    return own0;
+  }
+  var base=pieceShots0(work,api),seen={};
+  base.forEach(function(s){seen[s.src]=1});
+  more.forEach(function(x){if(x.of===work.id&&!seen[x.shots[0].src])base=base.concat(x.shots)});
+  return base;
+}
+function pieceShots0(work, api){
   if(work.shots&&work.shots.length){
     var own=work.shots.filter(function(s){return s.src||s.clip});
     if(own.length)return own;
@@ -343,7 +365,7 @@ function bindSpirit(root){
 }
 function stepPiece(api, work, x, y, preset){
   if(!piece||piece.work.id!==work.id){
-    piece={work:work,lv:1,scale:1,shots:pieceShots(work,api)};
+    piece={work:work,lv:1,scale:1,shots:pieceShots(work,api),head:(work.nov9&&work.of&&api.byId(work.of))||work};
     api.paint();return;
   }
   if(piece.lv===1){piece.lv=2;piece.scale=1;api.paint();return}
@@ -364,7 +386,7 @@ function stepPiece(api, work, x, y, preset){
 }
 function openPhoto(api, work){
   var ch=api.ch('photo');
-  var items=ch&&ch.items?ch.items:[];
+  var items=(board&&!board.fine&&board.k==='photo')?board.items:(ch&&ch.items?ch.items:[]);
   var idx=0,i;
   for(i=0;i<items.length;i++)if(items[i].id===work.id)idx=i;
   var series=items.slice(Math.max(0,idx-1),idx+2);
@@ -1016,18 +1038,19 @@ function paintPiece(el){
     var face=work.media&&(work.media.big||work.media.thumb)||'';
     if(work.id==='objects/joio')face='media/pro2/img/objects/cup-top-960.webp';
     if(!face){
-      el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="empty-slot">no picture of this piece</div></div>';
+      el.innerHTML='<div class="sheet full">'+titleHtml(piece.head||work)+'<div class="empty-slot">no picture of this piece</div></div>';
       return;
     }
-    el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="heroframe push"><img src="'+esc(face)+'" alt=""></div></div>';
+    el.innerHTML='<div class="sheet full">'+titleHtml(piece.head||work)+'<div class="heroframe push"><img src="'+esc(face)+'" alt=""></div></div>';
     return;
   }
   if(piece.lv===2){
     var ordered=cupFirst(shots).filter(function(s){return s.src});
     var stills=shots.filter(function(s){return !s.clip&&s.src&&!/c\/00\./.test(s.src)}).slice(0,6);
     var show=(ordered.length?ordered.concat(stills):shots.filter(function(s){return s.src}).slice(0,18));
+    shots.forEach(function(s){if(s.nov9&&s.src&&show.indexOf(s)<0)show.push(s)});
     if(!show.length){
-      el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="empty-slot">no process pictures for this piece</div></div>';
+      el.innerHTML='<div class="sheet full">'+titleHtml(piece.head||work)+'<div class="empty-slot">no process pictures for this piece</div></div>';
       return;
     }
     var cells=show.map(function(s,i){
@@ -1035,7 +1058,7 @@ function paintPiece(el){
       var img=s.src?'<img src="'+esc(s.src)+'" alt="">':'';
       return '<figure'+(s.clip?' data-clip="'+esc(s.clip)+'"':'')+'>'+(vid||img)+'</figure>';
     }).join('');
-    el.innerHTML='<div class="sheet full cutsheet">'+titleHtml(work)+'<div class="cutgrid">'+cells+'</div></div>';
+    el.innerHTML='<div class="sheet full cutsheet">'+titleHtml(piece.head||work)+'<div class="cutgrid">'+cells+'</div></div>';
     return;
   }
   if(fly){el.classList.add('on');return}
@@ -1058,7 +1081,7 @@ function paintPiece(el){
     el.innerHTML='<div class="herobleed"><img class="push" src="'+esc(stillFace)+'" alt=""></div>';
     return;
   }
-  el.innerHTML='<div class="sheet full">'+titleHtml(work)+'<div class="empty-slot">no moving picture of this piece</div></div>';
+  el.innerHTML='<div class="sheet full">'+titleHtml(piece.head||work)+'<div class="empty-slot">no moving picture of this piece</div></div>';
 }
 function paintLayer(el){
   if(snd&&(fly||snd.empty)){
