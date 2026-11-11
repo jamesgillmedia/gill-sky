@@ -991,8 +991,8 @@ var MG={sc:1,ox:0,oy:0};
 function markLayout(){
   var de=document.documentElement;
   if(PORT){
-    var sc=Math.min(W*.84/428,H*.17/210),top=H*.135;
-    MG={sc:sc,ox:W*.5,oy:top+105*sc};
+    var pad=Math.max(24,W*.06),sc=Math.min(W*.84/428,(W-2*pad)/432,H*.17/210),top=H*.135;
+    MG={sc:sc,ox:Math.max(pad+214*sc,Math.min(W-pad-215*sc,W*.52)),oy:top+105*sc};
     de.style.setProperty('--ptop',Math.round(MG.oy+105*sc+H*.025)+'px');
   }else{
     MG={sc:Math.min(Math.min(W,H)*.46/250,W*.4/428),ox:W*.27,oy:H*.47};
