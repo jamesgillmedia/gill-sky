@@ -45,9 +45,9 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1};
-var TUNE={map:1};
-var SPATIAL={map:1};
+var TDEF={map:1,stars:1};
+var TUNE={map:1,stars:1};
+var SPATIAL={map:1,stars:1};
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
 function ease(u){u=clamp(u,0,1);return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2}
@@ -200,6 +200,22 @@ function layout(){
     c.dec.forEach(function(d){d.x=c.x+d.ox;d.y=c.y+d.oy});
     c.node.forEach(function(nd){if(nd&&nd.dec){nd.x=c.x+nd.ox;nd.y=c.y+nd.oy}else if(nd&&nd.sx!=null){nd.x=nd.sx;nd.y=nd.sy}});
   });
+  /* Star spread scales each constellation about its own centre, after the fit,
+     so 1 leaves the stars where placeChapter put them and the camera does not refit it away. */
+  var starK=tk('stars');
+  if(starK!==1){
+    ORDER.forEach(function(k){
+      var c=CH[k];
+      c.skyItems.forEach(function(it){it.ox*=starK;it.oy*=starK;it.sx=c.x+it.ox;it.sy=c.y+it.oy});
+      c.dec.forEach(function(d){d.ox*=starK;d.oy*=starK;d.x=c.x+d.ox;d.y=c.y+d.oy});
+      c.node.forEach(function(nd){
+        if(!nd)return;
+        if(nd.dec){nd.x=c.x+nd.ox;nd.y=c.y+nd.oy}
+        else if(nd.sx!=null){nd.x=nd.sx;nd.y=nd.sy}
+      });
+      c.ex={x0:c.ex.x0*starK,y0:c.ex.y0*starK,x1:c.ex.x1*starK,y1:c.ex.y1*starK};
+    });
+  }
   /* In progress sits beside ᑕᐣᓯ, a small cluster in the inner sky, clear of the five chapters. */
   var nC=Math.max(cluster.length,1);
   cluster.forEach(function(it,i){

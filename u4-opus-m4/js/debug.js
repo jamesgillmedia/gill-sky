@@ -44,7 +44,8 @@
   window.addEventListener('pointercancel', release, true);
 
   var SPECS = [
-    { k: 'map', name: 'Constellation spread', min: 0.7, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } }
+    { k: 'map', name: 'Constellation spread', min: 0.7, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } },
+    { k: 'stars', name: 'Star spread', min: 0.7, max: 1.8, step: 0.01, fmt: function (v) { return (+v).toFixed(2) + '\u00d7'; } }
   ];
   var TKEY = 'gj-m4-tune';
   function tune() { return window.GJ_TUNE || null; }
