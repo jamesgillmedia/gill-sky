@@ -951,7 +951,7 @@ function paintFilm(el,work){
   if(filmLv===3&&document.querySelector('.enterframe'))return;
   if(filmLv!==3){dropFly();setBleed(false)}
   if(filmLv===1){
-    var hero=wk?'media/pro2/frames/22/12.webp':heroOf(work,poster);
+    var hero=wk?'media/pro2/frames/22/12.webp':work.id==='film/back-to-the-start'?'media/pro2/frames/20/56.webp':heroOf(work,poster);
     if(!wk&&/\/sc\//.test(clip))clip='';
     var media=(!wk&&clip)
       ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+'<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
