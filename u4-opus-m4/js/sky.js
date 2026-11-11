@@ -798,6 +798,12 @@ function boardRoom(){
   var m=mapBox(),top=62,cr=$('wcrumb');
   if(cr&&!cr.hidden){var cb=cr.getBoundingClientRect();if(cb.height)top=Math.max(top,Math.round(cb.bottom)+2)}
   var rail=$('wrail'),rb=rail&&!rail.hidden?36:0;
+  /* Photo prints are tall and the right column runs into the map's corner. Stop the
+     grid above the map and left of it, with a clear band, so a print never sits under it. */
+  if(boardKey()==='photo'){
+    var gap=36,right=m.l-30;
+    if(right>=220&&m.t-gap-top>=H*.5)return {x:0,w:right,top:top,bottom:m.t-gap,m:m.l+':'+m.t+':'+top+':p'};
+  }
   if(m.t-8-top>=H*.55)return {x:0,w:W,top:top,bottom:m.t-8,m:m.l+':'+m.t+':'+top};
   return {x:14,w:Math.max(200,m.l-22),top:top,bottom:H-8-rb,m:m.l+':'+m.t+':'+top};
 }
