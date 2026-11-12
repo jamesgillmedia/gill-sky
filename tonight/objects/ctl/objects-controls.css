@@ -1,0 +1,2 @@
+.ambx.obj-ctl{--ambx-right:auto;--ambx-bottom:auto;--ambx-left:calc(12px + env(safe-area-inset-left,0px));--ambx-top:calc(52px + env(safe-area-inset-top,0px));--ambx-pr:auto;--ambx-pl:0;--ambx-pb:auto;--ambx-pt:calc(100% + 2px);z-index:9}
+.ambx.obj-ctl .ambx-tg{color:#d9d2c6;border-color:rgba(255,236,210,.14);background:rgba(10,10,14,.42);text-transform:lowercase;letter-spacing:.06em;font-size:12px}

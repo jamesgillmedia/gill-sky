@@ -1,0 +1,356 @@
+/* Lens room A + camera-body deck. Added on top of version A (lab-lens-preview @0786e6b) on Nov 12 2026.
+   Deck styling copied from v4.1 (film-lens-room-v4.1-bak-0332/css/lens.css): base deck 853-952,
+   hardware 1020-1180, key symbols 1216-1218, play key 1229-1243, placement 1245-1272 (transport
+   dial / jog / status-row rules dropped), layout pass 1314-1317, 1328-1329, then the A-specific
+   placement and ambience mapping at the end of this file.
+   Nothing here touches the room, eyepiece, window, sliver, bloom, grain or haze in their
+   default state. Ambience rules only apply when the slider is moved off its default (body.amb-set). */
+/* ---------- camera-body deck (physical controls, never over the image) ---------- */
+.deck{
+  position:fixed;z-index:30;pointer-events:none;
+  /* portrait default: in the lower letterbox, below the circle */
+  left:50%;bottom:calc(14px + var(--sb,0px));
+  transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+  max-width:calc(100vw - 24px);
+}
+.deck .deck-stud,
+.deck .deck-plate{pointer-events:auto}
+.deck-stud{
+  min-height:36px;padding:0 12px 1px;
+}
+.deck-plate{
+  display:flex;flex-direction:column;align-items:stretch;gap:10px;
+  padding:10px 12px 12px;
+  border-radius:7px;
+  background:
+    linear-gradient(180deg, #3a3d44 0%, #24262c 12%, #181a1f 48%, #121318 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -1px 0 rgba(0,0,0,.55),
+    0 0 0 1px #0a0b0e,
+    0 10px 28px rgba(0,0,0,.55);
+  min-width:min(360px, calc(100vw - 28px));
+}
+.deck-plate[hidden]{display:none!important}
+.deck-switches{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px;
+}
+.deck-plate .cam-btn{
+  min-height:36px;padding:0 10px 1px;font-size:9.5px;letter-spacing:.12em;
+}
+.deck-ambi{
+  display:flex;align-items:center;gap:10px;
+  padding:2px 2px 0;
+}
+.deck-ambi .ambi-label{
+  flex:0 0 auto;
+  font-size:8px;letter-spacing:.18em;color:#c4ced1;
+}
+.deck-ambi input[type=range]{
+  -webkit-appearance:none;appearance:none;
+  flex:1;height:18px;background:transparent;margin:0;cursor:pointer;
+}
+.deck-ambi input[type=range]:focus{outline:none}
+.deck-ambi input[type=range]:focus-visible{
+  outline:2px solid rgba(255,80,60,.7);outline-offset:3px;border-radius:2px;
+}
+.deck-ambi input[type=range]::-webkit-slider-runnable-track{
+  height:6px;border-radius:3px;
+  background:
+    linear-gradient(180deg, #0c0d10, #1a1c22);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.8), 0 1px 0 rgba(255,255,255,.06);
+}
+.deck-ambi input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px;height:16px;margin-top:-5px;border-radius:50%;
+  background:
+    radial-gradient(circle at 35% 30%, #6a6e76, #2a2d33 55%, #14161a);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 0 0 1px #0a0b0e,
+    0 2px 4px rgba(0,0,0,.55);
+}
+.deck-ambi input[type=range]::-moz-range-track{
+  height:6px;border-radius:3px;background:#14161a;border:0;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.8);
+}
+.deck-ambi input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border:0;border-radius:50%;
+  background:#2a2d33;box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 1px #0a0b0e;
+}
+/* When the short side is the height (landscape / wide desktop), the circle fills the height.
+   Park the deck in the side letterbox so it never covers the image. */
+@media (min-aspect-ratio: 1/1){
+  .deck{
+    left:auto;right:calc(14px + var(--sr,0px));
+    bottom:18%;
+    transform:none;
+    align-items:flex-end;
+    max-width:min(280px, calc((100vw - 100vh) / 2 - 16px));
+  }
+  .deck-plate{min-width:0;width:100%}
+  .deck-switches{justify-content:flex-start}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .deck{
+    left:auto;right:calc(8px + var(--sr,0px));
+    bottom:12%;
+    transform:none;
+    align-items:flex-end;
+    max-width:min(200px, 28vw);
+  }
+  .deck-stud{min-height:32px;padding:0 9px 1px}
+  .deck-plate{padding:8px 8px 9px;gap:8px}
+  .deck-plate .cam-btn{min-height:30px;padding:0 7px 1px;font-size:8.5px}
+}
+body.pulled .deck,body.exit-mid .deck,body.leaving .deck{display:none!important}
+/* =====================================================================
+   v4.1 camera-body hardware. One key light from the upper left (same as the room's key light):
+   highlights on top-left chamfers, cast shadows fall down-right.
+   Hierarchy: 1 transport dial (play/pause centre key) + CTRL stud  ·  2 MONITOR bank (peak, guides)
+              ·  3 credits + ambience (quiet, flat).
+   ===================================================================== */
+.deck{--ink:#e6e1d6;--ink-dim:#a9a499;--engr:#7f7b73;--tally-a:#ffb44a;--tally-r:#ff3324;
+  font-family:Poppins,system-ui,sans-serif}
+.deck .cam-btn.hw{
+  all:unset;box-sizing:border-box;position:relative;display:inline-flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:5px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  min-width:44px;min-height:44px;color:var(--ink);
+  font:400 9px/1 Poppins,system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;
+  transition:transform .06s linear, box-shadow .06s linear, background .12s linear;
+}
+.deck .cam-btn.hw .led{display:none}
+.deck .cam-btn.hw .lbl{position:relative;z-index:1;color:var(--ink);text-shadow:0 -1px 0 rgba(0,0,0,.55)}
+.deck .cam-btn.hw:focus{outline:none}
+.deck .cam-btn.hw:focus-visible{outline:2px solid var(--tally-a);outline-offset:3px}
+.deck .cam-btn.hw:focus-visible:not(.deck-stud):not(.tx):not(.hw-play){border-radius:7px}
+
+/* tally slot: a thin recessed window above the label; lit when the function is on */
+.deck .hw .tally{
+  display:block;width:14px;height:3px;border-radius:1px;flex:0 0 auto;
+  background:#0d0d0e;box-shadow:inset 0 1px 1px rgba(0,0,0,.9), 0 1px 0 rgba(255,255,255,.06);
+  transition:background .12s linear, box-shadow .12s linear;
+}
+.deck .hw[aria-pressed="true"] .tally,.deck .hw.on .tally{
+  background:var(--tally-a);
+  box-shadow:0 0 6px 1px rgba(255,170,60,.55), inset 0 0 1px rgba(255,240,210,.9);
+}
+
+/* ---------- the plate: bead-blasted anodised aluminium, chamfered, screwed to the body ---------- */
+.deck-plate{
+  position:relative;
+  display:grid!important;grid-template-columns:auto 1fr;gap:12px;align-items:stretch;
+  padding:12px 14px 12px 12px;border-radius:9px;
+  min-width:0!important;
+  background:
+    radial-gradient(120% 90% at 18% 0%, rgba(255,240,220,.07), transparent 60%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,.012) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg,#2a2b2f 0%,#1d1e21 40%,#161719 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.10),
+    inset -1px -1px 0 rgba(0,0,0,.6),
+    0 0 0 1px #070708,
+    6px 12px 26px rgba(0,0,0,.6);
+}
+.deck-plate[hidden]{display:none!important}
+.deck-plate .screw{
+  position:absolute;width:6px;height:6px;border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#5b5c60,#232427 70%);
+  box-shadow:inset 0 0 0 .5px rgba(0,0,0,.7),0 1px 0 rgba(255,255,255,.05);
+}
+.deck-plate .screw::after{content:"";position:absolute;left:1px;right:1px;top:2.5px;height:1px;background:rgba(0,0,0,.65);transform:rotate(-28deg)}
+.deck-plate .s1{left:5px;top:5px}.deck-plate .s2{right:5px;top:5px}
+.deck-plate .s3{left:5px;bottom:5px}.deck-plate .s4{right:5px;bottom:5px}
+
+.engr{
+  font:400 7.5px/1 Poppins,system-ui,sans-serif;letter-spacing:.26em;text-transform:uppercase;
+  color:var(--engr);
+  text-shadow:0 1px 0 rgba(255,255,255,.07), 0 -1px 0 rgba(0,0,0,.7);   /* engraved: lit lower lip */
+}
+
+/* ---------- 1 · CTRL stud: a round machined stud with a knurled skirt ---------- */
+.deck .cam-btn.hw.deck-stud{
+  width:52px;height:52px;min-height:52px;padding:0;border-radius:50%;gap:4px;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 19px, rgba(0,0,0,.0) 19px),
+    repeating-conic-gradient(from 0deg,#3a3b40 0 4deg,#18191c 4deg 8deg);
+  box-shadow:0 0 0 1px #060607, 4px 7px 14px rgba(0,0,0,.65);
+}
+.deck .cam-btn.hw.deck-stud::before{   /* the cap */
+  content:"";position:absolute;inset:6px;border-radius:50%;
+  background:radial-gradient(circle at 34% 28%,#4a4b50 0%,#2a2b2f 45%,#18191b 100%);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,.16),inset -1px -2px 3px rgba(0,0,0,.6),0 1px 2px rgba(0,0,0,.7);
+  transition:transform .06s linear, box-shadow .06s linear;
+}
+.deck .cam-btn.hw.deck-stud .tally,.deck .cam-btn.hw.deck-stud .lbl{z-index:1}
+.deck .cam-btn.hw.deck-stud .lbl{font-size:8.5px;letter-spacing:.22em;margin-left:.22em}
+.deck .cam-btn.hw.deck-stud .tally{width:10px}
+.deck .cam-btn.hw.deck-stud:active::before,.deck .cam-btn.hw.deck-stud.pressed::before{
+  transform:translateY(1.5px) scale(.985);
+  box-shadow:inset 1px 2px 4px rgba(0,0,0,.75),inset -1px -1px 0 rgba(255,255,255,.04);
+}
+
+/* ---------- rubber keys (shared by transport ring keys, play, monitor bank) ---------- */
+.deck .cam-btn.hw.hw-tool,.deck .cam-btn.hw.tx,.deck .cam-btn.hw.hw-play{
+  background:linear-gradient(180deg,#232326 0%,#1a1a1c 55%,#141415 100%);
+  box-shadow:
+    inset 1px 1px 0 rgba(255,255,255,.09),        /* lit top-left edge */
+    inset -1px -1px 0 rgba(0,0,0,.55),
+    0 0 0 1px #050506,                             /* key gap */
+    0 0 0 3px #101012,                             /* recessed well around the key */
+    0 0 0 4px rgba(255,255,255,.035),               /* well lip catching the light */
+    3px 4px 6px rgba(0,0,0,.6);                    /* cast shadow from the key light */
+}
+.deck .cam-btn.hw.hw-tool:active,.deck .cam-btn.hw.hw-tool.pressed,
+.deck .cam-btn.hw.tx:active,.deck .cam-btn.hw.tx.pressed,
+.deck .cam-btn.hw.hw-play:active,.deck .cam-btn.hw.hw-play.pressed{
+  transform:translate(.5px,1.5px);
+  background:linear-gradient(180deg,#19191b,#141415);
+  box-shadow:
+    inset 1px 2px 3px rgba(0,0,0,.7),
+    0 0 0 1px #050506,0 0 0 3px #101012,0 0 0 4px rgba(255,255,255,.03),
+    1px 1px 2px rgba(0,0,0,.6);
+}
+
+/* ---------- 2 · MONITOR bank ---------- */
+.deck-side{display:flex;flex-direction:column;justify-content:space-between;gap:10px;min-width:0}
+.deck-bank{display:flex;flex-direction:column;gap:7px}
+.deck-bank .engr{display:flex;align-items:center;gap:6px}
+.deck-bank .engr::after{content:"";flex:1;height:1px;background:rgba(0,0,0,.6);box-shadow:0 1px 0 rgba(255,255,255,.05)}
+.bank-keys{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.deck .cam-btn.hw.hw-tool{height:46px;border-radius:6px;padding:0 6px}
+
+/* ---------- 3 · quiet: credits + ambience ---------- */
+.deck-tert{display:flex;flex-direction:column;gap:8px}
+.deck .cam-btn.hw.hw-quiet{
+  flex-direction:row;justify-content:flex-start;gap:8px;height:44px;padding:0 10px;border-radius:5px;
+  font-size:8px;letter-spacing:.24em;
+  background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(0,0,0,.12));
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.55),inset 1px 1px 0 rgba(255,255,255,.04);
+}
+.deck .cam-btn.hw.hw-quiet .lbl{color:var(--ink-dim)}
+.deck .cam-btn.hw.hw-quiet[aria-pressed="true"] .lbl{color:var(--ink)}
+.deck .cam-btn.hw.hw-quiet .tally{width:3px;height:10px}
+.deck .cam-btn.hw.hw-quiet:active,.deck .cam-btn.hw.hw-quiet.pressed{transform:translateY(1px);box-shadow:inset 0 0 0 1px rgba(0,0,0,.6),inset 0 2px 3px rgba(0,0,0,.5)}
+
+.deck-ambi{display:flex!important;flex-direction:column;align-items:stretch!important;gap:3px!important;padding:0!important}
+.deck-ambi .ambi-label{font-size:7.5px!important;color:var(--engr)!important;letter-spacing:.26em!important}
+.ambi-track{position:relative;display:block;height:34px}
+.ambi-scale{position:absolute;left:9px;right:9px;bottom:2px;height:6px;display:flex;justify-content:space-between;pointer-events:none}
+.ambi-scale i{display:block;width:1px;height:3px;background:var(--engr);box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.ambi-scale i:first-child,.ambi-scale i:last-child,.ambi-scale i:nth-child(6){height:6px}
+.deck-ambi input[type=range]{
+  position:absolute;left:0;right:0;top:0;width:100%;height:28px!important;margin:0;
+  -webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;
+}
+/* the slot: milled into the plate */
+.deck-ambi input[type=range]::-webkit-slider-runnable-track{
+  height:5px!important;border-radius:3px;background:#0a0a0b!important;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.07)!important;
+}
+.deck-ambi input[type=range]::-moz-range-track{height:5px;border-radius:3px;background:#0a0a0b;box-shadow:inset 0 1px 2px rgba(0,0,0,.95),0 1px 0 rgba(255,255,255,.07)}
+/* the cap: a knurled machined thumb, ridges catch the key light */
+.deck-ambi input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;
+  width:16px!important;height:24px!important;margin-top:-10px!important;border-radius:3px!important;
+  background:
+    repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1px,rgba(0,0,0,.35) 1px 2px,transparent 2px 3px),
+    linear-gradient(180deg,#5c5d61,#2c2d30 60%,#1d1e20)!important;
+  box-shadow:0 0 0 1px #060607,2px 3px 5px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.25)!important;
+}
+.deck-ambi input[type=range]::-moz-range-thumb{
+  width:16px;height:24px;border:0;border-radius:3px;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.22) 0 1px,rgba(0,0,0,.35) 1px 2px,transparent 2px 3px),linear-gradient(180deg,#5c5d61,#2c2d30 60%,#1d1e20);
+  box-shadow:0 0 0 1px #060607,2px 3px 5px rgba(0,0,0,.7);
+}
+.deck-ambi input[type=range]:focus-visible{outline:2px solid var(--tally-a)!important;outline-offset:2px!important;border-radius:4px!important}
+
+.deck .cam-btn.hw.hw-play .sym{position:relative;display:block;width:12px;height:10px;
+  color:#cfc9bc;filter:drop-shadow(0 1px 0 rgba(255,255,255,.06)) drop-shadow(0 -1px 0 rgba(0,0,0,.7))}
+.deck .cam-btn.hw.hw-play .sym::before,.deck .cam-btn.hw.hw-play .sym::after{content:"";position:absolute;background:currentColor}
+/* centre key: PLAY / PAUSE — the heaviest key on the body */
+.deck .cam-btn.hw.hw-play{
+  position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;gap:5px;padding:0;
+  background:radial-gradient(circle at 36% 28%,#2e2e31,#1b1b1d 60%,#121213);
+}
+.deck .cam-btn.hw.hw-play .lbl{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.deck .cam-btn.hw.hw-play .tally{position:absolute;inset:-6px;width:auto;height:auto;border-radius:50%;background:transparent;
+  box-shadow:inset 0 0 0 1.5px rgba(0,0,0,.65)}
+.deck .cam-btn.hw.hw-play[aria-pressed="true"] .tally{background:transparent;box-shadow:inset 0 0 0 1.5px var(--tally-r),0 0 8px 1px rgba(255,50,36,.45)}
+.deck .cam-btn.hw.hw-play .sym{width:12px;height:14px;margin-left:3px}
+.deck .cam-btn.hw.hw-play .sym::before{left:0;top:0;width:12px;height:14px;clip-path:polygon(0 0,100% 50%,0 100%)}
+.deck .cam-btn.hw.hw-play[aria-pressed="true"] .sym{margin-left:0}
+.deck .cam-btn.hw.hw-play[aria-pressed="true"] .sym::before{left:1px;width:4px;clip-path:none;border-radius:.5px}
+.deck .cam-btn.hw.hw-play[aria-pressed="true"] .sym::after{left:7px;top:0;width:4px;height:14px;border-radius:.5px}
+.deck .cam-btn.hw.hw-play:focus-visible{outline-offset:6px}
+
+/* ---------- placement: portrait = plate + stud side by side under the circle ---------- */
+.deck{flex-direction:row-reverse!important;align-items:flex-end!important;gap:10px!important;max-width:calc(100vw - 16px)!important}
+.deck-plate{width:min(316px, calc(100vw - 86px))}
+@media (max-width:360px){.deck{--dial:112px}}
+
+/* landscape + desktop: transport dial on its own puck in the left letterbox, CTRL + plate on the right */
+@media (min-aspect-ratio: 1/1){
+  .deck{flex-direction:column!important;align-items:flex-end!important;gap:10px!important;
+    left:auto!important;right:calc(14px + var(--sr,0px))!important;top:auto!important;bottom:50%!important;transform:translateY(50%)!important;
+    max-width:none!important}
+  .deck-plate{display:flex!important;flex-direction:column;width:min(236px, calc((100vw - 100vh) / 2 - 30px));padding:14px}
+  .deck{--dial:150px}
+}
+@media (orientation:landscape) and (max-height:500px){
+  .deck{right:calc(10px + var(--sr,0px))!important}
+  .deck-plate{width:min(186px, calc((100vw - 100vh) / 2 - 24px));padding:10px;gap:8px}
+  .deck .cam-btn.hw.hw-tool{height:44px}
+  .deck-side{gap:8px}
+  .deck .cam-btn.hw.deck-stud{width:46px;height:46px;min-height:46px}
+}
+.deck .cam-btn.hw.hw-play{width:50px;height:50px;margin:-25px 0 0 -25px}
+.deck .cam-btn.hw.hw-play .tally{inset:-4px}
+.deck-plate{width:min(330px, calc(100vw - 76px))}
+.deck .cam-btn.hw.hw-quiet{background:transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 -1px 0 rgba(255,255,255,.03)}
+@media (min-aspect-ratio: 1/1){ .deck-plate{width:min(236px, calc((100vw - 100vh) / 2 - 30px))} }
+@media (orientation:landscape) and (max-height:500px){ .deck-plate{width:min(186px, calc((100vw - 100vh) / 2 - 24px))} }
+
+/* ===================== A-specific additions (not from v4.1) ===================== */
+/* play key: v4.1 sat it in the centre of the transport dial. The dial is not carried over,
+   so the key sits in its own small well at the left of the plate. */
+.deck-play{position:relative;width:66px;height:66px;flex:0 0 auto;align-self:center}
+@media (min-aspect-ratio: 1/1){ .deck-play{align-self:center} }
+
+/* portrait: A keeps its debug tab bottom-left, so the CTRL stud sits bottom-right and the
+   plate opens upward above it, well below A's window. */
+@media (max-aspect-ratio: 1/1){
+  .deck{left:auto!important;right:calc(14px + var(--sr,0px))!important;transform:none!important;
+    flex-direction:column-reverse!important;align-items:flex-end!important}
+}
+
+/* with the deck replacing A's on-image red bar, the bar never shows and the credits never shift for it */
+.red-bar{display:none!important}
+
+/* ---------- ambience, mapped onto A's own room-light layers ----------
+   Slider default 85 = A exactly: body.amb-set is absent, so none of these rules exist and every
+   layer keeps A's own values. Moving the slider sets --amb-k = value / 85 (0 → 1.18) and scales
+   only the light around the window: the top light sliver, the soft housing shapes in the dark
+   surround, the bottom warm room light, and on pull-back the key light, chamber glow, aperture
+   spill and floor spill. The picture, its bloom/bulge, the grain and the iris are never touched. */
+body.env-lens.amb-set .light-sliver{opacity:calc(.7 * var(--amb-k,1))}
+body.env-lens.amb-set .eye-housing{opacity:calc((.55 + var(--pull,0) * .2) * var(--amb-k,1))}
+body.env-lens.amb-set .room::after{opacity:calc((.15 + var(--pull,0) * .7) * var(--amb-k,1))}
+body.env-lens.amb-set .key-light{
+  background:
+    radial-gradient(ellipse 50% 40% at 34% 16%, rgba(255,236,214, calc(var(--pull,0) * .11 * var(--amb-k,1))), transparent 62%),
+    radial-gradient(ellipse 40% 30% at 70% 80%, rgba(0,0,0, calc(var(--pull,0) * .35)), transparent 70%);
+}
+body.env-lens.amb-set .chamber-glow{opacity:calc(var(--pull,0) * .32 * var(--amb-k,1))}
+body.env-lens.amb-set.pulled .chamber-glow{opacity:calc(.45 * var(--amb-k,1))}
+body.env-lens.amb-set .aperture-glow{opacity:calc(var(--pull,0) * .8 * var(--amb-k,1))}
+body.env-lens.amb-set .spill-floor{filter:blur(22px) brightness(var(--amb-k,1))}
+
+/* credits (only when Credits is on): A placed them 6px from the frame edge, where the bulged
+   window shape clipped the first letters on desktop. Nudge them inside the bulge. */
+body.env-lens .red-credits{left:calc(6px + 4%);bottom:calc(6px + 3%)}
+
+/* fix carried over from v4.1: `all:unset` on .hw keys reset the stud to the deck's
+   pointer-events:none, so the CTRL stud could not be pressed. */
+.deck .cam-btn.hw.deck-stud{pointer-events:auto}

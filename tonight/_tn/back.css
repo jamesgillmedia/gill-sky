@@ -1,0 +1,9 @@
+/* tonight · shared back-to-constellation control (same place, same look in every piece) */
+.tn-back{position:fixed;z-index:2147483600;left:50%;top:calc(58px + env(safe-area-inset-top,0px));transform:translateX(-50%);
+  display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 10px;border-radius:11px;
+  background:rgba(6,8,12,.62);border:1px solid rgba(238,243,245,.22);color:#eef3f5;text-decoration:none;
+  font:400 9.5px/1 "Julius Sans One",Poppins,system-ui,sans-serif!important;letter-spacing:.16em!important;text-transform:lowercase!important;margin:0!important;width:auto!important;box-sizing:border-box!important;
+  -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);opacity:.78;-webkit-tap-highlight-color:transparent}
+.tn-back:hover,.tn-back:focus-visible{opacity:1;border-color:rgba(238,243,245,.45)}
+.tn-back i{display:block;width:5px;height:5px;border-radius:50%;background:#eef3f5;box-shadow:0 0 6px rgba(238,243,245,.8)}
+@media print{.tn-back{display:none}}
