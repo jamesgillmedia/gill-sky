@@ -1,9 +1,9 @@
 36c3adfcbbf73acd70ee13e0f0649d03  lab-lens-preview/index.html
 2760e3bf90466e11c883b598ddeb326d  lab-lens-preview/lens-room/css/lab.css
-8b213a6b3d71a5e21b573132cac08e9c  lab-lens-preview/lens-room/css/lens.css
+59fa8f95ed022a74276cece0ce2f054d  lab-lens-preview/lens-room/css/lens.css
 4f0a71109230d90ccc61860bc4717778  lab-lens-preview/lens-room/icons/icon-192.png
-0bd561a91ad222c5a2945e592acac8c0  lab-lens-preview/lens-room/index.html
-86f7e05c0a7a82452eb28c6cb82ccc48  lab-lens-preview/lens-room/js/app.js
+9e0055a21110162cf50a929cf5983b32  lab-lens-preview/lens-room/index.html
+07a1c4fa7125cfb86e8da0f67c65eb87  lab-lens-preview/lens-room/js/app.js
 d84be631da16ab4c8bdef2c0fe162d9a  lab-lens-preview/lens-room/js/films.js
 62323078e366f2286297424805c899cb  lab-lens-preview/lens-room/media/clips/brew-bar-coffee-teaser.mp4
 92e312fc9d947b58751e37e14f3441e8  lab-lens-preview/lens-room/media/clips/drift.mp4

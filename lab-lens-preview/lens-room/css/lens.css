@@ -26,10 +26,9 @@ body.env-lens .room::after{
 }
 
 /* environment switch, in the shared chrome — physical camera-body buttons */
-.envs{display:flex;align-items:center;gap:6px;flex-wrap:wrap;pointer-events:auto}
+
 @media (max-width:720px){
   .lab-top{flex-wrap:wrap;row-gap:6px}
-  .envs{order:5;width:100%;justify-content:flex-end;padding-left:4px}
 }
 
 /* raised rubber/metal camera-body buttons (RED-minimal: bevel, press, LED) */
@@ -82,13 +81,10 @@ body.env-lens .room::after{
   -webkit-backdrop-filter:none;backdrop-filter:none;
   font-size:10px;letter-spacing:.14em;
 }
-.envs .cam-btn{min-height:34px;padding:0 10px 1px}
+
 .console .cam-btn{
   min-height:42px;min-width:96px;padding:0 14px 1px;justify-content:flex-start;
   font-size:10px;letter-spacing:.16em;
-}
-@media (max-width:720px){
-  .envs .cam-btn{min-height:32px;padding:0 8px 1px;font-size:9.5px}
 }
 
 /* ---------- the architecture: a wide cuboid, sitting behind the gate ---------- */
@@ -139,12 +135,7 @@ body.playing .spill-floor{animation:spillbreath 2.8s ease-in-out infinite}
     linear-gradient(180deg, #0c0e13, #08090d 70%, #050608);
   box-shadow:inset 0 0 160px rgba(0,0,0,.5);
 }
-.wall.back .screen-frame{
-  position:absolute;left:22%;right:22%;top:14%;bottom:18%;
-  border:2px solid rgba(255,255,255,.07);
-  box-shadow:inset 0 0 50px rgba(0,0,0,.65), 0 0 80px rgba(var(--spill), .12);
-  opacity:0;transition:opacity 1s var(--ease);
-}
+
 .wall.left,.wall.right{
   position:absolute;top:-450px;height:900px;width:1600px;
   background:
@@ -159,43 +150,6 @@ body.playing .spill-floor{animation:spillbreath 2.8s ease-in-out infinite}
     repeating-linear-gradient(180deg, rgba(255,255,255,.03) 0 1px, transparent 1px 70px),
     #0a0c11}
 
-.seats{position:absolute;left:50%;top:280px;width:1600px;height:900px;margin-left:-800px;
-  transform:rotateX(90deg);transform-origin:50% 0;
-  opacity:0;transition:opacity 1s var(--ease);pointer-events:none;
-  background:
-    repeating-linear-gradient(180deg,
-      transparent 0 70px,
-      rgba(0,0,0,.55) 70px 92px,
-      rgba(22,20,24,.75) 92px 120px);
-  -webkit-mask:linear-gradient(180deg, transparent 0, #000 18%, #000 88%, transparent);
-          mask:linear-gradient(180deg, transparent 0, #000 18%, #000 88%, transparent);
-}
-
-.beam{
-  position:absolute;left:50%;top:0;width:0;height:0;z-index:2;pointer-events:none;
-  opacity:0;transition:opacity 1s var(--ease);
-}
-.beam::before{
-  content:"";position:absolute;left:-32vw;top:-6vh;width:64vw;height:90vh;
-  background:linear-gradient(180deg, rgba(255,252,245,.03), rgba(var(--spill), .22) 42%, rgba(var(--spill), .08) 72%, transparent);
-  clip-path:polygon(44% 0, 56% 0, 94% 100%, 6% 100%);
-  filter:blur(8px);mix-blend-mode:screen;
-}
-
-body.env-lens .motes{opacity:0;animation:none}
-.motes{
-  position:absolute;inset:0;z-index:3;pointer-events:none;opacity:.4;
-  background-image:
-    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,.5), transparent),
-    radial-gradient(1.5px 1.5px at 70% 48%, rgba(255,255,255,.35), transparent),
-    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,.4), transparent),
-    radial-gradient(1px 1px at 85% 28%, rgba(255,255,255,.25), transparent),
-    radial-gradient(1.5px 1.5px at 12% 58%, rgba(255,255,255,.3), transparent),
-    radial-gradient(1px 1px at 58% 18%, rgba(255,255,255,.35), transparent);
-  animation:mote 18s linear infinite;
-  mix-blend-mode:screen;
-}
-@keyframes mote{to{background-position:0 80px, 0 -60px, 0 40px, 0 -30px, 0 70px, 0 -50px}}
 .chamber-glow{
   position:absolute;left:50%;top:46%;width:80vw;height:60vh;margin:-30vh 0 0 -40vw;
   z-index:2;pointer-events:none;
@@ -206,50 +160,6 @@ body.env-lens .motes{opacity:0;animation:none}
 }
 body.playing .chamber-glow{opacity:1}
 body.env-lens .chamber-glow{opacity:calc(var(--pull,0) * .32)}
-
-/* bias light and desk / scopes — hidden until the colour suite */
-.bias,.desk,.scopes{opacity:0;pointer-events:none;transition:opacity .8s var(--ease)}
-.bias{
-  position:absolute;left:50%;top:50%;z-index:6;
-  width:calc(var(--gw, 78vw) + 120px);height:calc(var(--gh, 44vw) + 90px);
-  margin:calc((var(--gh, 44vw) + 90px) / -2) 0 0 calc((var(--gw, 78vw) + 120px) / -2);
-  background:radial-gradient(ellipse at 50% 50%, rgba(210,220,230,.22), rgba(var(--spill), .12) 40%, transparent 70%);
-  filter:blur(18px);
-}
-.desk{
-  position:absolute;left:50%;bottom:-8%;z-index:7;width:140vw;height:22vh;margin-left:-70vw;
-  background:linear-gradient(180deg, #2a2a2c, #161618 40%, #0c0c0e);
-  transform:rotateX(62deg);transform-origin:50% 100%;
-  box-shadow:0 -20px 60px rgba(0,0,0,.5);
-}
-.scopes{
-  position:absolute;z-index:12;right:calc(16px + var(--sr));bottom:calc(18px + var(--sb));
-  display:flex;gap:10px;
-}
-.scope{
-  width:120px;height:80px;border:1px solid rgba(255,255,255,.12);
-  background:#111214;box-shadow:inset 0 0 20px rgba(0,0,0,.6), 0 8px 20px rgba(0,0,0,.4);
-  border-radius:2px;position:relative;overflow:hidden;
-}
-.scope.wave::before{
-  content:"";position:absolute;inset:8px;
-  background:
-    repeating-linear-gradient(180deg, rgba(255,255,255,.05) 0 1px, transparent 1px 10px),
-    linear-gradient(90deg, transparent 0%, rgba(var(--spill), .85) 20%, #8fd 36%, rgba(var(--spill), .7) 58%, #ced 80%, transparent);
-  -webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'><path d='M0 28 L8 26 L16 12 L24 30 L32 20 L40 22 L48 8 L56 24 L64 18 L72 22 L80 10 L88 26 L100 20' fill='none' stroke='white' stroke-width='2'/></svg>");
-          mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40'><path d='M0 28 L8 26 L16 12 L24 30 L32 20 L40 22 L48 8 L56 24 L64 18 L72 22 L80 10 L88 26 L100 20' fill='none' stroke='white' stroke-width='2'/></svg>");
-  -webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
-  opacity:.85;
-}
-.scope.vec::before{
-  content:"";position:absolute;inset:8px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.18);
-  background:
-    radial-gradient(circle at 50% 50%, transparent 0 18%, rgba(255,255,255,.08) 19% 20%, transparent 21%),
-    linear-gradient(90deg, transparent 49%, rgba(255,255,255,.15) 49% 51%, transparent 51%),
-    linear-gradient(0deg, transparent 49%, rgba(255,255,255,.15) 49% 51%, transparent 51%),
-    radial-gradient(circle at 62% 38%, rgba(var(--spill), .9) 0 4px, transparent 5px);
-}
 
 /* ---------- the gate / eyepiece ---------- */
 .gate-assembly{
@@ -691,7 +601,7 @@ body.env-lens.pulled .gate-assembly{
   transform:translateZ(-560px) translateY(-24vh) scale(.26);
 }
 body.pulled .chamber-glow{opacity:.45}
-body.pulled .bias,body.pulled .scopes,body.pulled .console{opacity:0;pointer-events:none}
+body.pulled .console{opacity:0;pointer-events:none}
 
 .bin{
   position:absolute;left:0;right:0;top:0;bottom:0;z-index:9;
@@ -823,14 +733,7 @@ body.pulled .lab-top{background:rgba(4,7,11,.55);-webkit-backdrop-filter:blur(10
   .debug-bar{left:calc(18px + var(--sl))}
 }
 @media (max-width:700px){
-  body:not(.env-lens) .edge-code{
-    writing-mode:horizontal-tb;transform:none;
-    left:28px;right:8px;top:auto;bottom:-48px;width:auto;height:auto;
-    flex-direction:row;flex-wrap:wrap;justify-content:flex-start;gap:4px 12px;
-    font-size:9px;max-height:44px;overflow:hidden;
-  }
   .rail{width:20px}
-  body:not(.env-lens) .gate{left:20px;right:20px}
 }
 @media (orientation:landscape) and (max-height:500px){
   .gate-assembly{transform:translateZ(20px) translateY(-1vh)}
@@ -841,134 +744,13 @@ body.pulled .lab-top{background:rgba(4,7,11,.55);-webkit-backdrop-filter:blur(10
   .debug-bar{padding:4px 7px 4px 8px;gap:8px}
   .debug-bar .cam-btn,.console .cam-btn{min-height:32px}
   .debug-tag{font-size:7.5px;padding:2px 6px 1px}
-  body:not(.env-lens) .edge-code{
-    writing-mode:horizontal-tb;transform:none;
-    left:28px;right:8px;top:auto;bottom:-28px;width:auto;height:auto;
-    flex-direction:row;flex-wrap:nowrap;gap:8px 14px;font-size:8.5px;
-    overflow:hidden;
-  }
+
   body.env-lens .edge-code{top:calc(50% + (var(--gh) / 2) + 6px);bottom:auto;font-size:8px;max-height:3.6em;gap:0}
   body.env-lens .edge-code .c:nth-of-type(n+3){display:none}
   .bin{padding:calc(52px + var(--st)) 12px calc(10px + var(--sb))}
-  .envs .cam-btn{min-height:30px}
 }
-
-/* ========== 2. monitor: a 7-inch field monitor you hold and scrub ========== */
-body.env-monitor{--bg:#0a0b0d}
-body.env-monitor .room{background:#0a0b0d;perspective:1200px}
-body.env-monitor .volume{transform:translateZ(-400px) scale(.7);opacity:.45}
-body.env-monitor .floor{background:linear-gradient(180deg,#141518,#08090b);filter:blur(2px)}
-body.env-monitor .ceiling,.env-monitor .wall.left,.env-monitor .wall.right{opacity:.35}
-body.env-monitor .wall.back{background:#0c0d10;opacity:.5}
-body.env-monitor .chamber-glow{opacity:.3}
-body.env-monitor .iris,body.env-monitor .eyepiece{display:none}
-body.env-monitor .gate-assembly{
-  transform:translateZ(120px) translateY(1vh) rotateX(4deg);
-  filter:drop-shadow(0 30px 40px rgba(0,0,0,.7));
-}
-body.env-monitor .rail{display:none}
-body.env-monitor .evf{inset:0;width:auto;height:auto;margin:0;left:0;top:0;border:0;border-radius:0;box-shadow:none;background:transparent}
-body.env-monitor .gate{
-  left:0;right:0;top:0;bottom:0;
-  border:14px solid #1a1c20;
-  border-bottom-width:32px;
-  border-radius:5px;
-  box-shadow:0 0 0 2px #0a0b0d, 0 0 0 10px #14161a, 0 24px 60px rgba(0,0,0,.7), inset 0 0 0 1px rgba(255,255,255,.08);
-}
-body.env-monitor .gate-assembly::before{
-  content:"";position:absolute;left:10px;top:8px;width:8px;height:8px;border-radius:50%;
-  background:#3a1010;box-shadow:0 0 0 2px #0a0b0d;z-index:6;
-}
-body.env-monitor .gate-assembly::after{content:none}
-body.env-monitor .vignette{background:none;box-shadow:inset 0 0 30px rgba(0,0,0,.35)}
-body.env-monitor .edge-code{
-  writing-mode:horizontal-tb;transform:none;
-  left:12px;right:12px;top:auto;bottom:8px;width:auto;height:20px;
-  flex-direction:row;flex-wrap:nowrap;gap:10px;align-items:center;
-  font-size:8px;color:rgba(200,210,200,.8);text-shadow:none;overflow:hidden;z-index:6;
-}
-body.env-monitor.pulled .gate-assembly{opacity:0}
-body.env-monitor.weaving.playing .gate-assembly,body.env-monitor.weaving.exposed .gate-assembly{animation:none}
-
-/* ========== 3. theatre: a dark room, beam, dust, light on the seats ========== */
-body.env-theatre .iris,body.env-theatre .eyepiece{display:none}
-body.env-theatre .room{background:#050408}
-body.env-theatre .wall.back{
-  background:
-    radial-gradient(ellipse 50% 42% at 50% 48%, rgba(var(--spill), .3), transparent 62%),
-    linear-gradient(180deg, #07080b, #050608);
-}
-body.env-theatre .wall.back .screen-frame{opacity:1}
-body.env-theatre .beam{opacity:1}
-body.env-theatre .seats{opacity:.9}
-body.env-theatre .room::after{
-  content:"";position:absolute;left:0;right:0;bottom:0;height:38%;z-index:3;pointer-events:none;
-  background:
-    repeating-linear-gradient(180deg, transparent 0 18px, rgba(0,0,0,.45) 18px 26px, rgba(20,18,22,.5) 26px 34px),
-    radial-gradient(ellipse 80% 80% at 50% 0%, rgba(var(--spill), .22), transparent 55%),
-    linear-gradient(180deg, transparent, rgba(4,3,6,.8));
-  -webkit-mask:linear-gradient(180deg, transparent, #000 28%);
-          mask:linear-gradient(180deg, transparent, #000 28%);
-}
-body.env-theatre .motes{opacity:.75}
-body.env-theatre .spill-floor{opacity:1;filter:blur(26px)}
-body.env-theatre .gate-assembly{
-  transform:translateZ(-220px) translateY(-5vh) scale(1.18);
-  filter:saturate(1.05) contrast(1.04);
-}
-body.env-theatre .evf{inset:0;width:auto;height:auto;margin:0;left:0;top:0;border:0;border-radius:0;box-shadow:none;background:transparent}
-body.env-theatre .gate{left:0;right:0;box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 0 180px rgba(var(--spill), .5), 0 40px 100px rgba(0,0,0,.6)}
-body.env-theatre .rail{opacity:0}
-body.env-theatre .vignette{opacity:.45}
-body.env-theatre .edge-code{opacity:.95;text-shadow:0 1px 12px rgba(0,0,0,.95)}
-body.env-theatre.pulled .gate-assembly{opacity:0}
-body.env-theatre.pulled .beam{opacity:.35}
-body.env-theatre.weaving.playing .gate-assembly,body.env-theatre.weaving.exposed .gate-assembly{animation:none}
-
-/* ========== 4. colour suite: dim grey walls, reference monitor, bias light, scopes ========== */
-body.env-suite{--bg:#2a2a2c}
-body.env-suite .iris,body.env-suite .eyepiece{display:none}
-body.env-suite .room{background:#2a2a2c;perspective:1400px}
-body.env-suite .floor{
-  background:
-    linear-gradient(180deg, #3a3a3c, #242426 70%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,.03) 0 1px, transparent 1px 80px);
-}
-body.env-suite .ceiling{background:linear-gradient(0deg,#3a3a3c,#2c2c2e)}
-body.env-suite .wall.back,body.env-suite .wall.left,body.env-suite .wall.right{
-  background:#353538;
-  box-shadow:inset 0 0 80px rgba(0,0,0,.25);
-}
-body.env-suite .wall.back{background:linear-gradient(180deg,#3a3a3d,#2e2e31)}
-body.env-suite .wall.back .screen-frame{opacity:0}
-body.env-suite .motes{opacity:.12}
-body.env-suite .chamber-glow{opacity:0}
-body.env-suite .spill-floor{opacity:.25;filter:blur(30px);mix-blend-mode:normal}
-body.env-suite .bias{opacity:1}
-body.env-suite .desk{opacity:1}
-body.env-suite .scopes{opacity:1}
-body.env-suite .gate-assembly{transform:translateZ(60px) translateY(-6vh)}
-body.env-suite .rail{display:none}
-body.env-suite .evf{inset:0;width:auto;height:auto;margin:0;left:0;top:0;border:0;border-radius:0;box-shadow:none;background:transparent}
-body.env-suite .gate{
-  left:0;right:0;
-  border:8px solid #1c1c1e;
-  box-shadow:0 0 0 1px #4a4a4c, 0 16px 50px rgba(0,0,0,.45);
-}
-body.env-suite .vignette{background:none;box-shadow:inset 0 0 20px rgba(0,0,0,.2)}
-body.env-suite .grain{opacity:.08}
-body.env-suite .edge-code{
-  writing-mode:horizontal-tb;transform:none;
-  left:0;right:0;top:auto;bottom:-44px;width:auto;height:auto;
-  flex-direction:row;flex-wrap:wrap;gap:6px 16px;font-size:9.5px;
-  color:#c8c8c4;text-shadow:none;
-}
-body.env-suite.pulled .gate-assembly,body.env-suite.pulled .bias,body.env-suite.pulled .scopes,body.env-suite.pulled .desk{opacity:0;pointer-events:none}
-body.env-suite .bin-bezel{background:#2a2a2c;border-color:#3a3a3c}
-body.env-suite.weaving.playing .gate-assembly,body.env-suite.weaving.exposed .gate-assembly{animation:none}
 
 @media (max-width:520px){
-  body.env-suite .scopes{right:auto;left:50%;bottom:calc(10px + var(--sb));transform:translateX(-50%);zoom:.85}
   .console .cam-btn{letter-spacing:.1em;padding:0 10px 1px}
 }
 
@@ -1033,10 +815,7 @@ body.red-open .red-credits{bottom:32px}
     linear-gradient(180deg, #3a3434 0%, #262020 14%, #161212 55%, #100e0e 100%);
   color:#d8d0cc;
 }
-body.pulled .red-bar,
-body.exit-mid .red-bar,
-body.leaving .red-bar,
-body:not(.env-lens) .red-bar{display:none!important}
+body.pulled .red-bar,body.exit-mid .red-bar,body.leaving .red-bar{display:none!important}
 
 /* debug strip: hide during the eyepiece exit mid-state, and when pulled */
 body.exit-mid .debug-bar,

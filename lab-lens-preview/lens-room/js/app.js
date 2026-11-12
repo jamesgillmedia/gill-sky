@@ -243,8 +243,6 @@ function size(){
   }
   var maxW=land?Math.min(W*0.72, 1040):Math.min(W*0.86, 820);
   var maxH=land?H*0.62:H*0.42;
-  if(env==='monitor'){maxW*=0.78;maxH*=0.78}
-  if(env==='theatre'){maxW*=1.06;maxH*=1.08}
   var gw=maxW, gh=gw/ar;
   if(gh>maxH){gh=maxH;gw=gh*ar}
   document.documentElement.style.setProperty('--gw',Math.round(gw)+'px');
@@ -695,12 +693,12 @@ document.addEventListener('pointerleave',function(e){
   if(e.target&&e.target.classList&&e.target.classList.contains('cam-btn'))e.target.classList.remove('pressed');
 },true);
 
-var ENV_WHERE={lens:'lens room',monitor:'monitor',theatre:'theatre',suite:'colour suite'};
+var ENV_WHERE={lens:'lens room'}; /* the lens room is the only film room (monitor, theatre and colour suite removed 2026-11-12) */
 function envLabel(){return pulled?'the bin':(ENV_WHERE[env]||'lens room')}
 function setEnv(name){
   if(!ENV_WHERE[name])name='lens';
   env=name;
-  document.body.classList.remove('env-lens','env-monitor','env-theatre','env-suite');
+  document.body.classList.remove('env-lens');
   document.body.classList.add('env-'+env);
   var nav=$('envs');
   if(nav){[].forEach.call(nav.querySelectorAll('button'),function(b){
@@ -711,9 +709,7 @@ function setEnv(name){
   size();
   applyTools();
 }
-$('envs').addEventListener('click',function(e){
-  var b=e.target.closest('button[data-env]');if(!b)return;setEnv(b.getAttribute('data-env'));
-});
+/* no room switcher: the lens room is the only film room */
 function setBtn(id,on){var b=$(id);if(!b)return;b.setAttribute('aria-pressed',!!on);b.classList.toggle('on',!!on)}
 $('weaveBtn').addEventListener('click',function(){
   weaveOn=!weaveOn;document.body.classList.toggle('weaving',weaveOn);setBtn('weaveBtn',weaveOn);
