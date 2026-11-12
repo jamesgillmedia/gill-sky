@@ -1,0 +1,40 @@
+/* Film horizon + contact sheet. Same language as Photo lab horizon (dark sky, standing frames,
+   centre in full colour, neighbours dimmed). No light/colour order slider: films stay in the
+   existing film-list order. Same motion with Reduce Motion on. */
+.sky{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:ew-resize;outline:none;--hy:64%;background:#04070b}
+.sky::before{content:"";position:absolute;inset:0;background:var(--skyg,#04070b)}
+.water{position:absolute;left:0;right:0;top:var(--hy);bottom:0;background:linear-gradient(180deg,#0b1218,#04070b 80%);overflow:hidden}
+.water::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 1px,transparent 1px 7px);animation:drift 9s linear infinite}
+@keyframes drift{to{background-position:0 70px}}
+.frames{position:absolute;left:0;right:0;top:0;height:var(--hy);overflow:hidden;pointer-events:none;z-index:2}
+.refl{position:absolute;left:0;right:0;top:var(--hy);bottom:0;overflow:hidden;pointer-events:none;z-index:1;opacity:.42;filter:blur(2px);-webkit-mask:linear-gradient(180deg,#000,transparent 55%);mask:linear-gradient(180deg,#000,transparent 55%)}
+.refl .fm{top:0;transform-origin:50% 0;pointer-events:none}
+.fm{position:absolute;left:50%;top:100%;transform-origin:50% 100%;will-change:transform,opacity;pointer-events:auto;cursor:pointer}
+.fm img{display:block;width:100%;height:100%;object-fit:cover}
+.fm.cur img{box-shadow:0 0 0 1px rgba(255,255,255,.14),0 -10px 60px rgba(255,255,255,.06)}
+.head{z-index:3;position:absolute;left:50%;top:var(--hy);width:9px;height:9px;margin:10px 0 0 -4.5px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px 2px rgba(85,218,161,.6)}
+.ends{z-index:3;position:absolute;left:0;right:0;top:calc(var(--hy) + 26px);display:flex;justify-content:space-between;padding:0 calc(16px + var(--sr)) 0 calc(16px + var(--sl));font-size:10.5px;letter-spacing:.14em;color:rgba(238,243,245,.6);text-transform:uppercase;pointer-events:none;gap:12px}
+.ends #now{color:var(--ink);letter-spacing:.14em;flex:1;text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* contact sheet: proof sheet of every film, numbered, in list order */
+.sheet{position:fixed;inset:0;z-index:38;background:#04070b;opacity:0;transition:opacity 1s var(--ease);pointer-events:none}
+.sheet.open{opacity:1;pointer-events:auto}
+.sheet[hidden]{display:none}
+.sc{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:calc(62px + var(--st)) calc(12px + var(--sr)) calc(28px + var(--sb)) calc(12px + var(--sl));scroll-padding-top:calc(66px + var(--st));scroll-padding-bottom:calc(16px + var(--sb))}
+.proof{max-width:1040px;margin:0 auto;background:linear-gradient(180deg,#101214,#0a0c0e);border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.55);padding:14px 12px 18px;border-radius:4px}
+.phd{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px 12px;border-bottom:1px solid var(--line);margin-bottom:14px;font-size:10.5px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+.phd .ju{color:var(--dim);letter-spacing:.2em}
+.grid{display:grid;grid-template-columns:repeat(var(--cols,6),1fr);gap:10px 8px}
+.cell{-webkit-appearance:none;appearance:none;display:flex;flex-direction:column;align-items:stretch;margin:0;padding:0;border:0;background:none;color:inherit;cursor:pointer;text-align:left;min-width:0;border-radius:0;transition:transform .7s var(--ease)}
+.cell .win{position:relative;aspect-ratio:16/9;overflow:hidden;background:#050607;box-shadow:0 0 0 1px rgba(255,255,255,.06)}
+.cell img{display:block;width:100%;height:100%;object-fit:cover}
+.cell .no{margin:5px 0 0;font-size:9.5px;letter-spacing:.14em;color:var(--mute);text-transform:uppercase;line-height:1.35}
+.cell .no b{display:block;font-weight:300;color:var(--dim);letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .no i{font-style:normal;display:block;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(85,218,161,.25)}
+.cell.cur .no,.cell.cur .no b{color:var(--ink)}
+@media (min-width:900px){.proof{padding:20px 22px 26px}.grid{gap:14px 12px}}
+@media (orientation:landscape) and (max-height:500px){.sky{--hy:70%}.ends{top:calc(var(--hy) + 18px)}.sc{padding-top:calc(52px + var(--st))}}
+@media (max-width:620px){.lab-top .crumb{display:none}}
+@media (max-width:520px){.lab-top .lab-btn:not(.ic):not(.on){padding:0 10px}}
+body.sheet-open .lab-top{background:rgba(4,7,11,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
