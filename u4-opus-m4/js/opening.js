@@ -5,12 +5,13 @@
    with the clip's time, and when the clip ends it glides on to the next card (no loop). A still holds 4 s. The To Go card
    carries a muted preview clip, the live small Momo loop tile (momo-480) and a play button; audio never autoplays. After the last card the sky
    opens. A tap (or Esc) goes straight to the sky; swipe, arrows or a sideways wheel move between cards; a pinch carries on
-   into the sky (sky.js owns the pinch). Motion is the same with Reduce Motion on. Ideas from _preview-cards (read only). */
+   into the sky (sky.js owns the pinch). Motion is the same with Reduce Motion on. Ideas from _preview-cards (read only).
+   From Film, the same strip also opens as a board (GJ_OPEN.show({board:true})): a tap opens that work, Back / Esc / pinch-out close the board, and the last card does not send the visitor to the sky. */
 (function(){
 'use strict';
 var HOLD=4000,CREEP=.06,EASE_MS=520;
 var root,track,ctr,cards=[],N=0,p=0,cur=-1,tween=null,drag=null,wheelAcc=0,wheelT=0,raf=0,lastT=0,holdT=0,hold=0,
-    on=false,stay=false,onDone=null,song=null,sel=-1,startedAt=0,passed=0;
+    on=false,stay=false,onDone=null,onPick=null,board=false,song=null,sel=-1,startedAt=0,passed=0;
 function pad(n){n=String(n);while(n.length<2)n='0'+n;return n}
 function mod(i){return((i%N)+N)%N}
 function el(t,c,h){var e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e}
@@ -39,7 +40,8 @@ var CSS=
 '#opc .oc-play[aria-pressed="true"]{color:var(--mint,#55DAA1);border-color:var(--mint,#55DAA1);box-shadow:0 0 10px rgba(85,218,161,.35)}'+
 '#opc .oc-k{position:absolute;left:max(24px,calc(var(--sl,0px) + 12px));top:calc(26px + var(--st,0px));margin:0;z-index:5;pointer-events:none;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:var(--mint,#55DAA1);font-variant-numeric:tabular-nums}'+
 '#opc .oc-dots{position:absolute;left:0;right:0;bottom:calc(16px + var(--sb,0px));display:flex;justify-content:center;gap:7px;z-index:5;pointer-events:none}'+
-'#opc .oc-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.32)}#opc .oc-dots i.on{background:var(--mint,#55DAA1);box-shadow:0 0 6px rgba(85,218,161,.7)}';
+'#opc .oc-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.32)}#opc .oc-dots i.on{background:var(--mint,#55DAA1);box-shadow:0 0 6px rgba(85,218,161,.7)}'+
+'#opb{position:absolute;inset:0;z-index:6;display:none;overflow:hidden;touch-action:none;background:transparent}#opb.on{display:block}#opb #opc{z-index:1}';
 function vid(src,poster,cls){
   var v=document.createElement('video');
   v.muted=true;v.defaultMuted=true;v.playsInline=true;v.loop=false;v.preload='metadata';
@@ -143,6 +145,7 @@ function toggleSong(src){
 function sync(v){track.querySelectorAll('.oc-play').forEach(function(b){b.textContent=v?'pause':'play';b.setAttribute('aria-pressed',v?'true':'false')})}
 var PTS={};
 function down(e){
+  if(board)e.stopPropagation();
   PTS[e.pointerId]=1;
   if(Object.keys(PTS).length>1){if(drag&&drag.moved){drag=null;glide(Math.round(p),280)}drag=null;return} /* a pinch belongs to sky.js */
   if(e.button)return;
@@ -155,6 +158,7 @@ function move(e){
   if(drag.moved){var now=performance.now(),np=drag.p0-dx/stride();drag.v=(np-p)/Math.max(.008,(now-drag.t)/1000);drag.t=now;p=np;place()}
 }
 function up(e){
+  if(board)e.stopPropagation();
   var multi=Object.keys(PTS).length>1;delete PTS[e.pointerId];
   if(!drag||e.pointerId!==drag.id){return}
   var d=drag;drag=null;
@@ -165,6 +169,7 @@ function up(e){
   }
   if(multi||e.type==='pointercancel'||!on)return;
   if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>12)return;
+  if(board){pick();return}
   finish(); /* a tap goes straight to the sky */
 }
 function wheel(e){
@@ -179,23 +184,52 @@ function key(e){
   if(!on)return;
   if(e.key==='ArrowRight'||e.key==='ArrowDown'){e.preventDefault();passed=0;glide(Math.round(p)+1)}
   else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();passed=0;glide(Math.round(p)-1)}
-  else if(e.key==='Enter'||e.key===' '){if(e.target&&e.target.closest&&e.target.closest('button'))return;e.preventDefault();finish()}
+  else if(e.key==='Enter'||e.key===' '){if(e.target&&e.target.closest&&e.target.closest('button'))return;e.preventDefault();if(board)pick();else finish()}
+}
+function host(){
+  var h=document.getElementById('opb');
+  if(h)return h;
+  h=el('div');h.id='opb';h.setAttribute('aria-hidden','true');
+  var land=document.getElementById('land');
+  land.parentNode.insertBefore(h,land.nextSibling);
+  return h;
+}
+function park(){
+  var land=document.getElementById('land'),h=document.getElementById('opb');
+  if(h){h.classList.remove('on');h.setAttribute('aria-hidden','true')}
+  if(land&&root&&root.parentNode!==land)land.appendChild(root);
+  if(root)root.setAttribute('aria-label','title cards on the way into the sky');
+}
+function pick(){
+  var n=mod(Math.round(p)),c=N?cards[n]:null,fn=onPick;
+  if(!c||!fn)return;
+  quiet();if(song&&!song.paused)song.pause();
+  fn(c);
 }
 function show(opts){
   if(!root)return false;opts=opts||{};
-  stay=!!opts.stay;onDone=opts.done||null;
-  document.getElementById('land').classList.add('op');
-  if(on)return true;
+  board=!!opts.board;onPick=opts.pick||null;stay=board||!!opts.stay;onDone=opts.done||null;
+  if(board){
+    var h=host();if(root.parentNode!==h)h.appendChild(root);
+    h.classList.add('on');h.setAttribute('aria-hidden','false');
+    root.setAttribute('aria-label','film cards');
+  }else{
+    park();
+    document.getElementById('land').classList.add('op');
+  }
+  if(on){if(board&&!document.documentElement.classList.contains('fpon'))playCur();return true}
   on=true;passed=0;tween=null;drag=null;p=opts.start||0;cur=-1;startedAt=performance.now();place();playCur();
   return true;
 }
 function hide(){
   if(!on)return;on=false;quiet();if(song&&!song.paused)song.pause();clearTimeout(holdT);tween=null;drag=null;PTS={};
   if(raf){cancelAnimationFrame(raf);raf=0}
+  if(board){board=false;onPick=null;park()}
 }
-window.GJ_OPEN={mount:mount,show:show,hide:hide,
+window.GJ_OPEN={mount:mount,show:show,hide:hide,hush:quiet,
   get on(){return on},
-  state:function(){var n=mod(Math.round(p));return{on:on,i:n,n:N,p:+p.toFixed(4),title:N?cards[n].title:'',ctr:ctr?ctr.textContent:'',
+  get board(){return board},
+  state:function(){var n=mod(Math.round(p));return{on:on,board:board,i:n,n:N,p:+p.toFixed(4),title:N?cards[n].title:'',ctr:ctr?ctr.textContent:'',
     tween:!!tween,passed:passed,song:song?{paused:song.paused,t:song.currentTime}:null,
     clip:(function(){var v=clipOf(n);return v?{src:(v.currentSrc||'').split('/').slice(-2).join('/'),t:+v.currentTime.toFixed(2),d:v.duration,paused:v.paused,loop:v.loop}:null})()}},
   go:function(i){passed=0;glide(mod(i)+(0),10)}};
