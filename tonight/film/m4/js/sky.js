@@ -2589,7 +2589,8 @@ function syncBio(){
 function paintMoon(){
   var box=$('laytext'),text=(window.GJ_BIO&&(GJ_BIO.moon||GJ_BIO.layers[GJ_BIO.layers.length-1]))||'';
   if(!box||!text)return;
-  box.className='copy lv'+bioN()+' sel moon';
+  /* Keep the final bio on the copy/sel classes only. Class "moon" is the 46px crescent in the sky, not this text. */
+  box.className='copy lv'+bioN()+' sel';
   box.innerHTML=text.split('\n').map(function(line){return line?'<span>'+esc(line)+'</span>':'<br>'}).join('');
 }
 function enterMoon(){
