@@ -1,0 +1,115 @@
+<!doctype html><html lang="en" data-root=""><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Photo lab · Gill James · ᑕᐣᓯ</title>
+<meta name="theme-color" content="#04070b">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/lab.css">
+<style>
+body{overflow-x:hidden;overflow-y:auto}
+#sky{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.wrap{position:relative;z-index:1;min-height:100%;display:flex;flex-direction:column;padding:calc(64px + var(--st)) calc(16px + var(--sr)) calc(18px + var(--sb)) calc(16px + var(--sl))}
+.intro{margin:0 0 14px 2px}
+.intro h1{margin:0;font:400 22px/1.2 "Julius Sans One",Poppins,sans-serif;letter-spacing:.22em;text-transform:uppercase}
+.intro p{margin:6px 0 0;color:var(--dim);font-size:12px;letter-spacing:.04em}
+.doors{flex:1;display:grid;grid-template-columns:1fr;grid-auto-rows:minmax(176px,1fr);gap:12px}
+.door{position:relative;display:block;border-radius:18px;overflow:hidden;text-decoration:none;color:var(--ink);border:1px solid var(--line);background:#070b10;transform:translateZ(0);transition:border-color .6s var(--ease),transform .9s var(--ease)}
+.door:hover{border-color:rgba(var(--tint),.45)}
+.door .pv{position:absolute;inset:0}
+.door .lab{position:absolute;left:0;right:0;bottom:0;padding:44px 16px 14px;background:linear-gradient(180deg,rgba(4,7,11,0),rgba(4,7,11,.86) 60%)}
+.door h2{margin:0;display:flex;align-items:center;gap:10px;font:400 17px/1.2 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;text-transform:uppercase}
+.door h2 .nw{width:7px;height:7px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px 2px rgba(85,218,161,.55);animation:tw 2.6s ease-in-out infinite}
+@keyframes tw{50%{box-shadow:0 0 4px 1px rgba(85,218,161,.35)}}
+.door p{margin:5px 0 0;color:var(--dim);font-size:12px;line-height:1.45;max-width:34em}
+.door .go{position:absolute;right:14px;bottom:14px;font-size:20px;color:var(--mint);opacity:.85}
+/* darkroom preview */
+.pv-dark{background:#140303}
+.pv-dark .line{position:absolute;left:-4%;right:-4%;top:22%;height:1px;background:rgba(255,190,170,.35);transform:rotate(-1.5deg)}
+.pv-dark .pr{position:absolute;top:24%;width:22%;aspect-ratio:4/5;background:var(--paper);padding:4px;box-shadow:0 8px 18px rgba(0,0,0,.6)}
+.pv-dark .pr img{width:100%;height:100%;object-fit:cover;display:block;filter:grayscale(1) contrast(1.05)}
+.pv-dark .pr::before{content:"";position:absolute;left:50%;top:-9px;width:6px;height:15px;margin-left:-3px;background:#8a6a55;border-radius:2px}
+.pv-dark .glow{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 0%,rgba(255,40,20,.9),rgba(120,0,0,.95));mix-blend-mode:multiply}
+.pv-dark .tray{position:absolute;left:50%;bottom:-12%;width:56%;height:40%;transform:translateX(-50%) perspective(400px) rotateX(38deg);background:#2a0606;border-radius:10px;box-shadow:inset 0 0 0 6px #3a0a0a}
+/* light table preview */
+.pv-lt{background:radial-gradient(120% 120% at 50% 40%,#fbfdfc,#dfe9e6 70%,#9fb0ac)}
+.pv-lt .strip{position:absolute;left:-6%;right:-6%;display:flex;gap:6px;padding:10px 8px;background:#0c0d0e;transform:rotate(-4deg)}
+.pv-lt .strip::before,.pv-lt .strip::after{content:"";position:absolute;left:0;right:0;height:5px;background:repeating-linear-gradient(90deg,transparent 0 6px,rgba(255,255,255,.85) 6px 10px);opacity:.9}
+.pv-lt .strip::before{top:2px}.pv-lt .strip::after{bottom:2px}
+.pv-lt .strip img{height:78px;width:auto;flex:none;display:block}
+.pv-lt .loupe{position:absolute;width:110px;height:110px;border-radius:50%;border:5px solid #1a1c1e;box-shadow:0 14px 30px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.4);overflow:hidden;left:54%;top:16%}
+.pv-lt .loupe img{position:absolute;width:260%;left:-60%;top:-40%}
+.pv-lt .mark{position:absolute;font:28px/1 Caveat,cursive;color:#1d9e6d;transform:rotate(-8deg)}
+/* horizon preview */
+.pv-hz .band{position:absolute;left:0;right:0;top:58%;height:2px;display:flex}
+.pv-hz .band i{flex:1;height:100%}
+.pv-hz .sun{position:absolute;left:50%;bottom:42%;width:34%;aspect-ratio:4/5;transform:translateX(-50%);overflow:hidden;border-radius:2px;box-shadow:0 0 40px rgba(255,255,255,.08)}
+.pv-hz .sun img,.pv-hz .ref img{width:100%;height:100%;object-fit:cover;display:block}
+.pv-hz .ref{position:absolute;left:50%;top:58.4%;width:34%;aspect-ratio:4/5;transform:translateX(-50%) scaleY(-1);opacity:.28;filter:blur(1.5px);-webkit-mask:linear-gradient(0deg,#000,transparent 55%);mask:linear-gradient(0deg,#000,transparent 55%)}
+.foot{margin:14px 2px 0;color:var(--mute);font-size:10.5px;letter-spacing:.14em}
+.door.going{z-index:20;transition:transform .9s var(--ease),border-radius .9s var(--ease)}
+@media (min-width:760px),(orientation:landscape){
+ .doors{grid-template-columns:repeat(3,1fr);grid-auto-rows:1fr}
+ .wrap{height:100%}
+}
+@media (orientation:landscape) and (max-height:500px){
+ .wrap{padding-top:calc(54px + var(--st))}
+ .intro{display:none}.foot{display:none}
+ .door p{display:none}
+ .door .lab{padding:30px 12px 10px}
+}
+@media (min-width:1100px){.intro h1{font-size:28px}.wrap{padding-left:40px;padding-right:40px}.doors{gap:18px}.door p{font-size:13px}}
+</style>
+</head><body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<header class="lab-top"><a class="sig" href="./" lang="cr" aria-label="Gill James">ᑕᐣᓯ</a><span class="crumb ju"><b>photo</b> · lab <i>· new</i></span></header>
+<main class="wrap">
+ <div class="intro"><h1>Photo lab</h1><p>Three new rooms for the photographs. Pick one and walk in. Pinch out, or ‹, to come back.</p></div>
+ <nav class="doors" aria-label="three rooms">
+  <a class="door" href="darkroom/" data-room="darkroom"><div class="pv pv-dark" id="pvDark"></div>
+   <div class="lab"><h2><span class="nw"></span>Darkroom</h2><p>Under the safelight, slide a sheet into the tray and rock it until the print comes up. Hang it on the line. Switch the light on to see it in colour.</p></div><span class="go">›</span></a>
+  <a class="door" href="light-table/" data-room="light-table"><div class="pv pv-lt" id="pvLt"></div>
+   <div class="lab"><h2><span class="nw"></span>Light table</h2><p>Every frame laid out in strips on a glowing table. Drag the loupe across them, mark your picks in grease pencil, and lift a frame off the table.</p></div><span class="go">›</span></a>
+  <a class="door" href="horizon/" data-room="horizon"><div class="pv pv-hz" id="pvHz"></div>
+   <div class="lab"><h2><span class="nw"></span>Horizon</h2><p>All the photographs lined up by their own light, darkest to brightest. Scrub the horizon and the sky turns to match each picture.</p></div><span class="go">›</span></a>
+ </nav>
+ <p class="foot ju">56 photographs · from the photo chapter</p>
+</main>
+<noscript><p style="position:fixed;left:16px;bottom:16px;z-index:5;color:#c9d3d6">The rooms need JavaScript. <a href="darkroom/">Darkroom</a> · <a href="light-table/">Light table</a> · <a href="horizon/">Horizon</a> each list the photographs without it.</p></noscript>
+<div class="veil"></div>
+<script src="js/photos.js"></script>
+<script src="js/lab.js"></script>
+<script>
+(function(){
+'use strict';
+var P=LAB.photos;
+function byId(id){return P.filter(function(p){return p.id===id})[0]||P[0]}
+/* previews: real frames only */
+var d=document.getElementById('pvDark');
+d.innerHTML='<div class="line"></div><div class="tray"></div><div class="glow"></div>';
+[['p02',8,-2],['p47',39,1.5],['p44',70,-1]].forEach(function(a){var f=LAB.el('div','pr');f.style.left=a[1]+'%';f.style.transform='rotate('+a[2]+'deg)';var im=new Image();im.alt='';im.src=LAB.th(byId(a[0]));f.appendChild(im);d.insertBefore(f,d.querySelector('.glow'))});
+var lt=document.getElementById('pvLt');
+[[10,0],[40,9],[70,18]].forEach(function(r,k){var s=LAB.el('div','strip');s.style.top=r[0]+'%';for(var i=0;i<8;i++){var im=new Image();im.alt='';im.src=LAB.th(P[(r[1]+i)%P.length]);s.appendChild(im)}lt.appendChild(s)});
+var lo=LAB.el('div','loupe'),li=new Image();li.alt='';li.src=LAB.th(P[2]);lo.appendChild(li);lt.appendChild(lo);
+var mk=LAB.el('div','mark','✓');mk.style.left='12%';mk.style.top='38%';lt.appendChild(mk);
+var hz=document.getElementById('pvHz'),sorted=P.slice().sort(function(a,b){return a.lum-b.lum}),mid=sorted[Math.floor(sorted.length*0.62)];
+hz.style.background='linear-gradient(180deg,'+mid.top+' 0%,'+mid.bot+' 58%,#04070b 58.2%,#04070b)';
+var band=LAB.el('div','band');sorted.forEach(function(p){var i=document.createElement('i');i.style.background=p.avg;band.appendChild(i)});
+var sun=LAB.el('div','sun'),si=new Image();si.alt='';si.src=LAB.th(mid);sun.appendChild(si);
+var ref=LAB.el('div','ref'),ri=new Image();ri.alt='';ri.src=LAB.th(mid);ref.appendChild(ri);
+hz.appendChild(ref);hz.appendChild(sun);hz.appendChild(band);
+/* a quiet sky behind (stars frame nothing here, they are the room) */
+var c=document.getElementById('sky'),x=c.getContext('2d'),st=[],W,H,dpr;
+function size(){dpr=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;c.width=W*dpr;c.height=H*dpr;x.setTransform(dpr,0,0,dpr,0,0);
+  var s=1;st=[];for(var i=0;i<Math.round(W*H/5200);i++){s=(s*9301+49297)%233280;var a=s/233280;s=(s*9301+49297)%233280;var b=s/233280;s=(s*9301+49297)%233280;st.push([a*W,b*H,s/233280])}}
+function draw(t){x.clearRect(0,0,W,H);for(var i=0;i<st.length;i++){var q=st[i],al=.25+.5*q[2]*(.6+.4*Math.sin(t/1800+i));x.fillStyle='rgba(220,236,240,'+al.toFixed(3)+')';x.fillRect(q[0],q[1],q[2]>.8?1.6:1,q[2]>.8?1.6:1)}requestAnimationFrame(draw)}
+size();addEventListener('resize',size);requestAnimationFrame(draw);
+/* walking in: the door grows to the whole screen, slowly, then the room */
+Array.prototype.forEach.call(document.querySelectorAll('.door'),function(a){a.addEventListener('click',function(e){if(e.metaKey||e.ctrlKey||e.shiftKey)return;e.preventDefault();
+  var r=a.getBoundingClientRect(),sx=innerWidth/r.width,sy=innerHeight/r.height;a.classList.add('going');
+  a.style.transform='translate('+(innerWidth/2-(r.left+r.width/2))+'px,'+(innerHeight/2-(r.top+r.height/2))+'px) scale('+Math.max(sx,sy)+')';
+  LAB.leave(a.getAttribute('href'))})});
+window.addEventListener('pageshow',function(){Array.prototype.forEach.call(document.querySelectorAll('.door'),function(a){a.classList.remove('going');a.style.transform=''})});
+})();
+</script>
+</body></html>
