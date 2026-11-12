@@ -1,10 +1,10 @@
-f86f20fcfc6bb255f0339beaea75913a  archive-index/css/archive.css
+93d4a3136f7a551288b9118742cb0407  archive-index/css/archive.css
 f639fc4eba06c234d5d525a95620f405  archive-index/data/index.json
 3d20f25c0978cf0c9b727081e7fe81e7  archive-index/fonts/julius-sans-one.woff2
 22f46ad8158a3761f54ce05e7e5b31fd  archive-index/fonts/poppins-200.woff2
 b81b0aec5db6923a5ec9a301d986ecfb  archive-index/fonts/poppins-300.woff2
-5090548c07a2b4a93f2c8ecc1e7ee7ff  archive-index/index.html
-e464d8676f1ce0a2db9d238be733a4b6  archive-index/js/archive.js
+8794c5f749e23bd497a9603dac85486b  archive-index/index.html
+b87a86732d2d86d49b16cb6f4a3e043b  archive-index/js/archive.js
 4576efb416ccc2569452f1298e5d0b6d  archive-index/media/atlas/back-to-the-start.webp
 ff921438a6ac143e0c1bf494fa509a04  archive-index/media/atlas/backward-fall.webp
 e23e0f0e45c1d06aa63b6c91fd5b63b3  archive-index/media/atlas/brew-bar-coffee-teaser.webp

@@ -14,6 +14,10 @@ let L = null;            // layout
 let vw = 0, vh = 0, dpr = 1, TOP = 46;
 let s = 1, ox = 0, oy = 0;   // screen = (world - o) * s
 let dirty = true, cur = -1;  // cur = lifted frame index
+// box chrome: 'boxes' (full red outlines + tags), 'dim' (~28% outlines/tags, no red fill), 'hide' (none)
+const BOXK = 'archive-index-boxes', BOXV = ['boxes', 'dim', 'hide'];
+let bx = 'boxes';
+try { const v = localStorage.getItem(BOXK); if (BOXV.includes(v)) bx = v; } catch (e) {}
 
 const pad4 = n => String(n).padStart(4, '0');
 
@@ -172,34 +176,42 @@ function draw() {
     cx.fillStyle = 'rgba(10,11,13,.72)';
     for (const g of vis) if (F[g].f !== hi) cx.fillRect(wxS(g) - 1, wyS(g) - 1, bw + 2, bh + 2);
   }
-  // outlines
+  // outlines (box chrome: boxes / dim / hide)
+  const BA = bx === 'dim' ? .28 : 1;
+  if (bx !== 'hide') {
   cx.lineWidth = lw;
-  cx.strokeStyle = `rgba(${RED},${hi !== null ? oa * .35 : oa})`;
+  cx.strokeStyle = `rgba(${RED},${(hi !== null ? oa * .35 : oa) * BA})`;
   cx.beginPath();
   for (const g of vis) if (hi === null || F[g].f !== hi) { const sx = wxS(g), sy = wyS(g); cx.rect(snap(sx) + lw / 2, snap(sy) + lw / 2, snap(bw) - lw, snap(bh) - lw); }
   cx.stroke();
   if (hi !== null) {
-    cx.lineWidth = Math.max(lw, bw > 40 ? 1.5 : 1); cx.strokeStyle = `rgba(${RED},1)`; cx.beginPath();
+    cx.lineWidth = Math.max(lw, bw > 40 ? 1.5 : 1); cx.strokeStyle = `rgba(${RED},${BA})`; cx.beginPath();
     for (const g of vis) if (F[g].f === hi) { const sx = wxS(g), sy = wyS(g); cx.rect(snap(sx) + .5, snap(sy) + .5, snap(bw) - 1, snap(bh) - 1); }
     cx.stroke();
   }
   if (hov >= 0 && cur < 0) {
-    cx.lineWidth = 1.5; cx.strokeStyle = '#fff'; cx.strokeRect(wxS(hov), wyS(hov), bw, bh);
+    cx.lineWidth = 1.5; cx.strokeStyle = `rgba(255,255,255,${bx === 'dim' ? .45 : 1})`; cx.strokeRect(wxS(hov), wyS(hov), bw, bh);
   }
-  if (cur >= 0) { cx.lineWidth = 2; cx.strokeStyle = `rgb(${RED})`; cx.strokeRect(wxS(cur) - 1, wyS(cur) - 1, bw + 2, bh + 2); }
+  if (cur >= 0) { cx.lineWidth = 2; cx.strokeStyle = `rgba(${RED},${BA})`; cx.strokeRect(wxS(cur) - 1, wyS(cur) - 1, bw + 2, bh + 2); }
+  }
   // numerals: red tag in the top-left corner, like the boxed sheet
-  if (showNum) {
+  if (showNum && bx !== 'hide') {
     cx.font = `500 ${fs}px ${MONO}`; cx.textBaseline = 'middle';
     const th = Math.round(fs + 5), tw = cx.measureText('0000').width + 7;
     for (const g of vis) {
       const dim = hi !== null && F[g].f !== hi;
       const sx = snap(wxS(g)), sy = snap(wyS(g));
-      cx.fillStyle = dim ? 'rgba(120,36,30,.8)' : `rgb(${RED})`;
-      cx.fillRect(sx, sy, tw, th);
-      cx.fillStyle = dim ? 'rgba(255,255,255,.45)' : '#fff';
+      if (bx === 'dim') {   // no red fill: faint red numeral on a dark chip
+        cx.fillStyle = 'rgba(10,11,13,.35)'; cx.fillRect(sx, sy, tw, th);
+        cx.fillStyle = `rgba(${RED},${dim ? .14 : .3})`;
+      } else {
+        cx.fillStyle = dim ? 'rgba(120,36,30,.8)' : `rgb(${RED})`;
+        cx.fillRect(sx, sy, tw, th);
+        cx.fillStyle = dim ? 'rgba(255,255,255,.45)' : '#fff';
+      }
       cx.fillText(pad4(F[g].n), sx + 3.5, sy + th / 2 + .5);
     }
-  } else if (bw >= 14 && hi !== null) { /* no numerals when tiny */ }
+  }
   // film headers (by-film order)
   if (mode === 'film') {
     const hs = HEAD * s;
@@ -207,7 +219,8 @@ function draw() {
       const sy = (h.y - oy) * s; if (sy > vh || sy + hs < -2) continue;
       const f = films[h.k], on = hi === h.k;
       const sx = (PAD - ox) * s, ex = (L.W - PAD - ox) * s;
-      cx.strokeStyle = on ? `rgba(${RED},.9)` : 'rgba(255,255,255,.12)'; cx.lineWidth = 1;
+      const redOn = on && bx === 'boxes';
+      cx.strokeStyle = redOn ? `rgba(${RED},.9)` : on ? 'rgba(255,255,255,.4)' : 'rgba(255,255,255,.12)'; cx.lineWidth = 1;
       cx.beginPath(); cx.moveTo(sx, snap(sy + hs * .82) + .5); cx.lineTo(ex, snap(sy + hs * .82) + .5); cx.stroke();
       const ts = Math.min(15, hs * .36);
       if (ts >= 6.5) {
@@ -219,7 +232,7 @@ function draw() {
         if (rx - lx < ts * 6) continue;
         cx.fillText(label, lx, sy + hs * .66, Math.max(10, rx - lx - ts * 11));
         cx.font = `400 ${Math.max(6, ts * .78)}px ${MONO}`;
-        cx.fillStyle = on ? `rgb(${RED})` : 'rgba(150,157,162,.9)';
+        cx.fillStyle = redOn ? `rgb(${RED})` : on ? '#fff' : 'rgba(150,157,162,.9)';
         const rng = pad4(f.frames[0].n) + '–' + pad4(f.frames[f.frames.length - 1].n);
         const w = cx.measureText(rng).width; cx.fillText(rng, rx - w, sy + hs * .66);
       }
@@ -357,7 +370,7 @@ function openLift(g, animate, fromHash) {
   const sx = wxS(g), sy = wyS(g);
   if (sx < 0 || sy < TOP || sx + CW * s > vw || sy + CH * s > vh) focusOn(g, false);
   lt.hidden = false; fillLift(); placeLift(animate && !was);
-  const h = '#n=' + pad4(F[g].n) + (mode === 'all' ? '&order=continuous' : '');
+  const h = hashFor(F[g].n);
   if (!fromHash) {
     if (!was && !pushed) { history.pushState({ lift: 1 }, '', h); pushed = true; }
     else history.replaceState(history.state, '', h);
@@ -373,7 +386,7 @@ function closeLift(fromPop) {
   const g = cur; cur = -1; lt.hidden = true; dirty = true;
   const sx = wxS(g), sy = wyS(g);
   if (sx < 0 || sy < TOP || sx + CW * s > vw || sy + CH * s > vh) focusOn(g, false);
-  if (!fromPop) { if (pushed) { pushed = false; history.back(); } else history.replaceState(null, '', location.pathname + (mode === 'all' ? '#order=continuous' : '')); }
+  if (!fromPop) { if (pushed) { pushed = false; history.back(); } else history.replaceState(null, '', location.pathname + hashFor(0)); }
   else pushed = false;
 }
 $('ltx').onclick = () => closeLift(); $('ltbg').onclick = () => closeLift();
@@ -397,12 +410,12 @@ function setMode(m, keep) {
   if (m === mode) return;
   const ctr = cur >= 0 ? cur : centreFrame(); const fitted = s <= fitS() * 1.05;
   mode = m; layout();
-  document.querySelectorAll('.modes button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
+  document.querySelectorAll('.modes:not(.boxsw) button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m ? 'true' : 'false'));
   if (fitted) fit(false); else { go(s, L.r[ctr * 2] + CW / 2 - vw / 2 / s, L.r[ctr * 2 + 1] + CH / 2 - vh / 2 / s, false); }
-  if (!keep && cur < 0) history.replaceState(null, '', location.pathname + (m === 'all' ? '#order=continuous' : ''));
+  if (!keep && cur < 0) history.replaceState(null, '', location.pathname + hashFor(0));
   dirty = true;
 }
-document.querySelectorAll('.modes button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+document.querySelectorAll('.modes:not(.boxsw) button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
 function setHi(k) {
   hi = k; dirty = true;
   document.querySelectorAll('#filmlist button').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.k === k || (b.dataset.k === '' && k === null))));
@@ -427,9 +440,12 @@ function buildList() {
     if (b.dataset.k === '') { setHi(null); return; }
     const k = +b.dataset.k; setHi(k);
     const f = films[k], a = f.frames[0].g, z = f.frames[f.frames.length - 1].g;
-    const x0 = PAD, y0 = L.r[a * 2 + 1] - (mode === 'film' ? HEAD : 0), y1 = L.r[z * 2 + 1] + CH;
-    const ts = Math.min(maxS(), Math.max(fitS(), Math.min((vw - 20) / L.W, (vh - TOP - 30) / (y1 - y0))));
-    go(ts, L.W / 2 - vw / 2 / ts, (y0 + y1) / 2 - (vh + TOP) / 2 / ts, true);
+    // frame the film's own boxes (short films sit in the first columns, not across the whole width)
+    let x0 = 1e9, x1 = -1e9;
+    for (let g = a; g <= z; g++) { x0 = Math.min(x0, L.r[g * 2]); x1 = Math.max(x1, L.r[g * 2] + CW); }
+    const y0 = L.r[a * 2 + 1] - (mode === 'film' ? HEAD : 0), y1 = L.r[z * 2 + 1] + CH;
+    const ts = Math.min(maxS() * .5, Math.max(fitS(), Math.min((vw - 40) / (x1 - x0), (vh - TOP - 40) / (y1 - y0))));
+    go(ts, (x0 + x1) / 2 - vw / 2 / ts, (y0 + y1) / 2 - (vh + TOP) / 2 / ts, true);
     fl.hidden = true; fb.setAttribute('aria-expanded', 'false');
   };
 }
@@ -456,8 +472,25 @@ addEventListener('keydown', e => {
 });
 
 /* ---------- deep links: #n=0142, #order=continuous, #film=slug ---------- */
+function hashFor(n) {
+  const q = [];
+  if (n) q.push('n=' + pad4(n));
+  if (mode === 'all') q.push('order=continuous');
+  if (bx !== 'boxes') q.push('boxes=' + bx);
+  return q.length ? '#' + q.join('&') : '';
+}
+function setBoxes(v, fromHash) {
+  if (!BOXV.includes(v)) return;
+  bx = v; document.body.dataset.boxes = v; dirty = true;
+  try { localStorage.setItem(BOXK, v); } catch (e) {}
+  document.querySelectorAll('.boxsw button').forEach(b => b.setAttribute('aria-pressed', b.dataset.boxes === v ? 'true' : 'false'));
+  if (!fromHash) history.replaceState(history.state, '', location.pathname + hashFor(cur >= 0 ? F[cur].n : 0));
+}
+document.querySelectorAll('.boxsw button').forEach(b => b.onclick = () => setBoxes(b.dataset.boxes));
+setBoxes(bx, true);
 function readHash() {
   const q = new URLSearchParams(location.hash.slice(1));
+  const bq = q.get('boxes'); if (bq) setBoxes(bq, true);
   const o = q.get('order'); setMode(o === 'continuous' ? 'all' : 'film', true);
   const fs = q.get('film'); if (fs) { const k = films.findIndex(f => f.slug === fs); if (k >= 0) setHi(k); }
   const n = parseInt(q.get('n'), 10);

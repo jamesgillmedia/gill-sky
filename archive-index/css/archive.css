@@ -77,8 +77,19 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.lt-fig.anim,.lt-box #lthi{transition:none}}
 @media (max-width:520px){
   .count{display:none}
-  .top{gap:8px}
+  .top{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand films" "modes boxsw";gap:7px 8px;align-items:center}
+  .brand{grid-area:brand}.filmsbtn{grid-area:films}.modes{grid-area:modes;justify-self:start}.boxsw{grid-area:boxsw;justify-self:end}
+  .films{top:calc(84px + env(safe-area-inset-top))}
   .modes button,.filmsbtn{padding:0 8px;letter-spacing:.12em}
   .brand{font-size:12.5px;letter-spacing:.16em}
   .lt-nav{top:auto;bottom:calc(.6rem + env(safe-area-inset-bottom));margin-top:0}
 }
+
+/* box chrome: dim / hide */
+body[data-boxes=dim] .lt-box{outline-color:rgba(229,55,44,.28)}
+body[data-boxes=dim] .lt-tag{background:none;color:rgba(229,55,44,.3)}
+body[data-boxes=hide] .lt-box{outline:none}
+body[data-boxes=hide] .lt-tag{display:none}
+body[data-boxes=dim] .lt-num,body[data-boxes=hide] .lt-num{color:var(--meta)}
+body[data-boxes=dim] .lt-title button[aria-pressed=true],body[data-boxes=hide] .lt-title button[aria-pressed=true]{border-bottom-color:rgba(255,255,255,.6)}
+body[data-boxes=dim] button:focus-visible,body[data-boxes=hide] button:focus-visible{outline-color:rgba(255,255,255,.5)}
