@@ -17,6 +17,13 @@ sh objects-3d/serve.sh        # then http://localhost:8765/objects-3d/
    structured so it can become a camera glide. The "concept doc" mentioned in the 4:32 message was not attached to the run, so this
    build follows the text of the message only.
 
+## Visual fixes (Gill approved Nov 11, 5:35 PM)
+1. **Cutouts** (`tools/cutout.py`): rembg (u2net, local) plus a hand-placed silhouette polygon and a skin-colour clean-up along the edge, so no wall and no hand remain. Webp with alpha, EXIF dropped. Done for the whole-piece shots: cup IMG_5841 (`media/joio-cup/cut-IMG_5841.webp`) and scoop SCOOP-03 (`media/scoop/cut-SCOOP-03.webp`; the handle is held by fingers, so it stops just below the collar and fades out). The cup's right edge where the thumb overlapped is a clean cut along the cup; the rim's white glints near the top were clipped.
+2. **Light**: warm pool of light behind and under the piece, plus a soft contact shadow (cup sits on it; the scoop floats above a fainter, lower one). `cutout` in `js/presenters.js`.
+3. **Ground**: deep aubergine-to-ink vignette in CSS, three faint colour washes from Spirit Eye's sky (blue, purple, teal) also in CSS, and a thin static scatter of stars in three.js that the dolly moves only slightly. Nothing moves by itself.
+4. **Surface, making, use**: photos now have soft feathered rounded edges (alpha-mask frames, `soft()` in `js/presenters.js`), surface crops slightly larger. The shop slot stays an empty outline.
+Kept as asked: 13 making stops with the paddle photos, the drink shots under use. IMG_1342 and the private stems are not used. Before screenshots and video: `_qa/before/`; side-by-side: `_qa/compare-*.jpg`.
+
 ## How it works
 - One axis per specimen: every photo is one **stop**; the layers are runs of stops: whole piece, surface, making, use, shop. A layer with no real photos is skipped.
 - Moving one stop = a straight camera dolly along z (`js/moves.js`), frames cross-fade so only one frame is ever visible at a stop. Nothing from another layer shows at rest.
@@ -33,13 +40,13 @@ sh objects-3d/serve.sh        # then http://localhost:8765/objects-3d/
 
 ## What each layer shows (all data from the repo, see header of `js/data.js`)
 **joio cup** (25 stops)
-- whole piece (1): IMG_5841, the approved hero (`_sketch/objects/rings/joio-cup/06-three-quarter-IMG_5841`)
+- whole piece (1): IMG_5841, the approved hero (`_sketch/objects/rings/joio-cup/06-three-quarter-IMG_5841`), as a cutout in the light
 - surface (4 details, crops): IMG_5841 glaze, e2aa7ba0 (close on the speckled wall), IMG_5892 interior, IMG_5901 interior and rim
 - making (13): the file-counter order of the real shots: paddle close grain IMG_0183, single paddle IMG_0346, IMG_2351, IMG_2401, long dark paddle IMG_3497, IMG_3506, the empty-cup burst IMG_5881 / IMG_5892 / IMG_5901, then shots with no counter: 2528243E, 1724F546, hand-carved piece (carve), carved spoon (spoon)
 - use (6): cup with a drink, in order: IMG_0952, IMG_5925, IMG_6136, IMG_6166, IMG_9126, 16B39E13
 - shop (1): empty slot, labelled `joio cup · shop`, no price, no button, no link
 **ice cream scoop** (5 stops)
-- whole piece: SCOOP-03 (front view of bowl and handle join); surface (3 crops): bowl interior and side of the bowl (SCOOP-03, SCOOP-04), charred ridged handle (SCOOP-03); making: skipped; use: skipped; shop: empty slot
+- whole piece: SCOOP-03 (front view of bowl and handle join), as a cutout; surface (3 crops): bowl interior and side of the bowl (SCOOP-03, SCOOP-04), charred ridged handle (SCOOP-03); making: skipped; use: skipped; shop: empty slot
 
 ## Skipped / flagged because the repo has no real data
 - Making and use for the scoop: no process or in-use scoop photo exists. The context still (scoop on paddles, "for scale") and the in-hand three-quarter (0456C57F) are not process or use, so they are not shown as such. 0456C57F and the context still are unused.
@@ -61,9 +68,10 @@ sh objects-3d/serve.sh        # then http://localhost:8765/objects-3d/
 |---|---|---|
 | 0 | branch, folder, this file, real media (re-encoded, EXIF/GPS stripped), media build script | db4a854 |
 | 1 | specimen viewer: dark ground, one photo per stop, dolly between stops, dissolve between specimens, HUD, gestures, QA script | 506f9c7 |
-| 2 | QA: screenshots of every layer at 390x844, 844x390, 1440x900, 57 checks pass, screen recording, this file | (this commit) |
+| 2 | QA: screenshots of every layer at 390x844, 844x390, 1440x900, 57 checks pass, screen recording, this file | 522b148 |
+| 3 | visual fixes: cutouts, warm light and contact shadow, deep ground with haze and stars, soft-edged frames; wheel lock fix; QA re-run (57 checks pass), before/after screenshots | see git log |
 
 ## QA (`_qa/`)
 - `qa.py` drives real input (CDP touch pinch/swipe/tap, mouse wheel, ctrl+wheel, keyboard) at 390x844 touch, 844x390 touch, 1440x900, each also with Reduce Motion emulated. 57 checks pass (`qa-log.txt`): layer order, 25 and 5 stops, exactly one stop per gesture, rapid repeat = one step, up lands on what you came from, specimen swipe, Home, no console errors, Reduce Motion gives identical steps.
-- Screenshots: `_qa/phone-390x844/`, `_qa/landscape-844x390/`, `_qa/desktop-1440x900/` (first stop of every layer, plus second and last of surface and making).
-- Recording: `_qa/objects-3d-walk-phone-390x844.mp4` (software GL in headless Chrome, so the frame rate is low; not a phone-hardware check).
+- Screenshots (after the visual fixes): `_qa/phone-390x844/`, `_qa/landscape-844x390/`, `_qa/desktop-1440x900/` (first stop of every layer, plus second and last of surface and making). The same set from before the fixes is in `_qa/before/<viewport>/`; `_qa/compare-<viewport>.jpg` puts them side by side (top before, bottom after).
+- Recording: `_qa/objects-3d-walk-phone-390x844.mp4` (before the fixes: `_qa/before/objects-3d-walk-phone-390x844.mp4`) (software GL in headless Chrome, so the frame rate is low; not a phone-hardware check). Because that environment can stall frames for 100-200 ms, the wheel/trackpad lock is measured at the page, and the haze washes are CSS so they cost no fill rate.

@@ -55,3 +55,4 @@ PASS desktop-1440x900 Home = cup whole piece
 PASS desktop-1440x900 no console errors / 4xx []
 PASS desktop-1440x900 RM reduce-motion run gives the same steps [1, 2, 3, 1]
 PASS desktop-1440x900 RM no console errors / 4xx []
+57 checks, 0 failed
