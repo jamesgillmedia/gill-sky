@@ -1,7 +1,5 @@
 /* The three.js side: one scene, one dark ground, one camera that only ever looks straight down -z.
    Each specimen is a group at its own x; its stops are laid along -z. The camera sits F in front of the stop it is on. */
-import { radial } from './presenters.js';
-
 export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getMargins) {
   const R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   R.setClearColor(0x000000, 0);
@@ -9,12 +7,9 @@ export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getM
   const FOV = 38, F = 10, SPEC_X = 300;
   const cam = new THREE.PerspectiveCamera(FOV, 1, .1, 200); scene.add(cam);
   const tanH = Math.tan(FOV * Math.PI / 360);
-  /* a faint static haze behind everything, in Spirit Eye's colours: three very soft washes and a thin scatter of stars.
+  /* a faint static scatter of stars behind everything (the soft colour washes of Spirit Eye's sky are in objects3d.css, which costs no fill rate).
      It follows the camera sideways and almost fully in depth, so the dolly moves it only a little. Nothing in it moves by itself. */
   const haze = new THREE.Group(); haze.renderOrder = -10; scene.add(haze);
-  [[-70, 34, -150, 0x27407a, 250, .17], [80, -36, -135, 0x4a2a6a, 270, .15], [6, -62, -175, 0x1d4a56, 230, .13]].forEach(n => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: radial(THREE), color: n[3], transparent: true, opacity: n[5], depthWrite: false }));
-    m.position.set(n[0], n[1], n[2]); m.scale.set(n[4], n[4], 1); m.renderOrder = -10; haze.add(m) });
   (function stars() {
     let a = 20241111; const rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 };
     const dot = (function () { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);

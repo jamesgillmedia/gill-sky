@@ -61,7 +61,7 @@ export function cutout(THREE, frame, env) {
       const oy = h * .02;
       glow.scale.set(w * 2.5, w * 2.1, 1); glow.position.set(0, oy + h * .08, -.04);
       pool.scale.set(w * 1.9, w * .72, 1); pool.position.set(0, -h / 2 + (sit ? w * .02 : -w * .12), -.03);
-      if (sit) { shadow.scale.set(w * .9, w * .12, 1); shadow.position.set(0, -h / 2 + w * .012, -.01); shadow2.scale.set(w * 1.5, w * .26, 1); shadow2.position.set(0, -h / 2 - w * .005, -.012) }
+      if (sit) { shadow.scale.set(w * .85, w * .11, 1); shadow.position.set(0, -h / 2 + w * .028, -.01); shadow2.scale.set(w * 1.5, w * .26, 1); shadow2.position.set(0, -h / 2 + w * .01, -.012) }
       else { shadow.scale.set(w * .7, w * .1, 1); shadow.position.set(0, -h / 2 - w * .14, -.01); shadow.userData.base = .55; shadow2.scale.set(w * 1.2, w * .22, 1); shadow2.position.set(0, -h / 2 - w * .16, -.012) }
       return { w, h };
     },
