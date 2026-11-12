@@ -69,13 +69,14 @@ addEventListener('keydown', e => {
   e.preventDefault();
 });
 
-/* wheel and trackpad: one burst = one step. After a step the lock stays until the wheel has been quiet for 220 ms,
+/* wheel and trackpad: one burst = one step. After a step the lock stays until the next wheel event arrives after a 220 ms gap (measured when the page handles the event),
    so a trackpad's inertia tail cannot add a second step. Scroll toward = deeper (the usual zoom direction). */
-let wAcc = 0, wLock = false, wTimer = 0;
+let wAcc = 0, wLock = false, wLast = 0;
 cv.addEventListener('wheel', e => {
   e.preventDefault();
-  const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1) * (e.ctrlKey ? 4 : 1);
-  clearTimeout(wTimer); wTimer = setTimeout(() => { wLock = false; wAcc = 0 }, 220);
+  const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1) * (e.ctrlKey ? 4 : 1), t = performance.now();
+  if (t - wLast > 220) { wLock = false; wAcc = 0 }
+  wLast = t;
   if (wLock) return;
   wAcc += dy; if (Math.abs(wAcc) < 30) return;
   wLock = true; const d = wAcc; wAcc = 0; if (d < 0) deeper(); else up();

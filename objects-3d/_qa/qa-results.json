@@ -1,1 +1,77 @@
-[]
+[
+ [
+  "desktop-1440x900 cup layers in order",
+  true,
+  "['whole piece', 'surface', 'making', 'use', 'shop']"
+ ],
+ [
+  "desktop-1440x900 cup stop count",
+  true,
+  "25"
+ ],
+ [
+  "desktop-1440x900 Escape up one stop at a time to whole piece",
+  true,
+  ""
+ ],
+ [
+  "desktop-1440x900 up at the top does nothing",
+  true,
+  ""
+ ],
+ [
+  "desktop-1440x900 wheel burst toward = exactly one layer in",
+  true,
+  "stop 1"
+ ],
+ [
+  "desktop-1440x900 wheel burst away = exactly one layer up",
+  true,
+  "stop 0"
+ ],
+ [
+  "desktop-1440x900 ctrl+wheel pinch = one step",
+  true,
+  "1"
+ ],
+ [
+  "desktop-1440x900 rapid Enter x4 = one step",
+  true,
+  "1"
+ ],
+ [
+  "desktop-1440x900 ArrowDown / ArrowUp",
+  true,
+  ""
+ ],
+ [
+  "desktop-1440x900 one gesture = next specimen (scoop, whole piece)",
+  true,
+  "ice cream scoop"
+ ],
+ [
+  "desktop-1440x900 scoop layers (making and use skipped)",
+  true,
+  "['whole piece', 'surface', 'shop']"
+ ],
+ [
+  "desktop-1440x900 Home = cup whole piece",
+  true,
+  ""
+ ],
+ [
+  "desktop-1440x900 no console errors / 4xx",
+  true,
+  "[]"
+ ],
+ [
+  "desktop-1440x900 RM reduce-motion run gives the same steps",
+  true,
+  "[1, 2, 3, 1]"
+ ],
+ [
+  "desktop-1440x900 RM no console errors / 4xx",
+  true,
+  "[]"
+ ]
+]
