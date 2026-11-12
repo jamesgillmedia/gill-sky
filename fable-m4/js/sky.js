@@ -1632,7 +1632,7 @@ function onDown(e){
   noteTouch(e.clientX,e.clientY);
   var card=$('hirecard');
   if(card&&!card.hidden&&!e.target.closest('#hire')){hireOpen(false);return}
-  if(e.target.closest('#bar,#wcrumb,#wrail,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
+  if(e.target.closest('#bar,#wcrumb,#wrail,.gdoor,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
   if(phase==='arrive'||phase==='land'){rippleAt(e.clientX,e.clientY);drag={x:e.clientX,y:e.clientY,id:e.pointerId,t:now()};moved=false;return}
   if(phase!=='sky')return;
   var over=false;
@@ -2359,8 +2359,16 @@ function hashOf(c){
   if(c.id&&byId[c.id])return '#'+byId[c.id].chapter+'/'+byId[c.id].slug;
   return '#/';
 }
+/* fable-m4: one door per chapter landing (lv1, not the board): Objects -> objects-3d/ (lit specimen viewer). */
+function syncDoors(){
+  var doors={objects:'gobj3d'},k;
+  for(k in doors){var el=$(doors[k]);if(!el)continue;
+    var on=phase==='sky'&&cur.lv===1&&cur.k===k&&!cur.b&&!cur.cards&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn());
+    if(el.hidden===on)el.hidden=!on}
+}
 function ui(){
   syncHist();
+  syncDoors();
   var back=$('back'),where=$('where');
   back.hidden=cur.lv===0;
   document.documentElement.classList.toggle('mapdim',onBoard()||!!cur.cards||(bioOn&&isBio()));

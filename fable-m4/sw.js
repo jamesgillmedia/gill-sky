@@ -1,6 +1,6 @@
 /* Shell only. Video and audio are never stored; everything else off this origin streams.
    The cache name follows this folder, so a copy (u4 beside u3) does not share a shell. */
-var SHELL_REV = '106';
+var SHELL_REV = '107';
 var FOLDER = new URL('./', self.location).pathname.replace(/\/+$/, '') || '/';
 var CACHE = 'shell-' + FOLDER + '-' + SHELL_REV;
 var SHELL = [
@@ -43,6 +43,9 @@ self.addEventListener('activate', function (event) {
   }).then(function () { return self.clients.claim(); }));
 });
 
+/* fable-m4: objects-3d/ is its own page; the shell never caches it. */
+var OWN = ['objects-3d/'].map(function (p) { return new URL(p, self.location).pathname; });
+
 function isMedia(url) {
   return /\.(mp4|webm|m4v|mov|ogv|mp3|m4a|ogg|wav|aac)(\?|$)/i.test(url.pathname);
 }
@@ -52,6 +55,7 @@ self.addEventListener('fetch', function (event) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  if (OWN.some(function (p) { return url.pathname.indexOf(p) === 0; })) return;
   if (isMedia(url)) return;
   if (req.headers.get('range')) return;
   event.respondWith(caches.open(CACHE).then(function (cache) {

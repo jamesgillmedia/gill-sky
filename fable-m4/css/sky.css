@@ -427,3 +427,8 @@ html:not(.port) #dive{left:27%}
 #layer .songsel{outline:1.5px solid rgb(85,218,161);outline-offset:2px;box-shadow:0 0 14px rgba(85,218,161,.45)}
 #songtitle{position:fixed;left:50%;bottom:calc(64px + var(--sb,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.86);border:1px solid rgba(85,218,161,.55);color:#e8f1f4;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
 #songtitle.on{opacity:1}
+/* fable-m4: chapter doors (objects in 3d; photo lab), only at that chapter's landing */
+.gdoor{position:absolute;z-index:7;left:max(10px,var(--sl));bottom:calc(58px + var(--sb));display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid rgba(255,255,255,.18);background:rgba(3,5,10,.62);font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;text-transform:lowercase;color:#eef3f5;text-decoration:none}
+.gdoor[hidden]{display:none}
+.gdoor span{font-size:14px;color:rgba(228,235,245,.7)}
+.gdoor:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
