@@ -194,7 +194,10 @@ function smooth(a,b,v){v=clamp((v-a)/(b-a),0,1);return v*v*(3-2*v)}
    (now that the camera springs use real time) can't carry a visible star across its zoom cycle or the wrap in
    one step. It catches up within a few frames, so settled frames are exactly the camera's. */
 var FC={on:0,lz:0,px:0,py:0};
-function fcTarget(){var z=Math.max(1e-3,depthZoom());return {lz:Math.log(z),px:-rest.x*FAR.s*Math.sqrt(z)*DZ.slide-look.x*140,py:-rest.y*FAR.s*Math.sqrt(z)*DZ.slide-look.y*140}}
+/* Depth field rides the same camera as the constellations (rest+look). A one-finger look
+   used to multiply look by 140 while the map only moved look*scale — stars tore around as an
+   "effect" and the page felt like it only answered to pinch. Same scale now. */
+function fcTarget(){var z=Math.max(1e-3,depthZoom()),k=FAR.s*Math.sqrt(z)*DZ.slide;return {lz:Math.log(z),px:-(rest.x+look.x)*k,py:-(rest.y+look.y)*k}}
 function fcStep(){
   var T=fcTarget();
   if(!FC.on){FC.on=1;FC.lz=T.lz;FC.px=T.px;FC.py=T.py;return}
@@ -1858,7 +1861,8 @@ function onDown(e){
 }
 function onMove(e){
   if(!drag||e.pointerId!==drag.id)return;
-  noteTouch(e.clientX,e.clientY);
+  /* Glow stays on the down point (tap feedback). Refreshing it every move made a one-finger
+     look paint a light trail — another "effect" instead of a quiet look around. */
   var dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(Math.hypot(dx,dy)>8)moved=true;
   if(phase!=='sky')return;
