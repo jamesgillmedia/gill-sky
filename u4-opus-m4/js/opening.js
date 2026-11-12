@@ -125,7 +125,7 @@ function frame(t){
   var dt=Math.min(.1,(t-(lastT||t))/1000);lastT=t;
   if(tween){var k=Math.min(1,(t-tween.t0)/tween.ms),e=1-Math.pow(1-k,3);p=tween.a+(tween.b-tween.a)*e;
     if(k>=1){tween=null;p=Math.round(p);if(p>=N)p-=N;if(p<0)p+=N;place();playCur()}}
-  else if(!busy())driftStep(dt);
+  else if(!busy()&&!board)driftStep(dt); /* Film cards board: no auto-swipe (Gill, 8:15 PM Nov 11) */
   place();raf=requestAnimationFrame(frame);
 }
 function glide(to,ms){quiet();clearTimeout(holdT);sel=-1;tween={a:p,b:to,t0:performance.now(),ms:ms||EASE_MS};loop()}
@@ -134,11 +134,11 @@ function step(dir,user){
   if(!user){passed++;if(passed>=N&&!stay){finish();return}}
   glide(from+dir);
 }
-function ended(i){if(!on||busy()||mod(Math.round(p))!==i)return;if(cards[i].audio&&song&&!song.paused)return;step(1,false)}
+function ended(i){if(!on||board||busy()||mod(Math.round(p))!==i)return;if(cards[i].audio&&song&&!song.paused)return;step(1,false)}
 function finish(){var cb=onDone;hide();if(cb)cb()}
 function toggleSong(src){
   if(!song){song=new Audio(src);song.preload='metadata';
-    song.addEventListener('ended',function(){sync(false);if(on&&cards[mod(Math.round(p))].audio)step(1,false)});
+    song.addEventListener('ended',function(){sync(false);if(on&&!board&&cards[mod(Math.round(p))].audio)step(1,false)});
     song.addEventListener('play',function(){sync(true)});song.addEventListener('pause',function(){sync(false)})}
   if(song.paused){var r=song.play();if(r&&r.catch)r.catch(function(){})}else song.pause();
 }
