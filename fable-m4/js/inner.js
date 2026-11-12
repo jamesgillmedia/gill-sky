@@ -3,7 +3,7 @@
    Further pinches only get closer. Pinch out is one step. */
 (function(){
 'use strict';
-var PRO2='', JOIOB='', NOV='media/nov9/', ST='media/studio/';
+var PRO2='', JOIOB='', NOV='media/nov9/', ST='media/studio/', DR='media/drive/';
 var S={step:0,scale:1,groups:[],gi:0,si:0,it:null,frags:[],t:0};
 var cache={};
 var subs=[];
@@ -281,6 +281,23 @@ function joioShots(){
   });
   return list;
 }
+/* fable-m4: Gill's 11 colourful/abstract Drive picks (/workspace/drive-abstract picks.md, ranked; no titles exist, so none are
+   shown). Clips are silent and loop whole, like every clip on this base. Never 09-tour.MP4, screenshots or private files. */
+function driveShots(){
+  return [
+    shot(DR+'img/a78c7ad1794b40bba6ef16ba9c10697a_frame.webp',{clip:DR+'clips/a78c7ad1794b40bba6ef16ba9c10697a.mp4',title:''}),
+    shot(DR+'img/d9b7fee657454b918b5c2217d2fea1ff_frame.webp',{clip:DR+'clips/d9b7fee657454b918b5c2217d2fea1ff.mp4',title:''}),
+    shot(DR+'img/3108f47976944bccb615cc0a6f91937b_frame.webp',{clip:DR+'clips/3108f47976944bccb615cc0a6f91937b.mp4',title:''}),
+    shot(DR+'img/6ffc728f926c4b709d871d3be86d144c_frame.webp',{clip:DR+'clips/6ffc728f926c4b709d871d3be86d144c.mp4',title:''}),
+    shot(DR+'img/85dacdf606044b90804f52ce5e3d06c1_frame.webp',{clip:DR+'clips/85dacdf606044b90804f52ce5e3d06c1.mp4',title:''}),
+    shot(DR+'img/090dfcafe76842f4990d761802abd99f_frame.webp',{clip:DR+'clips/090dfcafe76842f4990d761802abd99f.mp4',title:''}),
+    shot(DR+'img/E5BADB72-A8DB-4A04-AB51-E0B3D574C803.webp',{title:''}),
+    shot(DR+'img/F2EC92C9-9EA8-4FC0-B609-3E9F70F8DA83.webp',{title:''}),
+    shot(DR+'img/cc0f7acaf2124d8da770adbbf461e2b4_frame.webp',{clip:DR+'clips/cc0f7acaf2124d8da770adbbf461e2b4.mp4',title:''}),
+    shot(DR+'img/d605ca0b589a433daeb232de78cb7cb0_frame.webp',{clip:DR+'clips/d605ca0b589a433daeb232de78cb7cb0.mp4',title:''}),
+    shot(DR+'img/7DE23FAF-B1D7-4BE0-8D78-419A065DF570.webp',{title:''})
+  ];
+}
 function cedarShots(){
   var list=[];
   ['carve','boards','materials','wire','spoon'].forEach(function(n){list.push(shot(PRO2+'img/objects/'+n+'-960.webp',{title:n}))});
@@ -295,7 +312,7 @@ function build(ctx){
   PRO2=ctx.PRO2;JOIOB=ctx.JOIOB;
   var ch=ctx.CH.objects,byId=ctx.byId;
   var joio=byId['objects/joio'];
-  if(joio)joio.shots=joioShots();
+  if(joio)joio.shots=joioShots().concat(driveShots());
   var cedar=byId['objects/hand-carved-piece'];
   if(cedar)cedar.shots=cedarShots();
   if(!byId['objects/spirit-eye']){
