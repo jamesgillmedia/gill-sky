@@ -1,4 +1,4 @@
-/* Red Light Gallery · prints hung on the walls. A quiet pill cycles salon, row, grid and pairs; never auto-advances.
+/* Darkroom · prints hung on the walls. A quiet pill cycles salon, row, grid and pairs; never auto-advances.
    Tap a print to stand in front of it (free native scroll, like the original day view). Safelight is the room, not a grade on the photograph.
    Same motion with Reduce Motion on. */
 (function(){
@@ -123,7 +123,7 @@ function openWall(i){
   if(where)where.textContent='the wall';
   LAB.layer.push('wall',function(){
     wall.classList.remove('open');
-    if(where)where.textContent='red light gallery';
+    if(where)where.textContent='darkroom';
     if(wallStrip)wallStrip.resetZoom();
     setTimeout(function(){if(!wall.classList.contains('open'))wall.hidden=true},1000);
     scrollToIndex(wi);

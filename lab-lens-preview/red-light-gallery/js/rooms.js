@@ -1,4 +1,4 @@
-/* Photo lab · two rooms: Horizon and Red Light Gallery. A simple switch, one shared contact sheet,
+/* Photo lab · two rooms: Horizon and Darkroom. A simple switch, one shared contact sheet,
    the same photographs, the same gestures: tap to enter, pinch out for the sheet, never a dead end.
    Cards never auto-swipe. Same motion with Reduce Motion on. */
 (function(){
@@ -16,7 +16,7 @@ function applyChrome(){
   if(drB){drB.classList.toggle('on',r==='red-light-gallery');drB.setAttribute('aria-pressed',r==='red-light-gallery');drB.setAttribute('aria-selected',r==='red-light-gallery')}
   if(sortB)sortB.hidden=r!=='horizon';
   var open=LAB.sheet&&LAB.sheet.isOpen();
-  if(where&&!open)where.textContent=r==='red-light-gallery'?'red light gallery':r;
+  if(where&&!open)where.textContent=r==='red-light-gallery'?'darkroom':r;
   var meta=document.querySelector('meta[name=theme-color]');
   if(meta&&!open){var on=document.body.classList.contains('safe');meta.content=r==='red-light-gallery'?(on?'#120202':'#262321'):(on?'#0a0506':'#04070b')}
   if(r==='horizon'&&LAB.horizon&&LAB.horizon.show)LAB.horizon.show();
@@ -42,7 +42,7 @@ function setRoom(name,fromUser){
   var top=LAB.layer.top();
   if(top==='horizon'||top==='red-light-gallery')LAB.layer.rename(name);
   applyChrome();
-  if(fromUser)LAB.hint(name==='horizon'?'horizon: every photograph on a line of light':'red light gallery: prints on the walls — tap a grouping to change how they hang',2800);
+  if(fromUser)LAB.hint(name==='horizon'?'horizon: every photograph on a line of light':'darkroom: prints on the walls — tap a grouping to change how they hang',2800);
 }
 
 function enter(i){
@@ -65,7 +65,7 @@ if(hzB)hzB.addEventListener('click',function(){setRoom('horizon',true)});
 if(drB)drB.addEventListener('click',function(){setRoom('red-light-gallery',true)});
 
 if(cam)cam.addEventListener('click',function(e){
-  /* horizon.js also binds #cam; if we are in the Red Light Gallery, let it handle it and stop the horizon handler. */
+  /* horizon.js also binds #cam; if we are in the Darkroom, let it handle it and stop the horizon handler. */
   if(current()!=='red-light-gallery'||!LAB.redLightGallery)return;
   e.stopImmediatePropagation();
   LAB.redLightGallery.camera();

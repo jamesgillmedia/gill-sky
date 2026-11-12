@@ -1,4 +1,4 @@
-/* Red Light Gallery · a red-lit room of hung prints. Groupings: salon, row, grid, pairs.
+/* Darkroom · a red-lit room of hung prints. Groupings: salon, row, grid, pairs.
    A quiet pill cycles them; they never auto-advance. Safelight is the room (lamp, walls, spill),
    not a grade on the photograph. Room light dims the wash only. Same motion with Reduce Motion on. */
 body.dr{background:var(--bg,#0d0303)}
@@ -91,7 +91,7 @@ body.hz #arrange{display:none}
 body.dr #arrange{display:inline-grid}
 body.dr #sort,body.dr #clips{display:none}
 
-/* ---------- Red Light Gallery · wall, floor and lighting (12 Nov, 2:44–2:50 AM) ----------
+/* ---------- Darkroom · wall, floor and lighting (12 Nov, 2:44–2:50 AM) ----------
    The prints hang on the wall plane from a nail and wire. The wall ends at a floor line; the control
    panel (css/deck.css) is mounted on the wainscot below it. Entering the room is a lighting cut:
    the room comes up out of the dark — nothing slides or rises. The safelight toggles only the light
