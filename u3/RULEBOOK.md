@@ -16,6 +16,14 @@ The journey stays: touch the water, the plunge with the near-lens bokeh, then th
 
 Motion is the same with Reduce Motion on. The page does not read `prefers-reduced-motion`, and it does not branch on it. The slow push and the waveform dot pulse run either way.
 
+## The boards keep what worked
+
+From the u3-preview publish on, every fix follows this. The sky, the motion, and the zoom from the touch come into each category: how you move, the layout, and how much sits on the screen. What made the earlier boards work stays with them.
+
+The boards stay clear and readable. The players stay fully usable: the mint audio player, and the film players. Lists stay plain. The work stays dense and fills the phone.
+
+Each category is checked against u2 and site-v3-pro2 at iPhone size. Where this sky is less clear or less dense, the earlier board’s clarity comes back, in this sky’s look.
+
 ## What may be on screen
 
 Warm paper is `#e4ddd2`, not white. Low glare. Fonts are Julius Sans One, Poppins, Caveat for notes, Architects Daughter for headings. Those already in the sky stay.

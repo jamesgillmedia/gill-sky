@@ -582,20 +582,40 @@ function gridSpec(key){
   var items=(b&&b.items&&(key===b.k||key===boardKey()))?b.items:(key==='progress'?progress:(CH[key]?CH[key].items:[]));
   var n=items.length||1;
   var fine=!!(b&&b.fine);
+  var phone=W<520;
   var cols=2;
   if(key==='sound'||key==='about')cols=1;
-  else if(fine)cols=n<=4?2:(W<520?2:3);
+  else if(key==='photo'&&!fine)cols=phone?3:(W<860?4:5);
+  else if(key==='film'&&!fine)cols=phone?3:(W<860?4:5);
+  else if(fine)cols=n<=4?2:(phone?3:4);
   else if(n>18&&W>=700)cols=4;
   else if(n>10&&W>=520)cols=3;
-  var gap=8,pad=10,head=48;
-  var maxW=Math.min(W-16,720);
-  var tw=(maxW-pad*2-gap*(cols-1))/cols;
-  var th=key==='sound'?84:(key==='about'?44:Math.round(tw*9/16));
-  if((key==='photo'||key==='objects'||key==='progress')&&!fine)th=Math.round(tw);
-  var cap=key==='sound'||key==='about'?0:(key==='film'?34:18);
-  var pitch=th+cap+8,rows=Math.ceil(n/cols);
+  var gap=cols>=3?6:8,pad=10,head=48;
+  var maxW=Math.min(W-16,phone?W-16:920);
+  var tw=Math.floor((maxW-pad*2-gap*(cols-1))/cols);
+  var labelled=key!=='photo'&&key!=='sound'&&key!=='about'&&items.some(function(it,i){
+    if(i>24)return false;
+    var t=it._cap||it.title||'';
+    return !!(t&&t!=='untitled'&&!/^photograph\s+\d+$/i.test(t));
+  });
+  var cap=0;
+  if(key==='film'&&!fine)cap=36;
+  else if(labelled)cap=18;
+  var th=tw;
+  if(key==='sound')th=84;
+  else if(key==='about')th=44;
+  else if(key==='film')th=Math.round(tw*9/16);
+  var pitch=th+cap+gap,rows=Math.ceil(n/cols);
   var contentH=head+rows*pitch+8;
   var top=chromeTop(),bot=6,room=Math.max(220,H-top-bot);
+  if(key==='sound'&&!fine&&items.length>0&&items.length<=8){
+    th=Math.max(84,Math.floor((room-head-12)/items.length)-gap);
+    pitch=th+cap+gap;contentH=head+items.length*pitch+8;
+  }
+  if(key==='objects'&&!fine&&rows&&contentH<room){
+    th=Math.round(th+(room-contentH)/rows);
+    pitch=th+cap+gap;contentH=head+rows*pitch+8;
+  }
   var winH=Math.min(room,contentH);
   var y0=top;
   return {key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:pitch,contentH:contentH,winH:winH,x0:(W-maxW)/2,y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n};
@@ -715,15 +735,30 @@ function drawWindow(){
     var capText=it._cap||it.title;
     if(/^photograph\s+\d+$/i.test(capText||'')||capText==='untitled')capText='';
     if(b>.8&&spec.cap&&capText&&it.kind!=='track'&&spec.key!=='sound'){
-      g.letterSpacing='0px';g.font='300 11px Poppins,sans-serif';
-      var lines=wrapCap(capText,Math.max(w,rc.w)-4);
-      var cy=y+h+3;
-      if(lines.length&&cy>=spec.y0+8&&cy+lines.length*13<=spec.y0+spec.winH-2)caps.push({lines:lines,x:Math.max(spec.x0+8,x),y:cy});
+      g.letterSpacing='0px';
+      var film=spec.key==='film';
+      g.font='300 '+(film?'10':'11')+'px Poppins,sans-serif';
+      var capW=Math.max(w,rc.w)-4;
+      var lines=wrapCap(capText,capW);
+      var notes=[];
+      if(film&&it.meta&&it.meta!==capText){
+        g.font='300 9px Poppins,sans-serif';
+        notes=lines.length<2?wrapCap(it.meta,capW):[cut(it.meta,capW)];
+      }
+      var cy=y+h+3,need=lines.length*12+notes.length*11;
+      if(lines.length&&cy>=spec.y0+8&&cy+need<=spec.y0+spec.winH-2)caps.push({lines:lines,notes:notes,film:film,x:Math.max(spec.x0+8,x),y:cy});
     }
   });
   g.restore();
-  g.letterSpacing='0px';g.font='300 11px Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';g.fillStyle='rgba(233,239,248,.88)';
-  caps.forEach(function(c){g.globalAlpha=b;c.lines.forEach(function(line,i){g.fillText(line,c.x,c.y+i*13)})});
+  g.letterSpacing='0px';g.textAlign='left';g.textBaseline='top';
+  caps.forEach(function(c){
+    g.globalAlpha=b;g.font='300 '+(c.film?'10':'11')+'px Poppins,sans-serif';g.fillStyle='rgba(233,239,248,.92)';
+    c.lines.forEach(function(line,i){g.fillText(line,c.x,c.y+i*12)});
+    if(c.notes&&c.notes.length){
+      g.font='300 9px Poppins,sans-serif';g.fillStyle='rgba(201,211,214,.8)';
+      c.notes.forEach(function(line,i){g.fillText(line,c.x,c.y+c.lines.length*12+i*11)});
+    }
+  });
   g.globalAlpha=1;g.textAlign='left';
 }
 function anchor(it){

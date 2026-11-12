@@ -93,6 +93,16 @@ Checked at 390×844 with Reduce Motion on. Motion stays the same either way.
 - The sound-chart covers are the same files, laid on with a lighter mix so the constellation in `waveform-480.webp` reads.
 - The arrival poem stays hidden until the type is ready, then the whole name is on the first paint.
 
+### Boards keep what worked
+
+Checked each category at 390×844 against u2 and site-v3-pro2.
+
+- Film is a three-column board again, with the real title and the real line under it (`reel · 04:20`, `commercial · 00:33`, `201 shots · a moving filmstrip`). The long titles fit on two lines.
+- Photo is a three-column contact sheet. Untitled and “photograph N” stay off the tiles.
+- Objects keeps its four pieces, and the tiles grow so the work reaches the bottom of the phone.
+- Sound’s five rows grow to fill the phone. The mint player under a song is unchanged: play, time, and the dotted waveform.
+- About stays the plain list: bio, contact, joio.co, the poem.
+
 ## Still open
 
 - The snow-on-dark-water arrival video. The old file still returns 403, so the arrival keeps the still water.
