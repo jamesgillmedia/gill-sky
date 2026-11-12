@@ -71,3 +71,19 @@ noscript .ns img{width:100%;height:auto;display:block}
  .cb-dial{width:128px;height:128px}
 }
 @media (max-width:520px){.lab-top .crumb b{display:none}}
+
+/* ---------- safelight (darkroom spill: ambient red on the room, not a grade on the photograph) ---------- */
+body.safe{--bg:#0a0506;--ink:#f3e0dc;--dim:#d9b8b2;--mute:#a07a76;--line:rgba(255,92,78,.20);--mint:#e38b7c;--tint:255,186,176}
+body.safe{background:var(--bg)}
+body.safe .lab-btn{background:rgba(18,6,6,.48)}
+body.safe .lab-btn:hover{border-color:rgba(255,140,120,.38)}
+body.safe .lab-btn.on{border-color:rgba(227,139,124,.75);color:var(--mint)}
+body.safe .lab-hint{background:rgba(18,6,6,.58);border-color:rgba(255,92,78,.20)}
+body.safe .veil{background:var(--bg)}
+/* very slight surround on the camera-back cells; the image itself is unfiltered */
+body.safe .cb{background:rgba(12,4,4,.94)}
+body.safe .cb.open{background:rgba(12,4,4,.94)}
+body.safe .cb-body{background:linear-gradient(160deg,#2a1412,#100808 60%);box-shadow:0 30px 80px rgba(40,0,0,.55),inset 0 1px 0 rgba(255,180,160,.08),inset 0 0 0 1px rgba(255,90,80,.06)}
+body.safe .cb-cell.sel{outline-color:var(--mint)}
+body.safe .cb-cell img,body.safe .cb-one img,body.safe .cb-one video{filter:none}
+body.safe .cb-scr{box-shadow:inset 0 0 0 2px #140808,0 0 24px rgba(120,16,10,.22)}

@@ -125,4 +125,23 @@ LAB.cameraBack=function(list,idx,opt){
   LAB.hint('turn the dial · pinch or ⊟ ⊕ for sheet, 9-up, 4-up, one, closer',4600);
   return {close:close};
 };
+
+/* ---------- safelight (one toggle, remembered on this device) ---------- */
+var SAFE_KEY='gj-photo-lab-safelight';
+LAB.safelight={
+  on:function(){return document.body.classList.contains('safe')},
+  set:function(on){
+    document.body.classList.toggle('safe',!!on);
+    var b=LAB.$('#safe')||document.getElementById('safe');
+    if(b){b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',!!on)}
+    try{localStorage.setItem(SAFE_KEY,on?'1':'0')}catch(e){}
+  }
+};
+(function(){
+  var start=false;try{start=localStorage.getItem(SAFE_KEY)==='1'}catch(e){}
+  LAB.safelight.set(start);
+  var b=document.getElementById('safe');
+  if(b)b.addEventListener('click',function(){LAB.safelight.set(!LAB.safelight.on());LAB.hint(LAB.safelight.on()?'safelight on — the room, not the photograph':'safelight off',2800)});
+})();
+
 })();
