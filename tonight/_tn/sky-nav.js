@@ -14,7 +14,7 @@
   function nav(href){try{window.top.location.href=href}catch(e){location.href=href}}
   var coarse=window.matchMedia&&matchMedia('(hover: none) and (pointer: coarse)').matches;
   window.TN_NAV=true;
-  var O=null,layer=null,links=[],more=null,hint=null,on=false,onT=0,box=[];
+  var O=null,layer=null,links=[],more=null,hint=null,on=false,onT=0,box=[],kb=false;
   function build(){
     layer=document.createElement('nav');layer.className='tn-sky';layer.setAttribute('aria-label','the constellation');
     KEYS.forEach(function(k,i){var a=document.createElement('a');a.className='tn-clu';a.href=hubFor(k);a.target='_top';a.setAttribute('data-k',k);
@@ -26,12 +26,13 @@
     hint.textContent=coarse?'pinch a constellation to open it':'click a name to open it';
     layer.appendChild(hint);
     document.body.appendChild(layer);
+    layer.addEventListener('focusin',function(){kb=true;layer.classList.add('kb');if(!on&&O&&O.go)O.go(1)});
+    layer.addEventListener('focusout',function(e){if(!layer.contains(e.relatedTarget)){kb=false;layer.classList.remove('kb')}});
     show(false,true);
   }
   var TINT=['150,220,255','170,245,212','255,236,205','255,182,176','214,222,236'];
   function show(v,force){if(v===on&&!force)return;on=v;onT=performance.now();
-    layer.classList.toggle('on',v);layer.setAttribute('aria-hidden',v?'false':'true');
-    [].forEach.call(layer.querySelectorAll('a'),function(a){if(v)a.removeAttribute('tabindex');else a.setAttribute('tabindex','-1')});
+    layer.classList.toggle('on',v);
     var st=document.getElementById('stage');
     if(st){if(!st.hasAttribute('data-tn-label'))st.setAttribute('data-tn-label',st.getAttribute('aria-label')||'');
       st.setAttribute('aria-label',v?'The constellation: choose a name to open it':st.getAttribute('data-tn-label'))}}
@@ -57,7 +58,7 @@
     if(foot){var gone=foot.classList.contains('gone')||P>=.03;
       if(gone&&foot.getAttribute('aria-hidden')!=='true'){foot.setAttribute('aria-hidden','true');foot._tnT=setTimeout(function(){if(foot.getAttribute('aria-hidden')==='true')foot.hidden=true},700)}
       else if(!gone&&foot.getAttribute('aria-hidden')==='true'){clearTimeout(foot._tnT);foot.hidden=false;foot.removeAttribute('aria-hidden')}}
-    if(!on)return;
+    if(!on&&!kb)return;
     box=boxes();
     var W=innerWidth;
     for(var k=0;k<links.length;k++){var q=box[k],a=links[k];if(!q.n){a.style.display='none';continue}a.style.display='';
@@ -95,7 +96,10 @@
   var nT=0;function nudge(){hint.classList.add('lit');clearTimeout(nT);nT=setTimeout(function(){hint.classList.remove('lit')},1600)}
   /* keyboard: Enter / Space on a name opens it (the opener's own keys would step the sky instead) */
   addEventListener('keydown',function(e){
-    var t=e.target;if(t&&t.closest&&t.closest('.tn-sky')){e.stopPropagation();return}
+    var t=e.target,ctl=t&&t.closest&&t.closest('a[href],button,input,select,textarea,[role=button]');
+    if(ctl){e.stopPropagation();
+      if(ctl.tagName==='A'&&(e.key===' '||e.key==='Spacebar')){e.preventDefault();ctl.click()}
+      return}
     if(on&&(e.key==='Enter'||e.key===' '||e.key==='ArrowUp'||e.key==='ArrowRight'||e.key==='+')&&(t===document.body||t===document.documentElement||(t&&t.id==='stage'))){
       e.preventDefault();e.stopPropagation();links[0].focus()}
   },true);
@@ -104,7 +108,8 @@
     var m=document.querySelector('#hud .sig,a.sig');if(!m)return;
     m.href=abs('hub/');m.target='_top';m.setAttribute('aria-label','home · the constellation');
     m.addEventListener('click',function(e){
-      if(!on&&O&&O.go){e.preventDefault();e.stopPropagation();O.go(1);setTimeout(function(){if(links[0])try{links[0].focus({preventScroll:true})}catch(x){}},900);return}
+      /* keyboard (Enter / Space: detail 0) always follows the link; a first mouse press settles the sky */
+      if(e.detail!==0&&!on&&O&&O.go){e.preventDefault();e.stopPropagation();O.go(1);setTimeout(function(){if(links[0])try{links[0].focus({preventScroll:true})}catch(x){}},900);return}
       e.preventDefault();e.stopPropagation();nav(abs('hub/'))},true);
     ['pointerdown','touchstart','mousedown'].forEach(function(t){m.addEventListener(t,function(e){e.stopPropagation()},{passive:true,capture:true})});
   }
