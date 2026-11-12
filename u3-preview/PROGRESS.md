@@ -65,6 +65,44 @@ Filled only from files already in the folder. Nothing was drawn or written to st
 - Sound: one part of the sky, not the headline. Kept the dotted chart, the lengths, and the player. Removed “Listen”, the licensing slogan, and “player · 6 tracks”. Spotify and Apple Music stay as the places the songs already live.
 - About: the calculator and the locked layers stay, word for word, including the poem. No pronouns line. Vancouver only. Jack Taylor is not in that locked text, so his name was not added. The dark band is there so the green display does not eat the sentence.
 
+### The boards
+
+Sky, then the category, then that category’s board, then the piece. A category tap or pinch stops on the constellation. The next pinch, or a tap on that chart, opens the board: a clear grid of the real works, with titles, and sound as a list of players. About’s board is the bio, contact, and poem list. Back from a piece returns to that board, then to the category, then to the sky. One level each time. On a phone the breadcrumb keeps enough of the bar to read the level (`film`, `film · board`, and the same for photo, objects, sound, and about). A film title that is too long for one column wraps onto a second line. The board panel runs to the bottom of the phone.
+
+### Arrival name
+
+The arrival shows one “gill james”. The letter pulse sits on that same line, above “I am Gill”.
+
+### Demo Reel
+
+Opening Demo Reel from the film board lands on the shot grid. The black lead frame is one tile in that grid. A film that does have a clip keeps its poster up until the video has a frame.
+
+### Sky labels
+
+FILM, PHOTO, SOUND, OBJECTS, and ABOUT are the paper colour, with a short dark shadow, so they read on the phone in daylight.
+
+### Phone pass
+
+Checked at 390×844 with Reduce Motion on. Motion stays the same either way.
+
+- The photo board and the sound chart start below the top bar. On a full-bleed still the bar fades, so the picture stays edge to edge.
+- The Weird Kid title stays on one line.
+- Weird Kid’s mid frames and Spirit Eye fill the phone. A single process still does too.
+- “Demo Reel” is drawn whole during the film dive, or not at all, so the letters are not sliced mid-word.
+- The calculator crop takes the body of the device, not a tight window on the display, and the black letterbox under the bar is out of the frame. The sentence still sits on a soft dark wash.
+- The sound-chart covers are the same files, laid on with a lighter mix so the constellation in `waveform-480.webp` reads.
+- The arrival poem stays hidden until the type is ready, then the whole name is on the first paint.
+
+### Boards keep what worked
+
+Checked each category at 390×844 against u2 and site-v3-pro2.
+
+- Film is a three-column board again, with the real title and the real line under it (`reel · 04:20`, `commercial · 00:33`, `201 shots · a moving filmstrip`). The long titles fit on two lines.
+- Photo is a three-column contact sheet. Untitled and “photograph N” stay off the tiles.
+- Objects keeps its four pieces, and the tiles grow so the work reaches the bottom of the phone.
+- Sound’s five rows grow to fill the phone. The mint player under a song is unchanged: play, time, and the dotted waveform.
+- About stays the plain list: bio, contact, joio.co, the poem.
+
 ## Still open
 
 - The snow-on-dark-water arrival video. The old file still returns 403, so the arrival keeps the still water.

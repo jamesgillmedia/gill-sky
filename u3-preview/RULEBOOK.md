@@ -12,9 +12,17 @@ Stars may frame music only. Sound’s dotted waveform and its deepest “among t
 
 The work leads. Below the sky, the work gets more of the phone than the stars. One camera. Pinch to go deeper. Pinch out reverses in that same order. Every zoom grows from the spot you touched.
 
-The journey stays: touch the water, the plunge with the near-lens bokeh, the dive into a chapter until the outer nodes leave the screen and the spring eases to a stop, a pinch that grows from the spot you touched, the Weird Kid frames blooming into a mosaic, the push into a frame until it is full-bleed, the About glitch building with depth, the moon-grid exit, the minimap, and the glyph shortcuts.
+The journey stays: touch the water, the plunge with the near-lens bokeh, then the sky, the category, that category’s board, and only then the piece. A tap on a category opens the category, not a full-bleed still. The board is the clear grid. A pinch grows from the spot you touched. Back goes up exactly one level. The Weird Kid frames bloom into a mosaic, a frame can push until it is full-bleed, the About glitch builds with depth, the moon-grid exit, the minimap, and the glyph shortcuts stay.
 
 Motion is the same with Reduce Motion on. The page does not read `prefers-reduced-motion`, and it does not branch on it. The slow push and the waveform dot pulse run either way.
+
+## The boards keep what worked
+
+From the u3-preview publish on, every fix follows this. The sky, the motion, and the zoom from the touch come into each category: how you move, the layout, and how much sits on the screen. What made the earlier boards work stays with them.
+
+The boards stay clear and readable. The players stay fully usable: the mint audio player, and the film players. Lists stay plain. The work stays dense and fills the phone.
+
+Each category is checked against u2 and site-v3-pro2 at iPhone size. Where this sky is less clear or less dense, the earlier board’s clarity comes back, in this sky’s look.
 
 ## What may be on screen
 
