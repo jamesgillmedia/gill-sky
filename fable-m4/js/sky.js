@@ -31,6 +31,7 @@ var bxS=S(0,W_GLIDE),pxS=S(0,W_GLIDE),lxS=S(0,W_LOOK),lyS=S(0,W_LOOK),scr=S(0,10
 var rest={x:0,y:0,s:.3},look={x:0,y:0},FAR={x:0,y:0,s:.3};
 var bloom=0,bloomK=null,pbloom=0,scrK=null;
 var cur={lv:0,k:null,id:null},sel=null,phase='boot';
+var cardsStar=null;
 var flyU=1,flyT=0,markPts=[],markTo=[];
 var landI=0,landT=0,lands=[];
 var drag=null,pinch=null,moved=false,PT={};
@@ -85,6 +86,7 @@ function boot(d){
   buildGlow();buildField();layout();
   fillPoem();dust();
   lands=landFrames();
+  if(window.GJ_OPEN)GJ_OPEN.mount(openCards()); /* fable-m4: Film cards board only */
   bind();
   decide();
   ready=true;
@@ -417,6 +419,7 @@ function arriveAt(st,instant){
   renderLayer();syncBio();ui();
   if(st.k&&CH[st.k])want(st.k);
   if(st.k==='progress')progress.forEach(loadImg);
+  syncCardsBoard();
 }
 
 function posOf(it){
@@ -599,8 +602,69 @@ function drawChapter(k,t,fa){
   var midK=isMid()&&cur.k===k;
   list.forEach(function(it){it._mr=null;it._ml=null;if(it.in_progress&&!(k==='objects'&&bl>.02&&!midK))return;drawItem(it,bl,focus)});
   if(midK&&bl>.62)midLabels(list,bl);
+  if(midK&&k==='film')drawCardsStar(bl,focus);
 }
 function isMid(){return cur.lv===1&&!onBoard()}
+
+/* fable-m4: the cards star (70c7c37, ported to the morning sky). Film only, never the home sky. Placed in screen space
+   each frame in a free spot above, beside or below the Film strips; tap it (or pinch in on it) to open #film/cards. */
+function cardsBoardOn(){return !!(cur.cards||(window.GJ_OPEN&&GJ_OPEN.board))}
+function isCardsHit(x,y){
+  if(cur.k!=='film')return false;
+  var h=typeof x==='number'?midHit(x,y):null;
+  return !!(h&&h.id==='film/cards')||(sel&&sel.id==='film/cards');
+}
+function openFromCard(c){
+  if(!c||!c.id)return;
+  var it=byId[c.id];if(!it)return;
+  go({lv:2,k:it.chapter,id:it.id});
+}
+function syncCardsBoard(){
+  if(!window.GJ_OPEN)return;
+  if(cur.cards)GJ_OPEN.show({board:true,stay:true,pick:openFromCard});
+  else if(GJ_OPEN.board)GJ_OPEN.hide();
+}
+function cardsStarObj(){
+  if(!cardsStar){
+    cardsStar={id:'film/cards',chapter:'film',k:'film',slug:'cards',title:'cards',role:'',kind:'cards',
+      media:{},credits:[],related:[],also:[],in_progress:false,isNew:false,sx:0,sy:0,_mr:null,_ml:null};
+  }
+  return cardsStar;
+}
+function drawCardsStar(bl,focus){
+  var cs=cardsStarObj(),c=CH.film;if(!c||focus<.05){cs._mr=cs._ml=null;return}
+  var T=70,B=H-56,Lm=16,Rm=W-16,boxes=[],x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  c.skyItems.forEach(function(it){
+    if(it.in_progress)return;
+    var r=it._mr,q;
+    if(!r){q=sp(posOf(it)[0],posOf(it)[1]);r=[q[0]-12,q[1]-12,24,24]}
+    boxes.push(r);if(it._ml)boxes.push(it._ml);
+    x0=Math.min(x0,r[0]);x1=Math.max(x1,r[0]+r[2]);y0=Math.min(y0,r[1]);y1=Math.max(y1,r[1]+r[3]);
+  });
+  if(x0>x1){x0=W/2-20;x1=W/2+20;y0=H/2-20;y1=H/2+20}
+  var cx=(x0+x1)/2,cands=[[cx,y0-34],[cx,y1+40],[x0-34,(y0+y1)/2],[x1+34,(y0+y1)/2],[cx,T+20],[cx,B-20]];
+  for(var yy=T+18;yy<=B-18;yy+=14)for(var xx=Lm+24;xx<=Rm-24;xx+=18)cands.push([xx,yy]);
+  function free(p){
+    var bx=[p[0]-22,p[1]-18,44,48];
+    if(bx[0]<Lm||bx[0]+bx[2]>Rm||bx[1]<T||bx[1]+bx[3]>B)return false;
+    for(var i=0;i<boxes.length;i++){var b=boxes[i];if(bx[0]<b[0]+b[2]+6&&b[0]<bx[0]+bx[2]+6&&bx[1]<b[1]+b[3]+6&&b[1]<bx[1]+bx[3]+6)return false}
+    return true;
+  }
+  var pick=null;for(var i=0;i<cands.length;i++)if(free(cands[i])){pick=cands[i];break}
+  if(!pick)pick=[cx,Math.max(T+18,y0-34)];
+  var cm=cam();cs.sx=(pick[0]-W/2)/cm.s+cm.x;cs.sy=(pick[1]-H/2)/cm.s+cm.y;
+  var q=sp(cs.sx,cs.sy),selOn=sel&&sel.id==='film/cards';
+  star(q,1.25,c,false,focus);
+  if(selOn){g.strokeStyle='rgba('+MINT+',.9)';g.lineWidth=1.2;g.beginPath();g.arc(q[0],q[1],14,0,7);g.stroke()}
+  var r=18;cs._mr=[q[0]-r,q[1]-r,r*2,r*2];
+  g.font='400 11px "Julius Sans One",Poppins,sans-serif';g.textAlign='left';g.textBaseline='top';
+  var txt='cards',lw=g.measureText(txt).width,lx=clamp(q[0]-lw/2,8,W-8-lw),ly=q[1]+r+3;
+  cs._ml=[lx,ly,lw,13];
+  g.globalAlpha=focus;g.fillStyle=selOn?'rgb('+MINT+')':'#f7f4ee';
+  g.shadowColor='rgba(4,7,11,.92)';g.shadowBlur=8;g.shadowOffsetY=1;
+  g.fillText(txt,lx,ly);
+  g.shadowBlur=0;g.shadowOffsetY=0;g.globalAlpha=1;g.textBaseline='alphabetic';
+}
 var MIDW={film:46,photo:34,objects:40,sound:0,about:58};
 /* MID titles: one line each, kept inside the safe width, never on another star's thumbnail or title. */
 function midLabels(list,bl){
@@ -1664,6 +1728,7 @@ function onPtrMove(e){
   var d=Math.hypot(a.x-b.x,a.y-b.y),r=d/(pinch.d||1);
   pinch.x=(a.x+b.x)/2;pinch.y=(a.y+b.y)/2;
   if(OP.on){opMove(d,pinch.x,pinch.y);return}
+  if(cardsBoardOn()){if(r<.84){pinch.done=1;back()}return}
   if(r>1.18){pinch.done=1;if(window.GJ_DEPTH)GJ_DEPTH.followEnd();deeper(pinch.x,pinch.y)}
   else if(r<.84){pinch.done=1;pinchBack(0)}
   else if(window.GJ_DEPTH)GJ_DEPTH.follow(Math.min(1,r));
@@ -1872,6 +1937,7 @@ function openSel(){
   if(sel.type==='ch')go({lv:1,k:sel.k,id:null});
   else if(sel.type==='poem')go({lv:2,k:'about',id:'about/poem'});
   else if(sel.type==='work'&&sel.prog&&cur.lv===0)go({lv:1,k:'progress',id:null});
+  else if(sel.type==='work'&&sel.id==='film/cards'){go({lv:1,k:'film',id:null,cards:1})}
   else if(sel.type==='work'&&cur.lv>=1){
     var it=byId[sel.id];
     if(it&&it.kind==='track'){song=it.track;if(au)au.src=song.file;go({lv:2,k:'sound',id:'sound/waveform'})}
@@ -2072,7 +2138,11 @@ function bioBack(){
 }
 function deeper(x,y){
   if(phase!=='sky')return;
-  if(cur.lv===1&&!onBoard()&&CH[cur.k]){openBoardAt(x,y);return}
+  if(cur.lv===1&&!onBoard()&&CH[cur.k]){
+    if(cur.cards)return;
+    if(isCardsHit(x,y)){sel=null;go({lv:1,k:'film',id:null,cards:1});return}
+    openBoardAt(x,y);return
+  }
   var s0=STEP,b0=bioSig();
   if(bioDeeper()){if(STEP===s0&&bioSig()!==b0)pushStep();return}
   if(!window.GJ_DEPTH||GJ_DEPTH.busy())return;
@@ -2097,7 +2167,7 @@ function stepOut(){
   if(cur.lv>0){cur={lv:0,k:null,id:null};if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());arriveAt(cur,false);ui()}
 }
 var STEP=0,BTOUCH=null,PEND=null;
-function snap(c){return {lv:c.lv,k:c.k,id:c.id,b:c.b?1:0}}
+function snap(c){return {lv:c.lv,k:c.k,id:c.id,b:c.b?1:0,cards:c.cards?1:0}}
 function onBoard(){return cur.lv>=2||(cur.lv===1&&(!!cur.b||cur.k==='progress'))}
 function pushStep(){STEP++;HL[STEP]=levelOf(cur);history.pushState({u1:1,cur:snap(cur),n:STEP},'',hashOf(cur))}
 /* One source of truth for the level: 0 sky, 1 chapter (MID), 2 board, 3 work. The crumb and the rail both read it. */
@@ -2105,7 +2175,7 @@ var HL={};
 function levelOf(c){
   if(!c||!c.lv)return 0;
   if(c.lv>=2||c.id)return 3;
-  if(c.b||c.k==='progress')return 2;
+  if(c.b||c.k==='progress'||c.cards)return 2;
   return 1;
 }
 function canJump(L){
@@ -2121,7 +2191,7 @@ function jumpLevel(L){
 }
 function crumbNames(label){
   var lv=levelOf(cur),k=cur.k==='progress'?'in progress':cur.k;
-  return ['ᑕᐣᓯ',k,'board',lv===3?label:'work'];
+  return ['ᑕᐣᓯ',k,cur.cards?'cards':'board',lv===3?label:'work'];
 }
 var HINTSEEN=false;
 function syncHint(){
@@ -2157,6 +2227,10 @@ function placeHint(){
     else{var q=sp(posOf(it)[0],posOf(it)[1]);boxes.push([q[0]-24,q[1]-24,q[0]+24,q[1]+24])}
   });
   if(cur.k==='sound')c.dec.forEach(function(d){var q=sp(d.x,d.y);boxes.push([q[0]-14,q[1]-14,q[0]+14,q[1]+14])});
+  if(cur.k==='film'&&cardsStar){
+    var q=sp(cardsStar.sx,cardsStar.sy);boxes.push([q[0]-22,q[1]-22,q[0]+22,q[1]+22]);
+    if(cardsStar._ml){var L=cardsStar._ml;boxes.push([L[0]-8,L[1]-8,L[0]+L[2]+8,L[1]+L[3]+8])}
+  }
   function free(y){
     var y1=y+h._h;
     for(var i=0;i<boxes.length;i++){var b=boxes[i];if(b[0]<h._x1&&h._x0<b[2]&&b[1]<y1&&y<b[3])return false}
@@ -2219,7 +2293,7 @@ function onPop(e){
     if(one&&JSON.stringify(c)===JSON.stringify(snap(cur))){stepOut();ui();return}
     if(one&&isBio()&&c.lv===1&&c.k==='about'){bioBack();return}
   }else STEP=n;
-  cur={lv:c.lv,k:c.k,id:c.id,b:c.b?1:0};sel=null;
+  cur={lv:c.lv,k:c.k,id:c.id,b:c.b?1:0,cards:c.cards?1:0};sel=null;
   if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
   if(phase!=='sky')enterSky(true);
   arriveAt(cur,false);
@@ -2230,6 +2304,13 @@ function midItems(){
   return c.skyItems;
 }
 function midHit(x,y){
+  if(cur.k==='film'&&cardsStar&&cardsStar._mr&&!cur.cards){
+    var cq=sp(cardsStar.sx,cardsStar.sy),hw=18,hh=22,r=cardsStar._mr,l=cardsStar._ml;
+    if(r){hw=Math.max(hw,r[2]/2+8);hh=Math.max(hh,r[3]/2+12)}
+    var hitS=Math.abs(cq[0]-x)<=hw&&Math.abs(cq[1]-y)<=hh;
+    if(!hitS&&l)hitS=x>=l[0]-6&&x<=l[0]+l[2]+6&&y>=l[1]-6&&y<=l[1]+l[3]+6;
+    if(hitS)return {type:'work',k:'film',id:'film/cards',prog:0};
+  }
   var best=null,bd=1e9;
   midItems().forEach(function(it){
     var p=posOf(it),q=sp(p[0],p[1]),hw=Math.max(14,(it.tw||20)*rest.s/2),hh=Math.max(14,(it.th||20)*rest.s/2+10);
@@ -2269,6 +2350,7 @@ function go(next){
 }
 function hashOf(c){
   if(!c||c.lv===0)return '#/';
+  if(c.cards)return '#film/cards';
   if(c.k==='progress'&&c.lv===1)return '#progress';
   if(c.k==='progress'&&c.id&&byId[c.id])return '#progress/'+byId[c.id].slug;
   if(c.lv===1&&c.b&&c.id&&byId[c.id])return '#'+byId[c.id].chapter+'/'+byId[c.id].slug;
@@ -2281,13 +2363,13 @@ function ui(){
   syncHist();
   var back=$('back'),where=$('where');
   back.hidden=cur.lv===0;
-  document.documentElement.classList.toggle('mapdim',onBoard()||(bioOn&&isBio()));
+  document.documentElement.classList.toggle('mapdim',onBoard()||!!cur.cards||(bioOn&&isBio()));
   document.documentElement.classList.toggle('deep',cur.lv>0&&!(bioOn&&isBio()));
   var foot=$('foot');if(foot)foot.hidden=phase==='sky'||phase==='fly';
   var label='the sky';
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())label='sound';
   else if(cur.k==='progress')label='in progress';
-  else if(cur.k)label=cur.k+(cur.lv===1&&cur.b?' · board':'');
+  else if(cur.k)label=cur.k+(cur.cards?' · cards':(cur.lv===1&&cur.b?' · board':''));
   if(window.GJ_DEPTH){
     var db=GJ_DEPTH.board();
     if(db&&db.work&&!GJ_DEPTH.soundOn())label=db.work.title;
@@ -2374,7 +2456,7 @@ function tuckMap(){
 }
 function drawMap(){
   var btn=$('mmap'),cv=$('mmapc');if(!btn||!cv)return;
-  var show=phase==='sky'&&!(bioOn&&isBio());
+  var show=phase==='sky'&&!(bioOn&&isBio())&&!cur.cards;
   btn.hidden=!show;if(!show)return;
   var b={x0:1e9,y0:1e9,x1:-1e9,y1:-1e9};
   function inc(x,y){b.x0=Math.min(b.x0,x);b.x1=Math.max(b.x1,x);b.y0=Math.min(b.y0,y);b.y1=Math.max(b.y1,y)}
@@ -2431,6 +2513,20 @@ function dust(){
   var d=$('dust'),h='';
   for(var i=0;i<16;i++)h+='<i style="left:'+(rnd(i)*100).toFixed(1)+'%;top:'+(rnd(i+9)*100).toFixed(1)+'%;opacity:'+(0.2+rnd(i+3)*.6).toFixed(2)+'"></i>';
   d.innerHTML=h;
+}
+/* fable-m4: the Film cards board's cards (from 56b3773's openCards): Weird Kid first, then the preview-cards order.
+   To Go carries its muted preview clip and its song (play button only, never autoplayed). The old momo-480 loop tile is
+   left out (only the momo2 v3 rising art is approved). Missing ids are skipped. */
+function openCards(){
+  var ids=['film/weird-kid','sound/to-go','film/one-with-the-devil','objects/hand-carved-piece','film/sleepwalker','film/repeat-feat-jessie-reyez'];
+  return ids.map(function(id){
+    var it=byId[id];if(!it)return null;var m=it.media||{};
+    var c={id:id,title:it.title,role:it.role||'',meta:it.meta||'',still:m.big||m.thumb||'',clip:m.pv||m.clip||'',kind:it.chapter==='sound'?'sound':it.chapter==='film'?'film':'object',portrait:m.h>m.w};
+    if(id==='film/weird-kid'){c.clip='media/v3/media/pv/22-card.mp4';c.still='media/v3/media/pv/22-card.webp'}
+    if(id==='film/repeat-feat-jessie-reyez'){c.clip='media/v3/media/pv/16-card.mp4';c.still='media/v3/media/pv/16-card.webp'}
+    if(id==='sound/to-go'){c.clip='media/v3/media/pv/to-go.mp4';c.still='media/v3/media/pv/to-go.webp';c.audio='media/pro2/audio/to-go.mp3'}
+    return c;
+  }).filter(Boolean);
 }
 function landFrames(){
   function src(id){var it=byId[id];return it&&it.media&&(it.media.big||it.media.thumb)||''}
@@ -2550,6 +2646,7 @@ function parseHash(h){
   if(!CH[b[0]])return {lv:0,k:null,id:null};
   if(!b[1])return {lv:1,k:b[0],id:null};
   if(b[1]==='board')return {lv:1,k:b[0],id:null,b:1};
+  if(b[0]==='film'&&b[1]==='cards')return {lv:1,k:'film',id:null,cards:1};
   var card=CH[b[0]].items.filter(function(it){return it.slug===b[1]})[0]||byId[b[0]+'/'+b[1]]||byId[b[0]+'/track/'+b[1]];
   return {lv:card?2:1,k:b[0],id:card?card.id:null};
 }
@@ -2557,6 +2654,7 @@ function seed(st){
   var chain=[{lv:0,k:null,id:null}];
   if(st.lv>=1&&st.k!=='progress')chain.push({lv:1,k:st.k,id:null,b:0});
   if(st.lv>=2||st.k==='progress'||st.b)chain.push({lv:1,k:st.k,id:null,b:1});
+  if(st.cards)chain.push({lv:1,k:'film',id:null,cards:1});
   if(st.lv>=2)chain.push({lv:2,k:st.k,id:st.id,b:0});
   HL={};HL[0]=0;
   history.replaceState({u1:1,cur:chain[0],n:0},'',hashOf(chain[0]));
@@ -2620,6 +2718,7 @@ window.__u1={
   byId:function(id){return byId[id]},
   get map(){return {s:+rest.s.toFixed(3),prog:progress.map(function(it){var q=sp(it.cx,it.cy);return {t:it.title,x:Math.round(q[0]),y:Math.round(q[1])}}),ch:ORDER.map(function(k){var q=sp(CH[k].x,CH[k].y);return {k:k,x:Math.round(q[0]),y:Math.round(q[1])}})}},
   get mid(){if(cur.lv!==1||onBoard())return null;return midItems().map(function(it){var p=posOf(it),q=sp(p[0],p[1]);return {id:it.id,t:it.title,x:Math.round(q[0]),y:Math.round(q[1]),r:it._mr||null,l:it._ml||null}})},
+  get cardsStar(){if(!cardsStar)return null;var q=sp(cardsStar.sx,cardsStar.sy);return {id:cardsStar.id,t:cardsStar.title,x:Math.round(q[0]),y:Math.round(q[1]),r:cardsStar._mr||null,l:cardsStar._ml||null,on:!!(cur.cards||(window.GJ_OPEN&&GJ_OPEN.board))}},
   get rects(){if(cur.lv<1||!onBoard())return null;var spec=gridSpec(boardKey());return {key:spec.key,cap:spec.cap,win:[spec.x0,spec.y0,spec.w,spec.winH],rects:boardItems().map(function(it,i){var t=spec.rects?spec.rects[i]:null;return t?{x:t.x,y:t.y+(spec.key==='objects'?(i%3)*3:0),w:t.w,h:t.h,a:spec.key==='photo'?((i%5)-2)*0.025:0,cap:!!(it._cap||it.title)}:null})}},
   get tiles(){if(cur.lv<1)return [];var spec=gridSpec(boardKey()),items=boardItems();return items.map(function(it,i){var rc=tileRect(spec,i,scr.x);return {id:it.id,t:it.title,x:Math.round(rc.x+rc.w/2),y:Math.round(rc.y+rc.h/2)}})}
 };
