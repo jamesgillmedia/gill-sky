@@ -2,7 +2,7 @@
 - Pass 0: test save (Grok 4.7), Nov 11 2026 ~9:32 PM PT. No site changes.
 - Pass 1 groundwork (on Gill's computer, no cloud credits), Nov 11 2026 ~9:55 PM PT, one local commit per step:
   - Step 1 done: foundation = u4-opus-m4 84dad4c + arch-reset patch, byte-identical to morning m4 5503e73 (all paths relative, works at /gill-sky/fable-m4/).
-  - Step 2 done: security fixes only (live-fix f33af15 equivalent): IMG_1342 and the clay-table/flower-table copies removed with every reference; public build notes removed; sw.js deletes only its own caches. Spirit Eye untouched.
+  - Step 2 done: security fixes only (live-fix f33af15 equivalent): IMG_1342 and the removed photo/removed photo copies removed with every reference; public build notes removed; sw.js deletes only its own caches. Spirit Eye untouched.
   - Step 3 done: cards star inside the Film constellation opens the card board at #film/cards; cards never auto-swipe.
   - Step 4 done: Objects lighting (objects-3d specimen viewer with the approved drab fixes), door "objects in 3d" at the Objects landing. No orbit layout.
   - Step 5 done: Photo door "photo lab" at the Photo landing points at ../photo-lab/ (Horizon room + contact sheet, the lab root). No other lab rooms linked.
