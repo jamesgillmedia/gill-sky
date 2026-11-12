@@ -12,7 +12,7 @@ body.dr{background:var(--bg,#0d0303)}
   opacity:0;transition:opacity 1.4s var(--ease)}
 body.safe.dr .room{background:radial-gradient(120% 75% at 80% 0%,#5a2a24,#241210 55%,#120808),#120808}
 body.safe.dr .room::after{opacity:1}
-body.dr:not(.safe) .room{background:radial-gradient(130% 90% at 50% 0%,#4a4540,#262321 70%)}
+body.dr:not(.safe) .room{background:radial-gradient(130% 90% at 50% 0%,#12161c,#05070c 70%)}
 .lamp{position:absolute;z-index:4;right:18%;top:calc(78px + var(--st));width:46px;height:22px;border-radius:24px 24px 6px 6px;background:radial-gradient(circle at 50% 80%,#ff4d36,#7a0d05 70%);box-shadow:0 0 60px 26px rgba(255,40,20,.28),0 0 140px 70px rgba(255,30,10,.12);transition:opacity 1.4s var(--ease),box-shadow 1.4s var(--ease)}
 body.dr:not(.safe) .lamp{opacity:.25;box-shadow:none}
 /* the line */
@@ -54,7 +54,7 @@ body.safe.dr .tray .liq{background:linear-gradient(180deg,rgba(80,30,24,.55),rgb
 .wall.open{opacity:1}
 .wall[hidden]{display:none}
 body.safe.dr .wall{background:radial-gradient(100% 80% at 50% 30%,#4a201c,#1a0a09)}
-body.dr:not(.safe) .wall{background:#2b2826}
+body.dr:not(.safe) .wall{background:#07090d}
 .mat{margin:0;padding:12px 12px 30px;background:var(--paper);box-shadow:0 30px 60px rgba(0,0,0,.6);max-width:100%;max-height:calc(100% - 64px);display:flex;flex-direction:column;transform:scale(.94);transition:transform 1s var(--ease)}
 .wall.open .mat{transform:none}
 .mat img,.mat video{display:block;max-width:calc(100vw - 56px);max-height:calc(100vh - 210px);object-fit:contain;filter:none;-webkit-filter:none;mix-blend-mode:normal;background:#1a1210}

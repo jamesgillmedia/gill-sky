@@ -166,10 +166,10 @@ body.dr .dbg-sw.on{border-color:rgba(227,139,124,.75);color:var(--mint)}
 body.dr .dbg-k{color:#a07a76}
 body.dr #clips,body.dr #sort,body.dr #dbg-sort{/* sort/clips stay available in the debug strip */}
 body.dr #clips{display:none}
-@media (prefers-reduced-motion: reduce){
-  .lab-hint{transition:none}
-}
 .lab-hint.instant{transition:none}
+/* sky-level dim: the room shell and the prints sit nearer the night sky */
+body::after{content:"";position:fixed;inset:0;z-index:60;pointer-events:none;background:#02040a;opacity:.5}
+body img,body video{filter:brightness(.62) saturate(.9)}
 
 .lab-top{flex-wrap:wrap;row-gap:8px;align-items:center}
 .lab-top .lab-btn,.lab-top .amb,.lab-top .rooms,.lab-top .sig{flex-shrink:0}

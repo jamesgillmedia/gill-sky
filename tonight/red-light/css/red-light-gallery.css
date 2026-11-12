@@ -11,7 +11,7 @@ body.dr{background:var(--bg,#0d0303)}
   opacity:0;transition:opacity 1.4s var(--ease)}
 body.safe.dr .room{background:radial-gradient(120% 75% at 80% 0%,#5a2a24,#241210 55%,#120808),#120808}
 body.safe.dr .room::after{opacity:1}
-body.dr:not(.safe) .room{background:radial-gradient(130% 90% at 50% 0%,#4a4540,#262321 70%)}
+body.dr:not(.safe) .room{background:radial-gradient(130% 90% at 50% 0%,#12161c,#05070c 70%)}
 .lamp{position:absolute;z-index:4;right:18%;top:calc(var(--bar-h,78px) + 4px);width:46px;height:22px;border-radius:24px 24px 6px 6px;background:radial-gradient(circle at 50% 80%,#ff4d36,#7a0d05 70%);box-shadow:0 0 60px 26px rgba(255,40,20,.28),0 0 140px 70px rgba(255,30,10,.12);transition:opacity 1.4s var(--ease),box-shadow 1.4s var(--ease);pointer-events:none}
 body.dr:not(.safe) .lamp{opacity:.25;box-shadow:none}
 @media (max-width:720px), (max-height:500px){ .lamp{right:22px;width:38px;height:18px} }
@@ -73,7 +73,7 @@ body.safe.dr .pr .pp{box-shadow:0 10px 22px rgba(40,0,0,.55),0 0 0 1px rgba(255,
 .wall.open{opacity:1}
 .wall[hidden]{display:none}
 body.safe.dr .wall{background:radial-gradient(100% 80% at 50% 30%,#4a201c,#1a0a09)}
-body.dr:not(.safe) .wall{background:#2b2826}
+body.dr:not(.safe) .wall{background:#07090d}
 .wall .strip{position:absolute;left:0;right:0;top:0;bottom:calc(64px + var(--sb))}
 html.debug .wall .strip{bottom:calc(64px + var(--dbg-h,64px) + var(--sb))}
 .wall .wbar{position:absolute;left:0;right:0;bottom:calc(12px + var(--sb));display:flex;justify-content:center;gap:10px;z-index:3}
