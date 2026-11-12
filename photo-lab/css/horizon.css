@@ -1,4 +1,6 @@
-/* Horizon · a place: the sky takes the colour of the photograph standing on the horizon; scrub along the line of light. */
+/* Horizon + contact sheet · a place: the sky takes the colour of the photograph standing on the horizon;
+   the contact sheet is the same set, numbered, in the same order. Pinch or tap to go between them.
+   Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
 .sky{position:fixed;inset:0;overflow:hidden;touch-action:none;cursor:ew-resize;outline:none;--hy:64%;background:#04070b}
 .sky::before{content:"";position:absolute;inset:0;background:var(--skyg,#04070b);transition:background .2s linear}
 .water{position:absolute;left:0;right:0;top:var(--hy);bottom:0;background:linear-gradient(180deg,var(--wc,#0b1218),#04070b 80%);overflow:hidden}
@@ -18,6 +20,27 @@
 .head{z-index:3;position:absolute;left:50%;top:var(--hy);width:9px;height:9px;margin:10px 0 0 -4.5px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px 2px rgba(85,218,161,.6)}
 .ends{z-index:3;position:absolute;left:0;right:0;top:calc(var(--hy) + 26px);display:flex;justify-content:space-between;padding:0 calc(16px + var(--sr)) 0 calc(16px + var(--sl));font-size:10.5px;letter-spacing:.2em;color:rgba(238,243,245,.6);text-transform:uppercase;pointer-events:none}
 .ends #now{color:var(--ink);letter-spacing:.14em}
+
+/* the contact sheet: a proof sheet of every frame, numbered, in the horizon's order */
+.sheet{position:fixed;inset:0;z-index:28;background:#04070b;opacity:0;transition:opacity 1s var(--ease);pointer-events:none}
+.sheet.open{opacity:1;pointer-events:auto}
+.sheet[hidden]{display:none}
+.sc{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:calc(62px + var(--st)) calc(12px + var(--sr)) calc(28px + var(--sb)) calc(12px + var(--sl))}
+.proof{max-width:1040px;margin:0 auto;background:linear-gradient(180deg,#101214,#0a0c0e);border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.55);padding:14px 12px 18px;border-radius:4px}
+.phd{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px 12px;border-bottom:1px solid var(--line);margin-bottom:14px;font-size:10.5px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+.phd .ju{color:var(--dim);letter-spacing:.2em}
+.grid{display:grid;grid-template-columns:repeat(var(--cols,6),1fr);gap:10px 8px}
+.cell{-webkit-appearance:none;appearance:none;display:flex;flex-direction:column;align-items:stretch;margin:0;padding:0;border:0;background:none;color:inherit;cursor:pointer;text-align:left;min-width:0;border-radius:0;transition:transform .7s var(--ease)}
+.cell .win{position:relative;aspect-ratio:4/5;overflow:hidden;background:#050607;box-shadow:0 0 0 1px rgba(255,255,255,.06)}
+.cell img{display:block;width:100%;height:100%;object-fit:cover}
+.cell .no{margin:5px 0 0;font-size:9.5px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
+.cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(85,218,161,.25)}
+.cell.cur .no{color:var(--ink)}
+.cell .pen{position:absolute;right:4px;top:-2px;font:26px/1 Caveat,cursive;color:var(--mint);transform:rotate(-14deg);text-shadow:0 1px 3px #000;pointer-events:none}
+.cell .hh{position:absolute;left:5px;top:3px;color:var(--mint);font-size:11px;text-shadow:0 0 4px #000;pointer-events:none}
+body.marking .cell{cursor:cell}
+body.marking .cell .win{cursor:cell}
+
 /* the day: the m4 film-page shape, a big hero then large full-width stills stacked */
 .day{position:fixed;inset:0;z-index:30;background:#04070b;opacity:0;transition:opacity 1s var(--ease)}
 .day.open{opacity:1}
@@ -30,11 +53,21 @@
 .cred b{font-weight:300;color:var(--ink)}
 .cred .sw{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:-1px;margin-right:6px;box-shadow:0 0 0 1px rgba(255,255,255,.25)}
 .stack{display:flex;flex-direction:column;gap:6px;padding-top:6px}
-.stack figure{margin:0;position:relative;cursor:pointer}
-.stack figure{display:flex;justify-content:center;background:#04070b}
+.stack figure{margin:0;position:relative;cursor:pointer;display:flex;justify-content:center;background:#04070b}
 .stack img{display:block;width:auto;max-width:100%;height:auto;max-height:92vh;max-height:92svh}
 .stack figcaption{position:absolute;left:max(12px,calc(50% - 50vw + 12px));bottom:10px;font-size:10px;letter-spacing:.18em;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
 .stack .lbl{padding:26px 18px 10px;font-size:10.5px;letter-spacing:.2em;color:var(--mute);text-transform:uppercase}
 .end{margin:28px 0 0;text-align:center;font-size:11px;color:var(--mute);cursor:pointer}
-@media (min-width:900px){.stack{display:grid;grid-template-columns:1fr;max-width:1200px;margin:0 auto}.cred{max-width:1200px;margin:0 auto}}
-@media (orientation:landscape) and (max-height:500px){.sky{--hy:70%}.ends{top:calc(var(--hy) + 18px)}}
+@media (min-width:900px){.stack{display:grid;grid-template-columns:1fr;max-width:1200px;margin:0 auto}.cred{max-width:1200px;margin:0 auto}.proof{padding:20px 22px 26px}.grid{gap:14px 12px}}
+@media (orientation:landscape) and (max-height:500px){.sky{--hy:70%}.ends{top:calc(var(--hy) + 18px)}.sc{padding-top:calc(52px + var(--st))}}
+@media (max-width:520px){.lab-top .lab-btn:not(.ic):not(.on){padding:0 10px}}
+
+body.sheet-open .lab-top{background:rgba(4,7,11,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.sc{scroll-padding-top:calc(66px + var(--st));scroll-padding-bottom:calc(16px + var(--sb))}
+@media (max-width:620px){.lab-top .crumb{display:none}}
+
+.fm video,.cell .win video{display:block;width:100%;height:100%;object-fit:cover;background:#050607}
+.hero video{max-width:100%;max-height:calc(100% - 120px);margin-top:40px;object-fit:contain;width:auto;height:auto;transform:scale(.97);opacity:0;transition:transform 1.2s var(--ease),opacity 1.2s var(--ease)}
+.day.open .hero video{transform:none;opacity:1}
+.stack video{display:block;width:auto;max-width:100%;height:auto;max-height:92vh;max-height:92svh;background:#04070b}
+.cb-one video{max-width:100%;max-height:100%;transition:transform .7s var(--ease);transform-origin:50% 50%}
