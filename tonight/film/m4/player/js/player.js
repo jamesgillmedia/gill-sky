@@ -1,14 +1,14 @@
 /* sound sketch · "inside a sound's pattern". canvas2D, no build.
-   sky: the Sound constellation (star data copied from site-v3 js/sheet.js SH.sound).
-   dive: the constellation's stars are 3D points ahead of the camera; the camera flies through them and every star
-   un-folds into the tunnel of the track's waveform (ring radius = the track's offline envelope at that moment).
-   inside: AnalyserNode drives it live: rms swells the rings, spectrum bands ripple round each ring, beats pulse the glow
-   and send a water ripple. the camera drifts forward one ring per 1/6 s of song; the rail flies it to any moment.
-   MERGED (chimes+zoom + sketch-next sweep): six song stars live ON the constellation: five of them are exactly the stars
-   the five wind-chime strands hang from (No Problem 2, Gone 5, To Go 7, Lost in Time 10, = 13) and ii sits on the ridge (4).
-   tap a star = choose its song (green glow), tap a strand = its note, tap empty sky = dive. one-finger drag that starts on
-   a strand = wind; one that starts on empty sky = pan; two fingers = pinch + pan. zoom is never changed by anything but
-   the user. a slow sweep drifts the pan (never the zoom) after the view has been left alone while zoomed in. */
+ sky: the Sound constellation (star data copied from site-v3 js/sheet.js SH.sound).
+ dive: the constellation's stars are 3D points ahead of the camera; the camera flies through them and every star
+ un-folds into the tunnel of the track's waveform (ring radius = the track's offline envelope at that moment).
+ inside: AnalyserNode drives it live: rms swells the rings, spectrum bands ripple round each ring, beats pulse the glow
+ and send a water ripple. the camera drifts forward one ring per 1/6 s of song; the rail flies it to any moment.
+ MERGED (chimes+zoom + sketch-next sweep): six song stars live ON the constellation: five of them are exactly the stars
+ the five wind-chime strands hang from (No Problem 2, Gone 5, To Go 7, Lost in Time 10, = 13) and ii sits on the ridge (4).
+ tap a star = choose its song (green glow), tap a strand = its note, tap empty sky = dive. one-finger drag that starts on
+ a strand = wind; one that starts on empty sky = pan; two fingers = pinch + pan. zoom is never changed by anything but
+ the user. a slow sweep drifts the pan (never the zoom) after the view has been left alone while zoomed in. */
 (function(){
 'use strict';
 var SOUND={t:'255,182,176',s:[[0.058,0.493,0.35,0],[0.143,0.434,0.45,0],[0.195,0.295,0.63,0],[0.186,0.645,0.45,0],[0.282,0.392,0.53,0],[0.338,0.216,0.8,0],[0.347,0.763,0.55,0],[0.441,0.135,0.92,0],[0.442,0.812,0.62,0],[0.498,0.253,0.71,0],[0.567,0.183,0.86,0],[0.57,0.827,0.58,0],[0.659,0.355,0.57,0],[0.718,0.259,0.66,0],[0.719,0.711,0.47,0],[0.807,0.434,0.44,0],[0.886,0.419,0.5,0],[0.941,0.497,0.35,0],[0.26,0.93,0.2,1],[0.61,0.06,0.24,1],[0.9,0.88,0.26,1],[0.15,0.7,0.3,1]],
@@ -18,7 +18,7 @@ var $=function(id){return document.getElementById(id)};
 var sk=$('sk'),cv=$('cv'),g=cv.getContext('2d'),au0=$('au'),rail=$('rail'),wf=$('wf'),fillE=$('fill'),headE=$('head');
 var W=0,H=0,DPR=1,F=1;
 /* REC (demo capture): a virtual clock + a fake transport, and the analyser is replaced by a JS DFT over the decoded PCM at the
-   virtual time, so a headless capture renders frame-exact at any speed and the real audio is muxed afterwards */
+ virtual time, so a headless capture renders frame-exact at any speed and the real audio is muxed afterwards */
 var FG={v:1},au=REC?{currentTime:0,paused:true,play:function(){this.paused=false;return Promise.resolve()},pause:function(){this.paused=true},load:function(){},addEventListener:function(){}}:au0;
 var PCM=null,PSR=48000;
 function rs(){DPR=Math.min(2,window.devicePixelRatio||1);W=innerWidth;H=innerHeight;cv.width=W*DPR|0;cv.height=H*DPR|0;F=Math.min(W,H)*1.05;
@@ -105,7 +105,7 @@ var camZ=0,tz=0,dive=0,diveT=0,mode='sky',ripples=[],prev=null,tw=0;
 /* constellation stars as 3D points on a plane DZ ahead, laid out so they project where the sky view draws them */
 var DZ=9;
 /* the 1x layout, relative to the vanishing point. FIT (set in rs) scales/shifts it into the safe band: below the header
-   (+ label room) and above the intro/song list. it is a 1x framing only; the user's zoom/pan sit on top in proj() */
+ (+ label room) and above the intro/song list. it is a 1x framing only; the user's zoom/pan sit on top in proj */
 var FIT={s:1,dy:0};
 function lay(k){var s=SOUND.s[k],sc=Math.min(W*.86,520);return[(s[0]-.5)*sc*FIT.s,((s[1]-.5)*sc*.5-H*.07)*FIT.s+FIT.dy]}
 function cstar(k){var q=lay(k);return[q[0]/F*DZ,q[1]/F*DZ]}
@@ -114,11 +114,11 @@ var SRC=[];for(var isr=0;isr<FAR*K+K;isr++)SRC.push(Math.floor(rnd(isr*3.3)*18))
 function ease(x){x=Math.max(0,Math.min(1,x));return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
 function proj(x,y,z,cz,cx,cy){var d=z-cz;if(d<.05)return null;var k=F/d*(1+PUSH*.12);return[W/2+(x-cx)*k*VW.s+VW.x,H*.46+(y-cy)*k*VW.s+VW.y,k,d]}
 /* ---------- sky zoom + pan (ported from the sweep's zoom/pan) ----------
-   The constellation is one plane at DZ, so the sweep's camera dolly toward it is exactly a uniform scale about the
-   vanishing point (W/2, H*.46) plus a translate: V.z = zoom, V.x/V.y = pan in screen px. Applied in proj(), so stars,
-   strands and (during a dive) the unfolding tunnel all agree. The strand physics stays in unzoomed sky px.
-   Zoom STAYS exactly where a gesture leaves it: no levels, no velocity, no snap, no spring-back, ever.
-   Diving eases the view to 1x; rising brings the kept zoom/pan back. */
+ The constellation is one plane at DZ, so the sweep's camera dolly toward it is exactly a uniform scale about the
+ vanishing point (W/2, H*.46) plus a translate: V.z = zoom, V.x/V.y = pan in screen px. Applied in proj, so stars,
+ strands and (during a dive) the unfolding tunnel all agree. The strand physics stays in unzoomed sky px.
+ Zoom STAYS exactly where a gesture leaves it: no levels, no velocity, no snap, no spring-back, ever.
+ Diving eases the view to 1x; rising brings the kept zoom/pan back. */
 var ZMIN=1,ZMAX=9;
 var V={z:1,x:0,y:0},VW={s:1,x:0,y:0};
 var ORB={x:0,y:0},PUSH=0;
@@ -228,13 +228,15 @@ function draw(now,dt){var c=g;c.setTransform(DPR,0,0,DPR,0,0);setView();DBG={sta
   var fl=Math.max(0,1-Math.abs(dive-.42)/.14);if(fl>0&&(mode==='diving'||mode==='rising')){c.fillStyle='rgba(220,235,255,'+(.10*fl*FL).toFixed(3)+')';c.fillRect(0,0,W,H)}
 }
 /* ---------- song labels (from sketch-next): collision-aware, a song label is NEVER dropped ----------
-   candidates around the star (above first: the strands hang below), clamped to the safe band; penalties for covering a
-   placed label, another song star, a strand, the SOUND heading, or drifting from its star. a song star that is off screen
-   (zoomed/panned away) keeps its label pinned at the band edge with an arrow toward it, so all six are always readable. */
+ candidates around the star (above first: the strands hang below), clamped to the safe band; penalties for covering a
+ placed label, another song star, a strand, the SOUND heading, or drifting from its star. a song star that is off screen
+ (zoomed/panned away) keeps its label pinned at the band edge with an arrow toward it, so all six are always readable. */
 var skyProj=[],DBG={stars:0,songPos:[],labels:[]};
 function rHit(a,b){return !(a[0]+a[2]<=b[0]||b[0]+b[2]<=a[0]||a[1]+a[3]<=b[1]||b[1]+b[3]<=a[1])}
 function segRect(x0,y0,x1,y1,r){for(var s=0;s<=10;s++){var f=s/10,x=x0+(x1-x0)*f,y=y0+(y1-y0)*f;if(x>r[0]&&x<r[0]+r[2]&&y>r[1]&&y<r[1]+r[3])return true}return false}
-function drawLabels(c,sp,sa){var sb=safeBand(),zs=VW.s,fsT=9.5*Math.min(1.25,.9+zs*.1),fsA=8*Math.min(1.2,.9+zs*.08),labs=[],placed=[],segs=[],hd=UR?UR.head:null;
+function drawLabels(c,sp,sa){/* K7: each song label carries its length in m:ss */
+  function art(tr){return tr.artist+(tr.dur?' · '+Math.floor(tr.dur/60)+':'+('0'+Math.floor(tr.dur%60)).slice(-2):'')}
+var sb=safeBand(),zs=VW.s,fsT=9.5*Math.min(1.25,.9+zs*.1),fsA=8*Math.min(1.2,.9+zs*.08),labs=[],placed=[],segs=[],hd=UR?UR.head:null;
   for(var i=0;i<SOUND.e.length;i++){var ed=SOUND.e[i],pa=sp[ed[0]],pb=sp[ed[1]];if(pa&&pb)segs.push([pa[0],pa[1],pb[0],pb[1],i<CH.length?150:120])}
   for(var k in STAR2K){var ki=+k,p=sp[ki];if(!p)continue;var tr=TRACKS[STAR2K[ki]];
     labs.push({ki:ki,p:p,tr:tr,pri:(ki===highlight?100:0)+(tr.artist==='Mothers Moniker'?8:0)+SOUND.s[ki][2]*10})}
@@ -243,7 +245,7 @@ function drawLabels(c,sp,sa){var sb=safeBand(),zs=VW.s,fsT=9.5*Math.min(1.25,.9+
       offX=p[0]<sb.left?-1:p[0]>sb.right?1:0,offY=p[1]<sb.top?-1:p[1]>sb.bot?1:0,off=!!(offX||offY),
       ttl=off?(offX<0?'‹ ':offY<0?'↑ ':offY>0&&!offX?'↓ ':'')+tr.title+(offX>0?' ›':''):tr.title;
     c.font='300 '+fsT.toFixed(2)+'px Poppins,system-ui,sans-serif';var tW=c.measureText(ttl).width;
-    c.font='300 '+fsA.toFixed(2)+'px Poppins,system-ui,sans-serif';var aW=c.measureText(tr.artist).width;
+    c.font='300 '+fsA.toFixed(2)+'px Poppins,system-ui,sans-serif';var aW=c.measureText(art(tr)).width;
     var best=null,bp=1e9,lh=22,ox=9+3*Math.min(1.5,zs),lw,cand;
     /* sizes: full, 90% when that is the only way to keep lines off the text (tight 1x clusters, e.g. ii), and 80% for edge-pinned labels only */
     for(var si=0;si<(off?3:2);si++){var scl=1-si*.1;lw=Math.max(tW,aW)*scl+6;cand=[];
@@ -269,25 +271,25 @@ function drawLabels(c,sp,sa){var sb=safeBand(),zs=VW.s,fsT=9.5*Math.min(1.25,.9+
     placed.push([best.x,best.y,lw,lh]);
     DBG.labels.push({k:STAR2K[Lb.ki],x:+best.x.toFixed(1),y:+best.y.toFixed(1),w:+lw.toFixed(1),h:lh,a:+labA.toFixed(3),off:off,offX:offX,offY:offY,hit:best.hit,seg:best.seg,halo:best.seg>0,sx:+p[0].toFixed(1),sy:+p[1].toFixed(1)});
     /* last resort for a line the solver could not avoid (rare: the long Gone title in crowded zoomed views): the text gets a
-       sky-coloured halo so the line breaks around the letters instead of running through them */
+ sky-coloured halo so the line breaks around the letters instead of running through them */
     /* leader tick: a faint hairline from the star toward its label when the label sits more than ~14 px away (1x clusters) */
     if(!off){var nx=Math.max(best.x,Math.min(best.x+lw,p[0])),ny=Math.max(best.y,Math.min(best.y+lh,p[1])),ld=Math.hypot(nx-p[0],ny-p[1]);
       if(ld>14){var ux=(nx-p[0])/ld,uy=(ny-p[1])/ld;c.globalAlpha=labA*.38;c.strokeStyle='rgba(220,232,240,.9)';c.lineWidth=.7;c.beginPath();c.moveTo(p[0]+ux*6,p[1]+uy*6);c.lineTo(nx-ux*3,ny-uy*3);c.stroke();c.lineWidth=1}}
     c.textAlign=best.al>0?'left':best.al<0?'right':'center';var ax=best.al>0?best.x+3:best.al<0?best.x+lw-3:best.x+lw/2;
     c.globalAlpha=labA;c.font='300 '+(fsT*shrink).toFixed(2)+'px Poppins,system-ui,sans-serif';var HL=best.seg>0;if(HL){c.lineJoin='round';c.lineWidth=3.2;c.strokeStyle='rgba(9,14,27,.92)';c.strokeText(ttl,ax,best.y+6)}
     c.fillStyle=sel?'rgba(170,240,210,.98)':'rgba(220,232,240,.95)';c.fillText(ttl,ax,best.y+6);
-    c.font='300 '+(fsA*shrink).toFixed(2)+'px Poppins,system-ui,sans-serif';c.fillStyle='rgba(201,211,214,.72)';if(HL){c.strokeText(tr.artist,ax,best.y+17);c.lineWidth=1}c.fillText(tr.artist,ax,best.y+17)}
+    c.font='300 '+(fsA*shrink).toFixed(2)+'px Poppins,system-ui,sans-serif';c.fillStyle='rgba(201,211,214,.72)';if(HL){c.strokeText(art(tr),ax,best.y+17);c.lineWidth=1}c.fillText(art(tr),ax,best.y+17)}
   c.globalAlpha=1;c.textAlign='left';c.textBaseline='alphabetic'}
 /* nearest song star within r screen px of (x,y), or -1 */
 function starHit(x,y,r){var best=-1,bd=r||28;for(var k in STAR2K){var p=skyProj[+k];if(!p)continue;var d=Math.hypot(x-p[0],y-p[1]);if(d<bd){bd=d;best=+k}}return best}
 /* ---------- the long sweep (from sketch-next), made to obey the zoom rules ----------
-   only in the sky, only while zoomed in (>1.05x: at 1x the framed view stays put).
-   starts after 2.5 s with no touch/wheel/key, ramps in over 1.5 s, and only drifts the PAN toward a slow Lissajous path
-   over the constellation at <= 18 px/s x the tempo of the song star nearest the centre. it never writes V.z, it starts from
-   wherever the user left the view (no jump, no spring-back), and any touch/wheel/key freezes it on the spot. */
+ only in the sky, only while zoomed in (>1.05x: at 1x the framed view stays put).
+ starts after 2.5 s with no touch/wheel/key, ramps in over 1.5 s, and only drifts the PAN toward a slow Lissajous path
+ over the constellation at <= 18 px/s x the tempo of the song star nearest the centre. it never writes V.z, it starts from
+ wherever the user left the view (no jump, no spring-back), and any touch/wheel/key freezes it on the spot. */
 var SW={on:true,idle:0,w:0,t:0,moved:0};
 /* zooming back out to exactly 1x (pinch / wheel / - key) eases the pan back to the centred 1x framing once the fingers are
-   off. a held zoom above 1x is never touched, and a one-finger pan made AT 1x is kept (any new pointerdown or key cancels) */
+ off. a held zoom above 1x is never touched, and a one-finger pan made AT 1x is kept (any new pointerdown or key cancels) */
 var zHi=1,RC=0;
 function recentStep(dt){if(V.z>ZMIN){RC=0;zHi=Math.max(zHi,V.z);return}if(zHi>ZMIN+.02&&mode==='sky')RC=1;zHi=ZMIN;
   if(!RC||PZ||nPT()||p0||mode!=='sky')return;var k=Math.min(1,dt*5);V.x-=V.x*k;V.y-=V.y*k;
@@ -302,9 +304,9 @@ function sweepStep(dt){var held=!!(p0||PZ||nPT());if(held)poke();
     dx=-(bx-W/2)*V.z-V.x,dy=-(by-H*.46)*V.z-V.y,d=Math.hypot(dx,dy),mx=18*tp*SW.w*dt;
   if(d>1e-3){var f=Math.min(1,mx/d),x0=V.x,y0=V.y;V.x+=dx*f;V.y+=dy*f;clampPan();SW.moved+=Math.hypot(V.x-x0,V.y-y0)}}
 /* ---------- wind chimes: the five strands that hang from the constellation's line (edges 2-3, 5-6, 7-8, 10-11, 13-14) ----------
-   sky only. swipe across the sky = a breeze (swipe speed + direction, capped low) that sways the strands on pendulum physics;
-   neighbours that swing into each other's reach knock and ring. tap a strand (44 px+ target) = just that strand plays its note.
-   pitch by position, left to right on C major pentatonic; each strand has its own slightly different timbre. Web Audio only. */
+ sky only. swipe across the sky = a breeze (swipe speed + direction, capped low) that sways the strands on pendulum physics;
+ neighbours that swing into each other's reach knock and ring. tap a strand (44 px+ target) = just that strand plays its note.
+ pitch by position, left to right on C major pentatonic; each strand has its own slightly different timbre. Web Audio only. */
 var PENT=[523.25,587.33,659.25,783.99,880.00],CHR=[1,2.76,5.40],CHD=[2.6,1.1,.42];
 var TB=[[1,.20,.06],[1,.14,.09],[1,.24,.05],[1,.12,.08],[1,.18,.10]],CDT=[0,.0015,-.001,.002,-.0015];
 var CH=SOUND.e.slice(0,5).map(function(e,i){return{a:e[0],b:e[1],th:0,w:0,fl:0,f:PENT[i],v:i,lc:-1}}),CHL=[],chT=0;
@@ -363,9 +365,9 @@ if(parent!==window)document.body.classList.add('in-frame');
 $('pp').onclick=function(){if(au.paused){vol(1);au.play()}else au.pause()};
 addEventListener('popstate',function(){if(mode==='in'||mode==='diving')goOut(true)});
 /* fat-finger guard: WebKit/iOS touch adjustment (and Chrome's touch-area hit test) turn a near-miss tap into a click on a nearby
-   button, with the click moved inside it. the dive button, the song picks and the back link only act on a pointer click whose
-   pointerdown's RAW point lies inside their real rect (+1 px). keyboard clicks (detail 0) always pass. captured on the
-   document, so the button's own handler / the link's navigation never sees a rejected click. */
+ button, with the click moved inside it. the dive button, the song picks and the back link only act on a pointer click whose
+ pointerdown's RAW point lies inside their real rect (+1 px). keyboard clicks (detail 0) always pass. captured on the
+ document, so the button's own handler / the link's navigation never sees a rejected click. */
 var LD=null,FFX=0;addEventListener('pointerdown',function(e){LD={t:performance.now(),x:e.clientX,y:e.clientY}},true);
 function realClick(el,e){if(!e.detail||!LD||performance.now()-LD.t>1500)return true;
   var r=el.getBoundingClientRect();return LD.x>=r.left-1&&LD.x<=r.right+1&&LD.y>=r.top-1&&LD.y<=r.bottom+1}
@@ -384,7 +386,7 @@ addEventListener('keydown',function(e){if(e.key==='Escape')goOut();if(e.key===' 
     else if(k==='+'||k==='='||k==='-'||k==='_'){e.preventDefault();zoomAt(V.z*(k==='+'||k==='='?1.25:.8),W/2,H*.46)}}
   else if(k==='ArrowUp'&&(mode==='in'||mode==='diving')){e.preventDefault();goOut()}});
 /* intro while zoomed: past ~1.05x the sub-line, picks and dive button fade out and stop taking pointers, so strand tips
-   under them are tappable; they ease back in near 1x. the SOUND heading stays, but softly fades while a strand passes over it. */
+ under them are tappable; they ease back in near 1x. the SOUND heading stays, but softly fades while a strand passes over it. */
 var CVD=0,SPK=0,IN=$('intro'),HEAD=IN.querySelector('.sl b'),UIE=[IN.querySelector('.sl small'),$('picks'),$('dive'),IN.querySelector('.m4h')],IA=1,HA=1,HN=false,uiF=0,UR=null;
 function uiRects(){var f=function(e){var r=e.getBoundingClientRect();return[r.left,r.top,r.right,r.bottom]};
   UR={head:f(HEAD),intro:f(IN),ui:UIE.map(f),hud:[].map.call(document.querySelectorAll('.hud a,.hud .crumb'),f)}}
@@ -398,14 +400,14 @@ function introStep(dt){if(!UR||(uiF++%30)===0)uiRects();
   IN.style.setProperty('--ia',IA.toFixed(3));IN.style.setProperty('--ha',HA.toFixed(3));IN.classList.toggle('zoomed',IA<.6)}
 /* dead zone: a near miss on the visible UI (intro block when shown, the heading, the header) never counts as "tap empty sky to dive" */
 /* (merged) the intro's rects count even when faded while zoomed, so a missed tap there never dives; strands/stars under
-   the faded intro still win because they are tested before this */
+ the faded intro still win because they are tested before this */
 function nearUI(x,y){if(!UR)uiRects();if(inR(x,y,UR.head,22))return true;if(inR(x,y,UR.intro,10))return true;
   for(var i=0;i<UR.ui.length;i++)if(inR(x,y,UR.ui[i],26))return true;
   for(var i=0;i<UR.hud.length;i++)if(inR(x,y,UR.hud[i],16))return true;return false}
 /* canvas (merged): sky tap (<12 px move) = song star (12 px, press <280 ms) > strand note (press <400 ms, as live) > song star (28 px) > empty sky = dive (outside the dead zone).
-   a still hold (>=280 ms on sky/star) and release does nothing: it is how you stop the sweep. inside: tap = pause, swipe down = rise.
-   a one-finger (or mouse/pen) drag that STARTS within 40 px of a strand = wind (sways + chimes) at every zoom, never pans;
-   one that starts on empty sky = pan. two fingers = pinch-zoom + pan together. wheel zooms at the cursor. */
+ a still hold (>=280 ms on sky/star) and release does nothing: it is how you stop the sweep. inside: tap = pause, swipe down = rise.
+ a one-finger (or mouse/pen) drag that STARTS within 40 px of a strand = wind (sways + chimes) at every zoom, never pans;
+ one that starts on empty sky = pan. two fingers = pinch-zoom + pan together. wheel zooms at the cursor. */
 var p0=null,TAPD=12,TAPT=400,TAPS=280,PT={},PZ=null,afterPinch=false;
 function tnow(e){return REC?VT:e.timeStamp/1000}
 function pressMs(e){var d=(tnow(e)-p0.t0)*1000;return d>=0&&d<60000?d:performance.now()-p0.t}

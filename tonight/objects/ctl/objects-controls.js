@@ -1,6 +1,6 @@
 /* Objects · the glass-ring plate. Every ring's light (hoop, ticks, floor ripples, warm pools, motes, back glow) on one slider,
-   and each ring on its own: bring the joio cup ring down without touching the others. Haze, far stars and the lamp on the cup.
-   The photographs and the cup's own texture are never graded. */
+ and each ring on its own: bring the joio cup ring down without touching the others. Haze, far stars and the lamp on the cup.
+ The photographs and the cup's own texture are never graded. */
 (function(){
   if(!window.AMBX)return;
   var ROOM='objects';

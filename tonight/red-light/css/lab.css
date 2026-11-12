@@ -1,5 +1,5 @@
 /* Photo lab · shared look (m4 / R10 language: dark sky #04070b, mint for new, Julius Sans One + Poppins, Caveat for grease-pencil notes).
-   Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
+ Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
 @font-face{font-family:Poppins;font-weight:200;font-display:swap;src:url(../media/fonts/poppins-200.woff2) format("woff2")}
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/fonts/poppins-300.woff2) format("woff2")}
 @font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/fonts/julius-sans-one.woff2) format("woff2")}
@@ -177,7 +177,7 @@ body.dr #clips{display:none}
 .lab-modes{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px 10px;flex:none;min-width:0}
 .lab-modes .lab-btn{flex-shrink:0}
 /* two rows from tablet / short landscape: identity on top, modes + room light below.
-   Flex + a full-width break, so the back button is not stretched by the rooms row. */
+ Flex + a full-width break, so the back button is not stretched by the rooms row. */
 @media (max-width:1199px), (max-height:500px){
   :root{--bar-h:calc(108px + var(--st))}
   .lab-top{display:flex;flex-wrap:wrap;align-items:center}

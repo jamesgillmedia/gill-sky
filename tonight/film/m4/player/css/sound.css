@@ -95,7 +95,7 @@ a{color:inherit;text-decoration:none}
 .cl input::-webkit-slider-thumb{width:16px;height:16px;margin-top:-7.5px}
 .cl input::-moz-range-thumb{width:16px;height:16px}
 /* m4-integrate: short landscape (e.g. 844x390): the two sliders sit either side of the centre, so the host's centred
-   heading (the song name / "sound") stays clear between them; same sliders, same 44 px targets */
+ heading (the song name / "sound") stays clear between them; same sliders, same 44 px targets */
 @media (max-height:500px) and (orientation:landscape){
  .player .ctl{left:max(96px,calc(var(--sl) + 96px));right:max(96px,calc(var(--sr) + 96px));justify-content:space-between}
  .player .ctl .cl{flex:0 1 calc(50% - 80px)}

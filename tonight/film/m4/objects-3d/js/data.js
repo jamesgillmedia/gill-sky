@@ -1,13 +1,13 @@
 /* The only place that names photos, titles and captions. Everything here comes from the repo:
-   - titles: u4-opus-m4/_sketch/objects/rings/MANIFEST.json (joio cup, ice cream scoop)
-   - captions: that manifest's per-photo descriptions, u4-opus-m4/media/nov9/manifest.json ("reason" / "likely_object"),
-     u4-opus-m4/data.json titles (hand-carved piece, carved spoon), and OBJECT-COVERAGE.md (e2aa7ba0 "close on the speckled wall")
-   - a frame with no repo caption shows only its file stem.
-   Files live in media/ (built by tools/build_media.py, EXIF/GPS stripped).
-   Order inside making/use: the camera's own file counter (IMG_xxxx) where there is one; files without a counter come after.
-   No capture timestamps survive in the repo (EXIF is already stripped upstream), so the counter is the only real order available.
+ - titles: u4-opus-m4/_sketch/objects/rings/MANIFEST.json (joio cup, ice cream scoop)
+ - captions: that manifest's per-photo descriptions, u4-opus-m4/media/nov9/manifest.json ("reason" / "likely_object"),
+ u4-opus-m4/data.json titles (hand-carved piece, carved spoon), and OBJECT-COVERAGE.md ( "close on the speckled wall")
+ - a frame with no repo caption shows only its file stem.
+ Files live in media/ (built by tools/build_media.py, EXIF/GPS stripped).
+ Order inside making/use: the camera's own file counter (IMG_xxxx) where there is one; files without a counter come after.
+ No capture timestamps survive in the repo (EXIF is already stripped upstream), so the counter is the only real order available.
 
-   Layer order is fixed: whole, surface, making, use, shop. A layer with no frames is skipped (not faked). */
+ Layer order is fixed: whole, surface, making, use, shop. A layer with no frames is skipped (not faked). */
 export const LAYERS = [
   { k: 'whole', name: 'whole piece' },
   { k: 'surface', name: 'surface' },

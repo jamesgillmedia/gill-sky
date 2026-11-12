@@ -1,5 +1,5 @@
 /* Debug panel. Off unless the URL has ?debug=1 (remembered for this tab; ?debug=0 clears it).
-   The readout only reads __u1 / GJ_DEPTH. Tune writes through GJ_TUNE, and only while this panel is on. */
+ The readout only reads __u1 / GJ_DEPTH. Tune writes through GJ_TUNE, and only while this panel is on. */
 (function () {
   /* item 12 · Invert (opt-in, off by default): the whole page, canvas and video included. Remembered for this tab only. */
   function inv(v) { document.documentElement.classList.toggle('gjinv', !!v); try { if (v) sessionStorage.setItem('gj.invert', '1'); else sessionStorage.removeItem('gj.invert'); } catch (e) {} }

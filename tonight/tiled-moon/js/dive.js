@@ -1,7 +1,7 @@
 /* gill james v3 · The Dive. One sheet: each chapter is a constellation that zooms in place.
-   L0 glyph row → L1 star chart (labels) → L2 grid of frames joined by lines → L3 the work, full screen (Scope 2.39) → play.
-   Gestures: one finger = native scroll, always (we never preventDefault a one-finger touch). Two fingers = level only.
-   Tap = one level into that item. + / − and ●○○○ in the dock. Every level is a hash: #film/l1 #film/l2 #film/w27 #film/w27/play. */
+ L0 glyph row → L1 star chart (labels) → L2 grid of frames joined by lines → L3 the work, full screen (Scope 2.39) → play.
+ Gestures: one finger = native scroll, always (we never preventDefault a one-finger touch). Two fingers = level only.
+ Tap = one level into that item. + / − and ●○○○ in the dock. Every level is a hash: #film/l1 #film/l2 #film/w27 #film/w27/play. */
 (function(){
 'use strict';
 var D=document.documentElement,B=document.body,$=function(s,r){return(r||document).querySelector(s)},$$=function(s,r){return[].slice.call((r||document).querySelectorAll(s))};
@@ -102,12 +102,11 @@ function fill(c,it,play){var j=JSON.parse(it.dataset.j||'{}'),k=c.k,SC=!!window.
   $('.imm-m').textContent=$('.cap small',it).textContent;
   var pb=$('[data-a=play]',imm),ex=$('[data-a=ext]',imm),dl=$('.imm-c',imm);dl.hidden=!(k==='film'||k==='objects');
   var fr=$('.imm-f',imm);if(fr)fr.innerHTML=(k==='film'&&j.frames&&j.frames.length?j.frames:[]).map(function(f){return '<img src="'+f+'" alt="" width="160" height="67" decoding="async">'}).join('');
-  pb.hidden=!(k==='film'||k==='sound')||(k==='film'&&!j.reel&&!j.native&&!j.embed); /* v3.2.2: no local file yet = no play action (never the Vimeo player) */
-  ex.hidden=!(j.url)||/vimeo\.com|youtube(?:-nocookie)?\.com|youtu\.be/i.test(j.url);if(j.url&&!/vimeo\.com|youtube(?:-nocookie)?\.com|youtu\.be/i.test(j.url))ex.href=j.url; /* v3.2.2: no way out to Vimeo; films play natively in Scope */
+  pb.hidden=!(k==='film'||k==='sound')||(k==='film'&&!j.reel&&!j.native&&!j.embed); /* v3.2.2: no local file yet = no play action */
+  var okx=/^https:\/\/(www\.)?gilljames\.com\//i.test(j.url||'');ex.hidden=!okx;if(okx)ex.href=j.url; /* films play natively in Scope; the only way out is gilljames.com */
   if(k==='film'){pb.textContent=play?'… loading':'▶ play film';imm.classList.toggle('playing',!!play);
     if(SC){vidEl=__scope.fill({it:it,j:j,play:play,frame:frame,label:playLabel,setVid:function(v){vidEl=v}});if(play)watchPlay();return}
-    if(play){if(j.reel){vidEl=document.createElement('video');vidEl.src='media/reel/reel-v7-720.mp4';vidEl.playsInline=true;vidEl.setAttribute('playsinline','');vidEl.controls=true;vidEl.autoplay=true;vidEl.poster=it.dataset.big;vidEl.addEventListener('playing',function(){playLabel('❚❚ playing')});vidEl.addEventListener('pause',function(){playLabel('▶ play film')});frame.appendChild(vidEl);vidEl.play().catch(function(){playLabel('▶ play film')})}
-      else if(j.embed&&!/youtube|vimeo/i.test(j.embed)){var f=document.createElement('iframe');if(/youtube/.test(j.embed)){var onm=function(e){if(/youtube/.test(e.origin)&&e.source===f.contentWindow){removeEventListener('message',onm);if(S.play)playLabel('▶ in the player')}};addEventListener('message',onm);f.addEventListener('load',function(){try{f.contentWindow.postMessage(JSON.stringify({event:'listening',id:'gj',channel:'widget'}),'*')}catch(e){}})} /* v3.5.1 O2: only once YouTube answers */f.src=j.embed;f.allow='autoplay; fullscreen; picture-in-picture';f.title=j.title;f.setAttribute('allowfullscreen','');frame.classList.add('ext');frame.appendChild(f);watchPlay()}}
+    if(play){if(j.reel){vidEl=document.createElement('video');vidEl.src='media/reel/reel-v7-720.mp4';vidEl.playsInline=true;vidEl.setAttribute('playsinline','');vidEl.controls=true;vidEl.autoplay=true;vidEl.poster=it.dataset.big;vidEl.addEventListener('playing',function(){playLabel('❚❚ playing')});vidEl.addEventListener('pause',function(){playLabel('▶ play film')});frame.appendChild(vidEl);vidEl.play().catch(function(){playLabel('▶ play film')})}}
     else{var pv=it.dataset.pv;if(pv&&anim()){vidEl=document.createElement('video');vidEl.muted=true;vidEl.loop=true;vidEl.playsInline=true;vidEl.setAttribute('playsinline','');vidEl.autoplay=true;vidEl.poster=it.dataset.big;vidEl.src=pv;frame.appendChild(vidEl);vidEl.play().catch(function(){})}
       else{var im=new Image();im.src=it.dataset.big;im.alt='';frame.appendChild(im)}}}
   else if(k==='sound'){pb.textContent=play?'player loaded':'▶ load player';
@@ -154,12 +153,11 @@ function neighbour(dir){var c=CH[S.k],i=c.items.indexOf(item(c,S.w)),n=c.items[(
   fill(c,n,false);push({k:S.k,lv:3,w:S.w},true);ui()}
 imm.addEventListener('click',function(e){var b=e.target.closest('[data-a]');if(!b)return;var a=b.dataset.a;
   if(a==='out'){e.preventDefault();var wasFs=unfullAll();if(S.w)go({k:S.k,lv:2},{anchor:item(CH[S.k],S.w),noAnim:wasFs})} /* ✕ always lands on the chapter grid. v3.4: in full screen too, in ONE tap (it used to only leave full screen first) */
-  else if(a==='play'){e.preventDefault();if(!S.play)go({k:S.k,lv:3,w:S.w,play:true});else if(window.__scope&&__scope.owns())__scope.toggle();else if(window.__scope&&__scope.retry&&__scope.retry()){}else if(vidEl&&S.play){vidEl.paused?vidEl.play():vidEl.pause()}else{var ifr=$('iframe',frame);if(ifr&&/vimeo/.test(ifr.src))vimeo(ifr,/playing/.test(b.textContent)?'pause':'play')}}
+  else if(a==='play'){e.preventDefault();if(!S.play)go({k:S.k,lv:3,w:S.w,play:true});else if(window.__scope&&__scope.owns())__scope.toggle();else if(window.__scope&&__scope.retry&&__scope.retry()){}else if(vidEl&&S.play){vidEl.paused?vidEl.play():vidEl.pause()}}
   else if(a==='prev'||a==='next'){e.preventDefault();neighbour(a==='next'?1:-1)}
   else if(a==='full'){e.preventDefault();full()}});
-/* full screen: a playing <video> uses the native player (iPhone: webkitEnterFullscreen). An embed (Vimeo/YouTube) uses element
-   full screen where the browser has it; iPhone Safari has none for a div, so there we ask Vimeo's own player (postMessage API)
-   and also switch the work view to a CSS full-viewport mode (frame fills the screen, ✕ exits). */
+/* full screen: a playing <video> uses the native player (iPhone: webkitEnterFullscreen). An embed uses element
+ full screen where the browser has it; iPhone Safari has none for a div, so there we the work view to a CSS full-viewport mode (frame fills the screen, ✕ exits). */
 function fsOK(){return !!(document.fullscreenEnabled||document.webkitFullscreenEnabled)}
 function playable(w){var it=w&&item(CH.film,w);return !it||!window.__scope||__scope.playable(it)} /* v3.2.2 */
 function full(){var ifr=$('iframe',frame);if(window.__scope&&__scope.owns()){__scope.toggleFull();return} /* v3.2.2: Scope morphs cut <-> full itself, the video never moves */
@@ -167,24 +165,17 @@ function full(){var ifr=$('iframe',frame);if(window.__scope&&__scope.owns()){__s
   /* v3.2 QA L1: element full screen is the whole work view in the .fv layout, so ✕ and ⤡ stay on screen (Android had no on-page exit) */
   if(fsOK()&&(imm.requestFullscreen||imm.webkitRequestFullscreen)){var q=imm.requestFullscreen?imm.requestFullscreen():imm.webkitRequestFullscreen();fsImm=1;fv(true);q&&q.then&&q.then(function(){try{screen.orientation.lock('landscape').catch(function(){})}catch(e){}},function(){fsImm=0});return}
   if(vidEl&&S.play&&vidEl.webkitEnterFullscreen){try{vidEl.webkitEnterFullscreen()}catch(e){}return}
-  if(ifr&&/vimeo/.test(ifr.src))vimeo(ifr,'requestFullscreen');
   fv(true)}
 var fsImm=0,fsOffT=0;function fsEl(){return document.fullscreenElement||document.webkitFullscreenElement}
 ['fullscreenchange','webkitfullscreenchange'].forEach(function(n){document.addEventListener(n,function(){if(!fsEl()&&fsImm){fsImm=0;fsOffT=Date.now();fv(false)}})}); /* system Back / Esc left full screen */
 /* v3.4: leave every kind of full screen at once (Scope's element full screen + .fv, the embed's element full screen, the iPhone CSS one).
-   Returns whether anything was full, so the close that follows can skip its zoom-out (no animation against a resizing screen) */
+ Returns whether anything was full, so the close that follows can skip its zoom-out (no animation against a resizing screen) */
 function unfullAll(){var was=!!fsEl()||imm.classList.contains('fv');if(window.__scope&&__scope.unfull)__scope.unfull();if(imm.classList.contains('fv')||fsImm)fv(false);
   if(fsEl())try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}return was}
 function fv(on){imm.classList.toggle('fv',on);if(!on&&fsImm&&fsEl()){fsImm=0;try{(document.exitFullscreen||document.webkitExitFullscreen).call(document)}catch(e){}}var b=$('[data-a=full]',imm);if(b){b.setAttribute('aria-label',on?'exit full screen':'full screen');b.textContent=on?'⤡':'⤢'}}
-function vimeo(ifr,method,value){try{ifr.contentWindow.postMessage(JSON.stringify(value===undefined?{method:method}:{method:method,value:value}),'https://player.vimeo.com')}catch(e){}}
 var watchT=0;function watchPlay(){clearTimeout(watchT);var f=$('iframe',frame);if(!f||!S.play)return; /* v3.2 QA M1: no play event within ~3 s -> hand over to the player */
   watchT=setTimeout(function(){var pb=$('[data-a=play]',imm);if(S.play&&$('iframe',frame)===f&&pb&&/loading/.test(pb.textContent))playLabel('▶ tap the player')},3000)}
 function playLabel(t){var pb=$('[data-a=play]',imm);if(pb&&S.k==='film')pb.textContent=t}
-addEventListener('message',function(e){if(!/player\.vimeo\.com$/.test((e.origin||'').replace(/^https?:\/\//,'')))return;var d=e.data;try{if(typeof d==='string')d=JSON.parse(d)}catch(x){return}if(!d||!S.play)return;
-  var ifr=$('iframe',frame);if(!ifr)return;
-  if(d.event==='ready'){['play','pause','ended'].forEach(function(ev){vimeo(ifr,'addEventListener',ev)});vimeo(ifr,'play')}
-  else if(d.event==='error')playLabel('▶ tap the player'); /* v3.2 QA M1: Vimeo could not start (e.g. iOS blocks autoplay with sound) */
-  else if(d.event==='play'||d.event==='playing')playLabel('❚❚ playing');else if(d.event==='pause'||d.event==='ended')playLabel('▶ play film')});
 /* ---------- taps ---------- */
 document.addEventListener('click',function(e){if(e.defaultPrevented||e.metaKey||e.ctrlKey||e.shiftKey||e.button)return;var t=e.target;
   var h=t.closest('.ch .head');if(h){e.preventDefault();var c=CH[h.parentNode.dataset.k];go({k:c.k,lv:c.lv?0:1},{anchor:c.head,glide:1});return}

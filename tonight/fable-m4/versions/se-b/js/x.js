@@ -1,6 +1,6 @@
 /* se-b · plates in depth: the PDF's own pages hang in the scene as layered plates; moving to the next stop carries you through them.
-   The words sit on one calm panel beside the scene (bottom on a phone, right on wider screens), never over a picture.
-   Labels the PDF draws on a picture become numbers in the scene and a numbered list on the panel. */
+ The words sit on one calm panel beside the scene (bottom on a phone, right on wider screens), never over a picture.
+ Labels the PDF draws on a picture become numbers in the scene and a numbered list on the panel. */
 (function () {
   const P = n => 'pages/p' + String(n).padStart(2, '0');
   /* [file, depth, right, up, width] relative to the stop's camera */

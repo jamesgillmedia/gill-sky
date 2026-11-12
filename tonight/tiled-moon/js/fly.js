@@ -1,5 +1,5 @@
 /* Fly through the stars: an opt-in, isolated full-screen zone at the bottom of the sky. Pinch / drag / wheel fly the camera;
-   names appear as you get close (greedy declutter: a name only shows if its box is free). Tap a star to open that work. */
+ names appear as you get close (greedy declutter: a name only shows if its box is free). Tap a star to open that work. */
 (function(){
 var btn=document.querySelector('.fly-btn'),box=document.querySelector('.fly');if(!btn||!box)return;btn.hidden=false;
 var cv=box.querySelector('canvas'),ctx=cv.getContext('2d'),X=box.querySelector('.x'),W=0,H=0,dpr=1,stars=[],cam={x:0,y:0,z:.35},raf=0,ptr=new Map(),moved=0,t0=0;

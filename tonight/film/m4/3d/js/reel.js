@@ -1,7 +1,7 @@
 /* Photo reel (3d/): one photo at a time, real shape, flush edge to edge, sky in the leftover space.
-   Swipe only (no auto-advance). Glide cubic-bezier(0.22,1,0.36,1): 450 ms, 300 ms after a flick, 250 ms ease-back, <=700 ms long jumps.
-   Counter + series (+ title only where a real one exists) and a pro2-style frame rail fade together 2 s after things settle (600 ms).
-   Tap 1 pauses + shows the title, tap 2 opens the photo's m4 page. Pinch in -> contact sheet. Loops. Same with Reduce Motion. DOM only (works without WebGL). */
+ Swipe only (no auto-advance). Glide cubic-bezier(0.22,1,0.36,1): 450 ms, 300 ms after a flick, 250 ms ease-back, <=700 ms long jumps.
+ Counter + series (+ title only where a real one exists) and a pro2-style frame rail fade together 2 s after things settle (600 ms).
+ Tap 1 pauses + shows the title, tap 2 opens the photo's m4 page. Pinch in -> contact sheet. Loops. Same with Reduce Motion. DOM only (works without WebGL). */
 window.GJ3_REEL = (function () {
   'use strict';
   var EASE = bez(0.22, 1, 0.36, 1), T_GLIDE = 450, T_FLICK = 300, T_BACK = 250, T_LONG = 700, UI_HOLD = 2000;

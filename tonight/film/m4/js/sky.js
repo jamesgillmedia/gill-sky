@@ -1,8 +1,8 @@
 /* u1 · one sky.
-   Far: six constellations around ᑕᐣᓯ, lit by the work, no counts.
-   Then a chapter board (stars bloom into titled thumbnails).
-   Then the piece: Scope, the filmstrip, the waveform, the feed.
-   Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
+ Far: six constellations around ᑕᐣᓯ, lit by the work, no counts.
+ Then a chapter board (stars bloom into titled thumbnails).
+ Then the piece: Scope, the filmstrip, the waveform, the feed.
+ Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
 (function(){
 'use strict';
 var Q = new URLSearchParams(location.search);
@@ -19,7 +19,7 @@ var STROKES = [[[-58.5,-96],[-156.5,-95],[-203.5,-61],[-213.5,1],[-203.5,63],[-1
 var $=function(id){return document.getElementById(id)};
 var cv=$('cv'),g=cv.getContext('2d'),stage=$('stage');
 /* item 12 · Text size: every canvas label goes through one multiplier (tune 'text', default 1×). The context's font setter scales the px
-   size; the getter hands back the unscaled font, so code that reads g.font and shrinks it (cut0) never double-scales. */
+ size; the getter hands back the unscaled font, so code that reads g.font and shrinks it (cut0) never double-scales. */
 var FONTD=Object.getOwnPropertyDescriptor(CanvasRenderingContext2D.prototype,'font');
 function textScaled(c){
   if(!c||c._ts||!FONTD)return c;c._ts=1;var uf=FONTD.get.call(c);
@@ -31,8 +31,8 @@ textScaled(g);
 var W=0,H=0,DPR=1,PORT=false;
 var data=null,CH={},byId={},progress=[],cluster=[];
 /* site-3d's critically damped spring (sstep). Level changes use its glide
-   weight, so a board arrives and settles instead of easing like a button.
-   Drag never yaws the camera. */
+ weight, so a board arrives and settles instead of easing like a button.
+ Drag never yaws the camera. */
 function S(x,w){return{x:x,v:0,t:x,w:w}}
 function sstep(s,dt){var w=s.w,e=s.x-s.t,k=Math.exp(-w*dt),c=s.v+w*e;s.x=s.t+(e+c*dt)*k;s.v=(s.v-w*c*dt)*k}
 var W_GLIDE=4.8,W_LOOK=9.5;
@@ -107,7 +107,7 @@ function boot(d){
 }
 
 /* Item K: r9's Space practice picks (Nov 9: forest mist, slatted screen, church arch, carved reliefs) also sit on the Space board.
-   They stay on their Photo / Objects boards too; never in the sky layout. */
+ They stay on their Photo / Objects boards too; never in the sky layout. */
 var SPACE_PICKS=['IMG_6549','IMG_6550','IMG_6552','IMG_5840','IMG_9354','IMG_2498','IMG_7571','IMG_7443'];
 function spacePicks(){
   var c=CH.space;if(!c)return;
@@ -163,17 +163,17 @@ function buildGlow(){
   ORDER.forEach(function(k){CH[k].glow=glow(CH[k].tint)});
 }
 /* Depth field: 4 layers, 378 stars. Each star has a home on a torus a margin
-   wider than the screen (pans wrap off-screen, never on it) and a phase in a
-   zoom cycle: zoom pushes it out from the screen centre by up to DZ.E, nearer
-   layers faster, and it fades at both ends of its cycle so nothing pops.
-   Pans slide by f*sqrt(z), not f*z, so a pan at sound zoom never moves a star
-   past the margin in one frame. Size grows only by 1+DZ.g*f*ln(z).
-   Every length is a share of the short side. */
+ wider than the screen (pans wrap off-screen, never on it) and a phase in a
+ zoom cycle: zoom pushes it out from the screen centre by up to DZ.E, nearer
+ layers faster, and it fades at both ends of its cycle so nothing pops.
+ Pans slide by f*sqrt(z), not f*z, so a pan at sound zoom never moves a star
+ past the margin in one frame. Size grows only by 1+DZ.g*f*ln(z).
+ Every length is a share of the short side. */
 var FIELD=[],HOP=0,FN=0,FDT=1/60,POPW=0,POPA=0;
 var DZ={E:2.4,K:.36,slide:.85,g:.16,cap:1.45,streak:.06,tau:.05,dimR:.075,fin:.35};
 /* v1r2: a star's drawn alpha rises toward its target with time constant DZ.fin (s), driven by the frame dt
-   (FDT, already capped at 50 ms by the loop), and falls at once. A dropped frame therefore cannot take a
-   star from unseen to bright in one step; a star that wraps restarts from 0. Settled frames are unchanged. */
+ (FDT, already capped at 50 ms by the loop), and falls at once. A dropped frame therefore cannot take a
+ star from unseen to bright in one step; a star that wraps restarts from 0. Settled frames are unchanged. */
 function buildField(){
   [[0,150,.22,.42,.42],[1,110,.48,.58,.72],[2,78,.86,.74,.9],[3,40,1.25,.9,1.05]].forEach(function(L){
     var pts=[];for(var i=0;i<L[1];i++)pts.push({u:rnd(L[0]*1000+i),v:rnd(L[0]*3000+i),ph:rnd(L[0]*5100+i),b:.15+.85*Math.pow(rnd(L[0]*700+i),2),r:.4+L[4]*rnd(L[0]*90+i),px:0,py:0,pn:-9});
@@ -191,8 +191,8 @@ function depthZoom(){return rest.s/Math.max(1e-4,FAR.s)}
 function fieldUnit(){return Math.min(W,H)||390}
 function smooth(a,b,v){v=clamp((v-a)/(b-a),0,1);return v*v*(3-2*v)}
 /* Item 8: the field follows its own copy of the camera (FC), slew-limited per drawn frame, so a long frame
-   (now that the camera springs use real time) can't carry a visible star across its zoom cycle or the wrap in
-   one step. It catches up within a few frames, so settled frames are exactly the camera's. */
+ (now that the camera springs use real time) can't carry a visible star across its zoom cycle or the wrap in
+ one step. It catches up within a few frames, so settled frames are exactly the camera's. */
 var FC={on:0,lz:0,px:0,py:0};
 function fcTarget(){var z=Math.max(1e-3,depthZoom());return {lz:Math.log(z),px:-rest.x*FAR.s*Math.sqrt(z)*DZ.slide-look.x*140,py:-rest.y*FAR.s*Math.sqrt(z)*DZ.slide-look.y*140}}
 function fcStep(){
@@ -329,7 +329,7 @@ function layout(){
     break;
   }
   /* Spread the six centres after the fit, and keep FAR at the fitted scale,
-     so a multiplier of 1 is this map and any other value actually moves them apart. */
+ so a multiplier of 1 is this map and any other value actually moves them apart. */
   var mapK=tk('map');
   if(mapK!==1){ORDER.forEach(function(k){var c=CH[k],p=chapterAt(k,rx*mapK,ry*mapK);c.x=p.x;c.y=p.y})}
   ORDER.forEach(function(k){var c=CH[k];
@@ -338,7 +338,7 @@ function layout(){
     c.node.forEach(function(nd){if(nd&&nd.dec){nd.x=c.x+nd.ox;nd.y=c.y+nd.oy}else if(nd&&nd.sx!=null){nd.x=nd.sx;nd.y=nd.sy}});
   });
   /* Star spread scales each constellation about its own centre, after the fit,
-     so 1 leaves the stars where placeChapter put them and the camera does not refit it away. */
+ so 1 leaves the stars where placeChapter put them and the camera does not refit it away. */
   var starK=tk('stars');
   if(starK!==1){
     ORDER.forEach(function(k){
@@ -407,9 +407,9 @@ function boards(){
 }
 function boardScale(){return clamp(W/280,1.15,2.4)}
 /* Item 1: every chapter lands inside the safe area. The rect runs from under the header and crumb to above the
-   map / rail band, with 12px sides on a phone and 24px on a wide screen, plus the device insets. The chapter
-   camera fits the tiles (and the title line under them) into it, never past it. On a wide screen the tiles grow
-   (up to 2.4x, film 90-110px) as far as they can without two tiles touching. */
+ map / rail band, with 12px sides on a phone and 24px on a wide screen, plus the device insets. The chapter
+ camera fits the tiles (and the title line under them) into it, never past it. On a wide screen the tiles grow
+ (up to 2.4x, film 90-110px) as far as they can without two tiles touching. */
 var INS=null;
 function insets(){
   if(INS&&INS.w===W&&INS.h===H)return INS;
@@ -475,8 +475,8 @@ function camFor(st){
 }
 function aim(s,t,instant){s.t=t;s.w=instant?40:W_GLIDE;if(instant){s.x=t;s.v=0;if(s===cxS||s===cyS||s===csS)TW=null}}
 /* Item 5: a hop is a fixed-length tween (1 s, ease in-out, log-space zoom, the same path as the pinch), not the
-   spring's long tail, so the tiles stop moving when it lands instead of drifting for another second. Velocities are
-   kept up to date so the star streak (depthStep) still reads them. RM identical. */
+ spring's long tail, so the tiles stop moving when it lands instead of drifting for another second. Velocities are
+ kept up to date so the star streak (depthStep) still reads them. RM identical. */
 var TW=null,TW_MS=1000;
 function camTween(to){
   if(TW&&Math.abs(TW.to.x-to.x)<1e-6&&Math.abs(TW.to.y-to.y)<1e-6&&Math.abs(TW.to.s-to.s)<1e-7)return;
@@ -571,9 +571,9 @@ function washImgs(k){
 
 function frame(t){
   /* Item 8: the camera springs get the real frame time (sstep is the exact critically damped solution,
-     so any dt is stable and never overshoots); hops keep their length when frames drop. Capped at .25 s
-     only so a background tab doesn't jump. Everything else keeps the 50 ms cap, including the depth
-     v1r2 fade guard (FDT), on purpose. */
+ so any dt is stable and never overshoots); hops keep their length when frames drop. Capped at .25 s
+ only so a background tab doesn't jump. Everything else keeps the 50 ms cap, including the depth
+ v1r2 fade guard (FDT), on purpose. */
   var rdt=Math.min(.25,(t-(lastT||t))/1000),dt=Math.min(.05,rdt);lastT=t;
   if(phase==='fly'&&!OP.on){flyU=clamp((t-flyT)/(1680*tk('fade')),0,1);if(flyU>=1){phase='land';landI=0;landT=t;showLand();setChrome();if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush()}}
   if(phase==='land'&&!OP.on&&!opCard()&&Q.get('land')!=='1'&&t-landT>3600)nextLand();
@@ -750,7 +750,7 @@ function syncCardsBoard(){
   }else if(GJ_OPEN.board)GJ_OPEN.hide();
 }
 /* A 'cards' star in Film only (never on the home sky). It sits in the open band above the
-   strips at the mid camera, so arrival framing and the strips themselves stay as live. */
+ strips at the mid camera, so arrival framing and the strips themselves stay as live. */
 function placeCardsStar(){
   var c=CH.film;if(!c){cardsStar=null;return}
   var fit=c.mfit||(c.mfit=midFit('film'));if(!fit)return;
@@ -1204,7 +1204,7 @@ function boardRoom(){
   if(cr&&!cr.hidden){var cb=cr.getBoundingClientRect();if(cb.height)top=Math.max(top,Math.round(cb.bottom)+2)}
   var rail=$('wrail'),rb=rail&&!rail.hidden?36:0;
   /* Photo prints are tall and the right column runs into the map's corner. Stop the
-     grid above the map and left of it, with a clear band, so a print never sits under it. */
+ grid above the map and left of it, with a clear band, so a print never sits under it. */
   if(boardKey()==='photo'){
     var gap=36,right=m.l-30;
     if(right>=220&&m.t-gap-top>=H*.5)return {x:0,w:right,top:top,bottom:m.t-gap,m:m.l+':'+m.t+':'+top+':p'};
@@ -1432,7 +1432,7 @@ function markLayout(){
   de.classList.toggle('port',PORT);
 }
 /* Arrival order: water and moon fade in (1.0 s / 1.2 s), then the mark draws and dims to 35%, then the poem block and the moon path settle, then the signature.
-   The clock starts when both opacity transitions end (transitionend, with their longest known duration as a fallback). */
+ The clock starts when both opacity transitions end (transitionend, with their longest known duration as a fallback). */
 var MP={t0:0},MS=null,ARR={on:0,done:0,wd:0,md:0,tm:0,hook:0};
 function markProg(){
   if(MP.t0<0)return {d:1,a:.35};
@@ -1686,7 +1686,7 @@ function renderSheet(el,it){
     return '<a href="'+o.chapter+'/'+o.slug+'/">'+esc(name)+'</a>';
   }).filter(Boolean).join(' · ');
   rel=rel?'<p class="rel">'+rel+'</p>':'';
-  var watch=(m.url&&!/youtube\.com|youtu\.be/i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
+  var watch=(m.url&&/^https:\/\/(www\.)?gilljames\.com\//i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
   if(it.body&&!body)body='<div class="prose"><p>'+esc(it.body).split('\n\n').map(function(p){return p}).join('</p><p>')+'</p></div>';
   var role=it.role||'';
   if(role==='Director · Director of Photography'&&(it.credits||[]).length)role='';
@@ -1965,12 +1965,12 @@ function pinchBack(n){
   back();
 }
 /* Desktop trackpad pinch (ctrl+wheel) on the bio layers only: one gesture = one layer, in or out.
-   The general wheel / ctrl-wheel zoom for the sky is item 3. */
+ The general wheel / ctrl-wheel zoom for the sky is item 3. */
 var BW={acc:0,t:0,used:0};
 /* Item 3: desktop wheel and trackpad pinch on the sky. ctrl+wheel (a trackpad pinch) never zooms the page.
-   A gesture (until 250 ms without wheel events) moves one level: in at the pointer or back out. A mouse wheel
-   notch zooms the same way; a trackpad two-finger scroll only looks around. Inside a scrolling panel (a sheet,
-   the bio text, the about panel, the sound frame) a plain wheel keeps scrolling it. */
+ A gesture (until 250 ms without wheel events) moves one level: in at the pointer or back out. A mouse wheel
+ notch zooms the same way; a trackpad two-finger scroll only looks around. Inside a scrolling panel (a sheet,
+ the bio text, the about panel, the sound frame) a plain wheel keeps scrolling it. */
 var WG={t:0,acc:0,used:0};
 function wheelScroller(el){
   for(;el&&el!==document.body;el=el.parentElement){
@@ -2026,13 +2026,13 @@ function onBioWheel(e){
 }
 function pinchLetGo(){if(pinch&&pinch.fz){fzEnd();return}if(pinch&&!pinch.done&&window.GJ_DEPTH)GJ_DEPTH.followEnd()}
 /* Item 4: the pinch follows the fingers through the sky (u 0), a chapter (u 1) and its board (u 2), like pro3.
-   One camera path in log space between the three fitted cameras (item 1), the stars bloom with u, the crumb and
-   the hash follow the nearest level (replaceState; one history step at the end). Release (Gill, 9:38 AM):
-   - near a layer (within the snap zone, debug slider "Pinch snap zone") it snaps into that layer;
-   - a pinch that crossed no layer but went at least "Full pinch" of a level carries on to the next layer;
-   - otherwise (a partial pinch, or a zoom-through) it stays where the fingers let go, between layers.
-   Past the board a full pinch opens the work under the fingers (the old path). Deeper levels, the bio, the
-   opening and sound keep the old one-step pinch. */
+ One camera path in log space between the three fitted cameras (item 1), the stars bloom with u, the crumb and
+ the hash follow the nearest level (replaceState; one history step at the end). Release (Gill, 9:38 AM):
+ - near a layer (within the snap zone, debug slider "Pinch snap zone") it snaps into that layer;
+ - a pinch that crossed no layer but went at least "Full pinch" of a level carries on to the next layer;
+ - otherwise (a partial pinch, or a zoom-through) it stays where the fingers let go, between layers.
+ Past the board a full pinch opens the work under the fingers (the old path). Deeper levels, the bio, the
+ opening and sound keep the old one-step pinch. */
 var FZ=null,FZWIN=null;
 function fzCams(k){return [camFor({lv:0}),camFor({lv:1,k:k,id:null}),camFor({lv:1,k:k,id:null,b:1})]}
 function fzLerp(a,b,e){
@@ -2116,7 +2116,7 @@ function fzEnd(){
 }
 function pushStepFromPinch(u0){
   /* The level changed under the fingers with replaceState; record it as one step so Back returns to where the
-     pinch began. */
+ pinch began. */
   var now0=snap(cur),from=u0===0?{lv:0,k:null,id:null}:{lv:1,k:now0.k||null,id:null,b:u0===2?1:0};
   if(JSON.stringify(from)===JSON.stringify(now0))return;
   try{history.replaceState({u1:1,cur:from,n:STEP},'',hashOf(from))}catch(e){}
@@ -2209,14 +2209,14 @@ function opLayers(dt){
   }
 }
 /* Gesture input (items B + I). Touch events keep arriving after the browser cancels the pointers
-   (pointercancel once a one-finger scroll starts on a scrolling sheet or bio text), so:
-   - G counts fingers for the whole gesture; a gesture that ever had 2+ fingers is never a tap.
-   - The pinch is also measured from touches whenever the pointer pinch is not tracking two fingers;
-     both paths share pinchAt() and its thresholds, so it works the same on every layer.
-   - Each touch target gets its own non-passive touchmove/touchend listeners, so when a repaint
-     (paintBio, renderLayer) removes the node under the fingers the gesture is still guarded and measured.
-   - Page zoom is blocked: 2-finger touchmove at the document, iOS gesture events, ctrl+wheel in the bio
-     (the general wheel zoom is item 3). */
+ (pointercancel once a one-finger scroll starts on a scrolling sheet or bio text), so:
+ - G counts fingers for the whole gesture; a gesture that ever had 2+ fingers is never a tap.
+ - The pinch is also measured from touches whenever the pointer pinch is not tracking two fingers;
+ both paths share pinchAt and its thresholds, so it works the same on every layer.
+ - Each touch target gets its own non-passive touchmove/touchend listeners, so when a repaint
+ (paintBio, renderLayer) removes the node under the fingers the gesture is still guarded and measured.
+ - Page zoom is blocked: 2-finger touchmove at the document, iOS gesture events, ctrl+wheel in the bio
+ (the general wheel zoom is item 3). */
 var G={n:0,max:0};
 function touchPair(e){var a=e.touches[0],b=e.touches[1];return {d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2}}
 function gTrack(e){
@@ -2266,7 +2266,7 @@ function tap(x,y){
     return;
   }
   /* Main sky (Gill, 9:45 AM): a touch or a drag only ripples and moves the view. Only a constellation's NAME
-     answers a tap, by lighting the constellation and showing the "open ›" chip; the chip or a pinch opens it. */
+ answers a tap, by lighting the constellation and showing the "open ›" chip; the chip or a pinch opens it. */
   if(cur.lv===0){var nk=nameAt(x,y);sel=nk?{type:'ch',k:nk}:null;syncChip();return}
   var h=hit(x,y);
   if(!h||h.type==='panel'){if(!h)sel=null;syncChip();return}
@@ -2280,8 +2280,8 @@ function tap(x,y){
   syncChip();
 }
 /* Item 2: the first tap is visible. A sky name lights its constellation and shows "<count> · open ›" under the
-   name; a chapter or board tile shows "open ›" under it. The chip is a real button (44px, keyboard), and the
-   second tap on a tile still opens it (two taps kept off the sky). */
+ name; a chapter or board tile shows "open ›" under it. The chip is a real button (44px, keyboard), and the
+ second tap on a tile still opens it (two taps kept off the sky). */
 function nameBox(k){
   var c=CH[k],p=sp(c.x,c.y+c.ex.y1),y=p[1]+20;
   g.font='400 13px "Julius Sans One",Poppins,sans-serif';
@@ -2322,7 +2322,7 @@ function syncChip(){
     }else if(cur.lv===1){
       var r=selRect(),it=byId[sel.id];
       /* On a board the chip sits inside the tile; in a dense chapter it sits in the clear band under the
-         constellation with the title, so it never covers another tile. */
+ constellation with the title, so it never covers another tile. */
       if(r&&it){var tt=realTitle(it);
         show=r.board?{x:r.x+r.w/2,y:r.y+r.h-50,key:'w:'+sel.id,html:'<span class="o">open <span aria-hidden="true">›</span></span>',lab:'open '+(tt||'this')}
           :{x:W/2,y:safeBox().b+2,fixed:1,key:'w:'+sel.id,html:(tt?'<span class="n">'+esc(cut(tt,W*.5))+'</span>':'')+'<span class="o">open <span aria-hidden="true">›</span></span>',lab:'open '+(tt||'this')}}
@@ -2342,8 +2342,8 @@ function chipOpen(e){
   openSel();syncChip();
 }
 /* Item 7: at a chapter (not its board) a horizontal swipe past a quarter of the width, or a flick, moves to the
-   next chapter in map order (swipe left = next), wrapping at the ends, with the usual hop (the star streak).
-   It is its own gesture: nothing gets selected. Short or vertical drags keep looking around. */
+ next chapter in map order (swipe left = next), wrapping at the ends, with the usual hop (the star streak).
+ It is its own gesture: nothing gets selected. Short or vertical drags keep looking around. */
 function swipeChapter(was,e){
   if(phase!=='sky'||cur.lv!==1||onBoard()||!CH[cur.k]||isBio()||was.over)return false;
   if(window.GJ_DEPTH&&(GJ_DEPTH.soundOn()||GJ_DEPTH.busy()))return false;
@@ -2678,7 +2678,7 @@ function back(){
   if(history.state&&history.state.u1&&STEP>0){history.back();return}
   stepOut();
 }
-/* One level out. Every way out (pinch, ‹, Esc, browser Back) arrives here through history.back(). */
+/* One level out. Every way out (pinch, ‹, Esc, browser Back) arrives here through history.back. */
 function stepOut(){
   if(bioBack())return;
   if(window.GJ_DEPTH&&GJ_DEPTH.pinchOut(depthApi()))return;
@@ -2779,7 +2779,7 @@ function syncCrumb(label){
   }
   for(i=0;i<4;i++){
     var cls=i===lv?'here':i<lv?'up':'',tap=i<lv&&canJump(i);
-    r+='<li class="'+cls+(tap?' tap':'')+'"'+(tap?' data-lv="'+i+'" role="button" tabindex="0"':'')+' aria-label="'+esc(i===0?'sky':nm[i])+(i===lv?' (here)':'')+'"><span>'+esc(i===0?'sky':nm[i])+'</span></li>';
+    r+='<li class="'+cls+(tap?' tap':'')+'"'+(tap?' data-lv="'+i+'"':'')+'><span'+(tap?' role="button" tabindex="0"':'')+' aria-label="'+esc(i===0?'sky':nm[i])+(i===lv?' (here)':'')+'">'+esc(i===0?'sky':nm[i])+'</span></li>';
   }
   var key=h+'|'+r;
   if(cr._key!==key){cr._key=key;cr.innerHTML=h;rl.innerHTML='<ol>'+r+'</ol>'}
@@ -2788,7 +2788,7 @@ function syncCrumb(label){
   syncInside(rl);
 }
 /* 'go inside' link: only at the Objects chapter and its board (lv1), placed just right of the depth rail,
-   or above it if the mini-map leaves no room. Never moves anything else. */
+ or above it if the mini-map leaves no room. Never moves anything else. */
 function syncInside(rl){
   var gi=$('ginside');if(!gi)return;
   var at=phase==='sky'&&cur.lv===1&&cur.k==='objects'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn());
@@ -2854,7 +2854,7 @@ function midHit(x,y){
   return best?{type:'work',k:cur.k,id:best.id,prog:0}:null;
 }
 /* Item 6: only the second tap on a tile carries its selection onto the board. A pinch (or any other entry)
-   scrolls the board to the tile under the fingers but selects nothing. */
+ scrolls the board to the tile under the fingers but selects nothing. */
 var TAPDEEP=0;
 function openBoardAt(x,y){
   var h=(typeof x==='number')?midHit(x,y):null;
@@ -3054,7 +3054,7 @@ function dust(){
   d.innerHTML=h;
 }
 /* The opening title card's cards, from the data: Weird Kid first, then the preview-cards order. To Go carries a muted
-   preview clip, the live small Momo loop tile (momo-480) and its song (never autoplayed). Missing ids are skipped. */
+ preview clip, the live small Momo loop tile (momo-480) and its song (never autoplayed). Missing ids are skipped. */
 function openCards(){
   var ids=['film/weird-kid','sound/to-go','film/one-with-the-devil','objects/hand-carved-piece','film/sleepwalker','film/repeat-feat-jessie-reyez'];
   return ids.map(function(id){

@@ -1,7 +1,7 @@
 /* ambience panel (shared by the room builds). Same control as the Sound section's vol / flash rows:
-   <label class="cl"><span>name</span><input type="range" 0..100></label>, mint fill to the thumb, values kept on this device.
-   AMBX.create({room, title, sliders:[{k,label,min,max,def,step,show(),scope(),read(),write(v),apply(v)}], onReset, where()})
-   Nothing here moves on its own; it only answers the fingers. Reduce Motion changes nothing. */
+ <label class="cl"><span>name</span><input type="range" 0..100></label>, mint fill to the thumb, values kept on this device.
+ AMBX.create({room, title, sliders:[{k,label,min,max,def,step,show,scope,read,write(v),apply(v)}], onReset, where})
+ Nothing here moves on its own; it only answers the fingers. Reduce Motion changes nothing. */
 (function(){
   var LS='gj.amb.';
   function rd(key,d,min,max){try{var s=localStorage.getItem(key);if(s==null||s==='')return d;var v=+s;return isFinite(v)?Math.max(min,Math.min(max,v)):d}catch(e){return d}}

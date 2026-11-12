@@ -128,7 +128,7 @@ html.js .sketch{display:block}
 .works .noimg{display:block;width:100%;aspect-ratio:16/9;border-radius:2px;background:linear-gradient(135deg,#0d151d,#16212b)}
 
 /* save 1b · To Go only (body.togo): on short screens the hero shrinks so the song cards + 01 / 06 counter sit in the first screen.
-   Portrait phones are untouched (both queries need a landscape-shaped viewport). */
+ Portrait phones are untouched (both queries need a landscape-shaped viewport). */
 @media (min-aspect-ratio:1/1) and (max-height:1000px) and (min-height:501px){
   .togo .hero.frame239{aspect-ratio:auto;height:min(calc(min(100vw - 32px,948px) / 2.39),calc(100vh - 592px));min-height:120px}
   .togo .hero.frame239 img{height:100%;max-height:none;min-height:0}
@@ -142,3 +142,11 @@ html.js .sketch{display:block}
   .togo main>.hero img{height:100%;max-height:none;min-height:0}
   .togo .mc{flex-basis:calc((100vh - 128px) * .8)}
 }
+
+/* tonight fixes (Nov 12): the player keeps its whole control bar inside the frame (model: One With the Devil) */
+.hero.frame239{position:relative;display:block}
+.hero.frame239>video,.hero.frame239>img{position:absolute;inset:0;width:100%;height:100%;max-height:none;object-fit:contain}
+/* strips: no orphan cell — the last row stretches to the full width, no frame added */
+.stills,.frames{display:flex!important;flex-wrap:wrap;gap:6px}
+.stills img{flex:1 1 150px;width:auto;min-width:0}
+.frames li{flex:1 1 140px;min-width:0}

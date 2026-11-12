@@ -1,9 +1,9 @@
 /* item 10 · To Go cards. Every song of the Sound chapter (data.json `tracks`, in order) as a card on one strip, starting on To Go.
-   Swipe (hold and drag, momentum + snap), the arrow keys or a horizontal trackpad wheel move exactly one card. A swipe is its own
-   gesture: it never selects and never plays (swipe-as-first-tap sits behind a switch, default OFF: ?swipesel=1 or localStorage
-   gj.swipesel=1). Tap 1 selects a card (highlight + title), tap 2 plays it in the page's waveform player (js/song.js).
-   When a song ends the next one plays (last -> first). The To Go card carries the page's own small Momo loop tile
-   (media/pro2/img/sound/momo-480 webm/mp4 + poster, exactly as on the live page), moved into the card. Same motion with Reduce Motion on. */
+ Swipe (hold and drag, momentum + snap), the arrow keys or a horizontal trackpad wheel move exactly one card. A swipe is its own
+ gesture: it never selects and never plays (swipe-as-first-tap sits behind a switch, default OFF: ?swipesel=1 or localStorage
+ gj.swipesel=1). Tap 1 selects a card (highlight + title), tap 2 plays it in the page's waveform player (js/song.js).
+ When a song ends the next one plays (last -> first). The To Go card carries the page's own small Momo loop tile
+ (media/pro2/img/sound/momo-480 webm/mp4 + poster, exactly as on the live page), moved into the card. Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var box=document.querySelector('.sketch');

@@ -1,8 +1,8 @@
 /* u1 · one sky.
-   Far: five constellations around ᑕᐣᓯ, lit by the work, no counts.
-   Then a chapter board (stars bloom into titled thumbnails).
-   Then the piece: Scope, the filmstrip, the waveform, the feed.
-   Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
+ Far: five constellations around ᑕᐣᓯ, lit by the work, no counts.
+ Then a chapter board (stars bloom into titled thumbnails).
+ Then the piece: Scope, the filmstrip, the waveform, the feed.
+ Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
 (function(){
 'use strict';
 var Q = new URLSearchParams(location.search);
@@ -21,8 +21,8 @@ var cv=$('cv'),g=cv.getContext('2d'),stage=$('stage');
 var W=0,H=0,DPR=1,PORT=false;
 var data=null,CH={},byId={},progress=[],cluster=[];
 /* site-3d's critically damped spring (sstep). Level changes use its glide
-   weight, so a board arrives and settles instead of easing like a button.
-   Drag never yaws the camera. */
+ weight, so a board arrives and settles instead of easing like a button.
+ Drag never yaws the camera. */
 function S(x,w){return{x:x,v:0,t:x,w:w}}
 function sstep(s,dt){var w=s.w,e=s.x-s.t,k=Math.exp(-w*dt),c=s.v+w*e;s.x=s.t+(e+c*dt)*k;s.v=(s.v-w*c*dt)*k}
 var W_GLIDE=4.8,W_LOOK=9.5;
@@ -145,17 +145,17 @@ function buildGlow(){
   ORDER.forEach(function(k){CH[k].glow=glow(CH[k].tint)});
 }
 /* Depth field: 4 layers, 378 stars. Each star has a home on a torus a margin
-   wider than the screen (pans wrap off-screen, never on it) and a phase in a
-   zoom cycle: zoom pushes it out from the screen centre by up to DZ.E, nearer
-   layers faster, and it fades at both ends of its cycle so nothing pops.
-   Pans slide by f*sqrt(z), not f*z, so a pan at sound zoom never moves a star
-   past the margin in one frame. Size grows only by 1+DZ.g*f*ln(z).
-   Every length is a share of the short side. */
+ wider than the screen (pans wrap off-screen, never on it) and a phase in a
+ zoom cycle: zoom pushes it out from the screen centre by up to DZ.E, nearer
+ layers faster, and it fades at both ends of its cycle so nothing pops.
+ Pans slide by f*sqrt(z), not f*z, so a pan at sound zoom never moves a star
+ past the margin in one frame. Size grows only by 1+DZ.g*f*ln(z).
+ Every length is a share of the short side. */
 var FIELD=[],HOP=0,FN=0,FDT=1/60,POPW=0,POPA=0;
 var DZ={E:2.4,K:.36,slide:.85,g:.16,cap:1.45,streak:.06,tau:.05,dimR:.075,fin:.35};
 /* v1r2: a star's drawn alpha rises toward its target with time constant DZ.fin (s), driven by the frame dt
-   (FDT, already capped at 50 ms by the loop), and falls at once. A dropped frame therefore cannot take a
-   star from unseen to bright in one step; a star that wraps restarts from 0. Settled frames are unchanged. */
+ (FDT, already capped at 50 ms by the loop), and falls at once. A dropped frame therefore cannot take a
+ star from unseen to bright in one step; a star that wraps restarts from 0. Settled frames are unchanged. */
 function buildField(){
   [[0,150,.22,.42,.42],[1,110,.48,.58,.72],[2,78,.86,.74,.9],[3,40,1.25,.9,1.05]].forEach(function(L){
     var pts=[];for(var i=0;i<L[1];i++)pts.push({u:rnd(L[0]*1000+i),v:rnd(L[0]*3000+i),ph:rnd(L[0]*5100+i),b:.15+.85*Math.pow(rnd(L[0]*700+i),2),r:.4+L[4]*rnd(L[0]*90+i),px:0,py:0,pn:-9});
@@ -298,7 +298,7 @@ function layout(){
     break;
   }
   /* Spread the five centres after the fit, and keep FAR at the fitted scale,
-     so a multiplier of 1 is this map and any other value actually moves them apart. */
+ so a multiplier of 1 is this map and any other value actually moves them apart. */
   var mapK=tk('map');
   if(mapK!==1){ORDER.forEach(function(k){var c=CH[k],p=chapterAt(k,rx*mapK,ry*mapK);c.x=p.x;c.y=p.y})}
   ORDER.forEach(function(k){var c=CH[k];
@@ -307,7 +307,7 @@ function layout(){
     c.node.forEach(function(nd){if(nd&&nd.dec){nd.x=c.x+nd.ox;nd.y=c.y+nd.oy}else if(nd&&nd.sx!=null){nd.x=nd.sx;nd.y=nd.sy}});
   });
   /* Star spread scales each constellation about its own centre, after the fit,
-     so 1 leaves the stars where placeChapter put them and the camera does not refit it away. */
+ so 1 leaves the stars where placeChapter put them and the camera does not refit it away. */
   var starK=tk('stars');
   if(starK!==1){
     ORDER.forEach(function(k){
@@ -614,8 +614,8 @@ function drawChapter(k,t,fa){
 }
 function isMid(){return cur.lv===1&&!onBoard()}
 
-/* fable-m4: the cards star (70c7c37, ported to the morning sky). Film only, never the home sky. Placed in screen space
-   each frame in a free spot above, beside or below the Film strips; tap it (or pinch in on it) to open #film/cards. */
+/* fable-m4: the cards star (ported to the morning sky). Film only, never the home sky. Placed in screen space
+ each frame in a free spot above, beside or below the Film strips; tap it (or pinch in on it) to open #film/cards. */
 function cardsBoardOn(){return !!(cur.cards||(window.GJ_OPEN&&GJ_OPEN.board))}
 function isCardsHit(x,y){
   if(cur.k!=='film')return false;
@@ -1023,7 +1023,7 @@ function boardRoom(){
   if(cr&&!cr.hidden){var cb=cr.getBoundingClientRect();if(cb.height)top=Math.max(top,Math.round(cb.bottom)+2)}
   var rail=$('wrail'),rb=rail&&!rail.hidden?36:0;
   /* Photo prints are tall and the right column runs into the map's corner. Stop the
-     grid above the map and left of it, with a clear band, so a print never sits under it. */
+ grid above the map and left of it, with a clear band, so a print never sits under it. */
   if(boardKey()==='photo'){
     var gap=36,right=m.l-30;
     if(right>=220&&m.t-gap-top>=H*.5)return {x:0,w:right,top:top,bottom:m.t-gap,m:m.l+':'+m.t+':'+top+':p'};
@@ -1251,7 +1251,7 @@ function markLayout(){
   de.classList.toggle('port',PORT);
 }
 /* Arrival order: water and moon fade in (1.0 s / 1.2 s), then the mark draws and dims to 35%, then the poem block and the moon path settle, then the signature.
-   The clock starts when both opacity transitions end (transitionend, with their longest known duration as a fallback). */
+ The clock starts when both opacity transitions end (transitionend, with their longest known duration as a fallback). */
 var MP={t0:0},MS=null,ARR={on:0,done:0,wd:0,md:0,tm:0,hook:0};
 function markProg(){
   if(MP.t0<0)return {d:1,a:.35};
@@ -2198,7 +2198,7 @@ function back(){
   if(history.state&&history.state.u1&&STEP>0){history.back();return}
   stepOut();
 }
-/* One level out. Every way out (pinch, ‹, Esc, browser Back) arrives here through history.back(). */
+/* One level out. Every way out (pinch, ‹, Esc, browser Back) arrives here through history.back. */
 function stepOut(){
   if(bioBack())return;
   if(window.GJ_DEPTH&&GJ_DEPTH.pinchOut(depthApi()))return;
@@ -2299,7 +2299,7 @@ function syncCrumb(label){
   }
   for(i=0;i<4;i++){
     var cls=i===lv?'here':i<lv?'up':'',tap=i<lv&&canJump(i);
-    r+='<li class="'+cls+(tap?' tap':'')+'"'+(tap?' data-lv="'+i+'" role="button" tabindex="0"':'')+' aria-label="'+esc(i===0?'sky':nm[i])+(i===lv?' (here)':'')+'"><span>'+esc(i===0?'sky':nm[i])+'</span></li>';
+    r+='<li class="'+cls+(tap?' tap':'')+'"'+(tap?' data-lv="'+i+'"':'')+'><span'+(tap?' role="button" tabindex="0"':'')+' aria-label="'+esc(i===0?'sky':nm[i])+(i===lv?' (here)':'')+'">'+esc(i===0?'sky':nm[i])+'</span></li>';
   }
   var key=h+'|'+r;
   if(cr._key!==key){cr._key=key;cr.innerHTML=h;rl.innerHTML='<ol>'+r+'</ol>'}
@@ -2398,7 +2398,7 @@ function hashOf(c){
   return '#/';
 }
 /* fable-m4: one door per chapter landing (lv1, not the board): Objects -> objects-3d/ (lit specimen viewer);
-   Photo -> ../photo-lab/ (the Horizon room with the contact sheet, the lab root; no other lab rooms are linked). */
+ Photo -> ../photo-lab/ (the Horizon room with the contact sheet, the lab root; no other lab rooms are linked). */
 function syncDoors(){
   var doors={objects:'gobj3d',photo:'gphoto'},k;
   for(k in doors){var el=$(doors[k]);if(!el)continue;
@@ -2561,9 +2561,9 @@ function dust(){
   for(var i=0;i<16;i++)h+='<i style="left:'+(rnd(i)*100).toFixed(1)+'%;top:'+(rnd(i+9)*100).toFixed(1)+'%;opacity:'+(0.2+rnd(i+3)*.6).toFixed(2)+'"></i>';
   d.innerHTML=h;
 }
-/* fable-m4: the Film cards board's cards (from 56b3773's openCards): Weird Kid first, then the preview-cards order.
-   To Go carries its muted preview clip and its song (play button only, never autoplayed). The old momo-480 loop tile is
-   left out (only the momo2 v3 rising art is approved). Missing ids are skipped. */
+/* fable-m4: the Film cards board's cards (from 's openCards): Weird Kid first, then the preview-cards order.
+ To Go carries its muted preview clip and its song (play button only, never autoplayed). The old momo-480 loop tile is
+ left out (only the momo2 v3 rising art is approved). Missing ids are skipped. */
 function openCards(){
   var ids=['film/weird-kid','sound/to-go','film/one-with-the-devil','objects/hand-carved-piece','film/sleepwalker','film/repeat-feat-jessie-reyez'];
   return ids.map(function(id){

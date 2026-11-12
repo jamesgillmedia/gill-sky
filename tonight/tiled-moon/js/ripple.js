@@ -1,9 +1,9 @@
 /* v2 · the water ripple, back on the tiled moon-and-water page.
-   Touch anywhere (a tap, or drawing a finger across) and the water ripples where you touched: rings travel out through the
-   Moonwater shader (js/water.js __water.ripple) with a faint ring of light on top (m4's rippleAt ring, the same one the m4 opener
-   and the snow-water mark use). Down in the sky at the bottom, where the water is dark, the light ring alone still answers the
-   touch (turn it off in the dbg panel). Passive listeners only: scroll, pinch and taps work exactly as before. Two fingers =
-   no ripple (that is a pinch). Same with Reduce Motion on. */
+ Touch anywhere (a tap, or drawing a finger across) and the water ripples where you touched: rings travel out through the
+ Moonwater shader (js/water.js __water.ripple) with a faint ring of light on top (m4's rippleAt ring, the same one the m4 opener
+ and the snow-water mark use). Down in the sky at the bottom, where the water is dark, the light ring alone still answers the
+ touch (turn it off in the dbg panel). Passive listeners only: scroll, pinch and taps work exactly as before. Two fingers =
+ no ripple (that is a pinch). Same with Reduce Motion on. */
 (function(){
 'use strict';
 var D=document.documentElement,bd=document.querySelector('.backdrop');if(!bd)return;

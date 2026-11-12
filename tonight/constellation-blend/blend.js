@@ -1,9 +1,9 @@
 /* constellation · blend — local prototype (not published).
-   Flat at rest: the m4 flat hub (ᑕᐣᓯ mark constellation from u4-opus-m4/_sketch/opener STROKES + the v3.2/v3.3 chapter
-   figures, SH in u4-opus-m4/js/sky.js). 3D only while you move: depth layers + drag/tilt parallax and a zoom that flies
-   through near/far layers (feel of gilljames/sketch-3d), springing back to flat. Zoom is continuous (site-v3 / pro3-w5 /
-   previews-board idea): every star is a work; it grows into its picture and more of its facts appear the closer you get.
-   Motion never reads prefers-reduced-motion: it is the same with Reduce Motion on. Nothing auto-advances. */
+ Flat at rest: the m4 flat hub (ᑕᐣᓯ mark constellation from u4-opus-m4/_sketch/opener STROKES + the v3.2/v3.3 chapter
+ figures, SH in u4-opus-m4/js/sky.js). 3D only while you move: depth layers + drag/tilt parallax and a zoom that flies
+ through near/far layers (feel of gilljames/sketch-3d), springing back to flat. Zoom is continuous (site-v3 / pro3-w5 /
+ previews-board idea): every star is a work; it grows into its picture and more of its facts appear the closer you get.
+ Motion never reads prefers-reduced-motion: it is the same with Reduce Motion on. Nothing auto-advances. */
 (function(){
 'use strict';
 var D=window.CB, cv=document.getElementById('c'), g=cv.getContext('2d');
@@ -66,7 +66,7 @@ function fitCam(){var bw=BOX[2]-BOX[0],bh=BOX[3]-BOX[1],top=56,bot=64;S0=Math.mi
   return {x:(BOX[0]+BOX[2])/2,y:(BOX[1]+BOX[3])/2-(top-bot)/2/S0,s:S0}}
 function zf(){return cam.s/S0}
 /* depth projection: z=1 is the flat plane. Far layers scale less while zoomed (fly-through), and tilt offsets each layer by
-   its depth. At rest (zoom 1, tilt 0) every layer lines up: flat. */
+ its depth. At rest (zoom 1, tilt 0) every layer lines up: flat. */
 function zE(z){return 1+(z-1)*(1-sstep(1.6,5,zf()))}
 function proj(x,y,z,o){var k=Math.pow(zf(),(z-1)*.38),s=cam.s*k;o=o||[0,0,0];
   o[0]=W/2+(x-cam.x)*s+T.x*(z-1)*2.2;o[1]=H/2+(y-cam.y)*s+T.y*(z-1)*2.2;o[2]=s;return o}
@@ -80,21 +80,29 @@ function stepGlide(t){var G=glide,p=clamp((t-G.t0)/G.ms,0,1),e=p<.5?4*p*p*p:1-Ma
 /* ---------- input ---------- */
 var HOVER=matchMedia('(hover: hover) and (pointer: fine)').matches,PT=new Map(),drag=null,pinch=null,lastTap={t:0,x:0,y:0},tiltOn=false,orient={b:null,g:null,b0:null,g0:null};
 function firstTouch(){HINT.classList.add('gone')}
-cv.addEventListener('pointerdown',function(e){cv.setPointerCapture(e.pointerId);PT.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:now()});lastIn=now();firstTouch();glide=null;
-  if(PT.size===1){drag={id:e.pointerId,moved:0,vx:0,vy:0,lt:now()};}
-  else if(PT.size===2){drag=null;var a=[...PT.values()];pinch={d0:Math.max(10,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),s0:cam.s,m:[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2]}}});
+/* gesture lock (Gill 4:29): one finger = look around / pan; two fingers = pinch, and the pinch always wins. Once a second
+ finger lands the drag is dropped (its tilt released), and until every finger is up no drag can start again, so a drag
+ can never start, steal or cancel a pinch. Extra fingers beyond two are ignored. */
+var gLock=false;
+cv.addEventListener('pointerdown',function(e){cv.setPointerCapture(e.pointerId);PT.set(e.pointerId,{x:e.clientX,y:e.clientY,x0:e.clientX,y0:e.clientY,t0:now()});lastIn=now();firstTouch();glide=null;FL=null;
+  if(PT.size===1&&!gLock&&!pinch){drag={id:e.pointerId,moved:0,vx:0,vy:0,lt:now()};}
+  else if(!pinch&&PT.size>=2){drag=null;gLock=true;if(!tiltOn){T.tx=0;T.ty=0}var ids=[...PT.keys()].slice(0,2),a=ids.map(function(i){return PT.get(i)});
+    pinch={ids:ids,d0:Math.max(10,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),s0:cam.s,m:[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2]}}});
 cv.addEventListener('pointermove',function(e){var p=PT.get(e.pointerId);
   if(!p){if(e.pointerType==='mouse'&&HOVER&&!tiltOn){T.tx=(e.clientX-W/2)*.035;T.ty=(e.clientY-H/2)*.035}return}
   var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;lastIn=now();
-  if(pinch&&PT.size>=2){var a=[...PT.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),m=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2];
+  if(pinch){if(pinch.ids.indexOf(e.pointerId)<0)return;var a=pinch.ids.map(function(i){return PT.get(i)}),d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),m=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2];
     zoomAt(m[0],m[1],pinch.s0*d/pinch.d0);cam.x-=(m[0]-pinch.m[0])/cam.s;cam.y-=(m[1]-pinch.m[1])/cam.s;pinch.m=m;clampPan();motion=1;return}
+  if(gLock)return;
   if(drag&&drag.id===e.pointerId){drag.moved+=Math.abs(dx)+Math.abs(dy);if(drag.moved<6)return;
     var t=now(),dt=Math.max(8,t-drag.lt);drag.lt=t;drag.vx=lerp(drag.vx,dx/dt,.4);drag.vy=lerp(drag.vy,dy/dt,.4);
     var pan=sstep(1.12,1.8,zf());cam.x-=dx*pan/cam.s;cam.y-=dy*pan/cam.s;clampPan();
     /* the look-around (sketch-3d's one-finger drag): layers slide apart by depth while you drag, then settle flat */
     T.tx=clamp(T.tx+dx*.5,-70,70);T.ty=clamp(T.ty+dy*.5,-70,70);motion=1}});
 function up(e){var p=PT.get(e.pointerId);if(!p)return;PT.delete(e.pointerId);
-  if(pinch){if(PT.size<2){pinch=null;settleZoom()}drag=null;return}
+  if(!PT.size)gLock=false;
+  if(pinch){if(pinch.ids.indexOf(e.pointerId)>=0){pinch=null;settleZoom()}drag=null;return}
+  if(gLock){drag=null;return}
   if(drag&&drag.id===e.pointerId){var dur=now()-p.t0;
     if(drag.moved<10&&dur<350)tap(e.clientX,e.clientY);
     else if(zf()>1.12){fling(drag.vx*sstep(1.12,1.8,zf()),drag.vy*sstep(1.12,1.8,zf()))}
@@ -102,12 +110,15 @@ function up(e){var p=PT.get(e.pointerId);if(!p)return;PT.delete(e.pointerId);
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('pointerleave',function(e){if(e.pointerType==='mouse'&&!tiltOn&&!PT.size){T.tx=0;T.ty=0}});
 var FL=null;function fling(vx,vy){if(Math.hypot(vx,vy)<.15)return;FL={vx:vx,vy:vy,t:now()}}
-function settleZoom(){if(cam.s<S0){var c=fitCam();glideTo(c.x,c.y,S0,500)}}
+function settleZoom(){if(cam.s<S0){var c=fitCam();glideTo(c.x,c.y,S0,500);return}
+  /* pinched far enough into a film: land on its board (same screen as a tap) */
+  var best=null,bd=1e9;WORKS.forEach(function(w){if(w.c.k!=='film'||!w._scr)return;var d=Math.hypot(w._scr[0]-W/2,w._scr[1]-H/2);if(w._scr[2]>Math.min(W,H)*.45&&d<bd){bd=d;best=w}});
+  if(best&&!BOARD)openBoard(best,true)}
 cv.addEventListener('wheel',function(e){e.preventDefault();lastIn=now();firstTouch();glide=null;var k=Math.exp(-e.deltaY*(e.ctrlKey?.012:.0016));zoomAt(e.clientX,e.clientY,cam.s*k);motion=1;
   clearTimeout(cv._wt);cv._wt=setTimeout(settleZoom,260)},{passive:false});
 ['gesturestart','gesturechange'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});
-addEventListener('keydown',function(e){var k=e.key;lastIn=now();firstTouch();
-  if(k==='+'||k==='='){glideTo(cam.x,cam.y,cam.s*2.2,500)}else if(k==='-'||k==='_'){stepOut()}else if(k==='Escape'){home()}
+addEventListener('keydown',function(e){var k=e.key;lastIn=now();firstTouch();if(BOARD&&k!=='Escape'&&k!=='Enter')return;
+  if(k==='+'||k==='='){glideTo(cam.x,cam.y,cam.s*2.2,500)}else if(k==='-'||k==='_'){stepOut()}else if(k==='Escape'){if(BOARD)closeBoard();else home()}else if(k==='Enter'&&BOARD){playBoard()}
   else if(k.indexOf('Arrow')===0){var d=80/cam.s;glideTo(cam.x+(k==='ArrowRight'?d:k==='ArrowLeft'?-d:0),cam.y+(k==='ArrowDown'?d:k==='ArrowUp'?-d:0),cam.s,300)}});
 /* tap: a work glides in until it resolves (and again for more), a chapter fits its figure, the mark goes home */
 function cardPx(w){return Math.max(w.cw,w.chh)*cam.s}
@@ -117,6 +128,7 @@ function tap(x,y){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,y-last
   WORKS.forEach(function(w){proj(w.x,w.y,zE(w.z),o);var px=cardPx(w),hw=Math.max(22,w.cw*cam.s/2+6),hh=Math.max(22,w.chh*cam.s/2+6);
     if(Math.abs(o[0]-x)<=hw&&Math.abs(o[1]-y)<=hh){var d=Math.hypot(o[0]-x,o[1]-y);if(d<bd){bd=d;best=w}}});
   var z=zf();
+  if(best&&(z>1.8||bd<14)&&best.c.k==='film'){openBoard(best,true);return}   /* film: the board IS the pinch end state */
   if(best&&(z>1.8||bd<14)){var px=cardPx(best),steps=[deepS(best,.22),deepS(best,.5),deepS(best,.82)];steps[1]=Math.max(steps[1],steps[0]);steps[2]=Math.max(steps[2],steps[1]);var ts=steps[2];
     for(var i=0;i<steps.length;i++)if(cam.s<steps[i]*.92){ts=steps[i];break}
     var off=deepOff(best,ts);glideTo(best.x+off[0],best.y+off[1],ts,1000);return}
@@ -127,15 +139,57 @@ function tap(x,y){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,y-last
 /* a work's zoom stops: picture at f of the short side, never so big that its facts fall off the screen */
 function sideMode(){return W>H*1.25}
 function deepS(w,f){var m=Math.min(W,H),ts=m*f/Math.max(w.cw,w.chh);
-  if(f>.4){if(sideMode())ts=Math.min(ts*1.25,(H-190)/w.chh,(W-400)/w.cw);else ts=Math.min(ts,(H-(f>.7?250:170))/w.chh,W*.9/w.cw)}return ts}
+  if(f>.4){if(sideMode()){ts=Math.min(ts*1.25,(H-190)/w.chh,(W-400)/w.cw);if(f>.7&&w.strip&&w.strip.length)ts=Math.min(ts,(H-150)/(1.25*w.chh))}else ts=Math.min(ts,(H-(f>.7?250:170))/w.chh,W*.9/w.cw)}return ts}
 /* where the camera sits so the picture + its facts are centred (beside in landscape, under in portrait) */
 function deepOff(w,ts){var px=Math.max(w.cw,w.chh)*ts;
   if(sideMode()&&px>140){var sw=w.cw*ts,colW=Math.max(120,Math.min(340,W-(W/2+sw/2+16)-16)),fh=px>300&&w.strip?(sw-18)/4/(w.ar||1.78)+8:0;return [(colW+16)/2/ts,fh/2/ts]}
   return [0,px>240?w.chh*.5+40/ts:px>110?w.chh*.25:0]}
 function stepOut(){if(zf()<1.05){home();return}var ns=Math.max(S0,cam.s/3.2);if(ns<=S0*1.05){home();return}glideTo(cam.x,cam.y,ns,800)}
 function home(){var c=fitCam();glideTo(c.x,c.y,c.s,1000)}
-document.getElementById('home').addEventListener('click',home);
-document.getElementById('out').addEventListener('click',stepOut);
+/* ---------- film board: dot (names) -> board -> deeper canvas detail. One pattern for every film, all from data.js.
+ Poster = the film's LEAD swept frame (site posters stay masked). Missing fields are left out; title-only films show
+ only the title. Back / pinch-out / Esc / ‹ back return to the dot. Nothing auto-advances. Same with Reduce Motion. */
+var BD=document.getElementById('board'),BOARD=null,pushed=false;
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function filmBySlug(sl){return WORKS.find(function(w){return w.c.k==='film'&&w.slug===sl})}
+function dotView(w){var ts=clamp(Math.max(cam.s,S0*2.2),S0,52/Math.max(w.cw,w.chh));return [w.x,w.y,ts]}
+function openBoard(w,push,instant){
+  BOARD=w;var d=dotView(w);if(instant){glide=null;cam.x=d[0];cam.y=d[1];cam.s=d[2]}else glideTo(d[0],d[1],d[2],700);
+  var h='';var ttl=w.t||'';
+  if(!w.masked&&w.lead)h+='<figure class="bp"><img src="'+esc(w.lead)+'" alt="frame from '+esc(ttl)+'" decoding="async"></figure>';
+  h+='<div class="bf"><h2 id="bt">'+esc(ttl)+'</h2>';
+  if(!w.masked){if(w.role)h+='<p class="br">'+esc(w.role)+'</p>';if(w.year)h+='<p class="by">'+esc(w.year)+'</p>';if(w.meta)h+='<p class="bm">'+esc(w.meta)+'</p>';
+    if(w.credits&&w.credits.length)h+='<ul class="bc">'+w.credits.map(function(c){return '<li>'+esc(c)+'</li>'}).join('')+'</ul>'}
+  h+='</div>';
+  if(!w.masked&&w.play)h=h.replace('</div>','<p class="bpl"><a href="'+esc(w.play)+'" target="_top">play film ›</a></p></div>');
+  var fr=w.masked?[]:(w.strip||[]).concat(w.more||[]);
+  if(fr.length)h+='<div class="bs n'+Math.min(4,fr.length)+'" style="--ar:'+(w.ar||1.78)+'">'+fr.map(function(src,j){return '<img src="'+esc(src)+'" alt="frame '+(j+2)+' from '+esc(ttl)+'" loading="'+(j<4?'eager':'lazy')+'" decoding="async">'}).join('')+'</div>';
+  h+='<p class="bh">'+(w.play&&!w.masked?'spread to play · pinch to go back':'pinch to go back')+'</p>';
+  BD.querySelector('.bw').innerHTML=h;BD.classList.toggle('masked',!!w.masked);BD.classList.toggle('side',sideMode());
+  BD.hidden=false;BD.scrollTop=0;requestAnimationFrame(function(){BD.classList.add('on')});
+  if(push&&location.hash!=='#film/'+w.slug){history.pushState({b:w.slug},'','#film/'+w.slug);pushed=true}
+  WHERE.textContent='film · '+ttl;lastWhere=WHERE.textContent;BD.focus({preventScroll:true})}
+function hideBoard(){if(!BOARD)return;var w=BOARD;BOARD=null;BD.classList.remove('on');setTimeout(function(){if(!BOARD)BD.hidden=true},230);lastWhere='';return w}
+function closeBoard(){if(!BOARD)return null;var w=BOARD;
+  if(pushed&&history.state&&history.state.b){pushed=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search)}
+  hideBoard();return w}
+function closer(){var w=closeBoard();if(!w)return;var ts=deepS(w,.82),off=deepOff(w,ts);glideTo(w.x+off[0],w.y+off[1],ts,1000)}
+addEventListener('popstate',function(){var m=/^#film\/(.+)$/.exec(location.hash);
+  if(m){var w=filmBySlug(decodeURIComponent(m[1]));if(w){pushed=true;openBoard(w,false)}}else{pushed=false;hideBoard()}});
+function playBoard(){if(BOARD&&BOARD.play&&!BOARD.masked)window.top.location.href=BOARD.play}
+/* gestures on the board: two-finger spread = closer, pinch-out (fingers together) = back; trackpad pinch the same */
+var BT=null;
+BD.addEventListener('touchstart',function(e){if(e.touches.length===2){var a=e.touches[0],b=e.touches[1];BT={d0:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),done:0};e.preventDefault()}},{passive:false});
+BD.addEventListener('touchmove',function(e){if(BT&&e.touches.length===2){e.preventDefault();if(BT.done)return;var a=e.touches[0],b=e.touches[1],r=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)/BT.d0;
+  if(r>1.3){BT.done=1;playBoard()}else if(r<.77){BT.done=1;closeBoard()}}},{passive:false});
+BD.addEventListener('touchend',function(e){if(e.touches.length<2)BT=null});
+BD.addEventListener('wheel',function(e){if(!e.ctrlKey)return;e.preventDefault();if(BD._wl&&now()-BD._wl<600)return;if(Math.abs(e.deltaY)<2)return;BD._wl=now();if(e.deltaY<0)playBoard();else closeBoard()},{passive:false});
+function bootHash(){var m=/^#film\/(.+)$/.exec(location.hash);if(!m)return;var w=filmBySlug(decodeURIComponent(m[1]));if(!w)return;
+  /* direct link: put the field under it so Back lands on the dot */
+  var h=location.hash;history.replaceState(null,'',location.pathname+location.search);history.pushState({b:w.slug},'',h);pushed=true;firstTouch();openBoard(w,false,true)}
+document.getElementById('home').addEventListener('click',function(){if(BOARD){hideBoard();if(pushed){pushed=false;history.replaceState(null,'',location.pathname+location.search)}home();return}
+  if(zf()<1.05&&!glide){window.top.location.href='../hub/';return}home()});
+document.getElementById('out').addEventListener('click',function(){if(BOARD)closeBoard();else stepOut()});
 /* optional device tilt (asks the phone first; off until pressed) */
 var TB=document.getElementById('tilt');
 if(window.DeviceOrientationEvent){TB.hidden=false;TB.addEventListener('click',function(){
@@ -145,15 +199,25 @@ if(window.DeviceOrientationEvent){TB.hidden=false;TB.addEventListener('click',fu
     T.tx=clamp((e.gamma-orient.g0)*2,-70,70);T.ty=clamp((e.beta-orient.b0)*2,-70,70)})}
 /* ---------- media ---------- */
 var IMG={};function img(src){var m=IMG[src];if(!m){m=IMG[src]=new Image();m.decoding='async';m.src=src}return m.complete&&m.naturalWidth?m:null}
-var WAVE={};function wave(w){var c=WAVE[w.t];if(c)return c;c=document.createElement('canvas');c.width=480;c.height=200;var q=c.getContext('2d'),pk=w.peaks,n=pk.length,bw=480/n;
-  q.fillStyle='rgba(8,12,20,1)';q.fillRect(0,0,480,200);q.fillStyle='rgba('+w.c.tint+',.9)';
-  for(var i=0;i<n;i++){var h=pk[i]*150+4;q.fillRect(i*bw+bw*.2,100-h/2,bw*.6,h)}return WAVE[w.t]=c}
+/* Sound (K7, N14): the dotted star-chart waveform. Each sample is a star on a hairline; the brightest peak carries the
+ song's name, the length sits at the end in m:ss. No bars, no cards, no play-button rows. */
+var WAVE={};function wave(w){var c=WAVE[w.t];if(c)return c;c=document.createElement('canvas');c.width=480;c.height=200;var q=c.getContext('2d'),pk=w.peaks,n=pk.length,x0=26,x1=454,base=150,top=48;
+  q.fillStyle='rgba(8,12,20,1)';q.fillRect(0,0,480,200);
+  function X(i){return x0+(x1-x0)*i/(n-1)}function Y(i){return base-(base-top)*pk[i]}
+  q.strokeStyle='rgba('+w.c.tint+',.28)';q.lineWidth=1;q.beginPath();for(var i=0;i<n;i++){if(i)q.lineTo(X(i),Y(i));else q.moveTo(X(i),Y(i))}q.stroke();
+  q.strokeStyle='rgba('+w.c.tint+',.12)';q.beginPath();q.moveTo(x0,base+.5);q.lineTo(x1,base+.5);q.stroke();
+  var hi=0;for(i=0;i<n;i++)if(pk[i]>pk[hi])hi=i;
+  for(i=0;i<n;i++){var r=1.1+pk[i]*2.4;q.globalAlpha=.45+.55*pk[i];q.fillStyle=i===hi?'#f4f8ff':'rgba('+w.c.tint+',1)';q.beginPath();q.arc(X(i),Y(i),r,0,6.283);q.fill()}
+  q.globalAlpha=1;q.font='300 17px Poppins, sans-serif';q.textBaseline='bottom';q.fillStyle='#e6edf0';
+  var lab=w.t,lw=q.measureText(lab).width,lx=Math.min(Math.max(X(hi)-lw/2,8),472-lw);q.textAlign='left';q.fillText(lab,lx,Y(hi)-8);
+  if(w.len){q.font='300 14px Poppins, sans-serif';q.fillStyle='rgba('+w.c.tint+',.95)';q.textBaseline='top';q.textAlign='right';q.fillText(w.len,x1,base+10)}
+  return WAVE[w.t]=c}
 /* ---------- draw ---------- */
 var o=[0,0,0],o2=[0,0,0],labRects=[];
 function free(r){for(var i=0;i<labRects.length;i++){var t=labRects[i];if(r.x<t.x+t.w&&r.x+r.w>t.x&&r.y<t.y+t.h&&r.y+r.h>t.y)return false}labRects.push(r);return true}
 function dot(x,y,rad,a,glow,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(glow||GW,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle='#f4f8ff';g.beginPath();g.arc(x,y,rad,0,6.283);g.fill()}
 function wrapLines(text,maxW,maxLines){var words=String(text).split(' '),lines=[],cur='';words.forEach(function(wd){var t=cur?cur+' '+wd:wd;if(g.measureText(t).width>maxW&&cur){lines.push(cur);cur=wd}else cur=t});if(cur)lines.push(cur);
-  if(lines.length>maxLines){lines=lines.slice(0,maxLines);lines[maxLines-1]=lines[maxLines-1].replace(/.?$/,'…')}return lines}
+  return lines}  /* K11: break only at words; never cut a name (the caller leaves room for every line) */
 function draw(t){
   var z=zf(),tw=t/1000;
   var bg=g.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#03050b');bg.addColorStop(1,'#061018');g.fillStyle=bg;g.fillRect(0,0,W,H);
@@ -162,13 +226,15 @@ function draw(t){
     var tws=f.tw?.75+.25*Math.sin(tw*(1.2+f.ph)+f.ph*9):1,rad=Math.max(.45,f.b*f.z*1.25*Math.min(2.2,Math.pow(z,.18)));
     g.globalAlpha=clamp(f.b*f.z*1.1*tws,0,1);g.fillStyle='#dfe8ff';g.fillRect(o[0]-rad/2,o[1]-rad/2,rad,rad)}
   g.globalAlpha=1;
+  labRects=[];
   /* the mark (z 1.12) */
   var markA=1-sstep(4,10,z);if(markA>.01){g.strokeStyle='rgba(205,225,255,'+(.16*markA)+')';g.lineWidth=1;
     D.strokes.forEach(function(s){g.beginPath();s.forEach(function(q,j){proj(MARK.cx+q[0]*MARK.sc,MARK.cy+q[1]*MARK.sc,1.12,o);if(j)g.lineTo(o[0],o[1]);else g.moveTo(o[0],o[1])});g.stroke()});
     MARK.forEach(function(m){proj(m.x,m.y,m.z,o);var tws=.8+.2*Math.sin(tw*1.4+m.ph);dot(o[0],o[1],(.7+m.b*1.1)*Math.min(2,Math.pow(z,.3)),markA*m.b*tws,GW,10+m.b*14)});
     proj(MARK.cx,MARK.cy+78,1.12,o);var fs=clamp(13*Math.pow(z,.5),11,22);g.font='300 '+fs.toFixed(1)+'px Poppins, sans-serif';g.textAlign='center';g.textBaseline='middle';
-    g.globalAlpha=markA*.7*(1-sstep(1.6,3,z));g.fillStyle='#c9d3d6';g.fillText(D.poemLine,o[0],o[1]);g.globalAlpha=1}
-  labRects=[];
+    var pw=g.measureText(D.poemLine).width,pA=markA*.7*(1-sstep(1.25,1.7,z));
+    /* the tagline is drawn whole or not at all: never clipped at an edge, never under a name */
+    if(pA>.01&&o[0]-pw/2>=6&&o[0]+pw/2<=W-6){g.globalAlpha=pA;g.fillStyle='#c9d3d6';g.fillText(D.poemLine,o[0],o[1]);labRects.push({x:o[0]-pw/2-4,y:o[1]-fs,w:pw+8,h:fs*2})}g.globalAlpha=1}
   /* chapters: hairline figure + its stars */
   CH.forEach(function(c){
     var figA=1-.65*sstep(5,16,z);g.lineWidth=1;g.strokeStyle='rgba('+c.tint+','+(.30*figA)+')';
@@ -207,14 +273,18 @@ function draw(t){
     var cA=sstep(230,300,px);if(cA>0&&w.credits&&w.credits.length){var cf=clamp(px*.032,10,13);g.font='300 '+cf.toFixed(1)+'px Poppins, sans-serif';g.fillStyle='#c9d3d6';g.globalAlpha=cA;g.textAlign=al;g.textBaseline='top';
       w.credits.slice(0,3).forEach(function(l){wrapLines(l,side?colW:Math.max(sw,220),2).forEach(function(q){g.fillText(q,tx,fy);fy+=cf*1.35})});g.globalAlpha=1}
     if(side)fy=y+sh/2+2;
-    var sA=sstep(300,380,px);if(sA>0&&w.strip){var n=Math.max(4,w.strip.length),gap=6,fw=(sw-gap*(n-1))/n,fh=fw/(w.ar||1.78);fy+=6;g.globalAlpha=sA;
-      w.strip.forEach(function(s,j){var im=img(s),fx=x-sw/2+j*(fw+gap);if(im)g.drawImage(im,fx,fy,fw,fh);else{g.fillStyle='rgba(14,20,32,.9)';g.fillRect(fx,fy,fw,fh)}g.strokeStyle='rgba('+c.tint+',.3)';g.strokeRect(fx+.5,fy+.5,fw-1,fh-1)});g.globalAlpha=1}
+    /* strip EXPANDS as you zoom closer: its frames reveal one after another with the zoom (no timers, no auto-advance) */
+    /* reveal band runs from just past the middle tap-stop to the deepest tap-stop, so every screen size gets all frames */
+    var pxMax=Math.max(w.cw,w.chh)*Math.min(SMAX,deepS(w,.82)),lo=Math.max(240,pxMax*.7),st=Math.max(12,(pxMax*.99-lo)/Math.max(1,(w.strip||[]).length));
+    var sA=sstep(lo,lo+st,px);if(sA>0&&w.strip){var n=Math.max(4,w.strip.length),gap=6,fw=(sw-gap*(n-1))/n,fh=fw/(w.ar||1.78);fy+=6;
+      w.strip.forEach(function(s,j){var a=sstep(lo+j*st,lo+(j+1)*st,px);if(a<=0)return;var k=.72+.28*a,ww=fw*k,hh=fh*k,fx=x-sw/2+j*(fw+gap)+(fw-ww)/2,fyy=fy+(fh-hh)/2;g.globalAlpha=a;
+        var im=img(s);if(im)g.drawImage(im,fx,fyy,ww,hh);else{g.fillStyle='rgba(14,20,32,.9)';g.fillRect(fx,fyy,ww,hh)}g.strokeStyle='rgba('+c.tint+',.3)';g.strokeRect(fx+.5,fyy+.5,ww-1,hh-1)});g.globalAlpha=1}
     w._scr=[x,y,px]});
   /* work names at mid zoom (before the pictures take over), decluttered: only the chapter in view */
   var lk=nearestChapter();
   if(z>1.8){vis.forEach(function(v){var w=v[0],px=v[3];if(w.c!==lk||!w.t)return;var na=sstep(1.8,3,z)*(1-sstep(40,75,px));if(na<.02)return;
-    g.font='300 12px Poppins, sans-serif';var lab=w.t.length>26?w.t.slice(0,25)+'…':w.t,tw2=g.measureText(lab).width,sh=w.chh*cam.s,r={x:v[1]+8+Math.max(0,w.cw*cam.s/2),y:v[2]-9,w:tw2+6,h:18};
-    if(r.x+r.w>W-4)r.x=v[1]-8-r.w-Math.max(0,w.cw*cam.s/2);if(r.y<60||r.y>H-30)return;if(!free(r))return;
+    g.font='300 12px Poppins, sans-serif';var lab=w.t,tw2=g.measureText(lab).width,sh=w.chh*cam.s,r={x:v[1]+8+Math.max(0,w.cw*cam.s/2),y:v[2]-9,w:tw2+6,h:18};
+    if(r.x+r.w>W-4)r.x=v[1]-8-r.w-Math.max(0,w.cw*cam.s/2);if(r.x<4||r.x+r.w>W-4)return;if(r.y<60||r.y>H-30)return;if(!free(r))return;
     g.globalAlpha=na;g.fillStyle='rgba(3,5,10,.6)';g.fillRect(r.x-2,r.y,r.w+2,r.h);g.fillStyle='#e6edf0';g.textAlign='left';g.textBaseline='middle';g.fillText(lab,r.x+2,v[2]);g.globalAlpha=1})}
   /* chapter names + counts (the flat hub's labels), fading as their works take over */
   var cnA=1-sstep(2.2,3.6,z);if(cnA>.01)CH.forEach(function(c){proj(c.cx,c.cy+FIG_H*.5+14,zE(c.z),o);var fs=clamp(12*Math.pow(z,.35),11,18);
@@ -226,7 +296,7 @@ function draw(t){
   updateWhere(lk,z);
 }
 function nearestChapter(){var w=[cam.x,cam.y],best=CH[0],bd=1e18;CH.forEach(function(c){var d=Math.hypot(c.cx-w[0],c.cy-w[1]);if(d<bd){bd=d;best=c}});return best}
-var lastWhere='';function updateWhere(c,z){var s='field';
+var lastWhere='';function updateWhere(c,z){if(BOARD)return;var s='field';
   if(z>1.5){s=c.nm;var bw=null,bd=1e9;WORKS.forEach(function(w){if(w.c!==c||!w._scr)return;var d=Math.hypot(w._scr[0]-W/2,w._scr[1]-H/2);if(w._scr[2]>60&&d<bd){bd=d;bw=w}});
     if(bw&&bw.t)s=c.nm+' · '+bw.t}
   if(s!==lastWhere){WHERE.textContent=s;lastWhere=s}}
@@ -241,9 +311,11 @@ function frame(t){requestAnimationFrame(frame);var dt=Math.min(.05,(t-last)/1000
   draw(t)}
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;var p=W<H*1.05;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);g.setTransform(DPR,0,0,DPR,0,0);
   var rebuild=p!==PORT||!WORKS.length;PORT=p;if(rebuild)build();var c=fitCam();cam.x=c.x;cam.y=c.y;cam.s=c.s}
-addEventListener('resize',resize);resize();requestAnimationFrame(frame);
+addEventListener('resize',function(){resize();if(BOARD){BD.classList.toggle('side',sideMode());var d=dotView(BOARD);cam.x=d[0];cam.y=d[1];cam.s=d[2]}});resize();bootHash();requestAnimationFrame(frame);
 /* QA hooks */
-window.__cb={st:function(){return{z:+zf().toFixed(3),cam:{x:+cam.x.toFixed(1),y:+cam.y.toFixed(1),s:+cam.s.toFixed(3)},where:lastWhere,glide:!!glide,tilt:[+T.x.toFixed(1),+T.y.toFixed(1)],works:WORKS.length,S0:S0,SMAX:SMAX}},
+window.__cb={st:function(){return{z:+zf().toFixed(3),cam:{x:+cam.x.toFixed(1),y:+cam.y.toFixed(1),s:+cam.s.toFixed(3)},where:lastWhere,glide:!!glide,tilt:[+T.x.toFixed(1),+T.y.toFixed(1)],gest:{pinch:!!pinch,drag:!!drag,lock:gLock,pts:PT.size},works:WORKS.length,S0:S0,SMAX:SMAX}},
   work:function(ch,i){var c=CH.find(function(q){return q.k===ch});var w=c.works[i];return{x:w.x,y:w.y,scr:proj(w.x,w.y,1,[0,0,0]).slice(0,2),t:w.t}},
+  board:function(){return BOARD?{slug:BOARD.slug,t:BOARD.t,hash:location.hash,strip:BD.querySelectorAll('.bs img').length,play:BOARD.play||null}:null},open:function(sl){var w=filmBySlug(sl);openBoard(w,true);return w.t},close:closeBoard,closer:closer,
+  film:function(sl){var w=filmBySlug(sl);return{i:w.i,x:w.x,y:w.y,scr:proj(w.x,w.y,zE(w.z),[0,0,0]).slice(0,2),px:cardPx(w)}},
   glideTo:glideTo,home:home,focus:function(ch,i,f){var c=CH.find(function(q){return q.k===ch}),w=c.works[i],ts=deepS(w,f),off=deepOff(w,ts);glideTo(w.x+off[0],w.y+off[1],ts,900);return w.t},chapter:function(ch){var C=CH.find(function(q){return q.k===ch});glideTo(C.cx,C.cy,Math.min(W*.92/FIG_W,(H-120)*.9/FIG_H),900)},proj:function(x,y){return proj(x,y,1,[0,0,0]).slice(0,2)}};
 })();

@@ -1,7 +1,7 @@
 /* Four Film viewing rooms sharing one gate and the same gestures.
-   Default (env-lens): looking through a camera eyepiece at a small EVF.
-   No viewfinder hashes, grids, frame lines, crosshairs or tick marks.
-   Motion stays on with Reduce Motion, except gate weave. */
+ Default (env-lens): looking through a camera eyepiece at a small EVF.
+ No viewfinder hashes, grids, frame lines, crosshairs or tick marks.
+ Motion stays on with Reduce Motion, except gate weave. */
 
 .room{
   position:fixed;inset:0;overflow:hidden;touch-action:none;outline:none;
@@ -271,13 +271,13 @@ body.shutter-mid .blade.bot{transform:translateY(18%)}
 .edge-code .c{color:var(--mute)}
 
 /* ===== Lens room: a rounded image floating in a deep eyepiece well =====
-   Eye-up look follows a real through-the-eyepiece photograph: a bright
-   rounded rectangle (corners ~7% of width, a slight barrel bulge) sitting
-   slightly above centre in a near-black tunnel, with soft out-of-focus
-   housing shapes and a thin light sliver at the top of the well. No visible
-   sharp circle, no bezel, no dust, no marks on the glass. Pull-back is
-   user-driven (--pull 0–1): the well shrinks, the edge sharpens, and the
-   cup and body come into view. */
+ Eye-up look follows a real through-the-eyepiece photograph: a bright
+ rounded rectangle (corners ~7% of width, a slight barrel bulge) sitting
+ slightly above centre in a near-black tunnel, with soft out-of-focus
+ housing shapes and a thin light sliver at the top of the well. No visible
+ sharp circle, no bezel, no dust, no marks on the glass. Pull-back is
+ user-driven (--pull 0–1): the well shrinks, the edge sharpens, and the
+ cup and body come into view. */
 :root,html{--pull:0;--hx:0;--hy:-0.2;--eye-shift:-2.8vh;--radius:18px;--bloom:10px}
 body.env-lens .iris{
   display:block;position:absolute;inset:0;z-index:10;pointer-events:none;

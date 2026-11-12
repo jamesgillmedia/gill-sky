@@ -1,5 +1,5 @@
 /* se-a · words in the place: each reading page is pinned beside the part of the eye it describes.
-   The card sits next to its anchor (a point in the 3D scene), joined by a line, and its type size follows depth within a readable range. */
+ The card sits next to its anchor (a point in the 3D scene), joined by a line, and its type size follows depth within a readable range. */
 (function () {
   const ANCHOR = { 0: [0, .6, 0], 1: [2.5, .1, -7.5], 2: [0, .6, 0], 3: [0, .75, 0], 5: [-6.5, 0, 2.5], 10: [-3, -34.8, 4], 14: [0, .6, 0] };
   let off = 0, offT = 0, lastT = 0;

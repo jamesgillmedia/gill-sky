@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex">
-<title>opener · sketch · opt1 fewer stars</title>
+<title>mark · option 1 · fewer stars</title>
 <meta name="theme-color" content="#04070b">
 <style>
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/pro2/fonts/poppins-300.woff2) format("woff2")}
@@ -97,7 +97,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 <link rel="stylesheet" href="../../_tn/back.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
 <body>
 <div id="gjview">
-<div id="stage" aria-label="Opening sketch: pinch in to go through the sky">
+<div id="stage" aria-label="Opening: pinch in to go through the sky">
 <div class="water" id="water" aria-hidden="true"></div>
 <canvas id="cv" aria-hidden="true"></canvas>
 <p class="sr" id="srline"></p>
@@ -174,8 +174,8 @@ function makeView(){
   view.appendChild(invEl);
 }
 /* ---- shared beat, star flash and ambient flash ----
-   The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
-   Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
+ The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
+ Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
 function frac(x){return x-Math.floor(x)}
 function beatCount(){return beatSrc?beatSrc():beatAcc}
 function pulse(pos){
@@ -484,8 +484,8 @@ function build(){
     ci+=c.n;
   });
   /* Opt 1: the mark is only the 18 stroke vertices (the fewest that still read as ᑕᐣᓯ).
-     The 82 in-stroke samples are dropped from the mark. The menu constellation still
-     has all 100 chapter stars; the 82 that are not on the mark fade in on arrival. */
+ The 82 in-stroke samples are dropped from the mark. The menu constellation still
+ has all 100 chapter stars; the 82 that are not on the mark fade in on arrival. */
   var quotas=[7,7,2,1,1],pick=[],accP=0;
   CHAP.forEach(function(c,k){
     var n=quotas[k],span=c.n;

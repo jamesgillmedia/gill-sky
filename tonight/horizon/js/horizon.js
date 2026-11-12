@@ -1,9 +1,9 @@
 /* Photo lab · Horizon + contact sheet.
-   Every photograph on one line of light, darkest to brightest (or round the colour wheel), measured from the pictures.
-   The contact sheet is the same set, numbered, in that same order. Pinch or tap to go between the sheet and the horizon;
-   the selected frame is the one standing on the line. Grease-pencil picks are the hearts, kept on this device.
-   Tap the standing print for its page (the m4 film-page shape). Tap the standing print to enter its day (no pinch required). Spread your fingers / ‹ / Esc rise one place; on the horizon, spreading opens the contact sheet. Close your fingers on the sheet to go back to the line.
-   Same motion with Reduce Motion on. */
+ Every photograph on one line of light, darkest to brightest (or round the colour wheel), measured from the pictures.
+ The contact sheet is the same set, numbered, in that same order. Pinch or tap to go between the sheet and the horizon;
+ the selected frame is the one standing on the line. Grease-pencil picks are the hearts, kept on this device.
+ Tap the standing print for its page (the m4 film-page shape). Tap the standing print to enter its day (no pinch required). Spread your fingers / ‹ / Esc rise one place; on the horizon, spreading opens the contact sheet. Close your fingers on the sheet to go back to the line.
+ Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var P=LAB.photos,$=function(id){return document.getElementById(id)};

@@ -1,7 +1,7 @@
 /* Horizon film room · reel v2: full-screen picture, an analog "touch bar" rail along the bottom
-   (a strip of tiny frames on a rail under a piece of glass, centre line), a camera transport dial and a
-   viewing-mode key bank. Hardware language matches lens room v4.1 (key light upper left, engraved labels,
-   recessed wells, amber tally). Everything except the rail fades when idle. */
+ (a strip of tiny frames on a rail under a piece of glass, centre line), a camera transport dial and a
+ viewing-mode key bank. Hardware language matches lens room v4.1 (key light upper left, engraved labels,
+ recessed wells, amber tally). Everything except the rail fades when idle. */
 .hr{position:fixed;inset:0;z-index:40;background:#000;color:#eef3f5;opacity:0;visibility:hidden;pointer-events:none;
   --tw:30px;--th:20px;--rail:calc(70px + var(--sb));--ink:#e6e1d6;--ink-dim:#a9a499;--engr:#8a857c;--tally-a:#ffb44a;--tally-r:#ff3324;--dial:108px;
   transition:opacity .35s cubic-bezier(.22,.61,.36,1),visibility 0s linear .35s;
@@ -189,3 +189,8 @@ body.stills-on .cell .win{aspect-ratio:16/9}
 body.stills-on .ends #now{letter-spacing:.08em;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .hr-sheet .phd .rt{flex:0 0 auto;white-space:nowrap}
 @media (max-width:520px){.hr-sheet .phd .rt{display:none}}
+
+/* tonight: the reel counter and title are never cut (K11: titles wrap at words) */
+.hr-lip{height:auto;min-height:20px;padding-top:3px;padding-bottom:3px;padding-right:max(18px,env(safe-area-inset-right,0px))}
+.hr-lip .t{white-space:normal;text-overflow:clip;overflow:visible;line-height:1.35}
+.hr-lip .n,.hr-lip .s{flex:0 0 auto;white-space:nowrap;letter-spacing:.12em}

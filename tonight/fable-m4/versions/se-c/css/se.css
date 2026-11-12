@@ -1,4 +1,4 @@
-/* Spirit Eye rebuild (se3) on top of v2 (gill-sky 22d3958). Reading pages and end gallery styles from parts/ (reading.css, gallery.css), scoped here. */
+/* Spirit Eye rebuild (se3) on top of v2 . Reading pages and end gallery styles from parts/ (reading.css, gallery.css), scoped here. */
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../fonts/poppins-300.woff2) format("woff2")}
 @font-face{font-family:"Julius Sans One";font-display:swap;src:url(../fonts/julius-sans-one.woff2) format("woff2")}
 @font-face{font-family:"Noto Sans SE";font-weight:400;font-display:swap;src:url(../fonts/noto-sans-subset.woff2) format("woff2")}

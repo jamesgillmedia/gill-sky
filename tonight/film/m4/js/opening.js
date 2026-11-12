@@ -1,12 +1,12 @@
 /* The opening title card (approved by Gill via Eve, 9:44 AM Nov 11): when a visitor pinches in or waits on the opening,
-   ONE full-screen To Go-style card shows on the way in, instead of the four land frames (landFrames() stays in sky.js, unused).
-   It starts on Weird Kid. It is a swipeable strip, one card wide: full-bleed still + clip, the Julius title, the mint role
-   line, a shot counter, the sky drawn behind it. It rides the reel's drift: while a clip plays the strip creeps a little
-   with the clip's time, and when the clip ends it glides on to the next card (no loop). A still holds 4 s. The To Go card
-   carries a muted preview clip, the live small Momo loop tile (momo-480) and a play button; audio never autoplays. After the last card the sky
-   opens. A tap (or Esc) goes straight to the sky; swipe, arrows or a sideways wheel move between cards; a pinch carries on
-   into the sky (sky.js owns the pinch). Motion is the same with Reduce Motion on. Ideas from _preview-cards (read only).
-   From Film, the same strip also opens as a board (GJ_OPEN.show({board:true})): a tap opens that work, Back / Esc / pinch-out close the board, and the last card does not send the visitor to the sky. */
+ ONE full-screen To Go-style card shows on the way in, instead of the four land frames (landFrames stays in sky.js, unused).
+ It starts on Weird Kid. It is a swipeable strip, one card wide: full-bleed still + clip, the Julius title, the mint role
+ line, a shot counter, the sky drawn behind it. It rides the reel's drift: while a clip plays the strip creeps a little
+ with the clip's time, and when the clip ends it glides on to the next card (no loop). A still holds 4 s. The To Go card
+ carries a muted preview clip, the live small Momo loop tile (momo-480) and a play button; audio never autoplays. After the last card the sky
+ opens. A tap (or Esc) goes straight to the sky; swipe, arrows or a sideways wheel move between cards; a pinch carries on
+ into the sky (sky.js owns the pinch). Motion is the same with Reduce Motion on. Ideas from _preview-cards (read only).
+ From Film, the same strip also opens as a board (GJ_OPEN.show({board:true})): a tap opens that work, Back / Esc / pinch-out close the board, and the last card does not send the visitor to the sky. */
 (function(){
 'use strict';
 var HOLD=4000,CREEP=.06,EASE_MS=520;

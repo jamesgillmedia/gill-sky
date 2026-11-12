@@ -29,7 +29,7 @@
     i.addEventListener('pointerup',end);i.addEventListener('pointercancel',end);
   }
   /* item 11: hold the player (~450 ms, no movement) and a dial opens with every sound slider together. A tap never opens it.
-     After one adjustment it closes on its own (700 ms after you let go), or after 3 s idle, or on a tap outside. */
+ After one adjustment it closes on its own (700 ms after you let go), or after 3 s idle, or on a tap outside. */
   var HOLD=450,dial=null,dialT=0;
   function closeDial(){clearTimeout(dialT);if(dial){dial.remove();dial=null}}
   function idleDial(ms){clearTimeout(dialT);dialT=setTimeout(closeDial,ms)}

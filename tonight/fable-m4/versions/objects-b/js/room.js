@@ -1,12 +1,12 @@
 /* Objects · version B: real cup photography in the specimen case.
-   One room. Each piece is a case in the dark; its real photographs hang one behind another (Spirit Eye save 2 depth:
-   planes at different distances, the camera travels a Catmull-Rom path through them, glide ease cubic-bezier(.22,1,.36,1)).
-   Places (each is a history entry, so phone Back / pinch out / ‹ / Esc rise one place):
-     objects board (m4)  ⇄  proof sheet (every photograph, numbered)  ⇄  the case (one photograph at a time)  ⇄  its page
-   In the case: pinch in / wheel / ↓ / Enter go one photograph deeper (whole piece → surface → making → use, or → angles);
-   pinch out / ↑ rise one; swipe sideways / ← → glide to the next case. Tap the lit photograph for its page.
-   The joio cup case also holds the mesh cup (photo-measured lathe from the photographs) on a plinth, turning slowly.
-   Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. Nothing auto-advances. */
+ One room. Each piece is a case in the dark; its real photographs hang one behind another (Spirit Eye save 2 depth:
+ planes at different distances, the camera travels a Catmull-Rom path through them, glide ease cubic-bezier(.22,1,.36,1)).
+ Places (each is a history entry, so phone Back / pinch out / ‹ / Esc rise one place):
+ objects board (m4) ⇄ proof sheet (every photograph, numbered) ⇄ the case (one photograph at a time) ⇄ its page
+ In the case: pinch in / wheel / ↓ / Enter go one photograph deeper (whole piece → surface → making → use, or → angles);
+ pinch out / ↑ rise one; swipe sideways / ← → glide to the next case. Tap the lit photograph for its page.
+ The joio cup case also holds the mesh cup (photo-measured lathe from the photographs) on a plinth, turning slowly.
+ Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. Nothing auto-advances. */
 import * as THREE from '../vendor/three.module.min.js';
 import { loadCup } from './shared/cup.js';
 import { entry, boardUrl, cardUrl, cardsOf, homeUrl } from './shared/board.js';
@@ -63,8 +63,8 @@ function pinch(el, o) {
 ['gesturestart', 'gesturechange', 'gestureend'].forEach(n => document.addEventListener(n, e => e.preventDefault(), { passive: false }));
 
 /* =========================================================================================
-   the room (three.js)
-   ========================================================================================= */
+ the room (three.js)
+ ========================================================================================= */
 let cur = 0;               /* stop index the camera is at / heading to */
 let gpos = 0, anim = null, xf = null; /* xf: a glide between cases */ /* camera position along the stops (float) */
 let renderer, scene, camera, cupMesh = null, cupGroup = null, planes = [], dirty = true;
@@ -227,8 +227,8 @@ function sync() { const top = place.top(), st = STOPS[cur];
   document.querySelectorAll('.cell').forEach(c => c.classList.toggle('cur', +c.dataset.g === cur)) }
 
 /* =========================================================================================
-   proof sheet (the overview): every photograph, numbered, grouped by piece, in the order of the case
-   ========================================================================================= */
+ proof sheet (the overview): every photograph, numbered, grouped by piece, in the order of the case
+ ========================================================================================= */
 function buildProof() { const g = $('pgrid'); g.innerHTML = '';
   SPECS.forEach(s => { const sec = document.createElement('section'); sec.className = 'pset';
     sec.innerHTML = '<h2>' + s.title + '<span>' + s.n + ' photographs</span></h2>'; const grid = document.createElement('div'); grid.className = 'pgrid';
@@ -252,8 +252,8 @@ $('proofBtn').addEventListener('click', () => { const t = place.top(); if (t ===
 pinch($('proof'), { in: () => enterCase(cur), out: () => leave(boardUrl()) });
 
 /* =========================================================================================
-   a photograph's page
-   ========================================================================================= */
+ a photograph's page
+ ========================================================================================= */
 function fillDetail() { const st = STOPS[cur], s = st.s;
   $('dhero').innerHTML = '<img alt="' + s.title + ', ' + st.layer + (st.f.cap ? ': ' + st.f.cap.replace(/"/g, '&quot;') : '') + '" src="' + img(st.f) + '" width="' + st.f.w + '" height="' + st.f.h + '">';
   $('dmeta').innerHTML = '<div class="t ju">' + s.title + ' · ' + st.layer + '</div>' + (st.f.cap ? '<p class="c">' + st.f.cap + '</p>' : '') +
@@ -274,8 +274,8 @@ $('dend').addEventListener('click', () => place.back());
 pinch($('detail'), { in: () => {}, out: () => place.back() });
 
 /* =========================================================================================
-   input in the case
-   ========================================================================================= */
+ input in the case
+ ========================================================================================= */
 const canvas = $('c'), ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
 function pick(x, y) { if (!renderer) return null; ndc.set(x / innerWidth * 2 - 1, -(y / innerHeight) * 2 + 1); ray.setFromCamera(ndc, camera);
   const objs = planes.filter(p => p.grp.visible && p.photoM.opacity > .05).map(p => p.photo); if (cupMesh && cupGroup.visible) objs.unshift(cupMesh);
@@ -310,8 +310,8 @@ document.addEventListener('keydown', e => { const t = place.top(), k = e.key;
   else if (k === ' ') { openDetail(); e.preventDefault() } });
 
 /* =========================================================================================
-   start: arrive on one piece (the board's ring if we came from one), the proof sheet one place up
-   ========================================================================================= */
+ start: arrive on one piece (the board's ring if we came from one), the proof sheet one place up
+ ========================================================================================= */
 buildProof();
 const E = entry(); let start = SPECS[0].start;
 { const s = SPECS.find(x => x.id === E.ring) || SPECS[0]; start = s.start;

@@ -1,7 +1,7 @@
 /* Mesh cup loader (no GLTFLoader needed). Parses shared cup/joio-cup.glb: one primitive, uint16 indices, POSITION + TEXCOORD_0, JPEG base colour.
-   Source: box:mesh2/lathe/joio_lathe_from_photos.glb (photo-measured lathe from IMG_5882/5850 profile + texture; back half mirrored,
-   underside not photographed). Units are metres: rim ~8 cm wide, ~5.7 cm tall, base at y=0.
-   Usage: const mesh = await loadCup(THREE, new URL('../cup/joio-cup.glb', import.meta.url)); scene.add(mesh); */
+ Source: box:mesh2/lathe/joio_lathe_from_photos.glb (photo-measured lathe from IMG_5882/5850 profile + texture; back half mirrored,
+ underside not photographed). Units are metres: rim ~8 cm wide, ~5.7 cm tall, base at y=0.
+ Usage: const mesh = await loadCup(THREE, new URL('../cup/joio-cup.glb', import.meta.url)); scene.add(mesh); */
 export async function loadCup(THREE, url, opts = {}) {
   const buf = await (await fetch(url)).arrayBuffer(), dv = new DataView(buf);
   if (dv.getUint32(0, true) !== 0x46546C67) throw new Error('not a glb');

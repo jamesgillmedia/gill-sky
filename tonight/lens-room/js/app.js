@@ -1,8 +1,8 @@
 /* Film · Lens room. You look through a camera eyepiece at a small EVF.
-   Pinch out or press bin to step back out of the eyepiece onto a monitor grid.
-   Titles and credits come from the existing film data. Nothing auto-advances.
-   External video sites are not linked. Motion stays on with Reduce Motion,
-   except gate weave, which follows the weave switch (and starts off if Reduce Motion is on). */
+ Pinch out or press bin to step back out of the eyepiece onto a monitor grid.
+ Titles and credits come from the existing film data. Nothing auto-advances.
+ External video sites are not linked. Motion stays on with Reduce Motion,
+ except gate weave, which follows the weave switch (and starts off if Reduce Motion is on). */
 (function(){
 'use strict';
 var F=window.FILMS||[];
@@ -26,7 +26,7 @@ var redOpen=false,fxRaf=0,fxLast=0,workCv,workCtx,FXW=320,FXH=180;
 var pull=0,pullFrom=0,pDist0=0,pulling=false,wantBin=false,pullEaseT=0,pullWheelT=0;
 var debugAll=false;
 /* A + deck (Nov 12 2026): camera-body deck and ambience from v4.1. Own storage keys so v4/v4.1
-   settings on the same origin never leak into A. Deck always starts closed. */
+ settings on the same origin never leak into A. Deck always starts closed. */
 var AMBI_STORE='film-lens-A-ambience', AMBI_DEFAULT=0.85;
 var ambience=AMBI_DEFAULT, deckOpen=false;
 try{debugAll=/(?:^|[?&])debug=1(?:&|$)/.test(location.search)}catch(e){}
@@ -63,7 +63,7 @@ function syncToolButtons(){
   if(pb2){pb2.setAttribute('aria-pressed',playing?'true':'false');pb2.classList.toggle('on',!!playing);var s2=pb2.querySelector('.lbl');if(s2)s2.textContent=playing?'pause':'play'}
 }
 /* ambience: the default reproduces A exactly (no class, no variable). Off-default scales A's
-   own room-light layers by value/default (see css/deck.css). */
+ own room-light layers by value/default (see css/deck.css). */
 function setAmbience(v,fromInput){
   v=Math.max(0,Math.min(1,+v));
   if(isNaN(v))v=AMBI_DEFAULT;
@@ -260,8 +260,8 @@ function size(){
   var p=F[i]||F[0], ar=(p&&p.w&&p.h)?(p.w/p.h):16/9;
   if(env==='lens'){
     /* Photo wins on look: at eye-up the image is ~70% of the short side,
-       slightly above centre, in a soft well that is not a visible sharp circle.
-       On pull-back the well shrinks toward ~55–57% of the short side (research). */
+ slightly above centre, in a soft well that is not a visible sharp circle.
+ On pull-back the well shrinks toward ~55–57% of the short side (research). */
     var shortSide=Math.min(W,H);
     var imgFrac=0.70-pull*0.28;          /* 70% → 42% */
     var wellFrac=1.05-pull*0.48;         /* 105% → 57% */
@@ -635,9 +635,9 @@ room.addEventListener('wheel',function(e){
 },{passive:false});
 
 /* Continuous, user-driven pull-back on the eyepiece. Nothing moves unless
-   the user pinches. It stays where they let go; past 60% it eases the rest
-   of the way to the room view. A further pinch out from the room view steps
-   out to the bin. Motion is the same with Reduce Motion on. */
+ the user pinches. It stays where they let go; past 60% it eases the rest
+ of the way to the room view. A further pinch out from the room view steps
+ out to the bin. Motion is the same with Reduce Motion on. */
 function touchDist(touches){return Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY)}
 room.addEventListener('touchstart',function(e){
   if(e.touches.length!==2)return;

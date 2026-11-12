@@ -1,6 +1,6 @@
 /* Darkroom · a red-lit room of hung prints. Groupings: salon, row, grid, pairs.
-   A quiet pill cycles them; they never auto-advance. Safelight is the room (lamp, walls, spill),
-   not a grade on the photograph. Room light dims the wash only. Same motion with Reduce Motion on. */
+ A quiet pill cycles them; they never auto-advance. Safelight is the room (lamp, walls, spill),
+ not a grade on the photograph. Room light dims the wash only. Same motion with Reduce Motion on. */
 body.dr{background:var(--bg,#0d0303)}
 #room[hidden]{display:none}
 .room{position:fixed;inset:0;background:radial-gradient(120% 75% at 80% 0%,#6a4a42,#2a1e1b 55%,#171110),#171110;transition:background 1.4s var(--ease);overflow:hidden}
@@ -92,10 +92,10 @@ body.dr #arrange{display:inline-grid}
 body.dr #sort,body.dr #clips{display:none}
 
 /* ---------- Darkroom · wall, floor and lighting (12 Nov, 2:44–2:50 AM) ----------
-   The prints hang on the wall plane from a nail and wire. The wall ends at a floor line; the control
-   panel (css/deck.css) is mounted on the wainscot below it. Entering the room is a lighting cut:
-   the room comes up out of the dark — nothing slides or rises. The safelight toggles only the light
-   (red wash, lamp, spill on the walls and frames). Same motion with Reduce Motion on. */
+ The prints hang on the wall plane from a nail and wire. The wall ends at a floor line; the control
+ panel (css/deck.css) is mounted on the wainscot below it. Entering the room is a lighting cut:
+ the room comes up out of the dark — nothing slides or rises. The safelight toggles only the light
+ (red wash, lamp, spill on the walls and frames). Same motion with Reduce Motion on. */
 body.dr{--fh:calc(var(--deck-h,96px) + 20px)}
 .hangs{bottom:var(--fh)}
 html.debug .hangs{bottom:calc(var(--fh) + var(--dbg-h,64px))}

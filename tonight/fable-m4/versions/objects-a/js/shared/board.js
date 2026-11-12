@@ -1,9 +1,9 @@
 /* Rings <-> m4 Objects board wiring. A version root sits at fable-m4/objects-3d/, so the m4 site is '../'.
-   - Into the room: the m4 site links to  objects-3d/#<ring id>  (e.g. #joio-cup) or  objects-3d/?from=<board slug>.
-     entry() turns either into { ring, layer, i }. A board slug maps to the ring that photographs that object.
-   - Back out: boardUrl() is the Objects board (#objects/board); cardUrl(slug) opens that card on the board;
-     homeUrl() is the site root. Each ring lists its board cards in SPECIMENS[].board (joio cup has 7; the others have none on the board yet).
-   - keep(state) writes #ring/layer/i with replaceState so Back from a card returns to the same place. */
+ - Into the room: the m4 site links to objects-3d/#<ring id> (e.g. #joio-cup) or objects-3d/?from=<board slug>.
+ entry turns either into { ring, layer, i }. A board slug maps to the ring that photographs that object.
+ - Back out: boardUrl is the Objects board (#objects/board); cardUrl(slug) opens that card on the board;
+ homeUrl is the site root. Each ring lists its board cards in SPECIMENS[].board (joio cup has 7; the others have none on the board yet).
+ - keep(state) writes #ring/layer/i with replaceState so Back from a card returns to the same place. */
 import { SPECIMENS, BOARD } from './objects-data.js';
 export const SITE = '../../';
 export const boardUrl = () => SITE + '#objects/board';

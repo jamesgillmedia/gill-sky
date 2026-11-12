@@ -1,5 +1,5 @@
 /* The three.js side: one scene, one dark ground, one camera that only ever looks straight down -z.
-   Each specimen is a group at its own x; its stops are laid along -z. The camera sits F in front of the stop it is on. */
+ Each specimen is a group at its own x; its stops are laid along -z. The camera sits F in front of the stop it is on. */
 export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getMargins) {
   const R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   R.setClearColor(0x000000, 0);

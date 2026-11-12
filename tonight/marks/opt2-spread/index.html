@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex">
-<title>opener · sketch · opt2 spread</title>
+<title>mark · option 2 · spread</title>
 <meta name="theme-color" content="#04070b">
 <style>
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/pro2/fonts/poppins-300.woff2) format("woff2")}
@@ -97,7 +97,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 <link rel="stylesheet" href="../../_tn/back.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
 <body>
 <div id="gjview">
-<div id="stage" aria-label="Opening sketch: pinch in to go through the sky">
+<div id="stage" aria-label="Opening: pinch in to go through the sky">
 <div class="water" id="water" aria-hidden="true"></div>
 <canvas id="cv" aria-hidden="true"></canvas>
 <p class="sr" id="srline"></p>
@@ -174,8 +174,8 @@ function makeView(){
   view.appendChild(invEl);
 }
 /* ---- shared beat, star flash and ambient flash ----
-   The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
-   Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
+ The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
+ Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
 function frac(x){return x-Math.floor(x)}
 function beatCount(){return beatSrc?beatSrc():beatAcc}
 function pulse(pos){
@@ -431,7 +431,9 @@ function markPoints(N){
     for(var j=1;j<=n;j++){var f=j/(n+1);Pn.push([sg.a[0]+(sg.b[0]-sg.a[0])*f,sg.a[1]+(sg.b[1]-sg.a[1])*f])}});
   return Pn.slice(0,N);
 }
-var SPREAD=1.25;function markScreen(p){var sc=Math.min(W,H)*(PORT?.52:.46)/250*SPREAD;return [W*.5+p[0]*sc,H*.30+p[1]*sc]}
+var SPREAD=1.25;var MKX=0;/* spread, but the whole mark always fits the screen width (390 phone) */
+function markScale(){var sc=Math.min(W,H)*(PORT?.52:.46)/250*SPREAD;if(!MKX){try{var q=markPoints(NODES);for(var i=0;i<q.length;i++)MKX=Math.max(MKX,Math.abs(q[i][0]))}catch(e){}}return MKX?Math.min(sc,W*.45/MKX):sc}
+function markScreen(p){var sc=markScale();return [W*.5+p[0]*sc,H*.30+p[1]*sc]}
 function lineLayout(){
   var tx=(window.GJDBG&&GJDBG.val('txt')||100)/100;
   var oc=document.createElement('canvas');oc.width=W;oc.height=H;var x=oc.getContext('2d');
@@ -738,7 +740,7 @@ function draw(t,dt,now){
   /* mark hairlines, then constellation lines and chapter names */
   var mkA=.28*(1-clamp(P/.12,0,1));
   if(mkA>.005){
-    var msc=Math.min(W,H)*(PORT?.52:.46)/250*SPREAD,mox=W*.5,moy=H*.30;
+    var msc=markScale(),mox=W*.5,moy=H*.30;
     g.globalAlpha=1;g.lineWidth=1;g.strokeStyle='rgba(200,220,240,'+mkA.toFixed(3)+')';g.beginPath();
     STROKES.forEach(function(s){s.forEach(function(q,j){var x=mox+q[0]*msc,y=moy+q[1]*msc;if(j)g.lineTo(x,y);else g.moveTo(x,y)});g.stroke();g.beginPath()});
   }

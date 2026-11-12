@@ -1,11 +1,11 @@
-/* Spirit Eye of skwácháýs · se3 · rebuilt on v2 (gill-sky 22d3958, "save 2, Spirit Eye anchor"): same whorl on the water,
-   same eased glide between stops (cubic-bezier .22,1,.36,1), same layered drawings in depth, same column of light.
-   New in se3: every stop has one job. TELL = a calm reading page (words verbatim from the PDF, set by parts/reading).
-   SHOW = the eye in 3D. The light journey is staged as one spatial sequence the viewer drags through:
-     the sun's ray reaches the sky lens  ->  the light runs in, down the fibre optics  ->  under, through the column
-     ->  it lands, and the garden lights up  ->  the plants of the garden, page by page (PDF p.21-23).
-   The light front is a position of the drag (not a loop), so Reduce Motion changes nothing.
-   Callout words are the PDF's own labels (p.15 MATERIALS; p.21-23 plant labels). Nothing auto-advances. */
+/* Spirit Eye of skwácháýs · se3 · rebuilt on v2 ("save 2, Spirit Eye anchor"): same whorl on the water,
+ same eased glide between stops (cubic-bezier .22,1,.36,1), same layered drawings in depth, same column of light.
+ New in se3: every stop has one job. TELL = a calm reading page (words verbatim from the PDF, set by parts/reading).
+ SHOW = the eye in 3D. The light journey is staged as one spatial sequence the viewer drags through:
+ the sun's ray reaches the sky lens -> the light runs in, down the fibre optics -> under, through the column
+ -> it lands, and the garden lights up -> the plants of the garden, page by page (PDF p.21-23).
+ The light front is a position of the drag (not a loop), so Reduce Motion changes nothing.
+ Callout words are the PDF's own labels (p.15 MATERIALS; p.21-23 plant labels). Nothing auto-advances. */
 const BASE = new URL('../', import.meta.url).href;
 const IMG = n => BASE + 'media/' + n + '.webp';
 /* ---------- the stops ---------- */

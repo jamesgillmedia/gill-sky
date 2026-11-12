@@ -1,10 +1,10 @@
 /* tiled-moon-v3 · idle tiles (Gill, voice, Nov 12 2:21 AM).
-   In: after IDLE_MS with no pointer / touch / wheel / scroll / key, the five category tiles take over the screen, one tile per
-   screen, edge to edge. Never while sound or a film is playing, a control (ambience tray, a slider, the debug panel) is in use,
-   the page is hidden, or you are inside a work. The tiles NEVER move on their own: only their appearance is idle-triggered.
-   Between tiles: swipe sideways (native scroll-snap, so trackpads work), arrow keys, or the dots. Tap a tile = open that chapter.
-   Out: swipe up or down, swipe past the first or last tile, Escape, or the "water" button. You land exactly where you were,
-   and the idle timer starts again from zero. Reduce Motion changes nothing. */
+ In: after IDLE_MS with no pointer / touch / wheel / scroll / key, the five category tiles take over the screen, one tile per
+ screen, edge to edge. Never while sound or a film is playing, a control (ambience tray, a slider, the debug panel) is in use,
+ the page is hidden, or you are inside a work. The tiles NEVER move on their own: only their appearance is idle-triggered.
+ Between tiles: swipe sideways (native scroll-snap, so trackpads work), arrow keys, or the dots. Tap a tile = open that chapter.
+ Out: swipe up or down, swipe past the first or last tile, Escape, or the "water" button. You land exactly where you were,
+ and the idle timer starts again from zero. Reduce Motion changes nothing. */
 (function(){
 'use strict';
 var IDLE_MS=9000;                          /* the idle delay: change here */

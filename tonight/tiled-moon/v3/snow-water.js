@@ -1,11 +1,11 @@
 /* tiled-moon-v3 · snow on the water (from box:opener-snowwater, ported onto the v3.1 Moonwater backdrop).
-   - Clean start: the water is the original still/shader only; after 2 s flakes spawn from the top and ramp in over 7 s.
-   - Snow falls behind the poem and the tiles (it lives in .backdrop), slightly defocused near flakes, falling only.
-   - A finger or cursor stirs the flakes near it (passive listeners; never blocks scroll or pinch).
-   - Mist: a static veil over the water (not a grade of the photo, not animated).
-   - Reflection + moon glow drive the water shader (js/water.js uniforms rf / mg): star reflections on the water, moon glow + streak.
-   - Ambience pill (bottom left, collapsed by default): snow, mist, reflection, moon. Values kept on this device (gj.amb.*),
-     query keys ?sn= ?hz= ?rf= ?mg= win. Nothing here moves on its own beyond the snowfall; Reduce Motion changes nothing. */
+ - Clean start: the water is the original still/shader only; after 2 s flakes spawn from the top and ramp in over 7 s.
+ - Snow falls behind the poem and the tiles (it lives in .backdrop), slightly defocused near flakes, falling only.
+ - A finger or cursor stirs the flakes near it (passive listeners; never blocks scroll or pinch).
+ - Mist: a static veil over the water (not a grade of the photo, not animated).
+ - Reflection + moon glow drive the water shader (js/water.js uniforms rf / mg): star reflections on the water, moon glow + streak.
+ - Ambience pill (bottom left, collapsed by default): snow, mist, reflection, moon. Values kept on this device (gj.amb.*),
+ query keys ?sn= ?hz= ?rf= ?mg= win. Nothing here moves on its own beyond the snowfall; Reduce Motion changes nothing. */
 (function(){
 'use strict';
 var bd=document.querySelector('.backdrop');if(!bd)return;

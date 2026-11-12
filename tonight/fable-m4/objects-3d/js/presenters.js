@@ -1,18 +1,18 @@
 /* Per-layer presentation. SWAP POINT: each layer key maps to one presenter. Replace an entry (or add a new presenter)
-   to change how a layer looks without touching nav, view, moves or transitions.
+ to change how a layer looks without touching nav, view, moves or transitions.
 
-   A presenter is  (THREE, frame, env) -> { group, setAlpha(a), layout(box) -> {w, h}, dispose() }
-     frame : one entry from data.js (img, stem, cap, crop, focus, slot, cut, sit)
-     env   : { dirty(), relayout() } call dirty() when something visual changed, relayout() when a texture's size arrived
-     box   : { w, h } in world units: the room the frame may fill at the stop.
-     layout returns the world size it actually used (the view uses it for the drift of the dolly).
+ A presenter is (THREE, frame, env) -> { group, setAlpha(a), layout(box) -> {w, h}, dispose }
+ frame : one entry from data.js (img, stem, cap, crop, focus, slot, cut, sit)
+ env : { dirty, relayout } call dirty when something visual changed, relayout when a texture's size arrived
+ box : { w, h } in world units: the room the frame may fill at the stop.
+ layout returns the world size it actually used (the view uses it for the drift of the dolly).
 
-   Looks now:
-     whole   : cutout   - the piece alone (alpha cutout), a warm pool of light behind and under it, a soft contact shadow
-     surface : soft(...) - the material crop, large, with a soft feathered edge (no hard rectangle)
-     making / use : soft(...) - the photo with a soft feathered edge
-     shop    : emptySlot
-   photo() is the earlier hard-edged frame, kept for comparison. */
+ Looks now:
+ whole : cutout - the piece alone (alpha cutout), a warm pool of light behind and under it, a soft contact shadow
+ surface : soft(...) - the material crop, large, with a soft feathered edge (no hard rectangle)
+ making / use : soft(...) - the photo with a soft feathered edge
+ shop : emptySlot
+ photo is the earlier hard-edged frame, kept for comparison. */
 
 const EDGE = 0x8e98aa;
 const cache = new WeakMap();

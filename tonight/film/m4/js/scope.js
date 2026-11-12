@@ -1,14 +1,14 @@
 /* Scope · the film player (site-v3-pro2 js/scope.js, ported to stand on its own for m4 and R10; Gill, Nov 11: "the scope one we developed").
-   2.39 frame · timecode · a cut rail (one star per cut, joined by a hairline, the playhead a glowing star) you can scrub ·
-   a swipeable shot strip that follows playback · ‹ › shots · sound. Every film plays natively from its own files (<video>, nothing
-   embedded from elsewhere): a long film is several parts on one timeline (next part preloaded near the end, swapped on its first frame).
-   Format: the frame morphs between the 2.39 cut screen and full screen (the film's own aspect, whole viewport) without touching the
-   <video> (no reload, no restart): auto on rotation / resize (landscape phones and tall films go full while playing), ⤢ by hand.
-   Same motion with Reduce Motion on (Gill's rule).
-   GJScope.create(o): o.frame = the frame element, o.stage = its parent (the box it is sized in), o.chrome = where the rail goes,
-   o.full = the element that goes full screen (gets .sfull), o.onLabel(text), o.onFilm(key) (a reel shot's "full film ›"),
-   o.onFull(bool), o.onTap() (a tap on the picture; default play / pause). api.load(film) · play() · pause() · toggle() · seek(t) · step(d) · toggleFull() · stop() · state().
-   film = {key, reel, meta, dur, fps, ar, poster, parts:[{src,t,d}], shots:[{t,th,title,f}]} */
+ 2.39 frame · timecode · a cut rail (one star per cut, joined by a hairline, the playhead a glowing star) you can scrub ·
+ a swipeable shot strip that follows playback · ‹ › shots · sound. Every film plays natively from its own files (<video>, nothing
+ embedded from elsewhere): a long film is several parts on one timeline (next part preloaded near the end, swapped on its first frame).
+ Format: the frame morphs between the 2.39 cut screen and full screen (the film's own aspect, whole viewport) without touching the
+ <video> (no reload, no restart): auto on rotation / resize (landscape phones and tall films go full while playing), ⤢ by hand.
+ Same motion with Reduce Motion on (Gill's rule).
+ GJScope.create(o): o.frame = the frame element, o.stage = its parent (the box it is sized in), o.chrome = where the rail goes,
+ o.full = the element that goes full screen (gets .sfull), o.onLabel(text), o.onFilm(key) (a reel shot's "full film ›"),
+ o.onFull(bool), o.onTap (a tap on the picture; default play / pause). api.load(film) · play · pause · toggle · seek(t) · step(d) · toggleFull · stop · state.
+ film = {key, reel, meta, dur, fps, ar, poster, parts:[{src,t,d}], shots:[{t,th,title,f}]} */
 (function(){
 'use strict';
 function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}

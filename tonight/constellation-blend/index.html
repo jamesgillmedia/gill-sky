@@ -3,18 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>constellation · blend (prototype)</title>
+<title>constellation</title>
 <link rel="stylesheet" href="blend.css">
-<link rel="stylesheet" href="../_tn/back.css"><script src="../_tn/back.js" data-tn-root="../" defer></script></head>
+</head>
 <body>
 <canvas id="c" aria-label="Constellation field. Pinch or scroll to zoom into a star, drag to look around."></canvas>
 <header id="bar">
-  <button id="home" type="button" class="sig" lang="cr" aria-label="back to the whole field">ᑕᐣᓯ</button>
+  <button id="home" type="button" class="sig" lang="cr" aria-label="the whole field; at the whole field, home">ᑕᐣᓯ</button>
   <span id="where" aria-live="polite">field</span>
   <span class="sp"></span>
   <button id="out" type="button" aria-label="zoom out one step">‹ out</button>
   <button id="tilt" type="button" aria-pressed="false" hidden>tilt</button>
 </header>
+<section id="board" tabindex="0" hidden role="dialog" aria-modal="true" aria-labelledby="bt">
+  <div class="bw"></div>
+</section>
 <p id="hint">pinch or tap a star · drag to look around</p>
 <script src="data.js"></script>
 <script src="blend.js"></script>

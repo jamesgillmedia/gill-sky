@@ -1,16 +1,16 @@
 /* Objects · version C · ring movement.
-   The rings are the way in. Five rings stand one behind another in the dark, each a little further and to the side of the last.
-   Along: a sideways swipe / ‹ › / left and right arrow keys glide from ring to ring (or from frame to frame inside a room).
-   The small dial on the right is a second way to take the same step. Through: tap a ring, pinch in, Enter or scroll in carries
-   the camera through its hoop into that piece's room; each deeper layer (surface, making, use…) is a smaller ring further down
-   the same axis, and pinch in passes through the next one. Pinch out, ‹ Back, Esc or phone back rise exactly one layer, back
-   out through the ring you came in by, and from the first ring back up to the board, landing on the card or ring you left from.
-   One-finger up or down moves the camera forward or back through the rings (a zoom in depth), with a glide after you let go;
-   a double-tap on empty ground returns to the nearest ring. The camera translates, it does not orbit. Soft bounds keep it
-   among the rings. A tap on a piece opens it from any ring or layer. Spatial language borrowed from Spirit Eye save 2 (22d3958):
-   one camera on a Catmull-Rom path, drawings/photos as planes at different distances, cubic-bezier(.22,1,.36,1) glides, text
-   only at rest, light hoops, static motes, fog. Nothing auto-advances. Motion is the same with Reduce Motion on: nothing here
-   reads prefers-reduced-motion. Silent. */
+ The rings are the way in. Five rings stand one behind another in the dark, each a little further and to the side of the last.
+ Along: a sideways swipe / ‹ › / left and right arrow keys glide from ring to ring (or from frame to frame inside a room).
+ The small dial on the right is a second way to take the same step. Through: tap a ring, pinch in, Enter or scroll in carries
+ the camera through its hoop into that piece's room; each deeper layer (surface, making, use…) is a smaller ring further down
+ the same axis, and pinch in passes through the next one. Pinch out, ‹ Back, Esc or phone back rise exactly one layer, back
+ out through the ring you came in by, and from the first ring back up to the board, landing on the card or ring you left from.
+ One-finger up or down moves the camera forward or back through the rings (a zoom in depth), with a glide after you let go;
+ a double-tap on empty ground returns to the nearest ring. The camera translates, it does not orbit. Soft bounds keep it
+ among the rings. A tap on a piece opens it from any ring or layer. Spatial language borrowed from Spirit Eye save 2 :
+ one camera on a Catmull-Rom path, drawings/photos as planes at different distances, cubic-bezier(.22,1,.36,1) glides, text
+ only at rest, light hoops, static motes, fog. Nothing auto-advances. Motion is the same with Reduce Motion on: nothing here
+ reads prefers-reduced-motion. Silent. */
 import * as THREE from '../vendor/three.module.min.js';
 import { loadGLB } from './glb.js';
 
@@ -91,7 +91,7 @@ function photoPlane(fr) {
   return m;
 }
 /* every photo is sized for the screen it is seen on: it fills a fixed share of the view from DC away, so the camera can always
-   stand between the frame before and this one (frames are SPC apart), like Spirit Eye placing its drawings relative to each stop */
+ stand between the frame before and this one (frames are SPC apart), like Spirit Eye placing its drawings relative to each stop */
 const DC = 3.15, SPC = 3.9;
 function layoutPlanes() {
   const vh = 2 * DC * tanH, vw = vh * aspect, bw = vw * (aspect < 1 ? .9 : .62), bh = vh * (aspect < 1 ? .62 : .7), sx = Math.max(.45, Math.min(1.15, aspect));
@@ -331,7 +331,7 @@ addEventListener('popstate', e => {
   while (stack.length > d) n = stack.pop();
   if (!n) return; tr = null;
   if (n.lv === 'room') n.k = memK[n.r][n.L];
-  if (n.lv === 'board' && FROM_M4 && stack.length === 0) { leave(M4); return } /* came in from the m4 board: back out to it */
+  if (n.lv === 'board' && FROM_M4 && stack.length === 0) { leave(M4); return } /* came in from the board: back out to it */
   if (n.lv === 'board') { setState(n, 'pop'); setTimeout(() => showBoard(true), 650); return }
   setState(n, 'pop');
 });
@@ -542,7 +542,7 @@ function paintDial() {
 })();
 function leave(href) { $('veil').classList.remove('off'); setTimeout(() => { location.href = href }, 900) }
 $('m4').onclick = e => { e.preventDefault(); leave(M4) };
-if (FROM_M4) $('m4').textContent = '‹ m4 board';
+if (FROM_M4) $('m4').textContent = '‹ board';
 addEventListener('pageshow', () => $('veil').classList.add('off'));
 
 /* ---------- frame loop: render only while something moves ---------- */

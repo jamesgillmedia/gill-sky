@@ -1,6 +1,6 @@
 /* About bio · the glitch plate. Stop flashing and the glitch dimmer were two always-on pills over the bio;
-   they now fold into one quiet "light" switch (bottom left, only while the bio is open), the same switch and slider
-   as every other room. Same keys as before (gj.noflash, gj.glitch), so nothing Gill set is lost. */
+ they now fold into one quiet "light" switch (bottom left, only while the bio is open), the same switch and slider
+ as every other room. Same keys as before (gj.noflash, gj.glitch), so nothing Gill set is lost. */
 (function(){
   var B=window.GJ_BIOCTL;if(!B||!window.AMBX)return;
   document.documentElement.classList.add('has-ctl');

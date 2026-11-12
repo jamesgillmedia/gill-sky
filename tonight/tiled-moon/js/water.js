@@ -1,11 +1,11 @@
 /* v3: the Moonwater backdrop (fixed, decorative). Adapted from v2 js/water.js.
-   Moonwater hero: one fragment shader on a full-screen triangle (no three.js).
-   Ambient swell + finger/cursor ripples, crescent moon reflected with Gill's cyan/red split, glint column, vignette.
-   Fallbacks: no WebGL / Save-Data / slow device (<30 fps over 1.5 s) -> the still poster stays.
-   Reduced motion -> a single still frame. Pauses off-screen and when the tab is hidden. */
+ Moonwater hero: one fragment shader on a full-screen triangle (no three.js).
+ Ambient swell + finger/cursor ripples, crescent moon reflected with Gill's cyan/red split, glint column, vignette.
+ Fallbacks: no WebGL / Save-Data / slow device (<30 fps over 1.5 s) -> the still poster stays.
+ Reduced motion -> a single still frame. Pauses off-screen and when the tab is hidden. */
 (function(){
 /* The poster and the poem paint first. The GPU work (shader compile can block a phone's main thread for seconds on some
-   Android GPUs) waits until the page has loaded and the browser is idle, so arrival is never a black screen. */
+ Android GPUs) waits until the page has loaded and the browser is idle, so arrival is never a black screen. */
 var RUN=function(){
   var hero=document.querySelector('.backdrop'),c=document.getElementById('gl'),poster=document.getElementById('poster');
   if(!hero||!c)return;
@@ -15,7 +15,7 @@ var RUN=function(){
   if(!g){c.remove();return}
   /* GPU context lost (iOS does this when backgrounded or under memory pressure): fall back to the still poster */
   /* GPU context lost (iOS does this when backgrounded or under memory pressure): show the still poster, and bring the water
-     back when the context is restored */
+ back when the context is restored */
   var lost=false;
   c.addEventListener('webglcontextlost',function(e){e.preventDefault();lost=true;run=false;cancelAnimationFrame(raf);c.classList.remove('on');hero.classList.remove('gl','gl-stars')},false);
   c.addEventListener('webglcontextrestored',function(){if(!lost||dead)return;lost=false;if(!prog()){dead=true;return}

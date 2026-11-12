@@ -1,5 +1,5 @@
 /* The three.js side: one scene, one dark ground, one camera that only ever looks straight down -z.
-   Each specimen is a group at its own x; its stops are laid along -z. The camera sits F in front of the stop it is on. */
+ Each specimen is a group at its own x; its stops are laid along -z. The camera sits F in front of the stop it is on. */
 export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getMargins) {
   const R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   R.setClearColor(0x000000, 0);
@@ -8,7 +8,7 @@ export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getM
   const cam = new THREE.PerspectiveCamera(FOV, 1, .1, 200); scene.add(cam);
   const tanH = Math.tan(FOV * Math.PI / 360);
   /* a faint static scatter of stars behind everything (the soft colour washes of Spirit Eye's sky are in objects3d.css, which costs no fill rate).
-     It follows the camera sideways and almost fully in depth, so the dolly moves it only a little. Nothing in it moves by itself. */
+ It follows the camera sideways and almost fully in depth, so the dolly moves it only a little. Nothing in it moves by itself. */
   const haze = new THREE.Group(); haze.renderOrder = -10; scene.add(haze);
   (function stars() {
     let a = 20241111; const rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 };

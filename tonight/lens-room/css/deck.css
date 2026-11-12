@@ -1,10 +1,10 @@
-/* Lens room A + camera-body deck. Added on top of version A (lab-lens-preview @0786e6b) on Nov 12 2026.
-   Deck styling copied from v4.1 (film-lens-room-v4.1-bak-0332/css/lens.css): base deck 853-952,
-   hardware 1020-1180, key symbols 1216-1218, play key 1229-1243, placement 1245-1272 (transport
-   dial / jog / status-row rules dropped), layout pass 1314-1317, 1328-1329, then the A-specific
-   placement and ambience mapping at the end of this file.
-   Nothing here touches the room, eyepiece, window, sliver, bloom, grain or haze in their
-   default state. Ambience rules only apply when the slider is moved off its default (body.amb-set). */
+/* Lens room A + camera-body deck. Added on top of version A on Nov 12 2026.
+ Deck styling copied from v4.1 (film-lens-room-v4.1-bak-0332/css/lens.css): base deck 853-952,
+ hardware 1020-1180, key symbols 1216-1218, play key 1229-1243, placement 1245-1272 (transport
+ dial / jog / status-row rules dropped), layout pass 1314-1317, 1328-1329, then the A-specific
+ placement and ambience mapping at the end of this file.
+ Nothing here touches the room, eyepiece, window, sliver, bloom, grain or haze in their
+ default state. Ambience rules only apply when the slider is moved off its default (body.amb-set). */
 /* ---------- camera-body deck (physical controls, never over the image) ---------- */
 .deck{
   position:fixed;z-index:30;pointer-events:none;
@@ -80,7 +80,7 @@
   background:#2a2d33;box-shadow:inset 0 1px 0 rgba(255,255,255,.35), 0 0 0 1px #0a0b0e;
 }
 /* When the short side is the height (landscape / wide desktop), the circle fills the height.
-   Park the deck in the side letterbox so it never covers the image. */
+ Park the deck in the side letterbox so it never covers the image. */
 @media (min-aspect-ratio: 1/1){
   .deck{
     left:auto;right:calc(14px + var(--sr,0px));
@@ -106,11 +106,11 @@
 }
 body.pulled .deck,body.exit-mid .deck,body.leaving .deck{display:none!important}
 /* =====================================================================
-   v4.1 camera-body hardware. One key light from the upper left (same as the room's key light):
-   highlights on top-left chamfers, cast shadows fall down-right.
-   Hierarchy: 1 transport dial (play/pause centre key) + CTRL stud  ·  2 MONITOR bank (peak, guides)
-              ·  3 credits + ambience (quiet, flat).
-   ===================================================================== */
+ v4.1 camera-body hardware. One key light from the upper left (same as the room's key light):
+ highlights on top-left chamfers, cast shadows fall down-right.
+ Hierarchy: 1 transport dial (play/pause centre key) + CTRL stud · 2 MONITOR bank (peak, guides)
+ · 3 credits + ambience (quiet, flat).
+ ===================================================================== */
 .deck{--ink:#e6e1d6;--ink-dim:#a9a499;--engr:#7f7b73;--tally-a:#ffb44a;--tally-r:#ff3324;
   font-family:Poppins,system-ui,sans-serif}
 .deck .cam-btn.hw{
@@ -314,12 +314,12 @@ body.pulled .deck,body.exit-mid .deck,body.leaving .deck{display:none!important}
 
 /* ===================== A-specific additions (not from v4.1) ===================== */
 /* play key: v4.1 sat it in the centre of the transport dial. The dial is not carried over,
-   so the key sits in its own small well at the left of the plate. */
+ so the key sits in its own small well at the left of the plate. */
 .deck-play{position:relative;width:66px;height:66px;flex:0 0 auto;align-self:center}
 @media (min-aspect-ratio: 1/1){ .deck-play{align-self:center} }
 
 /* portrait: A keeps its debug tab bottom-left, so the CTRL stud sits bottom-right and the
-   plate opens upward above it, well below A's window. */
+ plate opens upward above it, well below A's window. */
 @media (max-aspect-ratio: 1/1){
   .deck{left:auto!important;right:calc(14px + var(--sr,0px))!important;transform:none!important;
     flex-direction:column-reverse!important;align-items:flex-end!important}
@@ -329,11 +329,11 @@ body.pulled .deck,body.exit-mid .deck,body.leaving .deck{display:none!important}
 .red-bar{display:none!important}
 
 /* ---------- ambience, mapped onto A's own room-light layers ----------
-   Slider default 85 = A exactly: body.amb-set is absent, so none of these rules exist and every
-   layer keeps A's own values. Moving the slider sets --amb-k = value / 85 (0 → 1.18) and scales
-   only the light around the window: the top light sliver, the soft housing shapes in the dark
-   surround, the bottom warm room light, and on pull-back the key light, chamber glow, aperture
-   spill and floor spill. The picture, its bloom/bulge, the grain and the iris are never touched. */
+ Slider default 85 = A exactly: body.amb-set is absent, so none of these rules exist and every
+ layer keeps A's own values. Moving the slider sets --amb-k = value / 85 (0 → 1.18) and scales
+ only the light around the window: the top light sliver, the soft housing shapes in the dark
+ surround, the bottom warm room light, and on pull-back the key light, chamber glow, aperture
+ spill and floor spill. The picture, its bloom/bulge, the grain and the iris are never touched. */
 body.env-lens.amb-set .light-sliver{opacity:calc(.7 * var(--amb-k,1))}
 body.env-lens.amb-set .eye-housing{opacity:calc((.55 + var(--pull,0) * .2) * var(--amb-k,1))}
 body.env-lens.amb-set .room::after{opacity:calc((.15 + var(--pull,0) * .7) * var(--amb-k,1))}
@@ -348,9 +348,9 @@ body.env-lens.amb-set .aperture-glow{opacity:calc(var(--pull,0) * .8 * var(--amb
 body.env-lens.amb-set .spill-floor{filter:blur(22px) brightness(var(--amb-k,1))}
 
 /* credits (only when Credits is on): A placed them 6px from the frame edge, where the bulged
-   window shape clipped the first letters on desktop. Nudge them inside the bulge. */
+ window shape clipped the first letters on desktop. Nudge them inside the bulge. */
 body.env-lens .red-credits{left:calc(6px + 4%);bottom:calc(6px + 3%)}
 
 /* fix carried over from v4.1: `all:unset` on .hw keys reset the stud to the deck's
-   pointer-events:none, so the CTRL stud could not be pressed. */
+ pointer-events:none, so the CTRL stud could not be pressed. */
 .deck .cam-btn.hw.deck-stud{pointer-events:auto}

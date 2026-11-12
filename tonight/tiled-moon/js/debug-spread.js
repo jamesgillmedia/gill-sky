@@ -1,5 +1,5 @@
 /* Debug panel for the tiled moon-and-water copy. Hidden unless ?debug=1 (tiled-moon-v3).
-   ?debug=0 hides it for this tab; ?debug=1 turns it back on. Tune writes through __sheet.tune only. */
+ ?debug=0 hides it for this tab; ?debug=1 turns it back on. Tune writes through __sheet.tune only. */
 (function () {
   var q = /[?&]debug=([^&]*)/.exec(location.search);
   /* tiled-moon-v3: hidden by default; ?debug=1 turns the panel (and the ripple compare switch) on for this tab, ?debug=0 off */

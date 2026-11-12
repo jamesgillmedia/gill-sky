@@ -1,13 +1,13 @@
 /* m4 · the Film chapter player (Gill, Nov 11: "proper navigation between films", keep the player AND the stills; 7:45 PM: "the video
-   player is not the scope one we developed": the play view is now Scope, pro2's own player, js/scope.js).
-   A film opens full screen in the sky in a 2.39 frame with its short preview as the idle picture; '▶ play film' plays the real film
-   natively (Reel 2026 = m4's reel-v7 file; the films = their own files from the live site-v3, one timeline of parts; nothing
-   embedded from elsewhere) with Scope's timecode, cut rail (one star per cut, scrub), swipeable shot strip, sound and the 2.39 <-> full screen morph.
-   A film with no native file says 'stills only'. Under it, that film's stills (a tap opens one full screen).
-   ‹ › step to the neighbouring film, ⤢ full screen, 'full page ›' opens the r9-style page, ✕ = the grid.
-   History: every state is a hash on top of the sky's film board: #film/<slug> · #film/<slug>/play · #film/<slug>/still/<n>.
-   One Back = one step; ✕ goes back the whole way in one tap. The sky (js/sky.js) never sees these entries: this file loads before
-   it and owns their popstate / keys / pointers. Data: js/filmdata.js (tools/film_player.py). Same motion with Reduce Motion on. */
+ player is not the scope one we developed": the play view is now Scope, pro2's own player, js/scope.js).
+ A film opens full screen in the sky in a 2.39 frame with its short preview as the idle picture; '▶ play film' plays the real film
+ natively (Reel 2026 = m4's reel-v7 file; the films = their own files from the live site-v3, one timeline of parts; nothing
+ embedded from elsewhere) with Scope's timecode, cut rail (one star per cut, scrub), swipeable shot strip, sound and the 2.39 <-> full screen morph.
+ A film with no native file says 'stills only'. Under it, that film's stills (a tap opens one full screen).
+ ‹ › step to the neighbouring film, ⤢ full screen, 'full page ›' opens the r9-style page, ✕ = the grid.
+ History: every state is a hash on top of the sky's film board: #film/<slug> · #film/<slug>/play · #film/<slug>/still/<n>.
+ One Back = one step; ✕ goes back the whole way in one tap. The sky (js/sky.js) never sees these entries: this file loads before
+ it and owns their popstate / keys / pointers. Data: js/filmdata.js (tools/film_player.py). Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var F=window.GJ_FILMS||[],BY={};
@@ -119,7 +119,7 @@ function scFilm(f){var p=f.play;return{key:f.s,reel:!!p.reel,meta:[f.role,f.meta
 /* no native file: an honest 'stills only' in place of the play button */
 function playUI(f){var ok=!!(f&&f.play);$('.fp-play',root).hidden=!ok;$('.fp-so',root).hidden=ok;root.classList.toggle('noplay',!ok)}
 /* the idle picture: the film's own short preview (pv, 640 px) to its natural end, then again, as the Film chapter already does
-   (GJ_NOLOOP: a clip with no other clip in its set starts again). The 240 px sky clips (sc) are never blown up here; no pv = the still. */
+ (GJ_NOLOOP: a clip with no other clip in its set starts again). The 240 px sky clips (sc) are never blown up here; no pv = the still. */
 function idle(f){idleStop();frame.innerHTML='';frame.className='fp-frame';
   var clips=[f.pv].filter(Boolean),img=new Image();img.src=f.poster;img.alt='';img.className='fp-still';frame.appendChild(img);
   if(!clips.length)return;

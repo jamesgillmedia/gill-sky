@@ -1,10 +1,10 @@
 /* m4 · the Film chapter player (js/filmplayer.js + js/scope.js): pro2's deeper layers (site-v3-pro2 #film/w0/play, Nov 11 7:57 PM:
-   "the beautiful deeper-layer look"). Two layers over the film board:
-   the PIECE (#film/<slug>): one film forward, deep dark space, the 2.39 frame with its preview, a big green PLAY FILM, ‹ › the
-   neighbouring films, title / role / kind, then the stills;
-   the PLAYER (#film/<slug>/play): Scope, the 2.39 band in a tall dark stage, timecode + shot N of M + the shot's name, the star-tick
-   cut rail, the shot strip with the current shot outlined in green, then the same big button and the title.
-   Full screen (.sfull): the film's own aspect over the whole screen, the chrome floats and rests (.calm). */
+ "the beautiful deeper-layer look"). Two layers over the film board:
+ the PIECE (#film/<slug>): one film forward, deep dark space, the 2.39 frame with its preview, a big green PLAY FILM, ‹ › the
+ neighbouring films, title / role / kind, then the stills;
+ the PLAYER (#film/<slug>/play): Scope, the 2.39 band in a tall dark stage, timecode + shot N of M + the shot's name, the star-tick
+ cut rail, the shot strip with the current shot outlined in green, then the same big button and the title.
+ Full screen (.sfull): the film's own aspect over the whole screen, the chrome floats and rests (.calm). */
 #fp{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;color:var(--ink);font:300 14px/1.45 Poppins,Syl,system-ui,sans-serif;
  padding:calc(4px + var(--st)) calc(12px + var(--sr)) calc(8px + var(--sb)) calc(12px + var(--sl));touch-action:pan-x pan-y;overscroll-behavior:contain;overflow-y:auto;overflow-x:hidden}
 #fp[hidden]{display:none}

@@ -266,6 +266,7 @@ function choosePack(){
 function allLayout(){return DATA&&DATA.all&&DATA.all.layouts?DATA.all.layouts[packN]||null:null}
 
 function packFilms(){
+  if(!DATA)return;   /* a resize can land before the index has loaded; it packs again on load */
   var lay=(DATA.layouts&&DATA.layouts[packN])||null;
   if(!lay){console.warn('missing layout',packN);return}
   box={x:0,y:0,w:lay.w,h:lay.h};

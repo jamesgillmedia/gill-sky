@@ -1,8 +1,8 @@
 /* The board level: the chapter's work, laid out in its own shape.
-   Film floats offset 2.39 cards at different depths. Photo is loose stacks of
-   rotated prints. Sound is offset waveform bands that play in place. Objects are
-   cut-outs on an off-kilter grid. About is text. Every board but About flips to
-   a list. The cards grow out of the thumbnails they were in the constellation. */
+ Film floats offset 2.39 cards at different depths. Photo is loose stacks of
+ rotated prints. Sound is offset waveform bands that play in place. Objects are
+ cut-outs on an off-kilter grid. About is text. Every board but About flips to
+ a list. The cards grow out of the thumbnails they were in the constellation. */
 (function(){
 'use strict';
 var ctx=null,host=null,K=null,items=[],flip={},opened=0,io=null,bau=null,bk=null,raf=0;

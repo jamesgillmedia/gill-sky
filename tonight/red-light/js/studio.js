@@ -1,6 +1,6 @@
 /* Photo lab · clips toggle, patience hint, debug strip, free-scroll photo strip (gallery wall).
-   Same motion with Reduce Motion on, except: the patience hint shows and hides at once,
-   and clips show a poster with a play mark instead of auto-playing. */
+ Same motion with Reduce Motion on, except: the patience hint shows and hides at once,
+ and clips show a poster with a play mark instead of auto-playing. */
 (function(){
 'use strict';
 var $ = function(id){ return document.getElementById(id); };
@@ -10,8 +10,8 @@ LAB.reduced = function(){
 };
 
 /* ---------- photos in the current grid.
-   Slots 60–67 are already the eight clips (kind:"clip"); the switch only filters on kind, and never adds files.
-   Until Gill picks the default (off = 59 stills, or today's 67), CLIPS_DEFAULT keeps all 67 in view. */
+ Slots 60–67 are already the eight clips (kind:"clip"); the switch only filters on kind, and never adds files.
+ Until Gill picks the default (off = 59 stills, or today's 67), CLIPS_DEFAULT keeps all 67 in view. */
 var CLIPS_DEFAULT = true;
 var CLIP_KEY = 'gj-photo-lab-clips';
 var VIDEO_KEY = 'gj-photo-lab-video';
@@ -164,8 +164,8 @@ LAB.patience = {
   }
 };
 
-/* ---------- photo strip (gallery wall): free native scroll, the same as the original day view (main 39e02f4 .dsc):
-   vertical, natural momentum, no snap, no wheel handler. ---------- */
+/* ---------- photo strip (gallery wall): free native scroll, the same as the original day view ( .dsc):
+ vertical, natural momentum, no snap, no wheel handler. ---------- */
 LAB.mountStrip = function(el, opts){
   opts = opts || {};
   var idx = 0, zoom = 1, zx = 0, zy = 0, wcool = 0, edge = 0, touchD = 0;

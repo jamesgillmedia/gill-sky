@@ -1,8 +1,8 @@
 /* The Demo Reel as a WORK-level stop in the sky: every distinct shot of Reel 2026 and the 2025 Cinematography Demo Reel (GJ_REEL, in order)
-   drifts right to left along a filmstrip; the shot under the centre line fills the work. Hard cuts, the still at once, its muted clip when it can play; each clip plays to its end, then the next (no loop).
-   Tap = pause / play. Drag or swipe the picture or the strip = scrub, the frames flip as fast as you move. Fill or fit, remembered.
-   Ported from site-v3-pro2 js/reel.js and css/reel.css. It lives in the sky's own #layer (the camera and history are the sky's), not in a page
-   of its own, and its motion is the same whatever the Reduce Motion setting is. */
+ drifts right to left along a filmstrip; the shot under the centre line fills the work. Hard cuts, the still at once, its muted clip when it can play; each clip plays to its end, then the next (no loop).
+ Tap = pause / play. Drag or swipe the picture or the strip = scrub, the frames flip as fast as you move. Fill or fit, remembered.
+ Ported from site-v3-pro2 js/reel.js and css/reel.css. It lives in the sky's own #layer (the camera and history are the sky's), not in a page
+ of its own, and its motion is the same whatever the Reduce Motion setting is. */
 (function(){
 'use strict';
 var TW=40,COLS=16,KEY='gj-reel-fit',EASE='cubic-bezier(.2,.8,.2,1)';
@@ -54,7 +54,7 @@ function mount(el,hooks){
   }
   function onPlaying(e){var o=pool.filter(function(q){return q.v===e.target})[0];if(o&&o.i===mod(cur)&&!busy())o.v.classList.add('on')}
   /* item 9: no loop, no timer cut. The current shot plays to its 'ended', then the strip hard-cuts (the flip) to the next shot;
-     the strip still drifts, but in step with the clip's own clock. A shot whose clip can't play holds its still for its own length (S[n].d). */
+ the strip still drifts, but in step with the clip's own clock. A shot whose clip can't play holds its still for its own length (S[n].d). */
   function onEnded(e){var o=pool.filter(function(q){return q.v===e.target})[0];if(!o||dead||o.i!==mod(cur)||!playing||busy()||tween)return;nextShot()}
   function nextShot(){p=Math.floor(p)+1;place()}
   var hold=0;

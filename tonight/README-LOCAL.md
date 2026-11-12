@@ -18,4 +18,3 @@ If it says "permission denied", run once in Terminal: `chmod +x start.command`.
 Needs only Python 3 (built into macOS with the Command Line Tools; or python.org). The server supports HTTP Range requests,
 so videos can be scrubbed / seeked. Opening `index.html` straight from Finder (file://) will not work for most pieces — use the server.
 
-What is in here, and where each piece came from: `MANIFEST.md`.

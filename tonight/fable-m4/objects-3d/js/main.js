@@ -1,10 +1,10 @@
 /* objects-3d prototype: boot, HUD, input. Presentation lives in presenters.js / moves.js / transitions.js, state in nav.js.
-   Gestures (one gesture = exactly one step, see nav.js):
-     in  : pinch in, wheel / trackpad toward, Enter, ArrowDown, tap
-     up  : pinch out, wheel / trackpad away, ArrowUp, Backspace, Escape, the Back button
-     next / previous specimen : horizontal swipe, ArrowRight / ArrowLeft, the side buttons
-     Home: the Home button, the Home key
-   No auto-advance, no idle motion, no audio. Nothing reads prefers-reduced-motion: motion is the same with Reduce Motion on. */
+ Gestures (one gesture = exactly one step, see nav.js):
+ in : pinch in, wheel / trackpad toward, Enter, ArrowDown, tap
+ up : pinch out, wheel / trackpad away, ArrowUp, Backspace, Escape, the Back button
+ next / previous specimen : horizontal swipe, ArrowRight / ArrowLeft, the side buttons
+ Home: the Home button, the Home key
+ No auto-advance, no idle motion, no audio. Nothing reads prefers-reduced-motion: motion is the same with Reduce Motion on. */
 import { SPECIMENS, stopsOf } from './data.js';
 import { PRESENTERS } from './presenters.js';
 import { MOVE } from './moves.js';
@@ -70,7 +70,7 @@ addEventListener('keydown', e => {
 });
 
 /* wheel and trackpad: one burst = one step. After a step the lock stays until the next wheel event arrives after a 220 ms gap (measured when the page handles the event),
-   so a trackpad's inertia tail cannot add a second step. Scroll toward = deeper (the usual zoom direction). */
+ so a trackpad's inertia tail cannot add a second step. Scroll toward = deeper (the usual zoom direction). */
 let wAcc = 0, wLock = false, wLast = 0;
 cv.addEventListener('wheel', e => {
   e.preventDefault();
@@ -83,7 +83,7 @@ cv.addEventListener('wheel', e => {
 }, { passive: false });
 
 /* touch / mouse: two fingers = pinch (one step per pinch, fired when the spread has changed by ~20%, then locked until the fingers lift);
-   one finger: a short tap goes deeper, a horizontal swipe goes to the next or previous specimen */
+ one finger: a short tap goes deeper, a horizontal swipe goes to the next or previous specimen */
 const PT = new Map(); let G = null;
 const dist = () => { const a = [...PT.values()]; return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) };
 cv.addEventListener('pointerdown', e => {

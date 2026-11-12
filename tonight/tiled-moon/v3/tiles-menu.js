@@ -1,7 +1,7 @@
 /* tiled-moon-v3 · category tiles menu (calmer nav, optional; the page opens as before). Same look as the m4 tiles menu
-   (box:m4-tiles): a small grid button opens five category rows over the water (glyph, name, count), each with its
-   room doors. Tap a row = open that chapter on this page. "swipe" opens the full-screen tiles (v3/idle-tiles.js).
-   Close: ×, Escape, or tap the water around it. Nothing moves on its own. Reduce Motion changes nothing. */
+ (box:m4-tiles): a small grid button opens five category rows over the water (glyph, name, count), each with its
+ room doors. Tap a row = open that chapter on this page. "swipe" opens the full-screen tiles (v3/idle-tiles.js).
+ Close: ×, Escape, or tap the water around it. Nothing moves on its own. Reduce Motion changes nothing. */
 (function(){
 'use strict';
 var top=document.querySelector('header.top');if(!top)return;

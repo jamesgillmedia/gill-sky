@@ -1,6 +1,6 @@
 /* Photo lab · two rooms: Horizon and Darkroom. A simple switch, one shared contact sheet,
-   the same photographs, the same gestures: tap to enter, spread your fingers for the sheet, never a dead end.
-   Cards never auto-swipe. Same motion with Reduce Motion on. */
+ the same photographs, the same gestures: tap to enter, spread your fingers for the sheet, never a dead end.
+ Cards never auto-swipe. Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};

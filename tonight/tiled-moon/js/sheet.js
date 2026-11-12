@@ -1,9 +1,9 @@
 /* gill james v3.1 · the constellation sheet. The whole site is one sky: ᑕᐣᓯ at the centre, five chapter constellations.
-   One camera (canvas for the sky + a GPU-transformed DOM layer for near cards). Pinch drives the camera continuously,
-   anchored under the fingers; release snaps to a level. Zooming into a chapter makes its stars travel and grow into
-   thumbnails until they ARE the v3 grid (the column underneath is lined up, then the sheet hands over).
-   Levels:  #sky (L-1, whole site) · #sky/film (one constellation, names) · #all (every work as one massive grid).
-   One finger on the sheet pans; on the column it scrolls natively (the sheet is a separate full-screen layer). */
+ One camera (canvas for the sky + a GPU-transformed DOM layer for near cards). Pinch drives the camera continuously,
+ anchored under the fingers; release snaps to a level. Zooming into a chapter makes its stars travel and grow into
+ thumbnails until they ARE the v3 grid (the column underneath is lined up, then the sheet hands over).
+ Levels: #sky (L-1, whole site) · #sky/film (one constellation, names) · #all (every work as one massive grid).
+ One finger on the sheet pans; on the column it scrolls natively (the sheet is a separate full-screen layer). */
 (function(){
 'use strict';
 var D=document.documentElement,$=function(s,r){return(r||document).querySelector(s)},$$=function(s,r){return[].slice.call((r||document).querySelectorAll(s))};
@@ -151,7 +151,7 @@ function cards(){var s=cam.s,on=cardsOn(),near=s*104>=66;world.style.transform='
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function killPv(el){var v=$('video',el);if(v){v.pause();v.removeAttribute('src');v.load();v.remove()}el._done=0}
 /* tiles are mostly moving: a tiny clip (a different moment from the work view's preview) plays ONCE when its tile is near the
-   middle of the screen and holds its last frame. At most 6 at a time; photo/objects stay stills; nothing loops. */
+ middle of the screen and holds its last frame. At most 6 at a time; photo/objects stay stills; nothing loops. */
 function clips(){if(!anim()||(navigator.connection||{}).saveData)return;var list=[];CARDS.forEach(function(el,it){if(!it.pv||el.style.visibility==='hidden')return;var a=sp(it.gx+52,it.gy+C[it.k].imgh/2);
     if(a[0]>0&&a[0]<W&&a[1]>TOP&&a[1]<H)list.push([Math.hypot(a[0]-W/2,a[1]-H/2),el,it]);else killPv(el)});
   list.sort(function(a,b){return a[0]-b[0]});var live=0;list.forEach(function(x){var el=x[1],v=$('video',el);if(v&&!v.paused&&!v.ended)live++});

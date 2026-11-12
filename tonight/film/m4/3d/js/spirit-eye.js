@@ -1,12 +1,12 @@
 /* Spirit Eye of skwácháýs · full PDF path (local branch se-full-pdf, from save 2).
-   The whole Spirit Eye PDF (32 pages, Jul 11 2025) revealed one page per step, in the PDF's own order, around Gill's C+A hybrid:
-   C: the spindle whorl is the circular control; the sun mark "moves with the sun" (p.6) one step per page, once around the whorl.
-   A: the camera travels at the key sectors: into the eye (p.5), across the water (pp.10-14), down the column of light (pp.15-16),
-      the held light beat (no text, held until the next drag), into the garden (pp.17-23), back up to the surface, out to the sketches,
-      then the sky where the six chapters open.
-   Rules: one drag / swipe / wheel gesture / key = exactly one step (never more); text only once the camera is still; nothing
-   auto-advances; the camera is still on load; silent; Reduce Motion is the same (all motion is driven by the visitor).
-   Every word comes from js/se-pages.js (verbatim PDF text). UI copy is limited to the progress marker and the arrival / sky hints. */
+ The whole Spirit Eye PDF (32 pages, Jul 11 2025) revealed one page per step, in the PDF's own order, around Gill's C+A combination:
+ C: the spindle whorl is the circular control; the sun mark "moves with the sun" (p.6) one step per page, once around the whorl.
+ A: the camera travels at the key sectors: into the eye (p.5), across the water (pp.10-14), down the column of light (pp.15-16),
+ the held light beat (no text, held until the next drag), into the garden (pp.17-23), back up to the surface, out to the sketches,
+ then the sky where the six chapters open.
+ Rules: one drag / swipe / wheel gesture / key = exactly one step (never more); text only once the camera is still; nothing
+ auto-advances; the camera is still on load; silent; Reduce Motion is the same (all motion is driven by the visitor).
+ Every word comes from js/se-pages.js (verbatim PDF text). UI copy is limited to the progress marker and the arrival / sky hints. */
 import { PAGES } from './se-pages.js';
 const BASE = new URL('../', import.meta.url).href; /* 3d/ */
 const IMG = n => BASE + 'media/spirit-eye/s2/' + n + '.webp';

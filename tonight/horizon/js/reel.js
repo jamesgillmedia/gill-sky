@@ -1,13 +1,13 @@
 /* Horizon film room · reel v2 (Amy Currell's filmstrip reel, adapted; our own code).
-   One continuous strip of REEL_ITEMS (201 motion clips cut from the 35 films at their own shot lengths)
-   sits on a rail along the bottom under a piece of glass. The item under the centre line is the picture, hard cut.
-   Drift: the strip glides on its own (Gill, Nov 12 2026, 2:34 AM: approved exception for this strip only).
-     speed under the line = 1 / dwell, dwell = that clip's own length (min 1.5 s, so short clips loop once or twice).
-     Drift stops while you drag, while paused or stopped, and eases back in over ~1.2 s.
-   Transport: tap the picture = play / pause. The dial: centre play/pause, stop, ff (2x/4x/8x), prev/next, ring detents step clips.
-   Viewing modes (keys 1-4, remembered): full screen · true format · cropped (2.39:1) · contact sheet. Side-drop removed; no fifth mode.
-   Everything except the rail fades out ~2.8 s after the last interaction; any pointer, touch, key or focus brings it back.
-   Pinch-in (ctrl+wheel, Z, +) opens the stills-zoom index on this film; pinch-out there comes back to the reel. */
+ One continuous strip of REEL_ITEMS (201 motion clips cut from the 35 films at their own shot lengths)
+ sits on a rail along the bottom under a piece of glass. The item under the centre line is the picture, hard cut.
+ Drift: the strip glides on its own (Gill, Nov 12 2026, 2:34 AM: approved exception for this strip only).
+ speed under the line = 1 / dwell, dwell = that clip's own length (min 1.5 s, so short clips loop once or twice).
+ Drift stops while you drag, while paused or stopped, and eases back in over ~1.2 s.
+ Transport: tap the picture = play / pause. The dial: centre play/pause, stop, ff (2x/4x/8x), prev/next, ring detents step clips.
+ Viewing modes (keys 1-4, remembered): full screen · true format · cropped (2.39:1) · contact sheet. Side-drop removed; no fifth mode.
+ Everything except the rail fades out ~2.8 s after the last interaction; any pointer, touch, key or focus brings it back.
+ Pinch-in (ctrl+wheel, Z, +) opens the stills-zoom index on this film; pinch-out there comes back to the reel. */
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};

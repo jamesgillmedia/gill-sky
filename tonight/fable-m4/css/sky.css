@@ -432,3 +432,18 @@ html:not(.port) #dive{left:27%}
 .gdoor[hidden]{display:none}
 .gdoor span{font-size:14px;color:rgba(228,235,245,.7)}
 .gdoor:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+
+/* a11y (WCAG 2.2 target size): every rail stop is at least 24 px */
+#wrail li{min-height:24px;min-width:24px;box-sizing:border-box}
+#wrail li{position:relative}
+#wrail li.tap span{display:block;position:absolute;inset:0;opacity:0;overflow:hidden;font-size:1px}
+#wrail li.tap:focus-within{outline:2px solid #55DAA1;outline-offset:1px;border-radius:12px}
+/* K11: the place name in the rail is never cut; it wraps at words */
+#wrail li.here span{max-width:60vw;white-space:normal;text-overflow:clip;overflow:visible}
+
+/* tonight: on a phone the bar never cuts its last button (the nav takes a second row when it must) */
+@media (max-width:480px){#bar{flex-wrap:wrap;row-gap:0}#bar .nav{margin-left:auto}}
+#bar .nav a{min-width:28px}
+
+/* K13: the mini-map never sits on a tile: parked while a sheet (film, print, object, bio) is open */
+html:has(#layer.on) #mmap{display:none}

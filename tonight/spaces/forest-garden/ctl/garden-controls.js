@@ -1,6 +1,6 @@
 /* Forest Garden · the brass dial plate. Day–night used to be a separate pill (and a copy in the ?debug=1 strip);
-   it now sits with the garden's light: glow (sun, lens, light front, pool, motes), stars and haze.
-   Nothing moves by itself; the light still travels only with the drag. */
+ it now sits with the garden's light: glow (sun, lens, light front, pool, motes), stars and haze.
+ Nothing moves by itself; the light still travels only with the drag. */
 (function(){
   if(!window.AMBX)return;
   var A=window.__seAmb=window.__seAmb||{glow:1,star:1,haze:1};

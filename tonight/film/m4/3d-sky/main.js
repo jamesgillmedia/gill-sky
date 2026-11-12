@@ -1,16 +1,16 @@
 /* u4-opus-m4/3d-sky (the six chapters in a 3d sky). site-3d's sky (three.js r160 starfield shader, nebula glows, FogExp2)
-   with Option A's stability rules: still arrival, every chapter named, one gesture = one step, back + home + you-are-here.
-   Film is layered: L1 r3 pyramid · L2 one film forward · L3 viewer · L4 its stills, one layer at a time.
-   No service worker. No autoplay. Never links to YouTube. Data + media: ../data.json, ../media/. */
+ with Option A's stability rules: still arrival, every chapter named, one gesture = one step, back + home + you-are-here.
+ Film is layered: L1 r3 pyramid · L2 one film forward · L3 viewer · L4 its stills, one layer at a time.
+ No service worker. No autoplay. Never links off-site to a video host. Data + media: ../data.json, ../media/. */
 import * as THREE from './vendor/three.module.min.js';
 const html = document.documentElement, $ = s => document.querySelector(s);
-const PRIVATE = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881|IMG_1342/i;
+const PRIVATE = (function () { var H = {}; [1374678362,1596214955,1579437336,1623527748,1022601639,921788830,1859290985,2012832049,1545882098,4278889348,3125354911,3142132530].forEach(function (h) { H[h] = 1 }); function f(s) { var h = 0x811c9dc5; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0 } return h } return { test: function (s) { return (String(s).toUpperCase().match(/IMG_\d{4}|[0-9A-F]{8}/g) || []).some(function (t) { return H[f(t)] }) } } })();
 const ORDER = ['film', 'photo', 'objects', 'sound', 'about', 'space'];
 const NAME = { film: 'Film', photo: 'Photo', objects: 'Objects', sound: 'Sound', about: 'About', space: 'Spaces' };
 const SPF = { p: [[0.5,0.4889,0.99],[0.1111,0.5278,0.84],[0.8819,0.5111,0.9],[0.425,0.2111,0.76],[0.5889,0.2194,0.8],[0.2708,0.3,0.7],[0.7361,0.3222,0.7],[0.3028,0.7389,0.66],[0.5028,0.8167,0.72],[0.7,0.7222,0.64],[0.5,0.3667,0.5],[0.4083,0.4972,0.4],[0.5944,0.4778,0.4]], e: [[1,5],[5,3],[3,4],[4,6],[6,2],[1,7],[7,8],[9,2],[10,0]] }; /* tonight: the draft Spaces figure, _tn/spaces-glyph.svg */
 const PYR = ['weird-kid', 'sleepwalker', 'celebraciones', 'legends', 'stay-gold', 'just-the-beginning']; /* r3: 1 / 2 / 3 */
 /* the Film viewer's 'watch' opens m4's own full-screen film player (../js/filmplayer.js + ../js/scope.js, the 2D site's Scope
-   player): every film plays natively from its own files; a film with no native file says 'stills only'. */
+ player): every film plays natively from its own files; a film with no native file says 'stills only'. */
 const FILMS = {}; (window.GJ_FILMS || []).forEach(f => { if (f && f.s) FILMS[f.s] = f });
 const up = p => p ? '../' + p : '';
 let R; try { R = new THREE.WebGLRenderer({ canvas: $('#c'), antialias: false, powerPreference: 'high-performance' }) } catch (e) { html.className = 'nogl'; throw e }
@@ -152,7 +152,7 @@ function renderV() { const cd = S.list[S.idx], M = VW.querySelector('.m'), m = c
   else { if (m.big || m.thumb) add('img', { src: up(m.big || m.thumb), alt: tt(cd) });
     if (cd.kind === 'sound') { const t = (D.tracks || []).find(t => cd.title.endsWith(t.title) && cd.title !== t.artist);
       if (t) { const a = add('audio', { controls: true, preload: 'none', src: up(t.file) }); a.style.width = 'min(420px,90vw)' }
-      if (m.url && !/youtu|vimeo/i.test(m.url)) add('a', { className: 'act', href: m.url, target: '_blank', rel: 'noopener', textContent: (cd.meta || 'open') + ' ↗' }) }
+      if (m.url && /^https:\/\/(www\.)?gilljames\.com\//i.test(m.url)) add('a', { className: 'act', href: m.url, target: '_blank', rel: 'noopener', textContent: (cd.meta || 'open') + ' ↗' }) }
     if (cd.body) add('p', { textContent: cd.body }) }
   const cap = VW.querySelector('.cap'); cap.innerHTML = ''; const sp = (c, s) => { if (!s) return; const e = document.createElement('div'); e.className = c; e.textContent = s; cap.appendChild(e) };
   if (cd.chapter !== 'about') { sp('t', cd.title !== 'untitled' ? cd.title : ''); sp('r', cd.role); sp('mm', [cd.meta, (cd.credits || []).join(' · ')].filter(Boolean).join(' · ')) }

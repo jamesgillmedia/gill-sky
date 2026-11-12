@@ -1,6 +1,6 @@
 /* Photo lab · shared: the photo list, hearts, the layer stack (every layer is a place; spread (pinch-out) / back / Esc rise one layer; close fingers (pinch-in) leave the sheet),
-   one-gesture pinch, and the camera back (sheet → 9-up → 4-up → one → closer, dial + pinch + wheel, same levels).
-   Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
+ one-gesture pinch, and the camera back (sheet → 9-up → 4-up → one → closer, dial + pinch + wheel, same levels).
+ Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
 (function(){
 'use strict';
 var P=window.LAB_PHOTOS||[];
@@ -39,7 +39,7 @@ LAB.layer={
   rename:function(name){if(stack.length){stack[stack.length-1].name=name;LAB.layer.changed()}},
   dropTo:function(keep){
     /* Close every layer above the ones in keep, at once. history.go is followed by popstate;
-       the stack is already trimmed, so popstate will not close the room itself. */
+ the stack is already trimmed, so popstate will not close the room itself. */
     keep=keep||[];
     var n=0;
     while(stack.length){

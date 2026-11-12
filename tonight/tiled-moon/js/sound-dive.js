@@ -1,8 +1,8 @@
 /* gill james v3.7 · the Sound constellation's deepest level is the waveform player (sound/).
-   dive.js / sheet.js are untouched: every way into a work (tap the frame, pinch / + at the grid, a tap in the sky sheet, ‹ › in
-   the work view, a deep link #sound/wave) ends in a history push to #sound/wave. That push is caught here: the frame has already
-   started growing out of its tile (dive.js), the sky darkens into the player's own night, and the page goes to sound/.
-   #sound/wave is never written to history, so Back from the player lands on the Sound grid you came from. */
+ dive.js / sheet.js are untouched: every way into a work (tap the frame, pinch / + at the grid, a tap in the sky sheet, ‹ › in
+ the work view, a deep link #sound/wave) ends in a history push to #sound/wave. That push is caught here: the frame has already
+ started growing out of its tile (dive.js), the sky darkens into the player's own night, and the page goes to sound/.
+ #sound/wave is never written to history, so Back from the player lands on the Sound grid you came from. */
 (function(){
 'use strict';
 var RE=/^#sound\/wave(?:\/|$)/,PLAYER='sound/',RM=matchMedia('(prefers-reduced-motion: reduce)'),going=0,veil=null;

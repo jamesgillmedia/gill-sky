@@ -1,6 +1,6 @@
 /* Inside a work the breadcrumb stays on the work. Pinch and tap keep opening:
-   a field of shots, then one cluster as stills, then a clip with the credits as stars.
-   Further pinches only get closer. Pinch out is one step. */
+ a field of shots, then one cluster as stills, then a clip with the credits as stars.
+ Further pinches only get closer. Pinch out is one step. */
 (function(){
 'use strict';
 var PRO2='', JOIOB='', NOV='media/nov9/', ST='media/studio/', DR='media/drive/';
@@ -283,13 +283,13 @@ function joioShots(){
   ['cup-top','cup-glaze','cup-moss','cup-rim','joio','joio-board','joio-hold','joio-latte','joio-pour'].forEach(function(n){
     list.push(shot(PRO2+'img/objects/'+n+'-960.webp',{title:n.replace('joio','cup')}));
   });
-  ['IMG_0346.webp','F3283192-39BF-4BE9-B6F2-8A88933AB63A.webp','DBBB3452-330C-4F73-8F21-65C1A57FE3AE.webp','2528243E-E3AF-45FC-B054-21D812CCB892.webp','ECFA9F0C-95D8-4608-8AAB-7FEB9AF57660.webp','0456C57F-49C0-4B5D-B7DE-D67B647AC163.webp','1724F546-645A-4CD6-8DD3-DF55A3A19C36.webp','IMG_0183.webp','IMG_3497.webp','IMG_0166.webp','IMG_2351.webp','IMG_2401.webp','IMG_3479.webp','IMG_3506.webp','IMG_6670.webp','IMG_6690.webp','IMG_9543.webp','IMG_9545.webp','IMG_6964.webp','16B39E13-2667-41A0-BDF7-EC4D14309DE1.webp','IMG_0952.webp','IMG_9126.webp','IMG_9147.webp','IMG_1322.webp','IMG_1341.webp','IMG_5881.webp','IMG_1178.webp'].forEach(function(n){
+  ['IMG_0346.webp','F3283192-39BF-4BE9-B6F2-8A88933AB63A.webp','DBBB3452-330C-4F73-8F21-65C1A57FE3AE.webp','2528243E-E3AF-45FC-B054-21D812CCB892.webp','ECFA9F0C-95D8-4608-8AAB-7FEB9AF57660.webp','0456C57F-49C0-4B5D-B7DE-D67B647AC163.webp','1724F546-645A-4CD6-8DD3-DF55A3A19C36.webp','IMG_0183.webp','IMG_3497.webp','IMG_0166.webp','IMG_2351.webp','IMG_2401.webp','IMG_3479.webp','IMG_3506.webp','IMG_6690.webp','IMG_9543.webp','IMG_9545.webp','IMG_6964.webp','16B39E13-2667-41A0-BDF7-EC4D14309DE1.webp','IMG_0952.webp','IMG_9126.webp','IMG_9147.webp','IMG_1322.webp','IMG_5881.webp','IMG_1178.webp'].forEach(function(n){
     list.push(shot(NOV+n,{title:'joio'}));
   });
   return list;
 }
 /* fable-m4: Gill's 11 colourful/abstract Drive picks (box:drive-abstract picks.md, ranked; no titles exist, so none are
-   shown). Clips are silent and loop whole, like every clip on this base. Never 09-tour.MP4, screenshots or private files. */
+ shown). Clips are silent and loop whole, like every clip on this base. Never 09-tour.MP4, screenshots or private files. */
 function driveShots(){
   return [
     shot(DR+'img/a78c7ad1794b40bba6ef16ba9c10697a_frame.webp',{clip:DR+'clips/a78c7ad1794b40bba6ef16ba9c10697a.mp4',title:''}),

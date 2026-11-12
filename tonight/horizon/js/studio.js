@@ -1,5 +1,5 @@
 /* Photo lab · clips toggle, patience hint, debug strip, scroll-snap photo view.
-   Same motion with Reduce Motion on (horizon-reel-v2: no exceptions; clips play as video either way). */
+ Same motion with Reduce Motion on (horizon-reel-v2: no exceptions; clips play as video either way). */
 (function(){
 'use strict';
 var $ = function(id){ return document.getElementById(id); };
@@ -9,8 +9,8 @@ LAB.reduced = function(){
 };
 
 /* ---------- photos in the current grid.
-   Slots 60–67 are already the eight clips (kind:"clip"); the switch only filters on kind, and never adds files.
-   Until Gill picks the default (off = 59 stills, or today's 67), CLIPS_DEFAULT keeps all 67 in view. */
+ Slots 60–67 are already the eight clips (kind:"clip"); the switch only filters on kind, and never adds files.
+ Until Gill picks the default (off = 59 stills, or today's 67), CLIPS_DEFAULT keeps all 67 in view. */
 var CLIPS_DEFAULT = true;
 var CLIP_KEY = 'gj-photo-lab-clips';
 var VIDEO_KEY = 'gj-photo-lab-video';
@@ -159,7 +159,7 @@ LAB.stills = {
   list: stillsList,
   set: function(on, fromUser){
     /* reel v2 (Gill, Nov 12 2026, 2:35 AM): the films-standing-on-the-line view is gone; the film button
-       opens the full-screen reel instead. Horizon's line always shows the photographs. */
+ opens the full-screen reel instead. Horizon's line always shows the photographs. */
     if (on && fromUser && LAB.reel) { LAB.reel.open(); }
     on = false;
     var prev = stillsOn;

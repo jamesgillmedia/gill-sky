@@ -1,6 +1,6 @@
 /* u4-opus-m4/3d · first save: site-3d's sky (three.js r160, FogExp2, PerspectiveCamera, Points starfield, critically damped springs)
-   around the Spirit Eye anchor (js/spirit-eye.js, placeholder), with m4's six chapters as named star clusters orbiting it.
-   Tap a cluster: fly to it; tap again (or its link): open its m4 2D page. Photo opens the reel (js/reel.js). */
+ around the Spirit Eye anchor (js/spirit-eye.js, placeholder), with m4's six chapters as named star clusters orbiting it.
+ Tap a cluster: fly to it; tap again (or its link): open its m4 2D page. Photo opens the reel (js/reel.js). */
 import * as SE from './spirit-eye.js';
 const html = document.documentElement;
 const $ = s => document.querySelector(s);
@@ -60,7 +60,7 @@ function start() {
     g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
   const GT = glowTex();
-  /* previews (gilljames/previews sky.js glow()): a bright core with a soft three-stop halo; the chapter's entry star uses it */
+  /* previews (gilljames/previews sky.js glow): a bright core with a soft three-stop halo; the chapter's entry star uses it */
   function pvGlow() { const c = document.createElement('canvas'); c.width = c.height = 192; const x = c.getContext('2d'), g = x.createRadialGradient(96, 96, 0, 96, 96, 96);
     g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.18, 'rgba(255,255,255,.45)'); g.addColorStop(.5, 'rgba(255,255,255,.10)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 192, 192); return ctex(c) }
   function coreTex() { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -116,8 +116,8 @@ function start() {
   function face(w) { AZ.t = Math.round(AZ.x / 6.283) * 6.283; AZ.w = EL.w = w }
   const v3 = new THREE.Vector3(), v4 = new THREE.Vector3();
   /* the fly-in from the constellation into a chapter: the same aim (target, distance, facing, triggers) as before, but driven
-     by one eased 3.2 s approach instead of the springs: slow start, long glide, soft landing, the chapter's stars growing and a
-     field of near stars streaming past for depth. A tap (or any key) lands at once. Same motion with Reduce Motion on. */
+ by one eased 3.2 s approach instead of the springs: slow start, long glide, soft landing, the chapter's stars growing and a
+ field of near stars streaming past for depth. A tap (or any key) lands at once. Same motion with Reduce Motion on. */
   const FLY_MS = 3200; let FLY = null;
   const easeFly = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
   function aim(C, keep) { const from = !keep && (!FOC || MODE === 'home'); FOC = C; MODE = 'cluster'; cpos(C, v3); setT(v3, W_FLY); if (!keep) { DIST.t = clusterDist(); DIST.w = W_FLY; face(W_FLY); EL.t = .08 } showPanel(C); where(C.nm); log('cluster', C.k)

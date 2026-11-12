@@ -1,5 +1,5 @@
 /* ambience panel · the Sound section's vol/flash pattern (u4-opus-m4/player .cl rows), reused for room light, glow, haze, stars, sound.
-   Thin 1px track, mint fill to the thumb, 12px pale thumb, 44px touch height, uppercase quiet labels. Never touches the photographs. */
+ Thin 1px track, mint fill to the thumb, 12px pale thumb, 44px touch height, uppercase quiet labels. Never touches the photographs. */
 .ambx{position:fixed;z-index:60;top:var(--ambx-top,auto);right:var(--ambx-right,calc(12px + env(safe-area-inset-right,0px)));bottom:var(--ambx-bottom,calc(12px + env(safe-area-inset-bottom,0px)));left:var(--ambx-left,auto);
   font-family:var(--ambx-font,Poppins,system-ui,sans-serif);-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;touch-action:manipulation;pointer-events:none}
 .ambx>*{pointer-events:auto}
@@ -101,3 +101,6 @@
 .ambx.sk-wood{--ambx-fill:rgba(232,194,122,.85);--ambx-rest:rgba(240,225,200,.22)}
 .ambx.sk-glass{--ambx-fill:rgba(255,201,138,.85);--ambx-rest:rgba(220,232,240,.22)}
 .ambx .cl span:first-child{width:var(--ambx-lw,84px)}
+
+/* a11y (WCAG 2.2 target size) */
+.ambx-tg{min-width:24px;min-height:24px}

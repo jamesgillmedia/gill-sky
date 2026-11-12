@@ -1,7 +1,7 @@
 /* Pinch is the only depth gesture.
-   Boards nest. The film player gets richer. Sound is the sketch.
-   Every pinch-in is a fast eased push: the view scales past the edges,
-   near-lens bokeh brushes past, then the next level eases to a stop. */
+ Boards nest. The film player gets richer. Sound is the sketch.
+ Every pinch-in is a fast eased push: the view scales past the edges,
+ near-lens bokeh brushes past, then the next level eases to a stop. */
 (function(){
 'use strict';
 var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0, filmSrc='', snd=null;
@@ -765,7 +765,7 @@ function momentClip(src, work){
   var m=work&&work.media||{};
   if(work&&work.id==='film/weird-kid')return '';
   if(m.pv&&!/\/sc\//.test(m.pv))return m.pv;
-  if(m.clip&&!/\/sc\//.test(m.clip)&&!/youtube|youtu\.be/i.test(m.clip))return m.clip;
+  if(m.clip&&!/\/sc\//.test(m.clip)&&!/^(https?:)?\/\//i.test(m.clip))return m.clip;
   return '';
 }
 function masterSrc(src){

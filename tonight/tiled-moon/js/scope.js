@@ -1,14 +1,13 @@
 /* gill james v3.2 · Scope: the film player you land in at L3 / play (the reel and every film).
-   2.39 frame · timecode · a cut rail (one star per cut, joined by a hairline, the playhead a glowing star) you can scrub ·
-   a swipeable shot strip that follows playback · shot label (+ "full film ›" when the shot is from a film on the site) · ‹ › shots · sound.
-   The reel (v7) only loads on a tap / scrub / play: 720p on phones, 1080p wide.
-   v3.2.2 native films: every film with local files (data-j "native": media/films/NN/shots.json) plays here exactly like the reel: its own
-   cuts on the rail, its own shot strip, sound; a long film is several < 25 MB parts played back to back as one timeline (next part preloaded,
-   swapped on a cut). No Vimeo player anywhere; a film with no local file shows its still + a quiet note. YouTube films still play in the
-   frame (postMessage API). Format: the frame morphs between the 2.39 cut screen and full screen (the film's own aspect, whole viewport)
-   without touching the <video> (no reload, no restart, no flash): auto on rotation / resize (landscape phones and tall films go full while
-   playing), ⤢ toggles by hand (dive.js full() hands over to __scope.toggleFull for these).
-   dive.js owns levels / gestures / history: it calls __scope.fill() and __scope.stop(); one finger on the strip is native pan-x. */
+ 2.39 frame · timecode · a cut rail (one star per cut, joined by a hairline, the playhead a glowing star) you can scrub ·
+ a swipeable shot strip that follows playback · shot label (+ "full film ›" when the shot is from a film on the site) · ‹ › shots · sound.
+ The reel (v7) only loads on a tap / scrub / play: 720p on phones, 1080p wide.
+ v3.2.2 native films: every film with local files (data-j "native": media/films/NN/shots.json) plays here exactly like the reel: its own
+ cuts on the rail, its own shot strip, sound; a long film is several < 25 MB parts played back to back as one timeline (next part preloaded,
+ swapped on a cut). A film with no local file shows its still + a quiet note. Format: the frame morphs between the 2.39 cut screen and full screen (the film's own aspect, whole viewport)
+ without touching the <video> (no reload, no restart, no flash): auto on rotation / resize (landscape phones and tall films go full while
+ playing), ⤢ toggles by hand (dive.js full hands over to __scope.toggleFull for these).
+ dive.js owns levels / gestures / history: it calls __scope.fill and __scope.stop; one finger on the strip is native pan-x. */
 (function(){
 'use strict';
 var imm=document.querySelector('.imm');if(!imm)return;
@@ -30,7 +29,7 @@ var lab=$('.sc-lab',root),tcE=$('.tc',root),snE=$('.sn',root),l2=$('.l2',root),r
 var REEL=null,DATA={},DQ={};
 function natData(u,cb){if(DATA[u]){cb(DATA[u]);return}if(!DQ[u]){DQ[u]=[];fetch(u).then(function(r){if(!r.ok)throw r.status;return r.json()}).then(function(d){DATA[u]=d;if(/reel\//.test(u))REEL=d;var q=DQ[u];delete DQ[u];q.forEach(function(f){f(d)})}).catch(function(){var q=DQ[u]||[];delete DQ[u];q.forEach(function(f){f(null)})})}DQ[u].push(cb)} /* v3.4: a failed fetch answers null (retried on the next ▶) */
 /* M = the work on screen. kind: reel | film. nat: a full local film we drive (the reel + native films, parts = its files on one timeline);
-   'clip' (a film's local preview clip at L3, YouTube films) or 'ext' (YouTube while playing). soon: a film with no local file yet */
+ 'clip' (a film's local preview clip at L3). soon: a film with no local file yet */
 var M=null,O=null,userT=0,touching=false,rq=0;
 function pad(n){n=Math.floor(n);return(n<10?'0':'')+n}
 function tcode(s,fps){s=Math.max(0,s||0);if(!fps)return pad(s/3600)+':'+pad(s/60%60)+':'+pad(s%60);var f=Math.floor((s%1)*fps);return '00:'+pad(s/60)+':'+pad(s%60)+':'+pad(f)}
@@ -48,17 +47,13 @@ function fill(o){if(o.label&&!o.label._ld){var L0=o.label;o.label=function(t){L0
   else{M.extD=dm?(+dm[1]*60+ +dm[2]):0;build();filmStrip()}
   setPlay(o.play);label();return M.vid}
 /* v3.5 · a visible loading state: while a native film (or the reel) is asked to play and has no moving picture yet, the frame shows the
-   film's still (already cached from the grid / L3) under a small "loading film" note; it goes the moment the label says playing / paused */
+ film's still (already cached from the grid / L3) under a small "loading film" note; it goes the moment the label says playing / paused */
 function ld(on){if(!O||!O.frame)return;var f=O.frame;on=!!(on&&M&&M.nat&&M.play);
   if(on){var p=(M.it&&M.it.dataset.big)||M.poster||(M.reel?'media/reel/poster-960.jpg':'');if(p)try{f.style.setProperty('--ldp','url("'+new URL(p,location.href).href+'")')}catch(e){}}
   f.classList.toggle('ld',on)}
-/* v3.5 · YouTube can't be reached (blocked network, no answer): after 8 s with no word from the player, the frame shows the film's still and
-   a link to watch it on YouTube instead of "… loading" forever; ▶ tries again. If the player answers late, it simply takes over. */
 var YT_WAIT=8000;
-function ytFail(f){if(!M||M.ext!==f||M.ytOK||!O)return;var u='',b=M.it.dataset.big;
-  var d=document.createElement('div');d.className='yt-fb';d.innerHTML=(b?'<img src="'+esc(b)+'" alt="">':'')+'<a class="ib yt-go" href="'+esc(u)+'" target="_blank" rel="noopener">watch on YouTube <span aria-hidden="true">↗</span></a>';
-  O.frame.appendChild(d);M.fb=d;O.label('▶ try again')}
-function ytOK(){if(!M)return;var first=!M.ytOK;M.ytOK=1;clearTimeout(M.ytT);if(M.fb){M.fb.remove();M.fb=null;first=1}if(first&&O&&O.label)O.label('▶ in the player')} /* v3.5.1 QA O2: the label says '▶ in the player' only once YouTube has answered; until then it stays '… loading' */
+function ytFail(f){}
+function ytOK(){if(!M)return;var first=!M.ytOK;M.ytOK=1;clearTimeout(M.ytT);if(M.fb){M.fb.remove();M.fb=null;first=1}if(first&&O&&O.label)O.label('▶ in the player')} 
 function retry(){if(!M||!M.ext||!M.fb)return false;clearTimeout(M.ytT);M.ext.remove();M.ext=null;M.fb=null;O.frame.innerHTML='';O.label('… loading');setPlay(true);return true}
 function natLoad(m){if(m.loading)return;m.loading=1;natData(m.nat,function(d){m.loading=0;if(M!==m)return;
     if(!d){if(m.play){O.label('▶ play film');pwatch(true)}return} /* shots.json did not come: never sit on "… loading"; ▶ asks again */
@@ -66,9 +61,9 @@ function natLoad(m){if(m.loading)return;m.loading=1;natData(m.nat,function(d){m.
     m.parts=d.parts||[{src:(innerWidth>=900&&d.src1080)||d.src720,t:0,d:d.dur}];m.poster=d.poster;
     m.shots=d.shots.map(function(s){return{t:s.t,title:s.title,film:s.film,th:s.th}});fmt(true);build();setShot(0,true);paint(now());if(m.play)setPlay(true)})}
 /* v3.4 · the play label always ends on the truth: "❚❚ playing" once the picture moves, "▶ play film" when it is paused or could not start.
-   Covers a play() that never settles (WebKit with no data yet, a stalled network), a video that was already playing when the work view
-   re-rendered (no new 'playing' event), a load error, and a shots.json that never came. Checks at 2.5 s and 5 s; after 5 s with
-   no picture it stops trying (pause) and says "▶ play film" so a tap starts it again. Reduced motion and WebKit take the same path. */
+ Covers a play that never settles (WebKit with no data yet, a stalled network), a video that was already playing when the work view
+ re-rendered (no new 'playing' event), a load error, and a shots.json that never came. Checks at 2.5 s and 5 s; after 5 s with
+ no picture it stops trying (pause) and says "▶ play film" so a tap starts it again. Reduced motion and WebKit take the same path. */
 var PW=0;function pwatch(stop,keep){if(keep&&PW)return; /* 'waiting' keeps a deadline that is already running */
   clearTimeout(PW);PW=0;if(stop||!M||!M.nat||!M.play||!O)return;var m=M,n=0,v0=M.vid,t0=now();
   PW=setTimeout(function chk(){PW=0;if(M!==m||!m.play||!O)return;var v=m.vid&&m.live?m.vid:null;
@@ -77,15 +72,15 @@ var PW=0;function pwatch(stop,keep){if(keep&&PW)return; /* 'waiting' keeps a dea
     if(++n<2||(v&&!v.error&&v.networkState===2&&m.prog&&Date.now()-m.prog<3000&&n<8)){t0=now();v0=v;PW=setTimeout(chk,2500);return} /* v3.5: bytes still arriving on a slow line: keep "loading film" up to 20 s; a file that never answers still gives up at 5 s */
     if(v){try{v.pause()}catch(e){}}O.label('▶ play film')},2500)} /* a 'playing' event alone is not proof (WebKit can fire it, then stall) */
 /* v3.5 · stall guard: WebKit (GStreamer) can sit on the first frame with the data already buffered, still "playing" (no waiting/stalled
-   event). If the clock has not moved for ~1.2 s while at least 0.5 s is buffered ahead and the element says it has no future data (readyState < 3), a quiet pause()+play() restarts the decoder (max 3
-   times per start, counted again once it runs). The real cause, in the files, is fixed (correct btrt bitrate box); this is the safety net. */
+ event). If the clock has not moved for ~1.2 s while at least 0.5 s is buffered ahead and the element says it has no future data (readyState < 3), a quiet pause+play restarts the decoder (max 3
+ times per start, counted again once it runs). The real cause, in the files, is fixed (correct btrt bitrate box); this is the safety net. */
 var SG=0,WK=/AppleWebKit/.test(navigator.userAgent)&&!/Chrome|Chromium|CriOS|Android|Edg/.test(navigator.userAgent); /* WebKit engines only (Safari, iOS); Chromium never needs it */
 function sguard(){clearInterval(SG);SG=0;if(!WK||!M||!M.nat||!M.play)return;var m=M,last=-1,same=0,n=0;
   SG=setInterval(function(){if(M!==m||!m.play||!m.vid||!m.live){clearInterval(SG);SG=0;return}var v=m.vid;if(v.paused||v.seeking||m.swap||m.nudge){same=0;last=-1;return}
     var t=v.currentTime,ahead=0;for(var i=0;i<v.buffered.length;i++)if(v.buffered.start(i)<=t+.05&&v.buffered.end(i)>t)ahead=v.buffered.end(i)-t;
     if(t===last&&ahead>.5&&v.readyState<3){if(++same>=3&&n<3){same=0;n++;m.nudge=1;try{v.pause()}catch(e){}var q,dn=function(){m.nudge=0},no=function(){setTimeout(function(){var q2;try{q2=v.play()}catch(e){}if(q2&&q2.then)q2.then(dn,function(){m.nudge=0;if(M===m&&m.vid===v&&O){pwatch(true);O.label('▶ play film')}});else dn()},120)};try{q=v.play()}catch(e){}if(q&&q.then)q.then(dn,no);else dn()}}
     else{same=0;if(last>=0&&t>last+.3)n=0}last=t},400)}
-function okPlay(v){if(M&&M.vid===v&&O&&!v.paused&&v.readyState>=3)O.label('❚❚ playing')} /* play() resolved on a video that was already rolling */
+function okPlay(v){if(M&&M.vid===v&&O&&!v.paused&&v.readyState>=3)O.label('❚❚ playing')} /* play resolved on a video that was already rolling */
 /* the first thing in the frame: a muted preview loop (or the still); the scrubbable media replaces it on the first touch */
 function preview(){var f=O.frame,it=M.it,pv=M.reel?'media/reel/pv.mp4':it.dataset.pv;
   if(pv&&anim()&&!save){var v=vid({src:pv,muted:true,loop:true,poster:it.dataset.big});v.autoplay=true;f.appendChild(v);v.play().catch(function(){});
@@ -119,7 +114,7 @@ function toPart(i,t,play){if(!M||!M.parts||!M.parts[i])return;var old=M.vid&&M.l
   if(play){var q=v.play();if(q&&q.then)q.then(function(){done();okPlay(v)},function(){done();O.label('▶ play film')});else done();pwatch()}else{try{old&&old.pause()}catch(e){}if(v.readyState>=2)done();else v.addEventListener('loadeddata',done,{once:true})}
   paint(now())}
 /* the reel / a native film itself: only now does it load (the reel: 720p phones / 1080p wide if shots.json lists one). It goes on top of
-   the preview loop and the loop leaves once the film has a picture, so the frame never flashes black */
+ the preview loop and the loop leaves once the film has a picture, so the frame never flashes black */
 function natVid(){if(M.vid&&M.live)return M.vid;if(!M.parts)M.parts=[{src:M.reel?(REEL&&REEL.src720||'media/reel/reel-v7-720.mp4'):'',t:0,d:M.dur}];
   var pre=[].slice.call(O.frame.children),v=partVid(M.pi||0);v.poster=M.reel?'media/reel/poster-960.jpg':(M.poster||M.it.dataset.big);v._hk=1;
   O.frame.appendChild(v);M.vid=v;M.live=true;hook(v);O.setVid(v);v.muted=!!M.muted;snd();
@@ -128,16 +123,10 @@ function natVid(){if(M.vid&&M.live)return M.vid;if(!M.parts)M.parts=[{src:M.reel
 /* a film's clip at L3: the preview video if it is already in the frame, else the sky clip (media/sc) replaces the still */
 function clipVid(){if(M.vid&&M.live)return M.vid;if(!M.clip)return null;var v=vid({src:M.clip,muted:true,loop:true,poster:M.it.dataset.big});O.frame.innerHTML='';O.frame.appendChild(v);M.vid=v;M.live=true;hook(v);O.setVid(v);return v}
 function setPlay(p){if(!M)return;M.play=!!p;root.classList.toggle('ext',false);
-  if(M.nat){if(p){ld(!(M.vid&&M.live&&!M.vid.paused&&M.vid.readyState>=3));if(!M.parts&&!M.reel){label();natLoad(M);pwatch();return} /* shots.json still on its way: natLoad() calls back (or asks again after a failed fetch) */
+  if(M.nat){if(p){ld(!(M.vid&&M.live&&!M.vid.paused&&M.vid.readyState>=3));if(!M.parts&&!M.reel){label();natLoad(M);pwatch();return} /* shots.json still on its way: natLoad calls back (or asks again after a failed fetch) */
       var v=natVid();v.muted=!!M.muted;snd();var q=v.play();sguard();if(q&&q.then)q.then(function(){okPlay(v)},function(){if(M&&M.vid===v){pwatch(true);O.label('▶ play film')}});pwatch()}else{pwatch(true);ld(false);if(M.vid&&M.live&&!M.vid.paused)M.vid.pause()}fmt()}
-  else if(M.soon){M.play=false;if(p&&O)O.label('full film coming soon')} /* no local file yet (never the Vimeo player): still + quiet note */
-  else if(p){ /* the film in the same frame (YouTube) */
-    if(!M.ext){if(M.vid)try{M.vid.pause()}catch(e){}var u=M.j.embed||'';if(/youtube|vimeo/i.test(u)){if(O&&O.label)O.label('full film coming soon');return;}var f=document.createElement('iframe');
-      if(/youtube/.test(u))u+=(u.indexOf('?')<0?'?':'&')+'enablejsapi=1&playsinline=1&origin='+encodeURIComponent(location.origin);
-      f.src=u;f.allow='autoplay; fullscreen; picture-in-picture';f.title=M.j.title||'film';f.setAttribute('allowfullscreen','');
-      if(/youtube/.test(u)){M.ytOK=0;clearTimeout(M.ytT);M.ytT=setTimeout(function(){ytFail(f)},YT_WAIT);f.addEventListener('load',function(){yt(f,{event:'listening',id:'gj',channel:'widget'})})}
-      O.frame.innerHTML='';O.frame.classList.add('ext');O.frame.appendChild(f);M.ext=f;M.vid=null;M.live=false;M.extT=0;O.setVid(null)}
-    root.classList.add('ext');build();paint(M.extT)}
+  else if(M.soon){M.play=false;if(p&&O)O.label('full film coming soon')} /* no local file yet: still + quiet note */
+  else if(p){M.play=false;if(O&&O.label)O.label('full film coming soon')} /* no off-site players */
   else if(M.ext){clearTimeout(M.ytT);M.fb=null;M.ext.remove();M.ext=null;O.frame.classList.remove('ext');O.frame.innerHTML='';preview();O.setVid(M.vid);build();setShot(0,true);paint(0)}
   label()}
 function snd(){if(!M)return;var m=!!M.muted;M0.muted=m;bSnd.textContent=m?'♪̸':'♪';bSnd.setAttribute('aria-pressed',String(!m));bSnd.setAttribute('aria-label',m?'sound off: tap for sound':'sound on: tap to mute')}
@@ -174,7 +163,7 @@ function follow(now){var b=strip.children[M?M.cur:-1];if(!b||strip.scrollWidth<=
   var L=b.offsetLeft-strip.clientWidth/2+b.clientWidth/2;if(Math.abs(strip.scrollLeft-L)<2)return;
   strip.scrollTo({left:L,behavior:anim()&&!now?'smooth':'auto'})}
 function label(){if(!M)return;var S=shotsNow(),s=S[M.cur],h='',ff='';
-  if(M.ext){snE.textContent='· full film';h=esc(/youtube/.test(M.j.embed)?'on YouTube':'on Vimeo')}
+  if(M.ext){snE.textContent='· full film';h=''}
   else if(M.reel){snE.textContent=s?'· shot '+(M.cur+1)+' of '+S.length:'';h=s?esc(s.title):'reel · '+esc(M.meta);
     if(s&&s.film&&document.querySelector('.ch[data-k=film] .it[data-k="w'+s.film+'"]'))ff='#film/w'+s.film+'/play'}
   else if(M.nat){snE.textContent=s?'· shot '+(M.cur+1)+' of '+S.length:'';h=esc(M.meta||'film')+(M.play?'':' · <span class="pl">▶ play film</span>')}
@@ -218,10 +207,10 @@ rail.addEventListener('keydown',function(e){if(!M)return;var k=e.key;if(k==='Arr
   else if(k==='Home'){e.preventDefault();seek(0)}else if(k==='End'){e.preventDefault();seek(dur()-1)}});
 addEventListener('resize',function(){if(M){fmt();follow(true)}});
 /* ---------- format: 2.39 cut screen <-> full screen, one <video> that is never moved, reloaded or restarted ----------
-   The frame gets a pixel size (CSS transitions width/height, so it morphs); the video fills it with object-fit: cover (a wide film is cut
-   to 2.39, and in full screen the frame has the film's own aspect so nothing is cut) or contain for a tall film (pillarboxed in the cut).
-   auto: full while playing on a landscape phone (height <= 500) or when a tall film plays on a portrait screen; cut otherwise.
-   ⤢ (FMT.user) overrides auto until the screen turns. Full = .imm.fv (+ element full screen when the browser has it and it was a tap). */
+ The frame gets a pixel size (CSS transitions width/height, so it morphs); the video fills it with object-fit: cover (a wide film is cut
+ to 2.39, and in full screen the frame has the film's own aspect so nothing is cut) or contain for a tall film (pillarboxed in the cut).
+ auto: full while playing on a landscape phone (height <= 500) or when a tall film plays on a portrait screen; cut otherwise.
+ ⤢ (FMT.user) overrides auto until the screen turns. Full = .imm.fv (+ element full screen when the browser has it and it was a tap). */
 var M0={muted:false},FMT={user:null,full:false,o:null,fs:0,vfs:0,ct:0},stage=null;
 function fsEl(){return document.fullscreenElement||document.webkitFullscreenElement}
 function orient(){return innerWidth>innerHeight?'l':'p'}
@@ -254,15 +243,8 @@ if(window.ResizeObserver)new ResizeObserver(function(){if(M&&M.nat)fmt()}).obser
 function calm(){clearTimeout(FMT.ct);if(!FMT.full)return;FMT.ct=setTimeout(function(){if(FMT.full&&M&&M.vid&&!M.vid.paused&&PR==null)imm.classList.add('calm')},2600)}
 function wake(){imm.classList.remove('calm');clearTimeout(FMT.ct);if(FMT.full)calm()}
 ['pointerdown','pointermove','keydown'].forEach(function(n){imm.addEventListener(n,function(e){if(n==='pointermove'&&e.pointerType==='touch')return;if(FMT.full)wake()},{passive:true})});
-/* ---------- the film's own player: YouTube postMessage API (time in, seek out); Vimeo kept only for old links ---------- */
-function vm(f,method,value){try{f.contentWindow.postMessage(JSON.stringify(value===undefined?{method:method}:{method:method,value:value}),'https://player.vimeo.com')}catch(e){}}
 function yt(f,o){try{f.contentWindow.postMessage(JSON.stringify(o),'*')}catch(e){}}
-function extSeek(t){var f=M&&M.ext;if(!f)return;if(/vimeo/.test(f.src)){vm(f,'setCurrentTime',t);vm(f,'seekTo',t)}else yt(f,{event:'command',func:'seekTo',args:[t,true],id:'gj',channel:'widget'})}
-addEventListener('message',function(e){if(!M||!M.ext||e.source!==M.ext.contentWindow)return;var d=e.data;try{if(typeof d==='string')d=JSON.parse(d)}catch(x){return}if(!d)return;
-  if(/vimeo\.com$/.test(e.origin)){if(d.event==='ready'){vm(M.ext,'addEventListener','timeupdate');vm(M.ext,'addEventListener','playProgress');vm(M.ext,'getDuration')}
-    else if((d.event==='timeupdate'||d.event==='playProgress')&&d.data){if(d.data.duration)M.extD=d.data.duration;if(PR==null){M.extT=d.data.seconds||0;paint(M.extT)}}
-    else if(d.method==='getDuration'&&d.value){M.extD=d.value;paint(M.extT)}}
-  else if(/youtube(-nocookie)?\.com$/.test(e.origin)&&(ytOK(),d.info)){if(d.info.duration)M.extD=d.info.duration;if(d.info.currentTime!=null&&PR==null){M.extT=d.info.currentTime;paint(M.extT)}}});
+function extSeek(t){}
 function stop(){vexit();clearTimeout(PW);PW=0;clearInterval(SG);SG=0;if(M)clearTimeout(M.ytT);if(rq){cancelAnimationFrame(rq);rq=0}if(M){if(M.vid){try{M.vid.pause()}catch(e){}if(M.live&&M.nat){M.vid.removeAttribute('src');try{M.vid.load()}catch(e){}}}if(M.nx){M.nx.removeAttribute('src');M.nx.remove()}if(M.ext)M.ext.remove();
     if(O&&O.frame){O.frame.style.width=O.frame.style.height='';O.frame.classList.remove('fit','tall','sized','ld')}}
   if(FMT.full){FMT.full=false;imm.classList.remove('fv','sfull')}imm.classList.remove('calm');FMT.user=null;
@@ -279,6 +261,6 @@ function unfull(){vexit();FMT.user=null;if(fsEl()){FMT.fs=0;try{(document.exitFu
 window.__scope={fill:fill,stop:stop,toggle:toggle,retry:retry,unfull:unfull,seek:function(t){seek(t)},step:step,toggleFull:toggleFull,owns:function(){return !!(M&&M.nat)},playable:function(it){try{var j=JSON.parse(it.dataset.j||'{}');return !!(j.reel||j.native||j.embed)}catch(e){return true}},
   state:function(){if(!M)return null;var v=M.vid,f=O&&O.frame,r=f?f.getBoundingClientRect():null;return{key:M.key,reel:M.reel,nat:!!M.nat,soon:!!M.soon,play:M.play,ext:!!M.ext,shots:shotsNow().length,cur:M.cur,t:now(),dur:dur(),
     loaded:!!(v&&M.live),src:v&&M.live?v.currentSrc||v.src:'',paused:v?v.paused:true,part:M.pi,parts:M.parts?M.parts.length:0,full:FMT.full,user:FMT.user,
-    frame:r?[Math.round(r.width),Math.round(r.height)]:null,vids:f?f.querySelectorAll('video').length:0,iframes:document.querySelectorAll('iframe[src*=vimeo]').length,
+    frame:r?[Math.round(r.width),Math.round(r.height)]:null,vids:f?f.querySelectorAll('video').length:0,iframes:document.querySelectorAll('iframe').length,
     scrollLeft:strip.scrollLeft,follow:!(touching||Date.now()-userT<2200)}}};
 })();

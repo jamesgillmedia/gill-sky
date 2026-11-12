@@ -1,10 +1,13 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><title>tonight · ᑕᐣᓯ</title><meta name="theme-color" content="#04060a"><link rel="stylesheet" href="./_tn/pages.css"><link rel="stylesheet" href="./_tn/back.css"><script src="./_tn/back.js" data-tn-root="./" data-tn-label="enter the constellation" defer></script><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><title>tonight · ᑕᐣᓯ</title><meta name="theme-color" content="#04060a"><link rel="stylesheet" href="./_tn/pages.css"><link rel="stylesheet" href="./_tn/back.css"><script src="./_tn/back.js" data-tn-root="./" data-tn-mode="own" defer></script><style>
 html,body{height:100%;overflow:hidden}body{padding:0;background:#000}
 #op{position:fixed;inset:0;width:100%;height:100%;border:0;display:block;background:#000}
 .otg{position:fixed;z-index:2147483500;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));
  display:flex;gap:2px;padding:3px;border-radius:14px;background:rgba(6,8,12,.5);border:1px solid rgba(238,243,245,.16);opacity:.7}
 .otg button{all:unset;cursor:pointer;font:400 9.5px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;color:#cfd8dc;padding:6px 9px;border-radius:11px}
 .otg button[aria-pressed=true]{background:rgba(238,243,245,.14);color:#fff}
+/* item 14: on a phone the opener switch sits at the top, clear of the opener's own hint and ambience control */
+.otg button{padding:8px 10px}
+@media (max-width:700px),(max-height:500px){.otg{top:calc(10px + env(safe-area-inset-top,0px));bottom:auto}}
 </style></head><body>
 <iframe id="op" title="opener" allow="autoplay; fullscreen" src="openers/snow/"></iframe>
 <div class="otg" role="group" aria-label="opener"><button type="button" data-o="snow" aria-pressed="true">snow on water</button><button type="button" data-o="moon" aria-pressed="false">moon and water</button></div>

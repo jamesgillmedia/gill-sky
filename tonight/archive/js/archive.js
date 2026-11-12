@@ -1,6 +1,6 @@
 /* archive index — numbered-box field of every swept film frame.
-   Canvas field (pan / pinch / wheel zoom), tap a box to lift it out.
-   Nothing ever advances on its own. */
+ Canvas field (pan / pinch / wheel zoom), tap a box to lift it out.
+ Nothing ever advances on its own. */
 (() => {
 'use strict';
 const RM = matchMedia('(prefers-reduced-motion: reduce)');

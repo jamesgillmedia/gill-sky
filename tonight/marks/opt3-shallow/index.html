@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex">
-<title>opener · sketch · opt3 shallow depth</title>
+<title>mark · option 3 · shallow depth</title>
 <meta name="theme-color" content="#04070b">
 <style>
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/pro2/fonts/poppins-300.woff2) format("woff2")}
@@ -97,7 +97,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 <link rel="stylesheet" href="../../_tn/back.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
 <body>
 <div id="gjview">
-<div id="stage" aria-label="Opening sketch: pinch in to go through the sky">
+<div id="stage" aria-label="Opening: pinch in to go through the sky">
 <div class="water" id="water" aria-hidden="true"></div>
 <canvas id="cv" aria-hidden="true"></canvas>
 <p class="sr" id="srline"></p>
@@ -174,8 +174,8 @@ function makeView(){
   view.appendChild(invEl);
 }
 /* ---- shared beat, star flash and ambient flash ----
-   The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
-   Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
+ The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
+ Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
 function frac(x){return x-Math.floor(x)}
 function beatCount(){return beatSrc?beatSrc():beatAcc}
 function pulse(pos){
@@ -389,7 +389,7 @@ var CHAP=[{k:'film',tint:'150,220,255',n:38},{k:'photo',tint:'170,245,212',n:39}
 var POEM=['Artistry a starfield','I chase'],POEM1='Artistry a starfield I chase';
 var NODES=100,FIELD=120,NPT=NODES+FIELD,NFL=150;
 /* Opt 3: shallow mark depth band; camera travels through it into the menu constellation.
-   Depth units are world-z. Camera looks toward decreasing z. */
+ Depth units are world-z. Camera looks toward decreasing z. */
 var Z_MARK0=100,Z_MARK1=108,Z_MENU0=24,Z_MENU1=32,Z_CAM_START=156,Z_CAM_END=80,Z_NEAR=8,Z_FAR=260,FOCAL=140;
 var camZ=Z_CAM_START;
 function camFromP(p){var u=smoother(p);return clamp(lerp(Z_CAM_START,Z_CAM_END,u),Z_CAM_END,Z_CAM_START)}
@@ -701,9 +701,9 @@ function draw(t,dt,now){
     g.restore();g.globalAlpha=1;
   }
   /* stars: two depths. The mark sits in a shallow band (z 100–108). The menu
-     constellation sits ahead (z 24–32). The camera eases from 156 to 80, so
-     going through the mark lands you in the menu as one continuous passage.
-     Same motion with Reduce Motion on. No auto-advance. */
+ constellation sits ahead (z 24–32). The camera eases from 156 to 80, so
+ going through the mark lands you in the menu as one continuous passage.
+ Same motion with Reduce Motion on. No auto-advance. */
   var sc=SCAT;
   var lineB=0;
   var conB=sstep(.28,.88,P);

@@ -1,6 +1,6 @@
 /* Photo lab · shared look (m4 / R10 language: dark sky #04070b, mint for new, Julius Sans One + Poppins).
-   Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion,
-   except gate weave, which can be switched off. */
+ Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion,
+ except gate weave, which can be switched off. */
 @font-face{font-family:Poppins;font-weight:200;font-display:swap;src:url(../media/fonts/poppins-200.woff2) format("woff2")}
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/fonts/poppins-300.woff2) format("woff2")}
 @font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/fonts/julius-sans-one.woff2) format("woff2")}

@@ -1,11 +1,11 @@
-/* Spirit Eye of skwácháýs · se3 · rebuilt on v2 (gill-sky 22d3958, "save 2, Spirit Eye anchor"): same whorl on the water,
-   same eased glide between stops (cubic-bezier .22,1,.36,1), same layered drawings in depth, same column of light.
-   New in se3: every stop has one job. TELL = a calm reading page (words verbatim from the PDF, set by parts/reading).
-   SHOW = the eye in 3D. The light journey is staged as one spatial sequence the viewer drags through:
-     the sun's ray reaches the sky lens  ->  the light runs in, down the fibre optics  ->  under, through the column
-     ->  it lands, and the garden lights up  ->  the plants of the garden, page by page (PDF p.21-23).
-   The light front is a position of the drag (not a loop), so Reduce Motion changes nothing.
-   Callout words are the PDF's own labels (p.15 MATERIALS; p.21-23 plant labels). Nothing auto-advances. */
+/* Spirit Eye of skwácháýs · se3 · rebuilt on v2 ("save 2, Spirit Eye anchor"): same whorl on the water,
+ same eased glide between stops (cubic-bezier .22,1,.36,1), same layered drawings in depth, same column of light.
+ New in se3: every stop has one job. TELL = a calm reading page (words verbatim from the PDF, set by parts/reading).
+ SHOW = the eye in 3D. The light journey is staged as one spatial sequence the viewer drags through:
+ the sun's ray reaches the sky lens -> the light runs in, down the fibre optics -> under, through the column
+ -> it lands, and the garden lights up -> the plants of the garden, page by page (PDF p.21-23).
+ The light front is a position of the drag (not a loop), so Reduce Motion changes nothing.
+ Callout words are the PDF's own labels (p.15 MATERIALS; p.21-23 plant labels). Nothing auto-advances. */
 const BASE = new URL('../', import.meta.url).href;
 const IMG = n => BASE + 'media/' + n + '.webp';
 /* ---------- the stops ---------- */
@@ -142,8 +142,8 @@ export function mount(THREE, scene, ctx) {
   const hoops = []; for (let y = -3; y > FBOT; y -= 4) { const pts = []; for (let j = 0; j <= 64; j++) { const a = j / 64 * 6.283; pts.push(V(Math.cos(a) * 2.6, y, Math.sin(a) * 2.6)) } hoops.push(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xa8bcc4, transparent: true, opacity: .25, depthWrite: false }))) }
   hoops.forEach(h => g.add(h));
   /* fibre optics: three depth layers (far / mid / near) so the cluster has parallax.
-     Light still travels with the drag (uF), not a loop — Reduce Motion is unchanged.
-     Each strand has a glass-like texture, a travelling head with a short trail, and a tip bloom. */
+ Light still travels with the drag (uF), not a loop — Reduce Motion is unchanged.
+ Each strand has a glass-like texture, a travelling head with a short trail, and a tip bloom. */
   const FIBER_PHONE = (ctx.size ? ctx.size()[0] : innerWidth) < 700;
   const LAYERS = FIBER_PHONE ? [
     { n: 36, r0: .16, r1: .92, flare: .42, tw: .045, segs: 28, gain: .62 },

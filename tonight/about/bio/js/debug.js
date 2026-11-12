@@ -1,5 +1,5 @@
 /* Debug panel. Off unless the URL has ?debug=1 (remembered for this tab; ?debug=0 clears it).
-   The readout only reads __u1 / GJ_DEPTH. Tune writes through GJ_TUNE, and only while this panel is on. */
+ The readout only reads __u1 / GJ_DEPTH. Tune writes through GJ_TUNE, and only while this panel is on. */
 (function () {
   var on = false, q = /[?&]debug=([^&]*)/.exec(location.search);
   try {

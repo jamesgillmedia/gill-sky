@@ -1,7 +1,7 @@
 /* Pinch is the only depth gesture.
-   Boards nest. The film player gets richer. Sound is the sketch.
-   Every pinch-in is a fast eased push: the view scales past the edges,
-   near-lens bokeh brushes past, then the next level eases to a stop. */
+ Boards nest. The film player gets richer. Sound is the sketch.
+ Every pinch-in is a fast eased push: the view scales past the edges,
+ near-lens bokeh brushes past, then the next level eases to a stop. */
 (function(){
 'use strict';
 var board=null, filmLv=0, filmWork=null, filmAt=0, filmScale=1, still=null, soundOn=false, piece=null, joioReturn=null, linkFrames=0, fly=null, filmFocus=0, filmSrc='', snd=null,filmFrom=0,filmKeep=-1;
@@ -770,8 +770,8 @@ function dropFly(){
   fly=null;
 }
 /* Full-screen framing for shots whose people a plain cover crop cuts off. span = [left,right] of the subject as a fraction of the frame width.
-   The visible fraction v is the narrowest window that still holds the subject (never tighter than cover, never wider than the whole frame, where it
-   becomes a letterbox); the window is centred on the subject. Percent sizes follow the growing enterframe, so the grow animation is untouched. */
+ The visible fraction v is the narrowest window that still holds the subject (never tighter than cover, never wider than the whole frame, where it
+ becomes a letterbox); the window is centred on the subject. Percent sizes follow the growing enterframe, so the grow animation is untouched. */
 var FRAMING={
   'one-with-the-devil-clip.mp4':{ar:1280/544,shots:[[0,2.8,.08,.78,0,1],[2.8,4.4,.78,1,.4,.7],[4.4,7.26,.78,1,.5,1],[7.26,99,.04,.6]]},
   '01_wood_chop.jpg':{ar:1280/544,span:[0,.55]},
@@ -897,7 +897,7 @@ function followEnd(){
 }
 function holdOut(){return !!COOL&&performance.now()-COOL<1200}
 /* Swipe or arrow keys step through the stills of the same film while one fills the screen.
-   The next still fades in over this one as the finger moves (same drag rule as the reel: horizontal, past a small slop), and the ends stop. */
+ The next still fades in over this one as the finger moves (same drag rule as the reel: horizontal, past a small slop), and the ends stop. */
 var SW=null,SWB=0;
 function stillNodes(){return document.querySelectorAll('#layer .framewall img[data-hi="1"]')}
 function stillOpen(){return filmLv===3&&!!filmWork&&fly&&fly.el&&fly.el.classList.contains('in')&&!holdOut()}

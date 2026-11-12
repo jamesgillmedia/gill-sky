@@ -117,20 +117,6 @@
    "reason": "paddles and a scoop on a board"
   },
   {
-   "source_drive_filename": "7DA8E9D8-D617-4CAE-8B88-D0DFF6FABCC0.JPG",
-   "drive_id": "1GOqooQTPc4FFukcvrqBkHmIlIUI-_Joa",
-   "status": "keep",
-   "category": "photo",
-   "likely_object": "unknown",
-   "in_package": true,
-   "file": "photo/7DA8E9D8-D617-4CAE-8B88-D0DFF6FABCC0.jpg",
-   "poster": null,
-   "width": 1600,
-   "height": 2000,
-   "duration_s": null,
-   "reason": "portrait of the artist in a hat"
-  },
-  {
    "source_drive_filename": "8d9d5ca0821b400dbc63c72dbe535561.MOV",
    "drive_id": "1ahQ7dGhF9uDiXxXT9ZnjQZyP8ck7x3BC",
    "status": "keep",
@@ -311,20 +297,6 @@
    "height": 1054,
    "duration_s": null,
    "reason": "cinema camera still"
-  },
-  {
-   "source_drive_filename": "D5EFCB77-E3CA-4C4E-A446-E92C0B6FBD1C.JPG",
-   "drive_id": "1npi8DxkN6CJvU_TbZfMy_mrg8BOvaTIW",
-   "status": "keep",
-   "category": "objects",
-   "likely_object": "hand-carved piece",
-   "in_package": true,
-   "file": "objects/D5EFCB77-E3CA-4C4E-A446-E92C0B6FBD1C.jpg",
-   "poster": null,
-   "width": 1600,
-   "height": 2000,
-   "duration_s": null,
-   "reason": "carved wood grain close-up"
   },
   {
    "source_drive_filename": "DBBB3452-330C-4F73-8F21-65C1A57FE3AE.JPG",
@@ -577,20 +549,6 @@
    "height": 2000,
    "duration_s": null,
    "reason": "small unfired cup in hand"
-  },
-  {
-   "source_drive_filename": "IMG_1341.HEIC",
-   "drive_id": "1_BXMvErXaHhQE45-B0JIkIzGcNALq7Tg",
-   "status": "keep",
-   "category": "objects",
-   "likely_object": "joio.co cup from above",
-   "in_package": true,
-   "file": "objects/IMG_1341.jpg",
-   "poster": null,
-   "width": 1500,
-   "height": 2000,
-   "duration_s": null,
-   "reason": null
   },
   {
    "source_drive_filename": "IMG_1487.HEIC",
@@ -1109,20 +1067,6 @@
    "height": 2000,
    "duration_s": null,
    "reason": "carved form with moss and a painting"
-  },
-  {
-   "source_drive_filename": "IMG_6670.HEIC",
-   "drive_id": "1QeHzH2HFBz1SLtEpiwJwJ9kBnsH_fX1V",
-   "status": "keep",
-   "category": "objects",
-   "likely_object": "unknown",
-   "in_package": true,
-   "file": "objects/IMG_6670.jpg",
-   "poster": null,
-   "width": 1500,
-   "height": 2000,
-   "duration_s": null,
-   "reason": "paddles and spatulas on a dark board"
   },
   {
    "source_drive_filename": "IMG_6690.HEIC",

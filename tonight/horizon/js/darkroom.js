@@ -1,8 +1,8 @@
 /* Darkroom · tap the paper box (an enlarger flash, a sheet slides into the tray) → rock the tray until the print comes up →
-   drag it up or tap hang → it pegs onto the line. Tap a print on the line → stand in front of it (the wall).
-   Spread your fingers / ‹ / Esc rise one place: from the wall back to the room, from the room to the shared contact sheet.
-   Close your fingers on the wall for the camera back. Safelight is the room, not a grade on the photograph: prints keep their own colour.
-   Hung prints stay on this device. Same motion with Reduce Motion on. */
+ drag it up or tap hang → it pegs onto the line. Tap a print on the line → stand in front of it (the wall).
+ Spread your fingers / ‹ / Esc rise one place: from the wall back to the room, from the room to the shared contact sheet.
+ Close your fingers on the wall for the camera back. Safelight is the room, not a grade on the photograph: prints keep their own colour.
+ Hung prints stay on this device. Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var P=LAB.photos,$=function(id){return document.getElementById(id)};

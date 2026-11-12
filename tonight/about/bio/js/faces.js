@@ -1,5 +1,5 @@
 /* Face focal points for studio shots. Non-destructive: cover/draw and object-position
-   use a per-file x,y (0–1). Session overrides (debug faces section) never write to the site. */
+ use a per-file x,y (0–1). Session overrides (debug faces section) never write to the site. */
 (function () {
   function base(u) {
     u = String(u || '');

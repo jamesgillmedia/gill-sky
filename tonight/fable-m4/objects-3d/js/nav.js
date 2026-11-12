@@ -1,9 +1,9 @@
 /* Navigation state: which specimen, which stop. No three.js here.
-   Rules:
-   - one gesture = exactly one step; while a move or transition runs every other gesture is ignored (no queue, no skipping)
-   - deeper / up change the stop by exactly 1 and clamp at the ends (nothing happens at the first or last stop)
-   - next / prev specimen go one specimen, no wrap, and land on that specimen's first stop (whole piece)
-   - home goes to the first specimen's whole piece through the same transition as a specimen change */
+ Rules:
+ - one gesture = exactly one step; while a move or transition runs every other gesture is ignored (no queue, no skipping)
+ - deeper / up change the stop by exactly 1 and clamp at the ends (nothing happens at the first or last stop)
+ - next / prev specimen go one specimen, no wrap, and land on that specimen's first stop (whole piece)
+ - home goes to the first specimen's whole piece through the same transition as a specimen change */
 export function createNav(SPECS, stopsOf, view, transition, ui) {
   const stops = SPECS.map(stopsOf);
   let spec = 0, stop = 0, busy = false;

@@ -1,12 +1,12 @@
-/* Objects · version A · "the case". Specimen framing with Spirit Eye v2 space (gill-sky 22d3958, u4-opus-m4/3d/js/spirit-eye.js):
-   - each specimen stands in its own glass case on a lit plinth; the five cases stand one after another down a dark hall (real depth, not a board)
-   - the camera travels on curved paths between poses and settles with Spirit Eye's ease cubic-bezier(.22,1,.36,1)
-   - a drag at the case level scrubs the camera along the hall between cases; letting go glides to the nearest case (Spirit Eye's drag + snap)
-   - each deeper layer is a set of photo planes placed at different distances behind the case; deeper layers sit lower, so going deeper
-     is a descent down the case's column of light (Spirit Eye's descent); planes fade by their distance along the path, other layers never show through
-   - the Objects board stands at the mouth of the hall: you arrive through it and leave back out through it
-   One gesture = one step: pinch in / wheel toward / Enter / "in ›" = deeper; pinch out / wheel away / Back / Esc = up one layer; up from a case = the sheet.
-   Nothing auto-advances, no idle motion, silent. Nothing reads prefers-reduced-motion: the same motion either way. */
+/* Objects · version A · "the case". Specimen framing with Spirit Eye v2 space (u4-opus-m4/3d/js/spirit-eye.js):
+ - each specimen stands in its own glass case on a lit plinth; the five cases stand one after another down a dark hall (real depth, not a board)
+ - the camera travels on curved paths between poses and settles with Spirit Eye's ease cubic-bezier(.22,1,.36,1)
+ - a drag at the case level scrubs the camera along the hall between cases; letting go glides to the nearest case (Spirit Eye's drag + snap)
+ - each deeper layer is a set of photo planes placed at different distances behind the case; deeper layers sit lower, so going deeper
+ is a descent down the case's column of light (Spirit Eye's descent); planes fade by their distance along the path, other layers never show through
+ - the Objects board stands at the mouth of the hall: you arrive through it and leave back out through it
+ One gesture = one step: pinch in / wheel toward / Enter / "in ›" = deeper; pinch out / wheel away / Back / Esc = up one layer; up from a case = the sheet.
+ Nothing auto-advances, no idle motion, silent. Nothing reads prefers-reduced-motion: the same motion either way. */
 import { SPECIMENS, BOARD } from './shared/objects-data.js';
 import { entry, keep, boardUrl, cardUrl, cardsOf, boardCard } from './shared/board.js';
 
@@ -140,8 +140,8 @@ if (V) {
 window.__oa = { st, deeper, up, next: () => nextSpec(1), prev: () => nextSpec(-1), sheet: openSheet, page: openPage, go, view: () => V && V.debug() };
 
 /* =====================================================================================================
-   the view
-   ===================================================================================================== */
+ the view
+ ===================================================================================================== */
 async function makeView(THREE) {
   const { loadCup } = await import('./shared/cup.js');
   const Vc = (x, y, z) => new THREE.Vector3(x, y, z);

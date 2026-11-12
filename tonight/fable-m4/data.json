@@ -1344,34 +1344,6 @@
      "isNew": false
     },
     {
-     "id": "photo/photograph-05",
-     "chapter": "photo",
-     "k": "w5",
-     "slug": "photograph-05",
-     "title": "untitled",
-     "role": "",
-     "year": null,
-     "meta": "landscape",
-     "kind": "photo",
-     "media": {
-      "thumb": "media/pro2/img/photo/night-car-480.webp",
-      "big": "media/pro2/img/photo/night-car-960.webp",
-      "clip": "",
-      "pv": "",
-      "frames": [],
-      "url": "",
-      "embed": "",
-      "w": 960,
-      "h": 406
-     },
-     "credits": [],
-     "related": [],
-     "also": [],
-     "in_progress": false,
-     "body": "",
-     "isNew": false
-    },
-    {
      "id": "photo/photograph-06",
      "chapter": "photo",
      "k": "w6",

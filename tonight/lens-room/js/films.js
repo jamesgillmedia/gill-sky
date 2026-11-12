@@ -1,6 +1,5 @@
 /* Real titles, credits and posters from the existing film pages. Do not invent fields.
-   All 37 films use their approved preview stills. hasVideo only where a local clip
-   passed a sampled-frame child review. */
+ All 37 films use their approved preview stills. hasVideo only where a local clip exists. */
 window.FILMS=[
   {
     "slug": "reel-2026",

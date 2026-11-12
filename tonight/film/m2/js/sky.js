@@ -1,8 +1,8 @@
 /* u1 · one sky.
-   Far: five constellations around ᑕᐣᓯ, lit by the work, no counts.
-   Then a chapter board (stars bloom into titled thumbnails).
-   Then the piece: Scope, the filmstrip, the waveform, the feed.
-   Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
+ Far: five constellations around ᑕᐣᓯ, lit by the work, no counts.
+ Then a chapter board (stars bloom into titled thumbnails).
+ Then the piece: Scope, the filmstrip, the waveform, the feed.
+ Drag looks a little. Tap chooses. Tap again opens. Back is one level. */
 (function(){
 'use strict';
 var Q = new URLSearchParams(location.search);
@@ -21,8 +21,8 @@ var cv=$('cv'),g=cv.getContext('2d'),stage=$('stage');
 var W=0,H=0,DPR=1,PORT=false;
 var data=null,CH={},byId={},progress=[],cluster=[];
 /* site-3d's critically damped spring (sstep). Level changes use its glide
-   weight, so a board arrives and settles instead of easing like a button.
-   Drag never yaws the camera. */
+ weight, so a board arrives and settles instead of easing like a button.
+ Drag never yaws the camera. */
 function S(x,w){return{x:x,v:0,t:x,w:w}}
 function sstep(s,dt){var w=s.w,e=s.x-s.t,k=Math.exp(-w*dt),c=s.v+w*e;s.x=s.t+(e+c*dt)*k;s.v=(s.v-w*c*dt)*k}
 var W_GLIDE=4.8,W_LOOK=9.5;
@@ -998,7 +998,7 @@ function renderSheet(el,it){
     return '<a href="'+o.chapter+'/'+o.slug+'/">'+esc(name)+'</a>';
   }).filter(Boolean).join(' · ');
   rel=rel?'<p class="rel">'+rel+'</p>':'';
-  var watch=(m.url&&!/youtube\.com|youtu\.be/i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
+  var watch=(m.url&&/^https:\/\/(www\.)?gilljames\.com\//i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
   if(it.body&&!body)body='<div class="prose"><p>'+esc(it.body).split('\n\n').map(function(p){return p}).join('</p><p>')+'</p></div>';
   var role=it.role||'';
   if(role==='Director · Director of Photography'&&(it.credits||[]).length)role='';

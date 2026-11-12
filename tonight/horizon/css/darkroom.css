@@ -1,6 +1,6 @@
 /* Darkroom · a place: red safelight, a drying line above, the developer tray below.
-   Safelight is the room (lamp, walls, wash), not a grade on the photograph.
-   Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
+ Safelight is the room (lamp, walls, wash), not a grade on the photograph.
+ Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
 body.dr{background:var(--bg,#0d0303)}
 #room[hidden]{display:none}
 .room{position:fixed;inset:0;display:grid;grid-template-rows:calc(60px + var(--st)) minmax(0,46fr) minmax(0,54fr);background:radial-gradient(120% 75% at 80% 0%,#6a4a42,#2a1e1b 55%,#171110),#171110;transition:background 1.4s var(--ease);touch-action:none;overflow:hidden}

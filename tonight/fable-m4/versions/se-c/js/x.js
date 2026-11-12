@@ -1,6 +1,6 @@
 /* se-c · read to move: one column holds the PDF's words in order; reading down it moves the camera through the eye.
-   While a page is being read the camera holds; between pages it travels to the next stop (in, under, into the garden).
-   The scene's own short labels stay pinned in the scene. Scrolling is the only driver, so Reduce Motion changes nothing. */
+ While a page is being read the camera holds; between pages it travels to the next stop (in, under, into the garden).
+ The scene's own short labels stay pinned in the scene. Scrolling is the only driver, so Reduce Motion changes nothing. */
 (function () {
   /* the 16 stops, in the order of the journey: a number = reading page (template id), 's' = a scene stop, 'g' = the end sketches */
   const ORDER = [0, 1, 2, 3, 's', 5, 's', 's', 's', 's', 10, 's', 's', 's', 14, 'g'];

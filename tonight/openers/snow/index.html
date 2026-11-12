@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="robots" content="noindex">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27/%3E">
-<title>opener · sketch · snow-water</title>
+<title>opener · snow-water</title>
 <meta name="theme-color" content="#04070b">
 <style>
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(media/pro2/fonts/poppins-300.woff2) format("woff2")}
@@ -145,7 +145,7 @@ html:not(.debug) #dbg{display:none!important;pointer-events:none!important}
 <link rel="stylesheet" href="../../_tn/back.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
 <body>
 <div id="gjview">
-<div id="stage" aria-label="Opening sketch: pinch in, or tap, to go through the sky">
+<div id="stage" aria-label="Opening: pinch in, or tap, to go through the sky">
 <div class="water" id="water" aria-hidden="true">
 <span class="jmoon" id="jmoon" aria-hidden="true"></span>
 <span class="jmoon-streak" id="jmoonStreak" aria-hidden="true"></span>
@@ -250,8 +250,8 @@ function makeView(){
   view.appendChild(invEl);
 }
 /* ---- shared beat, star flash and ambient flash ----
-   The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
-   Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
+ The beat is a continuous count driven by the bpm slider (or by setBeat(fn) when a sketch has a real song).
+ Pulse timing never reads the sliders for intensity: sf and af only scale what the pulse draws. */
 function frac(x){return x-Math.floor(x)}
 function beatCount(){return beatSrc?beatSrc():beatAcc}
 function pulse(pos){
@@ -824,8 +824,8 @@ function draw(t,dt,now){
     p._lx=p.px;p._ly=p.py;p.px=x;p.py=y;
   }
   /* LAYER B — water reflection: starlight on the water surface only, below the implied waterline.
-     Uses the same water-layer transform (scale about the pinch origin + 14s float) so it stays on the water.
-     Never drawn in the foreground snow pass. */
+ Uses the same water-layer transform (scale about the pinch origin + 14s float) so it stays on the water.
+ Never drawn in the foreground snow pass. */
   var ox=cx,oy=cy;
   var wlLocal=H*.48;
   var wlY=oy+(wlLocal-oy)*wScale+waterFloatY;
@@ -938,8 +938,8 @@ function drawRefl(x,y,p,layerAl,useTint){
     g.shadowBlur=0;
   }
   /* LAYER A — foreground snow: in front of the photo, reflections and stars.
-     Near-lens: larger, softer, slightly defocused, a little parallax. Falling only.
-     As P increases, flakes fly into and settle at the mark/constellation star positions. */
+ Near-lens: larger, softer, slightly defocused, a little parallax. Falling only.
+ As P increases, flakes fly into and settle at the mark/constellation star positions. */
   if(SNOW){
     var spK=(1-.5*pinchAct)*(1+.35*touchAct),R=Math.min(W,H)*.34;
     g.fillStyle='#e9f1ff';

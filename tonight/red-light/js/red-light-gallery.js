@@ -1,6 +1,6 @@
 /* Darkroom · prints hung on the walls. A quiet pill cycles salon, row, grid and pairs; never auto-advances.
-   Tap a print to stand in front of it (free native scroll, like the original day view). Safelight is the room, not a grade on the photograph.
-   Same motion with Reduce Motion on. */
+ Tap a print to stand in front of it (free native scroll, like the original day view). Safelight is the room, not a grade on the photograph.
+ Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var P=LAB.photos,$=function(id){return document.getElementById(id)};
@@ -107,7 +107,7 @@ function showW(){
     });
   }
   wallStrip.fill();
-  /* fill() layouts at index 0 and would otherwise overwrite wi through onChange */
+  /* fill layouts at index 0 and would otherwise overwrite wi through onChange */
   jumpWall(target);
 }
 function openWall(i){

@@ -1,6 +1,6 @@
 /* Control panel mounted low on the wall (12 Nov, 2:50 AM). Clear hierarchy: room (largest) · light · view.
-   Physical feel: plates with screws, a rocker, lever switches with pilot lights, a stepped fader, keys.
-   Not a glow: no blur, no light bleeding off the bottom edge. Same motion with Reduce Motion on. */
+ Physical feel: plates with screws, a rocker, lever switches with pilot lights, a stepped fader, keys.
+ Not a glow: no blur, no light bleeding off the bottom edge. Same motion with Reduce Motion on. */
 .deck{position:fixed;left:0;right:0;bottom:0;z-index:27;display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:8px 10px;
   padding:9px calc(12px + var(--sr)) calc(9px + var(--sb)) calc(12px + var(--sl));
   background:linear-gradient(180deg,#1f1c1a,#141211);border-top:1px solid rgba(255,235,220,.10);

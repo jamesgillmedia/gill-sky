@@ -1,8 +1,8 @@
 /* Control panel (12 Nov, 2:50 AM): the room, light and view controls move off the top bar onto a panel
-   mounted low on the wall. Analog feel: a rocker for the room, a lever switch with a pilot light for the
-   safelight, a stepped fader (7 detents) for room light, lever for video, selector keys for by light /
-   grouping. Same buttons and handlers as before (the nodes are moved, not rebuilt). Never auto-advances.
-   Same motion with Reduce Motion on. */
+ mounted low on the wall. Analog feel: a rocker for the room, a lever switch with a pilot light for the
+ safelight, a stepped fader (7 detents) for room light, lever for video, selector keys for by light /
+ grouping. Same buttons and handlers as before (the nodes are moved, not rebuilt). Never auto-advances.
+ Same motion with Reduce Motion on. */
 (function(){
 'use strict';
 var top=document.querySelector('.lab-top');if(!top)return;
