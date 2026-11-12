@@ -8,7 +8,7 @@ const SH = {"film":{"s":[[0.105,0.21,0.92,0],[0.89,0.13,0.74,0],[0.93,0.81,0.96,
 const CLUSTER = ['objects/hand-carved-piece','objects/design-board','objects/wireframe-board','objects/materials-board','sound/to-go','sound/track/noproblem','sound/track/lostintime','sound/track/equals','sound/track/ii'];
 
 /* Private (never) and held (wait for Gill) files, plus vidA.mp4. Anything whose path matches is dropped before it reaches the page. */
-const BANNED = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881|vidA|63754481495__B826C373|E9A51F6C-43C3|IMG_0844|IMG_2013|IMG_3450|IMG_1136|IMG_1138|IMG_1144|IMG_1924|IMG_2943|IMG_5510|IMG_6315|IMG_6319|IMG_6320|IMG_5002|IMG_5004|IMG_9316|IMG_5910|IMG_9415|IMG_5950|IMG_6625|IMG_6626|IMG_6634|IMG_6635|IMG_9720|1C59016F-433B|63356826146__A528E774|youtu/i;
+const BANNED = /vidA|63754481495__B826C373|E9A51F6C-43C3|IMG_0844|IMG_2013|IMG_3450|IMG_1136|IMG_1138|IMG_1144|IMG_1924|IMG_2943|IMG_5510|IMG_6315|IMG_6319|IMG_6320|IMG_5002|IMG_5004|IMG_9316|IMG_5910|IMG_9415|IMG_5950|IMG_6625|IMG_6626|IMG_6634|IMG_6635|IMG_9720|1C59016F-433B|63356826146__A528E774|youtu/i;
 export function ok(p) { return !!p && !BANNED.test(p); }
 export function src(p) { if (!ok(p)) return ''; return /^(https?:|data:|blob:)/.test(p) ? p : M4 + p; }
 

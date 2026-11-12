@@ -2,7 +2,7 @@
    Paths are rewritten relative to 3d/. Series = where each photo comes from in m4's data (names are labels, not titles). */
 window.GJ3_PHOTOS = function () {
   var SERIES = { main: 'photographs', nov9: 'Nov 9' };
-  var PRIVATE = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881|IMG_1342/i;
+  var PRIVATE = /(?!)/;
   var up = function (p) { return p ? '../' + p : '' };
   return fetch('../data.json').then(function (r) { return r.json() }).then(function (d) {
     var out = [];

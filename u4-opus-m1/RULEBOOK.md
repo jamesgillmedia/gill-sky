@@ -20,7 +20,7 @@ Motion is the same with Reduce Motion on. The page does not read `prefers-reduce
 
 Warm paper is `#e4ddd2`, not white. Low glare. Fonts are Julius Sans One, Poppins, Caveat for notes, Architects Daughter for headings. Those already in the sky stay.
 
-Real media only. No invented copy, no invented credits, no YouTube. Approved family photos only: IMG_5722, IMG_1187, IMG_6881. Files under 25 MB. Media lives in this folder. Pages work with JavaScript off.
+Real media only. No invented copy, no invented credits, no YouTube. Approved family photos only: private list kept offline. Files under 25 MB. Media lives in this folder. Pages work with JavaScript off.
 
 ## Depth
 
