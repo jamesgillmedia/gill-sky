@@ -13,7 +13,6 @@ LONG = 1200
 
 # out name -> (source path relative to repo root, crop box as fractions (x0,y0,x1,y1) or None)
 JOBS = {
- 'joio-cup/whole-IMG_5841': (R+'joio-cup/06-three-quarter-IMG_5841.jpg', None),
  'joio-cup/surface-IMG_5841': ('u4-opus-m4/media/nov9/objects/IMG_5841.jpg', (.22,.19,.76,.52)),
  'joio-cup/surface-e2aa7ba0': ('u4-opus-m4/media/pro2/img/photo/e2aa7ba0-960.webp', (0,.10,1,.80)),
  'joio-cup/surface-IMG_5892': ('u4-opus-m4/media/nov9/objects/IMG_5892.jpg', (.27,.17,.78,.56)),
@@ -37,7 +36,6 @@ JOBS = {
  'joio-cup/use-IMG_6166': (R+'joio-cup/07-three-quarter-IMG_6166.jpg', None),
  'joio-cup/use-IMG_9126': (R+'joio-cup/01-side-IMG_9126.jpg', None),
  'joio-cup/use-16B39E13': (R+'joio-cup/02-side-16B39E13-2667-41A0-BDF7-EC4D14309DE1.jpg', None),
- 'scoop/whole-SCOOP-03': (R+'scoop/02-in-hand-SCOOP-03.jpg', None),
  'scoop/surface-bowl-SCOOP-03': (R+'scoop/02-in-hand-SCOOP-03.jpg', (.30,.05,.72,.44)),
  'scoop/surface-side-SCOOP-04': (R+'scoop/03-side-SCOOP-04.jpg', (.20,.30,.74,.70)),
  'scoop/surface-handle-SCOOP-03': (R+'scoop/02-in-hand-SCOOP-03.jpg', (.36,.50,.80,.86)),

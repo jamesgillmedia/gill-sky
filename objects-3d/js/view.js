@@ -1,5 +1,7 @@
 /* The three.js side: one scene, one dark ground, one camera that only ever looks straight down -z.
    Each specimen is a group at its own x; its stops are laid along -z. The camera sits F in front of the stop it is on. */
+import { radial } from './presenters.js';
+
 export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getMargins) {
   const R = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'high-performance' });
   R.setClearColor(0x000000, 0);
@@ -7,6 +9,24 @@ export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getM
   const FOV = 38, F = 10, SPEC_X = 300;
   const cam = new THREE.PerspectiveCamera(FOV, 1, .1, 200); scene.add(cam);
   const tanH = Math.tan(FOV * Math.PI / 360);
+  /* a faint static haze behind everything, in Spirit Eye's colours: three very soft washes and a thin scatter of stars.
+     It follows the camera sideways and almost fully in depth, so the dolly moves it only a little. Nothing in it moves by itself. */
+  const haze = new THREE.Group(); haze.renderOrder = -10; scene.add(haze);
+  [[-70, 34, -150, 0x27407a, 250, .17], [80, -36, -135, 0x4a2a6a, 270, .15], [6, -62, -175, 0x1d4a56, 230, .13]].forEach(n => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ map: radial(THREE), color: n[3], transparent: true, opacity: n[5], depthWrite: false }));
+    m.position.set(n[0], n[1], n[2]); m.scale.set(n[4], n[4], 1); m.renderOrder = -10; haze.add(m) });
+  (function stars() {
+    let a = 20241111; const rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 };
+    const dot = (function () { const c = document.createElement('canvas'); c.width = c.height = 64; const x = c.getContext('2d'), g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.3, 'rgba(255,255,255,.5)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c) })();
+    [[560, .34, .7], [34, .7, .9]].forEach(L => {
+      const n = L[0], pos = new Float32Array(n * 3), col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) { const d = 70 + rnd() * 100, hh = d * tanH; pos[i * 3] = (rnd() - .5) * 2 * hh * 1.8; pos[i * 3 + 1] = (rnd() - .5) * 2 * hh; pos[i * 3 + 2] = -d;
+        const b = .35 + rnd() * .65, t = rnd(); col[i * 3] = b * (.8 + .2 * t); col[i * 3 + 1] = b * (.86 + .1 * t); col[i * 3 + 2] = b * (1 - .15 * t * t) }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      const p = new THREE.Points(g, new THREE.PointsMaterial({ size: L[1], map: dot, vertexColors: true, transparent: true, opacity: L[2], depthWrite: false, sizeAttenuation: true }));
+      p.renderOrder = -9; haze.add(p) });
+  })();
   let dirty = true, W = 1, H = 1, kpx = 1, box = { w: 1, h: 1 }, shiftY = 0;
   const S = SPECS.map((spec, si) => {
     const g = new THREE.Group(); g.position.x = si * SPEC_X; scene.add(g);
@@ -41,6 +61,7 @@ export function createView(THREE, canvas, SPECS, stopsOf, PRESENTERS, MOVE, getM
     const sp = S[cur], N = sp.frames.length, s = sp.s, k0 = Math.max(0, Math.min(N - 1, Math.floor(s))), k1 = Math.min(N - 1, k0 + 1), t = s - k0;
     const a = sp.frames[k0], b = sp.frames[k1];
     cam.position.set(cur * SPEC_X + a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t - shiftY, F - s * MOVE.SP);
+    haze.position.set(cam.position.x, cam.position.y, cam.position.z * .92);
     S.forEach((q, si) => {
       q.g.visible = q.alpha > .002;
       if (!q.g.visible) return;

@@ -3,7 +3,8 @@
    - captions: that manifest's per-photo descriptions, u4-opus-m4/media/nov9/manifest.json ("reason" / "likely_object"),
      u4-opus-m4/data.json titles (hand-carved piece, carved spoon), and OBJECT-COVERAGE.md (e2aa7ba0 "close on the speckled wall")
    - a frame with no repo caption shows only its file stem.
-   Files live in media/ (built by tools/build_media.py, EXIF/GPS stripped).
+   Files live in media/ (built by tools/build_media.py and tools/cutout.py, EXIF/GPS stripped). Whole-piece frames are alpha cutouts (`cut`);
+   sit:false means the piece floats (soft shadow below, not touching).
    Order inside making/use: the camera's own file counter (IMG_xxxx) where there is one; files without a counter come after.
    No capture timestamps survive in the repo (EXIF is already stripped upstream), so the counter is the only real order available.
 
@@ -23,7 +24,7 @@ export const SPECIMENS = [
   {
     id: 'joio-cup', title: 'joio cup',
     layers: {
-      whole: [f('joio-cup/whole-IMG_5841', 'IMG_5841', 'Empty joio cup held up at a three-quarter angle.')],
+      whole: [f('joio-cup/cut-IMG_5841', 'IMG_5841', 'Empty joio cup held up at a three-quarter angle.', { cut: true })],
       surface: [
         f('joio-cup/surface-IMG_5841', 'IMG_5841', '', { crop: true, focus: [.5, .33] }),
         f('joio-cup/surface-e2aa7ba0', 'e2aa7ba0', 'Close on the speckled wall.', { crop: true }),
@@ -59,7 +60,7 @@ export const SPECIMENS = [
   {
     id: 'scoop', title: 'ice cream scoop',
     layers: {
-      whole: [f('scoop/whole-SCOOP-03', 'SCOOP-03', 'Frontal view of the full bowl and the join to the charred, ridged handle.')],
+      whole: [f('scoop/cut-SCOOP-03', 'SCOOP-03', 'Frontal view of the full bowl and the join to the charred, ridged handle.', { cut: true, sit: false })],
       surface: [
         f('scoop/surface-bowl-SCOOP-03', 'SCOOP-03', '', { crop: true, focus: [.5, .25] }),
         f('scoop/surface-side-SCOOP-04', 'SCOOP-04', '', { crop: true }),
