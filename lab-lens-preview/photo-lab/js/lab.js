@@ -1,4 +1,4 @@
-/* Photo lab · shared: the photo list, hearts, the layer stack (every layer is a place; spread (pinch-out) / back / Esc rise one layer; close fingers (pinch-in) leave the sheet),
+/* Photo lab · shared: the photo list, hearts, the layer stack (every layer is a place; pinch-out / back / Esc rise one layer),
    one-gesture pinch, and the camera back (sheet → 9-up → 4-up → one → closer, dial + pinch + wheel, same levels).
    Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
 (function(){
@@ -62,12 +62,11 @@ LAB.pinch=function(el,o){
   function dist(t){var a=t[0],b=t[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}
   el.addEventListener('touchstart',function(e){if(e.touches.length===2){d0=dist(e.touches);done=false;cx=(e.touches[0].clientX+e.touches[1].clientX)/2;cy=(e.touches[0].clientY+e.touches[1].clientY)/2;if(e.cancelable)e.preventDefault();o.start&&o.start()}},{passive:false});
   el.addEventListener('touchmove',function(e){if(e.touches.length!==2||!d0)return;if(e.cancelable)e.preventDefault();if(done)return;var r=dist(e.touches)/d0;
-    /* Spread (r>1) is pinch-out: open the contact sheet. Closing fingers (r<1) is pinch-in: leave the sheet or go deeper. */
-    if(r>1.28){done=true;fire(o.out,cx,cy)}else if(r<0.78){done=true;fire(o.in,cx,cy)}e.stopPropagation()},{passive:false});
+    if(r>1.28){done=true;fire(o.in,cx,cy)}else if(r<0.78){done=true;fire(o.out,cx,cy)}e.stopPropagation()},{passive:false});
   el.addEventListener('touchend',function(e){if(e.touches.length<2)d0=0},{passive:true});
   var acc=0,cool=0;
   el.addEventListener('wheel',function(e){if(!e.ctrlKey)return;e.preventDefault();var now=Date.now();if(now<cool)return;acc+=e.deltaY;
-    if(acc<-40){acc=0;cool=now+700;fire(o.out,e.clientX,e.clientY)}else if(acc>40){acc=0;cool=now+700;fire(o.in,e.clientX,e.clientY)}},{passive:false});
+    if(acc<-40){acc=0;cool=now+700;fire(o.in,e.clientX,e.clientY)}else if(acc>40){acc=0;cool=now+700;fire(o.out,e.clientX,e.clientY)}},{passive:false});
 };
 /* Safari: two fingers belong to the rooms, not page zoom */
 ['gesturestart','gesturechange','gestureend'].forEach(function(n){document.addEventListener(n,function(e){e.preventDefault()},{passive:false})});

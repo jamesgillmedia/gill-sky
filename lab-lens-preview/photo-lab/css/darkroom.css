@@ -91,7 +91,7 @@ body.dr:not(.safe) .wall{background:#2b2826}
 body.safe.dr .box.ready{box-shadow:0 12px 24px rgba(0,0,0,.6),0 0 0 1px rgba(227,139,124,.5),0 0 16px rgba(227,139,124,.18)}
 body.safe.dr .hang{border-color:rgba(227,139,124,.7);color:var(--mint)}
 
-/* wall as a snap strip, with the bar sitting on top of the debug-safe bottom */
+/* wall as a free-scroll strip, with the bar sitting on top of the debug-safe bottom */
 .wall{padding:calc(66px + var(--st)) 0 calc(72px + var(--sb));display:block}
 .wall .strip{position:absolute;left:0;right:0;top:0;bottom:calc(64px + var(--sb))}
 .wall .wbar{position:absolute;left:0;right:0;bottom:calc(12px + var(--sb));display:flex;justify-content:center;gap:10px;z-index:3}

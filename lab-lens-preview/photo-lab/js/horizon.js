@@ -2,13 +2,14 @@
    Every photograph on one line of light, darkest to brightest (or round the colour wheel), measured from the pictures.
    The contact sheet is the same set, numbered, in that same order. Pinch or tap to go between the sheet and the horizon;
    the selected frame is the one standing on the line. Grease-pencil picks are the hearts, kept on this device.
-   Tap the standing print for its page (the m4 film-page shape). Tap the standing print to enter its day (no pinch required). Spread your fingers / ‹ / Esc rise one place; on the horizon, spreading opens the contact sheet. Close your fingers on the sheet to go back to the line.
-   Same motion with Reduce Motion on. */
+   Tap the standing print for its page (the m4 film-page shape). Pinch in deeper, pinch out / ‹ / Esc rise one place.
+   Same motion with Reduce Motion on.
+   Scroll and gestures are the main 39e02f4 originals (Nov 11, 11:48 PM): free day-view scroll, original pinch, no second-finger guard. */
 (function(){
 'use strict';
 var P=LAB.photos,$=function(id){return document.getElementById(id)};
 function photos(){return (LAB.clips&&LAB.clips.list)?LAB.clips.list():P.slice();}
-var sky=$('sky'),framesE=$('frames'),rt=$('rt'),nowE=$('now'),day=$('day'),where=$('where'),sortB=$('sort');
+var sky=$('sky'),framesE=$('frames'),rt=$('rt'),nowE=$('now'),day=$('day'),dsc=$('dsc'),cred=$('cred'),stack=$('stack'),where=$('where'),sortB=$('sort');
 var sheet=$('sheet'),sc=$('sc'),grid=$('grid'),sheetB=$('sheetBtn'),pencilB=$('pencil');
 var mode='light',L=[],pos=0,target=0,raf=0,els=[],rels=[],reflE=$('refl'),W,H,HY,FH,cols=6,marking=false;
 
@@ -92,7 +93,7 @@ function showSheet(on){
   if(on){setMarking(false);sheet.hidden=false;void sheet.offsetWidth;sheet.classList.add('open');where.textContent='contact sheet';
     markSheetCur();requestAnimationFrame(function(){scrollCur()});
     els.forEach(function(f,i){armEl(f,false);armEl(rels[i],false)});watchSheet();
-    LAB.hint('tap a frame to enter the room · ✎ marks a pick · close your fingers to go back',4600)}
+    LAB.hint('tap a frame to stand it on the horizon · ✎ marks a pick · pinch in to go back to the line',4600)}
   else{sheet.classList.remove('open');where.textContent=(LAB.rooms&&LAB.rooms.current)||'horizon';setMarking(false);
     grid.querySelectorAll('video').forEach(function(v){LAB.rest(v)});
     els.forEach(function(f,i){if(f._v){armEl(f,true);armEl(rels[i],true)}});
@@ -116,51 +117,47 @@ sheetB.addEventListener('click',function(){var top=LAB.layer.top();
   if(LAB.rooms){if(top==='horizon'||top==='darkroom')LAB.rooms.leave();else LAB.rooms.enter(null);return}
   if(top==='horizon')leaveHorizon();else enterHorizon(Math.round(pos))});
 
-LAB.pinch(sheet,{in:function(){if(LAB.rooms)LAB.rooms.enter(null);else enterHorizon(Math.round(pos));LAB.patience&&LAB.patience.success()},out:function(){LAB.patience&&LAB.patience.dead('pinch-out')}});
+LAB.pinch(sheet,{in:function(){if(LAB.rooms)LAB.rooms.enter(null);else enterHorizon(Math.round(pos))},out:function(){}});
 
 /* ---------- horizon scrub ---------- */
-var dr=null,fingers=0;
-sky.addEventListener('pointerdown',function(e){
-  if(e.pointerType==='touch')fingers++;
-  if(fingers>1){if(dr){go(Math.round(dr.p));dr=null}return}
-  var onLine=Math.abs(e.clientY-HY)<34;dr={x:e.clientX,y:e.clientY,p:target,m:false,t:Date.now(),vx:0,lx:e.clientX,lt:Date.now(),rate:onLine?-6:FH*.2,id:e.pointerId};try{sky.setPointerCapture(e.pointerId)}catch(err){}});
-sky.addEventListener('pointermove',function(e){if(!dr||fingers>1)return;var dx=e.clientX-dr.x;if(Math.abs(dx)>6)dr.m=true;var now=Date.now();dr.vx=(e.clientX-dr.lx)/Math.max(1,now-dr.lt);dr.lx=e.clientX;dr.lt=now;
+var dr=null;
+sky.addEventListener('pointerdown',function(e){var onLine=Math.abs(e.clientY-HY)<34;dr={x:e.clientX,y:e.clientY,p:target,m:false,t:Date.now(),vx:0,lx:e.clientX,lt:Date.now(),rate:onLine?-6:FH*.2};sky.setPointerCapture(e.pointerId)});
+sky.addEventListener('pointermove',function(e){if(!dr)return;var dx=e.clientX-dr.x;if(Math.abs(dx)>6)dr.m=true;var now=Date.now();dr.vx=(e.clientX-dr.lx)/Math.max(1,now-dr.lt);dr.lx=e.clientX;dr.lt=now;
   if(dr.m){go(dr.rate<0?dr.p-dx/6:dr.p-dx/dr.rate);if(dr.rate<0){pos=target;paint()}}});
-sky.addEventListener('pointerup',function(e){
-  if(e.pointerType==='touch')fingers=Math.max(0,fingers-1);
-  if(!dr||(dr.id!=null&&e.pointerId!==dr.id))return;
-  if(fingers>0){dr=null;return}
-  if(dr.m){go(Math.round(target-(dr.rate<0?0:dr.vx*900/dr.rate)))}else{var el=document.elementFromPoint(e.clientX,e.clientY),f=el&&el.closest('.fm');
-  if(f){var i=+f.dataset.i;if(i===Math.round(pos))openDay(L[i]);else go(i)}else if(LAB.patience)LAB.patience.dead('tap-empty')}dr=null});
-sky.addEventListener('pointercancel',function(e){if(e.pointerType==='touch')fingers=Math.max(0,fingers-1);dr=null;go(Math.round(target))});
+sky.addEventListener('pointerup',function(e){if(!dr)return;if(dr.m){go(Math.round(target-(dr.rate<0?0:dr.vx*900/dr.rate)))}else{var el=document.elementFromPoint(e.clientX,e.clientY),f=el&&el.closest('.fm');
+  if(f){var i=+f.dataset.i;if(i===Math.round(pos))openDay(L[i]);else go(i)}}dr=null});
+sky.addEventListener('pointercancel',function(){dr=null;go(Math.round(target))});
 var wt=0;sky.addEventListener('wheel',function(e){if(e.ctrlKey)return;e.preventDefault();var d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;go(target+d/120);clearTimeout(wt);wt=setTimeout(function(){go(Math.round(target))},160)},{passive:false});
-LAB.pinch(sky,{in:function(){LAB.patience&&LAB.patience.dead('pinch-in')},out:function(){leaveHorizon();LAB.patience&&LAB.patience.success()}});
+LAB.pinch(sky,{in:function(){openDay(L[Math.round(pos)])},out:function(){leaveHorizon()}});
 
 sortB.addEventListener('click',function(){var id=L[Math.round(pos)].id;mode=mode==='light'?'colour':'light';order();build();var i=L.findIndex(function(p){return p.id===id});go(i,true);
   LAB.hint(mode==='light'?'lined up by their own light, darkest to brightest':'lined up round the colour wheel, warm first, the greys last',3200)});
 
-/* ---------- the day: a scroll-snap strip, one photograph per page ---------- */
-var cp=null, dayStrip=null;
-function fillDay(p){
-  if(!dayStrip){
-    dayStrip=LAB.mountStrip($('strip'),{
-      list:function(){return L},
-      onChange:function(i,q){cp=q;if(i>=0)go(i,true)},
-      onOut:function(){LAB.layer.back()}
-    });
-  }
-  dayStrip.fill();
-  var i=L.indexOf(p); if(i<0&&p){i=L.findIndex(function(q){return q.id===p.id})}
-  dayStrip.go(Math.max(0,i),true,false);cp=L[Math.max(0,i)]||p;
-}
-function openDay(p){
-  if(!p)return;
-  if(LAB.layer.top()==='day'){fillDay(p);return}
+/* ---------- the day ---------- */
+var cp=null;
+function near(p){var i=L.indexOf(p),out=[];for(var d=1;out.length<8&&d<L.length;d++){if(L[i+d])out.push(L[i+d]);if(out.length<8&&L[i-d])out.push(L[i-d])}return out}
+function fillDay(p){cp=p;parkVideos($('hero'));parkVideos(stack);var hero=$('hero');hero.innerHTML='';hero.style.setProperty('--hg','linear-gradient(180deg,'+p.top+','+dark(p.bot,.4)+')');
+  if(LAB.isClip(p)){var v=getClipVid(p,'day');if(!v.getAttribute('src'))v.src=LAB.clip(p);hero.appendChild(v);LAB.arm(v)}
+  else{var im=new Image();im.id='himg';im.alt='photograph '+LAB.num(p);im.src=LAB.img(p);hero.appendChild(im)}
+  cred.innerHTML='<span>frame <b>'+LAB.num(p)+'</b> of '+L.length+'</span><span><i class="sw" style="background:'+p.avg+'"></i>measured light <b>'+Math.round(p.lum*100)+'</b></span>'+
+    '<button type="button" class="lab-btn" id="dh">'+(LAB.hearts.has(p.id)?'♥ kept':'♡ keep')+'</button>';
+  $('dh').classList.toggle('on',LAB.hearts.has(p.id));
+  $('dh').addEventListener('click',function(){LAB.hearts.toggle(p.id);fillDay(p)},{once:true});
+  stack.innerHTML='<p class="lbl">in the same light</p>';
+  near(p).forEach(function(q){var fig=LAB.el('figure');fig.dataset.id=q.id;
+    if(LAB.isClip(q)){var v=getClipVid(q,'stack-'+q.id);v.setAttribute('width',q.w);v.setAttribute('height',q.h);if(v.poster!==LAB.img(q))v.poster=LAB.img(q);fig.appendChild(v)}
+    else{var im=new Image();im.loading='lazy';im.alt='photograph '+LAB.num(q);im.src=LAB.img(q);im.width=q.w;im.height=q.h;fig.appendChild(im)}
+    fig.appendChild(LAB.el('figcaption',null,LAB.num(q)));stack.appendChild(fig)});
+  if(typeof IntersectionObserver!=='undefined'){var o=new IntersectionObserver(function(ents){ents.forEach(function(en){if(en.isIntersecting)LAB.arm(en.target);else LAB.rest(en.target)})},{root:dsc,rootMargin:'80px',threshold:0.2});stack.querySelectorAll('video').forEach(function(v){o.observe(v)})}}
+function openDay(p){if(LAB.layer.top()==='day'){fillDay(p);dsc.scrollTo({top:0,behavior:'smooth'});return}
   if(LAB.layer.top()!=='horizon')enterHorizon(L.indexOf(p));
-  day.hidden=false;void day.offsetWidth;
-  fillDay(p);day.classList.add('open');document.body.classList.add('day-open');where.textContent='horizon · its day';
-  LAB.layer.push('day',function(){day.classList.remove('open');document.body.classList.remove('day-open');where.textContent=(LAB.rooms&&LAB.rooms.current)||'horizon';if(dayStrip)dayStrip.resetZoom();var i=L.indexOf(cp);if(i>=0)go(i);setTimeout(function(){if(!day.classList.contains('open'))day.hidden=true},1000)});
-}
+  fillDay(p);dsc.scrollTop=0;day.hidden=false;void day.offsetWidth;day.classList.add('open');where.textContent='horizon · its day';
+  LAB.layer.push('day',function(){day.classList.remove('open');where.textContent=(LAB.rooms&&LAB.rooms.current)||'horizon';var i=L.indexOf(cp);if(i>=0)go(i);setTimeout(function(){if(!day.classList.contains('open'))day.hidden=true},1000)});
+  LAB.hint('scroll down: the photographs in the same light · pinch in for the camera back · pinch out to the horizon',4600)}
+stack.addEventListener('click',function(e){var f=e.target.closest('figure');if(!f)return;var p=L.filter(function(q){return q.id===f.dataset.id})[0];
+  dsc.scrollTo({top:0,behavior:'smooth'});setTimeout(function(){fillDay(p);go(L.indexOf(p),true)},500)});
+day.querySelector('.end').addEventListener('click',function(){LAB.layer.back()});
+LAB.pinch(day,{in:function(){camera()},out:function(){LAB.layer.back()}});
 
 /* ---------- camera back (in the horizon's order) ---------- */
 function camera(){if(LAB.layer.top()==='camera back')return;
@@ -170,7 +167,7 @@ function camera(){if(LAB.layer.top()==='camera back')return;
 $('cam').addEventListener('click',camera);
 
 document.addEventListener('keydown',function(e){var top=LAB.layer.top();if(top==='camera back')return;
-  if(top==='day'){if(e.key==='Escape')LAB.layer.back();else if(e.key==='+'||e.key==='=')camera();else if(e.key==='ArrowRight'||e.key==='ArrowDown'){if(dayStrip)dayStrip.key(1);e.preventDefault()}else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){if(dayStrip)dayStrip.key(-1);e.preventDefault()}return}
+  if(top==='day'){if(e.key==='Escape')LAB.layer.back();else if(e.key==='+'||e.key==='=')camera();return}
   if(atSheet()){
     if(e.key==='ArrowRight'){go(Math.round(target)+1,true);scrollCur();e.preventDefault()}
     else if(e.key==='ArrowLeft'){go(Math.round(target)-1,true);scrollCur();e.preventDefault()}
@@ -190,14 +187,12 @@ LAB.goto=function(id){var i=typeof id==='number'?id:L.findIndex(function(p){retu
 LAB.line=function(){return L};
 order();build();go(Math.round(L.length*.5),true);
 enterHorizon(Math.round(pos));
-var openHint='drag sideways: every photograph, darkest to brightest · spread your fingers for the contact sheet · tap the one standing there';
+var openHint='drag sideways: every photograph, darkest to brightest · pinch out for the contact sheet · tap the one standing there';
 if(LAB.patience)LAB.patience.opening('horizon',openHint);
 LAB.hint(openHint,5600);
-function onListChange(){var cur=Math.round(Math.max(0,Math.min(Math.max(0,L.length-1),pos)));var id=L.length&&L[cur]?L[cur].id:null;order();pos=Math.max(0,Math.min(Math.max(0,L.length-1),pos));target=pos;build();var i=id?L.findIndex(function(p){return p.id===id}):Math.round(L.length/2);if(i<0)i=Math.max(0,Math.round((L.length||1)/2)-1);go(i,true);if(LAB.layer.top()==='day'&&dayStrip)fillDay(L[Math.max(0,i)]||L[0]);}
+function onListChange(){var cur=Math.round(Math.max(0,Math.min(Math.max(0,L.length-1),pos)));var id=L.length&&L[cur]?L[cur].id:null;order();pos=Math.max(0,Math.min(Math.max(0,L.length-1),pos));target=pos;build();var i=id?L.findIndex(function(p){return p.id===id}):Math.round(L.length/2);if(i<0)i=Math.max(0,Math.round((L.length||1)/2)-1);go(i,true);if(LAB.layer.top()==='day'&&L.length)fillDay(L[Math.max(0,i)]||L[0]);}
 document.addEventListener('lab:clips',onListChange);
 document.addEventListener('lab:list',onListChange);
-
-
 
 LAB.go=function(id){var i=L.findIndex(function(p){return p.id===id});if(i>=0)go(i,true);return i};
 LAB.sheet={show:showSheet,isOpen:function(){return sheet.classList.contains('open')},scrollCur:scrollCur};

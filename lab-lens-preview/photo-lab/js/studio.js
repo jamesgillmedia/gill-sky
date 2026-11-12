@@ -1,4 +1,4 @@
-/* Photo lab · clips toggle, patience hint, debug strip, scroll-snap photo view.
+/* Photo lab · clips toggle, patience hint, debug strip, free-scroll photo strip (Darkroom wall).
    Same motion with Reduce Motion on, except: the patience hint shows and hides at once,
    and clips show a poster with a play mark instead of auto-playing. */
 (function(){
@@ -162,12 +162,13 @@ LAB.patience = {
   }
 };
 
-/* ---------- scroll-snap photo strip (native scroll, no swipe handler) ---------- */
+/* ---------- photo strip (Darkroom wall): free native scroll, the same as the original day view (main 39e02f4 .dsc):
+   vertical, natural momentum, no snap, no wheel handler. ---------- */
 LAB.mountStrip = function(el, opts){
   opts = opts || {};
   var idx = 0, zoom = 1, zx = 0, zy = 0, wcool = 0, edge = 0, touchD = 0;
   function list(){ return (opts.list && opts.list()) || []; }
-  function laidX(){ return innerWidth > innerHeight; }
+  function laidX(){ return false; }
   function layout(){
     el.classList.toggle('x', laidX());
     go(idx, true, false);
@@ -194,7 +195,7 @@ LAB.mountStrip = function(el, opts){
     var p = pageAt(i);
     if (!p) return false;
     function scrollNow(){
-      var beh = (instant || LAB.reduced()) ? 'auto' : 'smooth';
+      var beh = instant ? 'auto' : 'smooth';
       if (laidX()) el.scrollTo({ left: p.offsetLeft, behavior: beh });
       else el.scrollTo({ top: p.offsetTop, behavior: beh });
     }
@@ -242,13 +243,6 @@ LAB.mountStrip = function(el, opts){
 
   el.addEventListener('wheel', function(e){
     if (zoom > 1){ e.preventDefault(); return; }
-    e.preventDefault();
-    var now = Date.now();
-    if (now < wcool) return;
-    var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (Math.abs(d) < 8) return;
-    wcool = now + 450;
-    if (go(idx + (d > 0 ? 1 : -1), false, true)) LAB.patience.success();
   }, { passive: false });
 
   el.addEventListener('touchstart', function(e){
@@ -269,6 +263,7 @@ LAB.mountStrip = function(el, opts){
     start: function(){ LAB.patience.busy(true); },
     in: function(){
       LAB.patience.busy(false);
+      if (opts.onIn){ opts.onIn(); return; }
       if (zoom <= 1){ zoom = 2.2; zx = zy = 0; lock(true); applyZoom(); }
       else { zoom = Math.min(3.2, zoom + 0.6); applyZoom(); }
     },

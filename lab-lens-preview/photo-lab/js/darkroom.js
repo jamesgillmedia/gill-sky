@@ -1,7 +1,7 @@
 /* Darkroom · tap the paper box (an enlarger flash, a sheet slides into the tray) → rock the tray until the print comes up →
    drag it up or tap hang → it pegs onto the line. Tap a print on the line → stand in front of it (the wall).
-   Spread your fingers / ‹ / Esc rise one place: from the wall back to the room, from the room to the shared contact sheet.
-   Close your fingers on the wall for the camera back. Safelight is the room, not a grade on the photograph: prints keep their own colour.
+   Pinch out / ‹ / Esc rise one place: from the wall back to the room, from the room to the shared contact sheet.
+   Pinch in on the wall for the camera back (the original main 39e02f4 pinch). Safelight is the room, not a grade on the photograph: prints keep their own colour.
    Hung prints stay on this device. Same motion with Reduce Motion on. */
 (function(){
 'use strict';
@@ -86,7 +86,7 @@ function hangIt(){if(!cur||!done)return;var p=cur,from=sheetEl.getBoundingClient
   LAB.hint(hung.length===1?'pegged. tap it on the line to stand in front of it':'pegged · '+hung.length+' on the line',3600)}
 function nextPeek(){var list=photos();for(var i=0;i<list.length;i++)if(hung.indexOf(list[i].id)<0&&(!cur||cur.id!==list[i].id))return list[i];return null}
 
-/* ---------- the wall: a scroll-snap strip of hung prints ---------- */
+/* ---------- the wall: hung prints in a free native scroll, like the original day view (no snap) ---------- */
 var wi=-1, wallStrip=null;
 function hungList(){return hung.map(byId).filter(Boolean)}
 function showW(){
@@ -94,7 +94,8 @@ function showW(){
     wallStrip=LAB.mountStrip($('wstrip'),{
       list:hungList,
       onChange:function(i,p){wi=i;var h=$('wheart');if(h&&p){h.textContent=LAB.hearts.has(p.id)?'♥':'♡';h.classList.toggle('on',LAB.hearts.has(p.id))}},
-      onOut:function(){LAB.layer.back()}
+      onOut:function(){LAB.layer.back()},
+      onIn:function(){camera()}
     });
   }
   wallStrip.fill();
@@ -135,7 +136,7 @@ function enter(p){
   if(p)focus(p);
   if(LAB.layer.top()==='darkroom')return;
   LAB.layer.push('darkroom',function(){if(LAB.sheet)LAB.sheet.show(true)});
-  if(!welcomed){welcomed=true;var dh=hung.length?'your prints are still on the line. spread your fingers for the contact sheet · tap the paper box for the next sheet':'tap the paper box, then rock the tray · spread your fingers for the contact sheet';if(LAB.patience)LAB.patience.opening('darkroom',dh);LAB.hint(dh,5200)}
+  if(!welcomed){welcomed=true;var dh=hung.length?'your prints are still on the line. pinch out for the contact sheet · tap the paper box for the next sheet':'tap the paper box, then rock the tray · pinch out for the contact sheet';if(LAB.patience)LAB.patience.opening('darkroom',dh);LAB.hint(dh,5200)}
 }
 function leave(){if(LAB.layer.top()==='darkroom')LAB.layer.back()}
 function size(){fitSheet();clampOff()}
