@@ -1,93 +1,85 @@
-/* Spirit Eye of skwácháýs · save 2 · Gill's mix of concepts C (Moves With the Sun) and A (Descent Through the Eye).
-   C: the spindle whorl is a circular control above the water; dragging moves the sun mark around it, one sector per PDF section,
-      and a release glides to the nearest section in ~0.5 s (cubic-bezier .22,1,.36,1). Nothing auto-advances.
-   A: at the key sections the camera travels: into the eye, across the water, down the column of light, a held beat on the light
-      itself (no text), into the garden, then back up to the circle.
-   Text only at rest at a stop; it fades in after the camera settles. Silent (no audio until Gill supplies real sound).
-   Every word below is quoted from Gill's Spirit Eye PDF (SpiritEye.pdf, Jul 11 2025) or, for the title / credit, from m4's approved
-   wording. Ligatures written out (fl, fi). Kept as written: "the the", "people’s", "Tsleil- Waututh", "100’s", "deerlake", "Trillium park".
-   Self-contained: main.js only calls mount(...) and the returned controller. Replace this file to change the anchor. */
+/* Spirit Eye of skwácháýs · full PDF path (local branch se-full-pdf, from save 2).
+   The whole Spirit Eye PDF (32 pages, Jul 11 2025) revealed one page per step, in the PDF's own order, around Gill's C+A hybrid:
+   C: the spindle whorl is the circular control; the sun mark "moves with the sun" (p.6) one step per page, once around the whorl.
+   A: the camera travels at the key sectors: into the eye (p.5), across the water (pp.10-14), down the column of light (pp.15-16),
+      the held light beat (no text, held until the next drag), into the garden (pp.17-23), back up to the surface, out to the sketches,
+      then the sky where the six chapters open.
+   Rules: one drag / swipe / wheel gesture / key = exactly one step (never more); text only once the camera is still; nothing
+   auto-advances; the camera is still on load; silent; Reduce Motion is the same (all motion is driven by the visitor).
+   Every word comes from js/se-pages.js (verbatim PDF text). UI copy is limited to the progress marker and the arrival / sky hints. */
+import { PAGES } from './se-pages.js';
 const BASE = new URL('../', import.meta.url).href; /* 3d/ */
 const IMG = n => BASE + 'media/spirit-eye/s2/' + n + '.webp';
-export const data = {
-  title: 'Spirit Eye of skwácháýs',
-  byline: 'joshua ngenda & gill james',                     /* PDF p.1 */
-  credit: "Spirit Eye of skwácháýs, a public art concept co-created with Joshua Ngenda, was recognized with Best Public Art Concept and Council's Choice within the BIDC Public Art Intensive.", /* m4 bio, exact */
-  page: BASE + '../space/spirit-eye/'
+const PIMG = (n, small) => BASE + 'media/spirit-eye/pdf/' + n + (small ? '-s' : '') + '.webp';
+export const data = { title: 'spirit eye', byline: 'joshua ngenda & gill james', page: BASE + '../space/spirit-eye/' };
+/* sectors: [key, camera pos, look, whorl-relative (pushed back on narrow screens)] */
+const SECT = {
+  arrival: [[0, 13, 7.5], [0, .6, 0], 1], land: [[-9, 3.2, 9], [0, 1.2, -3], 1], makers: [[-12, 5.5, -8], [0, 1.2, 0], 1],
+  eye: [[0, 3.4, 1.2], [0, -4, -.3], 0], sun: [[12, 6, -10], [0, 1.2, 0], 1], water: [[15, 1.3, 13], [-6, 1.5, -12], 1],
+  column: [[.8, -9, 1.6], [0, -24, 0], 0], light: [[5.6, -27.5, 10.5], [0, -36.6, 0], 0], garden: [[8, -35, 11], [0, -34, 0], 0],
+  surface: [[-14, 4, 12], [0, 1, 0], 1], sketches: [[0, 8, 26], [0, .6, 0], 1], sky: [[0, 11, 44], [0, .6, 0], 1]
 };
-/* sections in C's order; `light` is Gill's dedicated beat (no text) between materials and ecosystem */
-export const STOPS = [
-  { k: 'arrival', h: data.title, by: data.byline, p: [data.credit] },
-  { k: 'land', h: 'LAND ACKNOWLEDGEMENT', p: ['the unceded, unsurrendered, and ancestral homelands of the hən̓q̓əmin̓əm̓ and Sḵwxw̱ú7mesh Sníchim speaking people’s of the xʷməθkʷəy̓əm (Musqueam), Sḵwxw̱ú7mesh Úxwumixw (Squamish Nation) and səlilwətaɬ (Tsleil- Waututh) peoples, and the the supernatural tunnels of Sínulhķaý'] },
-  { k: 'site', h: 'SITE SIGNIFICANCE', sub: ['Skwácháýs', 'Place where water is drawn down into a whirlpool'],
-    p: ['Trillium Park is located on the northern edge of Skwácháýs. Skwácháýs is a supernatural place of significance with mud pools being portals to the Spirit World with underground tunnels carved by Sínulhķaý / sʔi:ɬqəy̓ Connecting lakes and pools as far as deerlake and up into the interior.',
-        'Trillium park was an intertidal mudflat. It was an area of mariculture and hunting such as clam gardening and duck hunting.'] },
-  { k: 'description', h: 'DESCRIPTION', p: ['Centering art as infrastructure, the human need for light and nature, a forest garden that both sustains life and materials for creation.',
-        'A giant lens floating on the ocean surface, reminiscent of a salish spindle whorl, moves with the sun and allows for water to pass over in stormy weather. Projects light underground through a large cluster of fibre optics'] },
-  { k: 'statement', h: 'ARTIST STATEMENT', p: ['Incorporating the Skwxwú7mesh & xʷməθkʷəy̓əm legend of Sínulhķaý / sʔi:ɬqəy̓ the two headed serpent and the supernatural world.',
-        'After having been blocked by city infrastructure for 100’s of years the spindle whorls reopen the ancestral portals to the underworld and the place where people reside.',
-        'A supernatural place of healing and creation where the society relearns forgotten techniques and cultural practices ready to reemerge and caretake the world.'] },
-  { k: 'materials', h: 'MATERIALS', pairs: [['protecting structure & whorl housing', 'concrete aggregate with steel reinforcements'], ['sky lens', 'composite glass fresnel prismatic lens & ground glass projection plate'], ['fiber optic cables'], ['adaptive forest garden installation (underground)']] },
-  { k: 'light' },
-  { k: 'ecosystem', h: 'ECOSYSTEM INTERACTIONS', sub: ['Subterranean Forest Garden Novel Ecosystem'],
-    p: ['a forest garden ecosystem that takes elements of how the area existed prior to 1850 while also introducing non native plants that support life and creation.',
-        'layered structure mimicking natural forest structure with large cedar cottonwood and fir trees around the outside, with an understory and inner wetland that maximizes biodiversity with an emphasis on plants that feed that community, support cultural practices and support creation.'],
-    plants: ['Indigo - as a source of dye', 'hibiscus - culinary, medicinal, cosmetic', 'common camas- medicinal,', 'mullein - medicinal', 'kinnikinnnick- medicinal, cullinary', 'sweetgrass- ceremonial', 'rice- culinary', 'swamp lanterns- culinary, medicinal',
-      'cattails - culinary, medicinal, art', 'cotton- clothing, materials', 'stinging nettle- medicinal, culinary, rope, cloth', 'devils club- medicinal', 'taro- culinary', 'yam- culinary', 'elderberry- medicinal', 'plantain- culinary, medicinal, fibre',
-      'red cedar - clothing, art, building, ceremony', 'red alder- dye, tools', 'yew tree- tool handles', 'cottonwood- medicinal, ceremonial', 'fir tree- medicinal (bark, needles)', 'oregon grape- culinary, medicina', 'wild ginger- culinary, medicinal', 'salmon berry- culinary, medicinal, fibre'] },
-  { k: 'community', h: 'COMMUNITY VALUE', list: ['Provide light to sustain life and creation', 'Opportunities for artists', 'Educating community', 'Intergenerational caretakers ie descendants of Cease Whyss', 'Place for cultural practice', 'Food sovereignty', 'Relearning traditional techniques and practices'] }
-];
-const NS = STOPS.length, UNLOCK = 8;
-/* images per stop, placed relative to that stop's camera: [file, depth, right, up, width] (drawings from the PDF; s8-* from the Nov 11 pptx slide 8) */
-const PLACE = {
-  land: [['p02-behind-eye', 17, 0, 3.6, 9.5]],
-  site: [['p12-scene3', 13, -3.2, 2.6, 6.2], ['p13-view2', 21, 4.4, 3.4, 7.2], ['p10-water', 30, -1.5, 5.6, 10]],
-  description: [['s8-clouds', 46, 0, 10, 20], ['p09-scene4', 12, -3.4, 3.4, 5.4], ['p06-scale', 17, 4.4, 4.6, 6.4]],
-  statement: [['p01-eye', 4.2, 0, .2, 4.6], ['p19-close-eye', 7.5, -.8, 1.3, 6.4], ['p05-side-eye', 11, 1.1, -.4, 8], ['p29-sketchlens', 15, -.6, .9, 10]],
-  materials: [['s8-whorl', 7, -3.4, 2.6, 3.4], ['p15-whorl-top', 10, 3.6, 2.4, 5], ['p15-side2', 14, -3.8, -1.6, 6], ['p16-scene2', 20, 3.4, -3.2, 8]],
-  ecosystem: [['p17-side-view', 15, -3.6, 4.2, 8]],
-  community: [['p25-side-eye2', 24, -9.5, -4.2, 5.6], ['p31-sketch4', 27, 10, -4.6, 5.6]]
-};
-const EASE = bez(0.22, 1, 0.36, 1), T_GLIDE = 500, T_BACK = 300, T_ENTER = 1200;
+const SECT_OF = n => n === 1 ? 'arrival' : n === 2 ? 'land' : n <= 4 ? 'makers' : n === 5 ? 'eye' : n <= 9 ? 'sun' : n <= 14 ? 'water' : n <= 16 ? 'column' : n <= 23 ? 'garden' : n <= 25 ? 'surface' : 'sketches';
+/* waypoints the camera passes between sectors (not stops): [after sector, pos, look] */
+const WAY = { water: [[[.6, 3.6, 1.4], [0, -6, -.2]]], garden: [[[1.2, -20, 1.6], [0, 2, 0]], [[.5, 2.4, 2.2], [0, 8, 9]]] };
+export const STEPS = [];
+PAGES.forEach(pg => { STEPS.push({ k: 'page', n: pg.n, pg: pg, sec: SECT_OF(pg.n) }); if (pg.n === 16) STEPS.push({ k: 'light', sec: 'light' }) });
+STEPS.push({ k: 'sky', sec: 'sky' });
+const NS = STEPS.length, UNLOCK = NS - 1, LIGHT = STEPS.findIndex(x => x.k === 'light');
+const SEC_START = []; STEPS.forEach((st, i) => { if (!i || STEPS[i - 1].sec !== st.sec) SEC_START.push(i) });
+const EASE = bez(0.22, 1, 0.36, 1), T_GLIDE = 650, T_BACK = 300, T_ENTER = 1200;
 function bez(x1, y1, x2, y2) {
   const cb = (t, a, b) => 3 * a * t * (1 - t) * (1 - t) + 3 * b * t * t * (1 - t) + t * t * t, dcb = (t, a, b) => 3 * a * (1 - t) * (1 - t) + 6 * (b - a) * t * (1 - t) + 3 * (1 - b) * t * t;
   return x => { if (x <= 0) return 0; if (x >= 1) return 1; let t = x; for (let i = 0; i < 8; i++) { const d = cb(t, x1, x2) - x, s = dcb(t, x1, x2); if (Math.abs(d) < 1e-5 || !s) break; t -= d / s } return cb(Math.max(0, Math.min(1, t)), y1, y2) };
 }
-const mod = (a, n) => ((a % n) + n) % n;
+const mod = (a, n) => ((a % n) + n) % n, clampS = x => Math.max(0, Math.min(NS - 1, x));
+const esc = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+/* the text panel for one step: only PDF words (plus the two hints) */
+export function stepHTML(st, small) {
+  let o = '', i = 0; const d = () => ` style="transition-delay:${(Math.min(i++, 6) * .3).toFixed(2)}s"`;
+  if (st.k === 'sky') return `<p class="hint"${d()}>the six chapters are open · tap one</p>`;
+  const pg = st.pg; if (!pg) return '';
+  if (pg.h) o += `<h2${d()}>${esc(pg.h)}</h2>`;
+  if (pg.by) o += `<p class="by"${d()}>${esc(pg.by)}</p>`;
+  (pg.sub || []).forEach(x => o += `<p class="sub"${d()}>${esc(x)}</p>`);
+  if (pg.note) o += `<p class="note"${d()}>${esc(pg.note)}</p>`;
+  (pg.p || []).forEach(x => o += `<p${d()}>${esc(x)}</p>`);
+  (pg.pairs || []).forEach(x => o += `<p class="pair"${d()}><b>${esc(x[0])}</b>${x[1] ? '<br>' + esc(x[1]) : ''}</p>`);
+  if (pg.list) { o += '<ul class="cv">'; pg.list.forEach(x => o += `<li${d()}>${esc(x)}</li>`); o += '</ul>' }
+  if (pg.plants) o += `<ul class="plants"${d()}>` + pg.plants.map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';
+  if (pg.pimg) { const im = pg.img.find(x => x[0] === pg.pimg) || [0, 4, 3]; o += `<img class="pimg"${d()} src="${PIMG(pg.pimg, small)}" width="${im[1]}" height="${im[2]}" alt="" draggable="false">` } /* size known before load, so the panel can be measured */
+  if (pg.n === 1) o += `<p class="hint"${d()}>swipe or drag to move with the sun, one page at a time · the six chapters open after page 32</p>`;
+  return o;
+}
 export function mount(THREE, scene, ctx) {
   const V = (x, y, z) => new THREE.Vector3(x, y, z);
   const g = new THREE.Group(); scene.add(g);
   const LOADER = new THREE.TextureLoader();
-  const tex = (f, cb) => LOADER.load(IMG(f), t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; if (cb) cb(t) });
-  /* ---------- camera path: stops (and waypoints) ---------- */
-  /* [pos, look, stop index or -1, whorl-relative (pushed back on narrow screens)] */
-  const PATH = [
-    [V(0, 13, 7.5), V(0, .6, 0), 0, 1],
-    [V(-9, 3.2, 9), V(0, 1.2, -3), 1, 1],
-    [V(15, 1.3, 13), V(-6, 1.5, -12), 2, 1],
-    [V(12, 6, -10), V(0, 1.2, 0), 3, 1],
-    [V(0, 3.4, 1.2), V(0, -4, -.3), 4, 0],
-    [V(.8, -9, 1.6), V(0, -24, 0), 5, 0],
-    [V(5.6, -27.5, 10.5), V(0, -36.6, 0), 6, 0],
-    [V(8, -35, 11), V(0, -34, 0), 7, 0],
-    [V(1.2, -20, 1.6), V(0, 2, 0), -1, 0],
-    [V(.5, 2.4, 2.2), V(0, 8, 9), -1, 0],
-    [V(0, 11, 44), V(0, .6, 0), 8, 1]
-  ];
+  const tex = (url, cb) => LOADER.load(url, t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; if (cb) cb(t) });
+  /* ---------- camera path: one pose per step, sub-steps orbit a little around the sector's look point ---------- */
+  const PATH = []; /* [pos, look, step or -1, rel] */
+  const SUBD = .13;
+  STEPS.forEach((st, i) => {
+    const S = SECT[st.sec], first = SEC_START.filter(x => x <= i).pop(), m = (SEC_START.find(x => x > i) || NS) - first, j = i - first;
+    const p = V(...S[0]), l = V(...S[1]), a = (j - (m - 1) / 2) * SUBD;
+    const ox = p.x - l.x, oz = p.z - l.z; p.x = l.x + ox * Math.cos(a) - oz * Math.sin(a); p.z = l.z + ox * Math.sin(a) + oz * Math.cos(a);
+    PATH.push([p, l, i, S[2]]);
+    const nxt = STEPS[i + 1]; if (nxt && nxt.sec !== st.sec && WAY[st.sec]) WAY[st.sec].forEach(w => PATH.push([V(...w[0]), V(...w[1]), -1, 0]));
+  });
   let K = 1, P = [];
   function layoutPath(aspect) {
     K = Math.max(1, Math.min(1.9, 1 / (aspect * 1.25)));
     P = PATH.map(([p, l, s, rel]) => ({ p: rel ? l.clone().add(p.clone().sub(l).multiplyScalar(K)) : p.clone(), l: l.clone(), s: s }));
   }
-  const SIDX = []; /* path index of each stop */
-  PATH.forEach((q, i) => { if (q[2] >= 0) SIDX[q[2]] = i });
-  function pathU(s) { const i = Math.floor(s), f = s - i, a = SIDX[mod(i, NS)], b0 = SIDX[mod(i + 1, NS)], b = b0 <= a ? b0 + P.length : b0; return a + f * (b - a) }
+  const SIDX = []; PATH.forEach((q, i) => { if (q[2] >= 0) SIDX[q[2]] = i });
+  function pathU(s) { s = clampS(s); const i = Math.min(NS - 2, Math.floor(s)), f = s - i; return SIDX[i] + f * (SIDX[i + 1] - SIDX[i]) }
   function cr(p0, p1, p2, p3, t, out) { const t2 = t * t, t3 = t2 * t; return out.set(
     .5 * (2 * p1.x + (-p0.x + p2.x) * t + (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 + (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
     .5 * (2 * p1.y + (-p0.y + p2.y) * t + (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 + (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
     .5 * (2 * p1.z + (-p0.z + p2.z) * t + (2 * p0.z - 5 * p1.z + 4 * p2.z - p3.z) * t2 + (-p0.z + 3 * p1.z - 3 * p2.z + p3.z) * t3)) }
-  function poseAt(s, pos, look) { const u = pathU(s), i = Math.floor(u), t = u - i, n = P.length, q = j => P[mod(j, n)];
+  function poseAt(s, pos, look) { const u = pathU(s), n = P.length, i = Math.min(n - 2, Math.floor(u)), t = u - i, q = j => P[Math.max(0, Math.min(n - 1, j))];
     cr(q(i - 1).p, q(i).p, q(i + 1).p, q(i + 2).p, t, pos); cr(q(i - 1).l, q(i).l, q(i + 1).l, q(i + 2).l, t, look) }
+  const ang = s => Math.PI / 2 - s / NS * 6.283; /* the sun: once around the whorl over the whole path, clockwise seen from above */
   /* ---------- the place ---------- */
   const water = new THREE.Mesh(new THREE.RingGeometry(6.68, 70, 96, 1), new THREE.MeshBasicMaterial({ color: 0x0b1d28, transparent: true, opacity: .9, side: THREE.DoubleSide, depthWrite: true }));
   water.rotation.x = -Math.PI / 2; water.renderOrder = 1; g.add(water);
@@ -99,9 +91,8 @@ export function mount(THREE, scene, ctx) {
   housing.rotation.x = -Math.PI / 2; housing.position.y = .62; housing.renderOrder = 3; whorl.add(housing);
   const faceM = new THREE.MeshBasicMaterial({ color: 0x223040, transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false });
   const face = new THREE.Mesh(new THREE.CircleGeometry(5.36, 96), faceM); face.rotation.x = -Math.PI / 2; face.position.y = .6; face.renderOrder = 2; whorl.add(face);
-  tex('p07-plan-dial', t => { faceM.map = t; faceM.color.set(0xffffff); faceM.needsUpdate = true });
-  const ang = s => Math.PI / 2 - s / NS * 6.283; /* clockwise seen from above */
-  const tickPts = []; for (let i = 0; i < NS; i++) { const a = ang(i), r0 = 6.75, r1 = i === 6 ? 7.9 : 7.45; tickPts.push(V(Math.cos(a) * r0, .64, -Math.sin(a) * r0), V(Math.cos(a) * r1, .64, -Math.sin(a) * r1)) }
+  tex(IMG('p07-plan-dial'), t => { faceM.map = t; faceM.color.set(0xffffff); faceM.needsUpdate = true });
+  const tickPts = []; for (let i = 0; i < NS; i++) { const a = ang(i), r0 = 6.75, r1 = i === LIGHT ? 7.9 : SEC_START.includes(i) ? 7.45 : 7.05; tickPts.push(V(Math.cos(a) * r0, .64, -Math.sin(a) * r0), V(Math.cos(a) * r1, .64, -Math.sin(a) * r1)) }
   whorl.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(tickPts), new THREE.LineBasicMaterial({ color: 0xe6eef2, transparent: true, opacity: .7, depthWrite: false })));
   const sun = new THREE.Sprite(new THREE.SpriteMaterial({ map: ctx.glowTex, color: 0xffd58a, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
   sun.scale.set(2.6, 2.6, 1); sun.renderOrder = 6; whorl.add(sun);
@@ -137,50 +128,61 @@ export function mount(THREE, scene, ctx) {
   const MN = 420, mp = new Float32Array(MN * 3); for (let i = 0; i < MN; i++) { const y = -Math.random() * 37.4, r = (1.2 + (3.3 - 1.2) * (-y / 37.6)) * Math.sqrt(Math.random()), a = Math.random() * 6.283; mp[i * 3] = Math.cos(a) * r; mp[i * 3 + 1] = y; mp[i * 3 + 2] = Math.sin(a) * r }
   const mg = new THREE.BufferGeometry(); mg.setAttribute('position', new THREE.BufferAttribute(mp, 3));
   const motes = new THREE.Points(mg, new THREE.PointsMaterial({ color: 0xfff4da, size: .07, transparent: true, opacity: .6, depthWrite: false, blending: THREE.AdditiveBlending })); g.add(motes);
-  /* ---------- drawings placed in depth, relative to each stop's camera ---------- */
-  const planes = [];
+  /* ---------- the PDF pages, placed in depth in front of each step's camera (fixed in the world: they slide with the camera) ---------- */
+  const DUMMY = new THREE.PerspectiveCamera(), planes = [], MEAS = ctx.measure, FOV = 60, PD = 8;
+  const small = () => innerWidth < 700;
   function placeAll(aspect) {
-    planes.forEach(m => g.remove(m)); planes.length = 0;
-    const pos = V(0, 0, 0), look = V(0, 0, 0), fwd = V(0, 0, 0), right = V(0, 0, 0), up = V(0, 0, 0), WUP = V(0, 1, 0), sx = Math.min(1, aspect / 1.05);
-    STOPS.forEach((st, i) => (PLACE[st.k] || []).forEach(([f, d, x, y, w]) => {
-      poseAt(i, pos, look); fwd.copy(look).sub(pos).normalize(); right.crossVectors(fwd, Math.abs(fwd.y) > .97 ? V(0, 0, -1) : WUP).normalize(); up.crossVectors(right, fwd).normalize();
-      const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0x1a2230, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
-      const yy = sx < 1 && x ? y + Math.sign(x) * w * .3 * (1 - sx) : y; /* narrow screens: side-by-side drawings stack */
-      m.position.copy(pos).addScaledVector(fwd, d).addScaledVector(right, x * sx).addScaledVector(up, yy); m.up.copy(up); m.lookAt(pos);
-      m.userData = { stop: i, w: w * (sx < 1 ? .5 + .5 * sx : 1), f: f }; m.scale.set(m.userData.w, m.userData.w * .624, 1); m.renderOrder = 4; g.add(m); planes.push(m);
-      tex(f, t => { m.material.map = t; m.material.color.set(0xffffff); m.material.needsUpdate = true; m.scale.y = m.userData.w * t.image.height / t.image.width });
-    }));
+    planes.forEach(m => { g.remove(m); m.geometry.dispose(); m.material.dispose() }); planes.length = 0;
+    const W = innerWidth, H = innerHeight, phone = W < 700, hh = PD * Math.tan(FOV * Math.PI / 360), hw = hh * aspect;
+    const pos = V(0, 0, 0), look = V(0, 0, 0), fwd = V(0, 0, 0), right = V(0, 0, 0), up = V(0, 0, 0), WUP = V(0, 1, 0);
+    STEPS.forEach((st, i) => {
+      const imgs = st.pg ? st.pg.img.filter(x => x[0] !== st.pg.pimg) : []; if (!imgs.length) return;
+      /* the free band above the text panel (measured with the same CSS) */
+      MEAS.innerHTML = stepHTML(st, phone); const ph = MEAS.innerHTML ? Math.min(MEAS.scrollHeight, MEAS.clientHeight || MEAS.scrollHeight) : 0;
+      const top = (phone ? 104 : 96), bot = H - Math.max(phone ? 26 : 30, ph - 34) - 10, bw = W * (phone ? .92 : (ph ? .52 : .64)), bh = Math.max(80, bot - top);
+      poseAt(i, pos, look); if (Math.abs(look.x - pos.x) < 1e-3 && Math.abs(look.z - pos.z) < 1e-3) look.z -= .01;
+      /* the exact basis the real camera will have at this step (same lookAt), so plates sit square to the screen */
+      DUMMY.position.copy(pos); DUMMY.up.set(0, 1, 0); DUMMY.lookAt(look); const q = DUMMY.quaternion;
+      fwd.set(0, 0, -1).applyQuaternion(q); right.set(1, 0, 0).applyQuaternion(q); up.set(0, 1, 0).applyQuaternion(q);
+      const n = imgs.length, row = !phone && n > 1, gap = 10;
+      const ar = imgs.map(x => x[1] / x[2]);
+      /* fit all plates of the page into the band, side by side (desktop) or stacked (phone) */
+      let sc; if (row) sc = Math.min((bw - gap * (n - 1)) / ar.reduce((a, b) => a + b, 0), bh); else sc = Math.min(...ar.map(a => bw / a)), sc = Math.min(sc, (bh - gap * (n - 1)) / n);
+      let cx = W / 2 - (row ? (ar.reduce((a, b) => a + b * sc, 0) + gap * (n - 1)) / 2 : 0), cy = (top + bot) / 2 - (row ? 0 : (n * sc + gap * (n - 1)) / 2 - sc / 2);
+      imgs.forEach((im, k) => {
+        const w = ar[k] * sc, h = sc, px = row ? cx + w / 2 : W / 2, py = row ? cy : cy;
+        const nx = (px / W) * 2 - 1, ny = 1 - (py / H) * 2;
+        const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0, depthTest: false, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+        m.position.copy(pos).addScaledVector(fwd, PD).addScaledVector(right, nx * hw).addScaledVector(up, ny * hh); m.quaternion.copy(q);
+        m.scale.set(w / W * 2 * hw, h / H * 2 * hh, 1); m.renderOrder = 20; m.visible = false; m.userData = { stop: i, f: im[0], loaded: false }; g.add(m); planes.push(m);
+        if (row) cx += w + gap; else cy += h + gap;
+      });
+    });
+    MEAS.innerHTML = '';
   }
+  const texCache = new Map();
+  function ensureTex(m) { if (m.userData.loaded) return; m.userData.loaded = true; const key = m.userData.f + (small() ? '-s' : '');
+    const apply = t => { m.material.map = t; m.material.needsUpdate = true };
+    if (texCache.has(key)) { const c = texCache.get(key); if (c.t) apply(c.t); else c.w.push(apply); return }
+    const c = { t: null, w: [apply] }; texCache.set(key, c); tex(PIMG(m.userData.f, small()), t => { c.t = t; c.w.forEach(f => f(t)) }) }
   /* ---------- state ---------- */
-  let s = 0, active = true, unlocked = !!ctx.unlocked, drag = null, glide = null, settleAt = performance.now(), shown = -1, enter = null, wheelAcc = 0, wheelT = 0;
+  let s = 0, active = true, unlocked = !!ctx.unlocked, drag = null, glide = null, settleAt = performance.now(), shown = -1, enter = null, wheelAcc = 0, wheelT = 0, wheelLock = false, reached = unlocked ? NS - 1 : 0;
   const pts = new Map(); let pinch = null;
-  const TXT = ctx.text, DIAL = ctx.dial;
-  function stopNow() { return Math.abs(s - Math.round(s)) < 1e-4 ? mod(Math.round(s), NS) : -1 }
+  const TXT = ctx.text, DIAL = ctx.dial, PROG = ctx.prog;
+  function stopNow() { return Math.abs(s - Math.round(s)) < 1e-4 ? clampS(Math.round(s)) : -1 }
   function atRest() { return !drag && !glide && !enter && stopNow() >= 0 }
-  function glideTo(t, dur) { glide = { s0: s, t: t, t0: performance.now(), d: dur }; hideText(); log('glide', mod(Math.round(t), NS)) }
+  function glideTo(t, dur) { t = clampS(t); glide = { s0: s, t: t, t0: performance.now(), d: dur || T_GLIDE }; hideText(); log('glide', t) }
   function hideText() { if (shown !== -1) { TXT.classList.remove('on'); shown = -1 } }
-  function html(st) {
-    const e = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-    let o = '', i = 0; const d = () => ` style="transition-delay:${(i++ * .45).toFixed(2)}s"`;
-    if (st.h) o += `<h2${d()}>${e(st.h)}</h2>`;
-    if (st.by) o += `<p class="by"${d()}>${e(st.by)}</p>`;
-    (st.sub || []).forEach(x => o += `<p class="sub"${d()}>${e(x)}</p>`);
-    (st.p || []).forEach(x => o += `<p${d()}>${e(x)}</p>`);
-    (st.pairs || []).forEach(x => o += `<p class="pair"${d()}><b>${e(x[0])}</b>${x[1] ? '<br>' + e(x[1]) : ''}</p>`);
-    if (st.list) { o += '<ul class="cv">'; st.list.forEach(x => o += `<li${d()}>${e(x)}</li>`); o += '</ul>' }
-    if (st.plants) { o += `<ul class="plants"${d()}>` + st.plants.map(x => `<li>${e(x)}</li>`).join('') + '</ul>' }
-    return o;
-  }
   function showText(i) {
-    if (shown === i) return; shown = i; const st = STOPS[i];
-    TXT.dataset.k = st.k; TXT.innerHTML = st.h ? html(st) : ''; TXT.scrollTop = 0; TXT.classList.remove('on'); void TXT.offsetWidth; if (st.h) TXT.classList.add('on'); tAct(); log('text', st.k);
+    if (shown === i) return; shown = i; const st = STEPS[i], h = stepHTML(st, small());
+    TXT.dataset.k = st.k; TXT.dataset.n = st.n || ''; TXT.innerHTML = h; TXT.scrollTop = 0; TXT.classList.remove('on'); void TXT.offsetWidth; if (h) TXT.classList.add('on'); tAct(); log('text', st.n || st.k);
   }
-  /* mini dial (DOM): the same nine sectors + sun; tap a tick to glide there */
-  DIAL.innerHTML = '<i class="sun"></i>' + STOPS.map((st, i) => `<b data-i="${i}" class="${st.k === 'light' ? 'lt' : ''}" style="--a:${(-ang(i) + Math.PI / 2).toFixed(4)}rad"></b>`).join('');
+  /* mini dial (DOM): one tick per sector + the sun; tap a tick to go back to a sector you have reached (never ahead of the path) */
+  DIAL.innerHTML = '<i class="sun"></i>' + SEC_START.map(i => `<b data-i="${i}" class="${STEPS[i].k === 'light' ? 'lt' : ''}" style="--a:${(-ang(i) + Math.PI / 2).toFixed(4)}rad"></b>`).join('');
   const dSun = DIAL.querySelector('.sun');
   DIAL.addEventListener('pointerdown', e => e.stopPropagation());
-  DIAL.addEventListener('click', e => { const b = e.target.closest('b[data-i]'); if (!b || enter) return; const i = +b.dataset.i, cur = Math.round(s), d = mod(i - cur + 4, NS) - 4; glideTo(cur + d, Math.min(900, T_GLIDE + 80 * (Math.abs(d) - 1))) });
-  /* the text panel sits over the stage: a sideways drag on it still turns the circle; a vertical drag scrolls it only when it overflows */
+  DIAL.addEventListener('click', e => { const b = e.target.closest('b[data-i]'); if (!b || enter) return; const i = +b.dataset.i; if (i > reached) return; const cur = glide ? glide.t : Math.round(s); if (i !== cur) glideTo(i, Math.min(1400, T_GLIDE + 60 * (Math.abs(i - cur) - 1))) });
+  /* the text panel sits over the stage: a sideways drag on it still steps; a vertical drag scrolls it only when it overflows */
   const fits = () => TXT.scrollHeight <= TXT.clientHeight + 1;
   const tAct = () => { TXT.style.touchAction = fits() ? 'none' : 'pan-y' };
   TXT.addEventListener('pointerdown', e => { if (!active) return; e.stopPropagation(); try { TXT.setPointerCapture(e.pointerId) } catch (x) {} down(e); if (drag) drag.txt = !fits() });
@@ -188,12 +190,13 @@ export function mount(THREE, scene, ctx) {
   TXT.addEventListener('pointerup', e => { if (active) up(e) });
   TXT.addEventListener('pointercancel', e => { pts.delete(e.pointerId); pinch = null; if (drag && drag.id === e.pointerId) { const D = drag; drag = null; glideTo(D.s0, T_BACK) } });
   ['touchstart', 'touchmove'].forEach(t => TXT.addEventListener(t, e => { if (fits()) e.preventDefault() }, { passive: false }));
-  /* ---------- input (called by main.js while Spirit Eye is active) ---------- */
+  /* ---------- input: one gesture = one step ---------- */
+  function base() { return glide ? glide.t : Math.round(s) }
   function down(e) {
     pts.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pts.size === 2) { drag = null; const a = [...pts.values()]; pinch = { d0: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) }; if (!glide && stopNow() < 0) glideTo(Math.round(s), T_BACK); return }
+    if (pts.size === 2) { const D = drag; drag = null; const a = [...pts.values()]; pinch = { d0: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) }; if (D && !glide) glideTo(D.s0, T_BACK); return }
     if (pts.size > 2 || enter) return;
-    if (glide) { glide = null } const s0 = Math.round(s);
+    const s0 = base(); glide = null;
     drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, sStart: s, s0: s0, moved: 0, t0: performance.now(), smp: [[performance.now(), s]] };
   }
   function move(e) {
@@ -202,76 +205,75 @@ export function mount(THREE, scene, ctx) {
     if (!drag || drag.id !== e.pointerId) return;
     const dx = e.clientX - drag.x0, dy = e.clientY - drag.y0; drag.moved = Math.max(drag.moved, Math.abs(dx), Math.abs(dy)); if (drag.moved < 6) return;
     if (drag.txt && Math.abs(dy) > Math.abs(dx)) return; /* scrolling the text */
-    const W = innerWidth, H = innerHeight, d = Math.abs(dx) >= Math.abs(dy) ? -dx / (W * .5) : -dy / (H * .36);
-    s = drag.sStart + d; hideText(); drag.smp.push([performance.now(), s]); if (drag.smp.length > 8) drag.smp.shift();
+    const W = innerWidth, H = innerHeight, d = Math.abs(dx) >= Math.abs(dy) ? -dx / (W * .6) : -dy / (H * .42);
+    /* the camera follows the finger, but never further than one step from where the drag began */
+    s = clampS(Math.max(drag.s0 - .92, Math.min(drag.s0 + .92, drag.sStart + d))); hideText(); drag.dir = Math.sign(d); drag.smp.push([performance.now(), s]); if (drag.smp.length > 8) drag.smp.shift();
   }
   function up(e) {
-    const p = pts.get(e.pointerId); pts.delete(e.pointerId); if (pinch) { if (pts.size < 2) pinch = null; return }
+    pts.delete(e.pointerId); if (pinch) { if (pts.size < 2) pinch = null; return }
     if (!drag || drag.id !== e.pointerId) return; const D = drag; drag = null; const now = performance.now();
-    if (D.moved < 8 && now - D.t0 < 380) { tap(e.clientX, e.clientY); if (stopNow() < 0) glideTo(Math.round(s), T_BACK); return }
+    if (D.moved < 8 && now - D.t0 < 380) { tap(e.clientX, e.clientY); if (stopNow() < 0 || D.s0 !== Math.round(s)) glideTo(D.s0, T_BACK); return }
     const sm = D.smp.filter(q => now - q[0] < 100), v = sm.length > 1 ? (sm[sm.length - 1][1] - sm[0][1]) / Math.max(1, sm[sm.length - 1][0] - sm[0][0]) : 0, ds = s - D.s0;
-    let t;
-    if (Math.abs(v) > .0016) t = v > 0 ? Math.floor(s + 1e-6) + 1 : Math.ceil(s - 1e-6) - 1;
-    else if (Math.abs(ds) >= .25) t = Math.abs(ds) < 1 ? D.s0 + Math.sign(ds) : Math.round(s);
-    else t = D.s0;
-    glideTo(t, t === D.s0 ? T_BACK : T_GLIDE);
+    let t = D.s0;
+    if (Math.abs(ds) >= .15 || (Math.abs(v) > .0012 && Math.sign(v) === Math.sign(ds || v))) t = D.s0 + Math.sign(ds || v);
+    t = clampS(t); glideTo(t, t === D.s0 ? T_BACK : T_GLIDE); log('drag', [D.s0, t]);
   }
   function tap(x, y) { if (unlocked && ctx.pickCluster) { const C = ctx.pickCluster(x, y); if (C) { leave(C); return } } log('tap', stopNow()) }
   function wheel(e) { if (enter) return; if (e.ctrlKey) { if (e.deltaY > 2 && unlocked) leave(); return }
-    const now = performance.now(); if (now - wheelT > 260) wheelAcc = 0; wheelT = now; wheelAcc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-    if (Math.abs(wheelAcc) > 70) { const base = glide ? Math.round(glide.t) : Math.round(s); glideTo(base + Math.sign(wheelAcc), T_GLIDE); wheelAcc = -1e5 * Math.sign(wheelAcc) } }
-  function key(e) { if (enter) return; const base = glide ? Math.round(glide.t) : Math.round(s);
-    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); glideTo(base + 1, T_GLIDE) } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); glideTo(base - 1, T_GLIDE) }
-    else if (e.key === 'Escape' && unlocked) leave() }
+    /* one wheel / trackpad gesture = one step: after a step, the wheel stays locked until it has been quiet for 260 ms */
+    const now = performance.now(); if (now - wheelT > 260) { wheelAcc = 0; wheelLock = false } wheelT = now; if (wheelLock) return; wheelAcc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (Math.abs(wheelAcc) > 70) { glideTo(base() + Math.sign(wheelAcc), T_GLIDE); wheelLock = true } }
+  function key(e) { if (enter) return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); if (!e.repeat) glideTo(base() + 1, T_GLIDE) }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); if (!e.repeat) glideTo(base() - 1, T_GLIDE) }
+    else if (e.key === 'Escape' && unlocked) leave(); else if (e.key === 'Home') home() }
   function leave(C) { if (!active) return; active = false; hideText(); drag = glide = null; pts.clear(); pinch = null; ctx.onLeave(C || null); log('leave', C ? C.k : 'sky') }
   function enterFrom(pos, look, at) { active = true; enter = { p: pos.clone(), l: look.clone(), t0: performance.now() }; if (at != null) s = at; hideText(); log('enter', Math.round(s)) }
+  /* Home inside Spirit Eye: before the chapters are open, back to page 1 by the shortest line (not back through every page) */
+  function home() { if (unlocked) { leave(); return } if (Math.round(base()) === 0 && atRest()) return; enterFrom(lastCam.p, lastCam.l, 0) }
   /* ---------- per frame ---------- */
-  const cp = V(0, 0, 0), cl = V(0, 0, 0);
-  let lastLog = -1;
+  const cp = V(0, 0, 0), cl = V(0, 0, 0), lastCam = { p: V(0, 0, 0), l: V(0, 0, 0) };
+  let lastLog = -1, progKey = '';
   function update(now, cam) {
-    if (glide) { const u = Math.min(1, (now - glide.t0) / glide.d); s = glide.s0 + (glide.t - glide.s0) * EASE(u); if (u >= 1) { s = glide.t; glide = null; settleAt = now; const i = stopNow(); if (i >= 0) { s = mod(Math.round(s), NS) } } }
+    if (glide) { const u = Math.min(1, (now - glide.t0) / glide.d); s = glide.s0 + (glide.t - glide.s0) * EASE(u); if (u >= 1) { s = glide.t; glide = null; settleAt = now } }
     if (!drag && !glide && !enter && stopNow() < 0) glideTo(Math.round(s), T_BACK);
-    const i = stopNow();
-    if (i >= 0 && atRest()) { if (now - settleAt > 260) showText(i); if (i === UNLOCK && !unlocked) { unlocked = true; ctx.onUnlock(); log('unlock', 1) } }
-    if (i !== lastLog && i >= 0 && atRest()) { lastLog = i; log('at', STOPS[i].k) }
-    /* visuals that follow s (same with Reduce Motion: they are positions, not loops) */
+    const i = stopNow(), rest = i >= 0 && atRest();
+    if (rest) { if (i > reached) reached = i; if (now - settleAt > 260) showText(i); if (i === UNLOCK && !unlocked) { unlocked = true; ctx.onUnlock(); log('unlock', 1) } }
+    if (i !== lastLog && rest) { lastLog = i; log('at', STEPS[i].n || STEPS[i].k) }
     const a = ang(s); sun.position.set(Math.cos(a) * 7.6, .9, -Math.sin(a) * 7.6); sunCore.position.copy(sun.position);
-    const sm = mod(s, NS), near = c => Math.max(0, 1 - Math.abs(sm - c) / 1.4);
-    const L = Math.max(.38, near(6), .55 * near(5), .6 * near(7)); /* the light is strongest at its own beat */
+    const near = c => Math.max(0, 1 - Math.abs(s - c) / 1.4);
+    const L = Math.max(.38, near(LIGHT), .55 * near(LIGHT - 1), .6 * near(LIGHT + 1));
     const above = cam.position.y > 0 ? .55 : 1; UB.uI.value = (.32 + .5 * L) * above; pool.material.opacity = .35 + .3 * L; eyeGlow.material.opacity = .5 + .5 * L; fibers.material.opacity = .12 + .22 * L; motes.material.opacity = .25 + .65 * L;
     if (active || enter) {
       poseAt(s, cp, cl);
       if (enter) { const u = Math.min(1, (now - enter.t0) / T_ENTER), k = EASE(u); cp.lerpVectors(enter.p, cp, k); cl.lerpVectors(enter.l, cl, k); if (u >= 1) { enter = null; settleAt = now } }
       cam.position.copy(cp); cam.up.set(0, 1, 0); if (Math.abs(cl.x - cp.x) < 1e-3 && Math.abs(cl.z - cp.z) < 1e-3) cl.z -= .01; cam.lookAt(cl);
+      lastCam.p.copy(cp); lastCam.l.copy(cl);
     }
-    const camY = cam.position.y, dC = cam.position.length();
+    const camY = cam.position.y;
     under.visible = camY < .4; ceil.visible = camY < .4;
     faceM.opacity = Math.max(.18, Math.min(1, (Math.hypot(cam.position.x, cam.position.y - .6, cam.position.z) - 2.2) / 7)); housing.material.opacity = .5 + .42 * faceM.opacity;
     water.material.opacity = camY < 0 ? .98 : .9;
-    planes.forEach(m => { const d = Math.abs(sm - m.userData.stop), dd = Math.min(d, NS - d); m.material.opacity = active ? Math.max(0, 1 - dd / .9) : 0; m.visible = m.material.opacity > .01 });
+    planes.forEach(m => { const d = Math.abs(s - m.userData.stop); const o = active && !enter ? Math.max(0, 1 - d / .8) : 0; m.material.opacity = o * o * (3 - 2 * o); m.visible = m.material.opacity > .01; if (d < 2.5) ensureTex(m) });
     halo.material.opacity = .22 * (active ? 1 : .6);
-    const dsun = DIAL.dataset; if (dsun.s !== sm.toFixed(3)) { dsun.s = sm.toFixed(3); dSun.style.transform = `rotate(${(-a + Math.PI / 2).toFixed(4)}rad) translateY(-19px)`; DIAL.querySelectorAll('b').forEach((b, j) => b.classList.toggle('on', j === i)) }
+    const ds = DIAL.dataset; if (ds.s !== s.toFixed(3)) { ds.s = s.toFixed(3); dSun.style.transform = `rotate(${(-a + Math.PI / 2).toFixed(4)}rad) translateY(-19px)`;
+      const cur = SEC_START.filter(x => x <= Math.round(s)).pop(); DIAL.querySelectorAll('b').forEach(b => { const j = +b.dataset.i; b.classList.toggle('on', j === cur); b.classList.toggle('no', j > reached) }) }
+    const st = STEPS[clampS(Math.round(glide ? glide.t : s))], pk = (st.n ? 'p. ' + st.n + ' / 32' : '') + '|' + (Math.round(glide ? glide.t : s));
+    if (pk !== progKey) { progKey = pk; PROG.querySelector('.t').textContent = st.n ? 'p. ' + st.n + ' / 32' : (st.k === 'light' ? '·' : ''); PROG.dataset.step = clampS(Math.round(glide ? glide.t : s)); PROG.classList.toggle('first', !Math.round(glide ? glide.t : s)); PROG.classList.toggle('last', Math.round(glide ? glide.t : s) >= NS - 1) }
   }
-  const LOG = []; function log(k, v) { LOG.push([Math.round(performance.now()), k, v]); if (LOG.length > 300) LOG.shift() }
+  const LOG = []; function log(k, v) { LOG.push([Math.round(performance.now()), k, v]); if (LOG.length > 400) LOG.shift() }
   function resize(aspect) { layoutPath(aspect); placeAll(aspect) }
-  return { group: g, get active() { return active }, get unlocked() { return unlocked }, update, down, move, up, wheel, key, enterFrom, leave, resize, log: LOG, NS,
+  return { group: g, get active() { return active }, get unlocked() { return unlocked }, update, down, move, up, wheel, key, enterFrom, leave, resize, home, log: LOG, NS, STEPS,
     hit(x, y, cam) { const v = V(0, .6, 0).project(cam); if (v.z > 1) return false; const sx = (v.x + 1) / 2 * innerWidth, sy = (1 - v.y) / 2 * innerHeight; const e = V(6.7, .6, 0).project(cam), r = Math.hypot((e.x + 1) / 2 * innerWidth - sx, (1 - e.y) / 2 * innerHeight - sy); return Math.hypot(x - sx, y - sy) < Math.max(40, r) },
-    st: () => ({ s: +s.toFixed(4), stop: stopNow(), k: stopNow() >= 0 ? STOPS[stopNow()].k : null, rest: atRest(), text: shown >= 0 ? STOPS[shown].k : null, active, unlocked, glide: !!glide, enter: !!enter }),
-    go: d => glideTo((glide ? Math.round(glide.t) : Math.round(s)) + d, T_GLIDE) };
+    st: () => { const i = stopNow(); return { s: +s.toFixed(4), stop: i, n: i >= 0 ? STEPS[i].n || null : null, k: i >= 0 ? STEPS[i].k : null, rest: atRest(), text: shown, active, unlocked, reached, glide: !!glide, enter: !!enter, NS, pl: planes.filter(m => m.visible).map(m => [m.userData.f, !!(m.material.map && m.material.map.image), +m.material.opacity.toFixed(2)]) } },
+    go: d => { if (!enter) glideTo(base() + d, T_GLIDE) } };
 }
-/* ---------- no WebGL: the sections as a simple sequence ---------- */
+/* ---------- no WebGL: every page as a simple sequence ---------- */
 export function fallback(el) {
-  const e = x => String(x).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
-  const FIMG = { arrival: ['p07-plan-dial'], land: ['p02-behind-eye'], site: ['p12-scene3'], description: ['p09-scene4'], statement: ['p01-eye'], materials: ['p16-scene2'], ecosystem: ['p17-side-view'], community: ['p25-side-eye2'] };
-  el.innerHTML = '<div class="se-seq">' + STOPS.map(st => {
+  el.innerHTML = '<div class="se-seq">' + STEPS.map(st => {
     if (st.k === 'light') return '<section class="se-s light" aria-label="light"><div class="beam" aria-hidden="true"></div></section>';
-    let o = `<section class="se-s" data-k="${st.k}">` + (FIMG[st.k] || []).map(f => `<img src="${IMG(f)}" alt="" loading="lazy">`).join('');
-    if (st.h) o += `<h2>${e(st.h)}</h2>`; if (st.by) o += `<p class="by">${e(st.by)}</p>`;
-    (st.sub || []).forEach(x => o += `<p class="sub">${e(x)}</p>`); (st.p || []).forEach(x => o += `<p>${e(x)}</p>`);
-    (st.pairs || []).forEach(x => o += `<p class="pair"><b>${e(x[0])}</b>${x[1] ? '<br>' + e(x[1]) : ''}</p>`);
-    if (st.list) o += '<ul class="cv">' + st.list.map(x => `<li>${e(x)}</li>`).join('') + '</ul>';
-    if (st.plants) o += '<ul class="plants">' + st.plants.map(x => `<li>${e(x)}</li>`).join('') + '</ul>';
-    if (st.k === 'arrival') o += `<p><a href="${data.page}">open ›</a></p>`;
-    return o + '</section>';
+    if (st.k === 'sky') return '';
+    const pg = st.pg; let o = `<section class="se-s" data-n="${pg.n}"><p class="pn">p. ${pg.n} / 32</p>` + pg.img.filter(x => x[0] !== pg.pimg).map(x => `<img src="${PIMG(x[0], true)}" width="${x[1]}" height="${x[2]}" alt="" loading="lazy">`).join('');
+    return o + stepHTML(st, true).replace(/ style="transition-delay:[^"]*"/g, '').replace(/<p class="hint">[^<]*<\/p>/, '') + '</section>';
   }).join('') + '</div>';
 }

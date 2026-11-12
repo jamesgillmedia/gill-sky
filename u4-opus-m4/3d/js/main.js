@@ -4,7 +4,7 @@
 import * as SE from './spirit-eye.js';
 const html = document.documentElement;
 const $ = s => document.querySelector(s);
-const WHERE = $('#where'), PANEL = $('#panel'), HOMEB = $('#home');
+const WHERE = $('#where'), PANEL = $('#panel'), HOMEB = $('#home'), BACKB = $('#back');
 const UNL = (() => { try { return sessionStorage.getItem('gj3.se') === '1' } catch (e) { return false } })();
 function saveUnlock() { try { sessionStorage.setItem('gj3.se', '1') } catch (e) {} }
 const LOG = []; function log(k, v) { LOG.push([Math.round(performance.now()), k, v]); if (LOG.length > 300) LOG.shift() }
@@ -67,7 +67,7 @@ function start() {
     lines.forEach(l => { x.font = l.f; x.fillStyle = l.c || '#e4ebf5'; x.textAlign = 'center'; x.textBaseline = 'middle'; if (l.ls) x.letterSpacing = l.ls; x.fillText(l.s, w / 2, l.y) }); return ctex(c) }
   function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
   /* ---------- the anchor ---------- */
-  const SEC = SE.mount(THREE, scene, { glowTex: GT, text: $('#setext'), dial: $('#sedial'), unlocked: UNL || !!location.hash.slice(1),
+  const SEC = SE.mount(THREE, scene, { glowTex: GT, text: $('#setext'), dial: $('#sedial'), measure: $('#semeasure'), prog: $('#seprog'), unlocked: UNL || !!location.hash.slice(1),
     onUnlock: () => { saveUnlock(); html.classList.remove('selocked') }, pickCluster: (x, y) => pick(x, y), onLeave: C => leftSE(C) });
   if (!SEC.unlocked) html.classList.add('selocked'); else saveUnlock();
   /* ---------- six clusters on an orbit around it ---------- */
@@ -105,7 +105,7 @@ function start() {
   function adopt() { cam.getWorldDirection(fw); const d = Math.max(8, cam.position.length()); const tp = cam.position.clone().addScaledVector(fw, d); T.forEach((q, i) => { q.x = q.t = tp.getComponent(i); q.v = 0 });
     const o = cam.position.clone().sub(tp); DIST.x = DIST.t = o.length(); DIST.v = 0; EL.x = EL.t = Math.asin(Math.max(-1, Math.min(1, o.y / DIST.x))); AZ.x = AZ.t = Math.atan2(o.x, o.z); AZ.v = EL.v = 0 }
   function leftSE(C) { adopt(); if (C) aim(C); else goHome(); }
-  function goSE() { FOC = null; MODE = 'se'; showPanel(null); where(''); cam.getWorldDirection(fw); SEC.enterFrom(cam.position, cam.position.clone().addScaledVector(fw, 20)); log('se', 1) }
+  function goSE(at) { FOC = null; MODE = 'se'; showPanel(null); where(''); cam.getWorldDirection(fw); SEC.enterFrom(cam.position, cam.position.clone().addScaledVector(fw, 20), at); log('se', 1) }
   function goHome(w) { FOC = null; MODE = 'home'; setT(v3.set(0, 0, 0), w || W_FLY); DIST.t = HOME.d; DIST.w = w || W_FLY; face(w || W_FLY); EL.t = HOME.el; showPanel(null); where('everything'); log('home', 1) }
   function where(s) { WHERE.textContent = s }
   function showPanel(C) {
@@ -135,9 +135,13 @@ function start() {
   function onAnchor(x, y) { return SEC.hit(x, y, cam) }
   function tap(x, y) { seen(); const C = pick(x, y);
     if (C) { if (FOC === C) openC(C); else aim(C); return }
-    if (onAnchor(x, y)) { goSE(); return }
+    if (onAnchor(x, y)) { goSE(null); return }
     if (MODE !== 'home') goHome() }
-  HOMEB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); if (MODE === 'se') { if (SEC.unlocked) SEC.leave() } else goHome() });
+  /* Home is always there: in Spirit Eye it goes back to page 1 (or, once the chapters are open, out to the sky); elsewhere to the sky */
+  HOMEB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); if (MODE === 'se') SEC.home(); else goHome() });
+  /* Back is always one step: one page in Spirit Eye; chapter -> sky; sky -> back into Spirit Eye at its last step */
+  BACKB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) { window.GJ3_REEL.close(); return } if (MODE === 'se') SEC.go(-1); else if (FOC) goHome(); else goSE(SEC.NS - 1) });
+  $('#seprog .nx').addEventListener('click', () => { if (MODE === 'se') SEC.go(1) });
   addEventListener('keydown', e => { if (window.GJ3_REEL.isOpen) return; if (MODE === 'se') { SEC.key(e); return } seen(); if (e.key === 'Escape' || e.key === 'Home') goHome();
     else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const i = FOC ? CL.indexOf(FOC) : -1, n = CL.length; aim(CL[(i + (e.key === 'ArrowRight' ? 1 : n - 1) + (i < 0 && e.key === 'ArrowLeft' ? 1 : 0)) % n]) }
     else if (e.key === 'Enter' && FOC) openC(FOC) });
