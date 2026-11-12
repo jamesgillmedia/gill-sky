@@ -1,0 +1,38 @@
+/* tonight · the one sky (restore, Nov 12): the opener and the field on one page. Chrome budget (board D): the mark, the crumb,
+   Reel and Hire; List, Contact and mood live in the mark's menu at the whole field. Text in the sky: Julius Sans One / Poppins
+   light, hairlines, no filled pills, no pure white. */
+#gjview{z-index:0}
+#c{z-index:1;opacity:0;pointer-events:none;background:transparent}
+html.tn-sky #c{pointer-events:auto}
+html.tn-sky #stage{pointer-events:none}
+#hud{display:none!important}
+#bar{z-index:6;gap:2px;align-items:center}
+#bar .sig{min-width:44px;color:#e6edf0}
+#bar #out{font:300 22px/1 Poppins,sans-serif;letter-spacing:0;padding:0 8px;min-width:36px;color:#c9d3d6}
+#bar #out[hidden]{display:none}
+#where{opacity:0;transition:opacity .4s;padding-left:4px}
+html.tn-sky #where{opacity:1}
+#bar a#reel,#bar #hire{font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;text-transform:lowercase;color:#c9d3d6;text-decoration:none;background:none;border:0;min-height:44px;display:inline-flex;align-items:center;padding:0 9px;cursor:pointer;white-space:nowrap}
+#bar a#reel:focus-visible{outline:2px solid #55DAA1;outline-offset:2px}
+#bar #hire[aria-expanded="true"],#bar .sig[aria-expanded="true"]{color:#55DAA1}
+#menu{position:fixed;z-index:6;left:calc(env(safe-area-inset-left) + 14px);top:calc(env(safe-area-inset-top) + 58px);display:flex;flex-direction:column;gap:0;padding:4px 0 0;border-top:1px solid rgba(200,225,255,.28)}
+#menu[hidden],#hirecard[hidden]{display:none}
+#menu a{font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;color:#d6dee2;text-decoration:none;min-height:40px;line-height:40px;padding:0 4px;text-shadow:0 0 8px #04060c}
+#menu a:focus-visible,#hirecard a:focus-visible{outline:2px solid #55DAA1;outline-offset:2px}
+#hirecard{position:fixed;z-index:6;right:calc(env(safe-area-inset-right) + 14px);top:calc(env(safe-area-inset-top) + 58px);max-width:min(280px,80vw);padding:6px 2px 0;border-top:1px solid rgba(200,225,255,.28);font:300 12px/1.5 Poppins,sans-serif;color:#c9d3d6;text-align:right;text-shadow:0 0 8px #04060c}
+#hirecard p{margin:0 0 4px}
+#hirecard a{color:#d6dee2;text-decoration:none;border-bottom:1px solid rgba(85,218,161,.5);display:inline-block;min-height:32px;line-height:32px}
+#hint{display:none;z-index:3;transition:opacity .6s}
+html.tn-sky #hint{display:block}
+#foot{z-index:3}
+#foot b{font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;text-transform:lowercase;color:#aeb9bd}
+.chip{z-index:5}
+/* mood (the opener's ambience), opened from the mark's menu: text and hairlines, no card */
+.amb-toggle{display:none!important}
+.ambui{z-index:7}
+.amb-tray{background:none!important;border:0!important;border-top:1px solid rgba(200,225,255,.28)!important;border-radius:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important;text-shadow:0 0 8px #04060c}
+.amb-reset{border:0!important;border-radius:0!important;text-align:left;padding:8px 0!important}
+.amb-row input[type=range]::-webkit-slider-thumb{background:#d6dee2!important;box-shadow:none!important}
+.amb-val{color:#c9d3d6!important}
+/* a room grows out of its star: the field gives way for a moment (the same with Reduce Motion on) */
+html.tn-going #c{transition:opacity .38s ease-in;opacity:.15!important}

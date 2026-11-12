@@ -42,11 +42,22 @@ html,body{margin:0;height:100%;background:#04060c;color:#e6edf0;overflow:hidden;
 #board.side .bp img{max-height:calc(100vh - 64px - 150px);width:auto;max-width:100%}
 #board.side.masked .bw{grid-template-columns:1fr;grid-template-areas:"f"}
 #board:focus{outline:none}
-/* tonight: one board screen (item 9) */
-#board .bpl{margin:10px 0 0}#board .bpl a{color:#55DAA1;text-decoration:none;font:400 14px Poppins,sans-serif;display:inline-block;min-height:44px;line-height:44px}
-#board .bh{grid-column:1/-1;margin:4px 0 0;text-align:center;color:#8d9aa0;font:300 12px Poppins,sans-serif}
-#board .bs{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-#board.side .bs{grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}
-/* K11: the position line wraps at words, never cut */
+
+/* tonight restore: one family for every control — the mark in its own face, Julius Sans One labels, hairlines, no filled pills */
+#bar button{background:none;border:0;border-radius:0;color:#c9d3d6;font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;text-transform:lowercase;padding:0 10px}
+#bar .sig{font:700 20px Syl,sans-serif;letter-spacing:.02em;color:#e6edf0;padding:0 12px}
+#bar button[aria-pressed="true"]{color:#55DAA1}
+#hint{background:none;border:0;border-radius:0;padding:6px 0;font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;text-transform:lowercase;color:#aeb9bd;text-shadow:0 0 8px #04060c,0 0 3px #04060c}
 #where{white-space:normal;overflow:visible;text-overflow:clip;max-width:none;flex:1 1 auto;min-width:0;line-height:1.35;letter-spacing:.08em;font-size:11px;overflow-wrap:normal;word-break:normal}
 #bar .sp{flex:0 0 0}
+#board .bn{background:linear-gradient(rgba(4,6,12,0),rgba(4,6,12,.9) 40%)}
+#board .bn button{background:none;border:0;border-bottom:1px solid rgba(200,225,255,.28);border-radius:0;font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;color:#e6edf0;min-height:44px;padding:0 4px}
+#board .bpl{margin:10px 0 0}
+#board .bpl a{display:inline-block;min-height:44px;line-height:44px;color:#e6edf0;text-decoration:none;font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;border-bottom:1px solid rgba(85,218,161,.6);line-height:30px;margin-top:6px}
+#board .bpl a:focus-visible{outline:2px solid #55DAA1;outline-offset:3px}
+/* the name + "open ›" chip: text in the sky with a hairline, not a box */
+.chip{position:fixed;left:0;top:0;z-index:4;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;max-width:min(320px,86vw);padding:6px 2px 4px;border-top:1px solid rgba(200,225,255,.28);opacity:0;transition:opacity .25s;font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;text-transform:lowercase;text-shadow:0 0 8px #04060c,0 0 3px #04060c;pointer-events:auto}
+.chip.on{opacity:1}.chip[hidden]{display:none}
+.chip .nm{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
+.chip a{color:#e6edf0;text-decoration:none;display:inline-block;min-height:32px;line-height:32px}
+.chip a:focus-visible{outline:2px solid #55DAA1;outline-offset:2px}

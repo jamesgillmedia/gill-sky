@@ -38,7 +38,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 #gjinv{position:absolute;inset:0;pointer-events:none;z-index:20;mix-blend-mode:difference;background:#000;display:none;transition:background-color .2s ease-out}
 #gjgrain{position:fixed;left:0;top:0;width:calc(100vw + 256px);height:calc(100vh + 256px);pointer-events:none;z-index:50;display:none;mix-blend-mode:overlay;background-repeat:repeat;background-size:128px 128px;will-change:transform}
 </style>
-<link rel="stylesheet" href="../../_tn/back.css"><link rel="stylesheet" href="../../_tn/sky-nav.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
+<link rel="stylesheet" href="../../_tn/back.css"><link rel="stylesheet" href="../../_tn/sky-in.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
 <body>
 <div id="gjview">
 <div id="stage" aria-label="Opening: pinch in to go through the sky">
@@ -48,7 +48,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 </div>
 <header id="hud">
 <button type="button" id="back" hidden aria-label="back one stage">&#8249;</button>
-<a class="sig" href="../../hub/" target="_top" lang="cr" aria-label="home · the constellation">ᑕᐣᓯ</a>
+<a class="sig" href="./" lang="cr" aria-label="the whole sky">ᑕᐣᓯ</a>
 </header>
 <p id="foot"><b id="hint">pinch in</b></p>
 </div>
@@ -432,7 +432,7 @@ function draw(t,dt,now){
       g.beginPath();g.moveTo(a1.px,a1.py);g.lineTo(b1.px,b1.py);g.stroke();
     }
     g.globalAlpha=conB*.72;g.font='300 '+(11*(window.GJFX&&GJFX.val('txt')||100)/100).toFixed(1)+'px "Julius Sans One",Poppins,sans-serif';g.textAlign='center';g.textBaseline='middle';
-    for(var c=0;c<CLU.length;c++){g.fillStyle='rgba('+CLU[c].tint+',1)';window.TN_NAV||g.fillText(CLU[c].k,CLU[c].x,CLU[c].y)}
+    for(var c=0;c<CLU.length;c++){g.fillStyle='rgba('+CLU[c].tint+',1)';g.fillText(CLU[c].k,CLU[c].x,CLU[c].y)}
   }
   /* the poem line, crisp, while the stars hold it */
   if(lineB>.01){
@@ -484,6 +484,6 @@ window.GJ_OPENER={get P(){return P},get T(){return T},get threshold(){return PIN
 (function(){var done=false;function go(){if(!done){done=true;init()}}if(document.fonts&&document.fonts.load){Promise.all([document.fonts.load('300 40px Poppins'),document.fonts.load('300 12px "Julius Sans One"')]).then(function(){if(done){if(P<.3)layout()}else go()},go);setTimeout(go,400)}else go()})();
 })();
 </script>
-<script src="../../_tn/sky-nav.js" data-tn-root="../../"></script>
+<script src="../../_tn/sky-in.js" data-tn-root="../../"></script>
 </body>
 </html>

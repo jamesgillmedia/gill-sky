@@ -1,11 +1,16 @@
-/* tonight · the way home is the ᑕᐣᓯ mark in each piece's own bar (spec K12); no floating pill */
-.tn-back{display:none!important}
-.tn-mark{position:fixed;z-index:2147483600;left:calc(12px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));
-  font:700 18px/1 "Noto Sans Canadian Aboriginal",Syl,system-ui,sans-serif;color:#eef3f5;text-decoration:none;opacity:.8;
-  padding:10px 6px;min-width:44px;min-height:44px;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-.tn-mark:hover,.tn-mark:focus-visible{opacity:1}
-@media print{.tn-mark{display:none}}
+/* tonight · the way back (restore). No floating pill and no added mark. */
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(fonts/julius-sans-one.woff2) format("woff2")}
+.tn-back,.tn-mark{display:none!important}
+/* only on a piece with no way out of its own, entered from the constellation: one quiet "‹" in the hairline family */
+.tn-ret{position:fixed;z-index:2147483600;left:calc(8px + env(safe-area-inset-left,0px));top:calc(6px + env(safe-area-inset-top,0px));
+  min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;box-sizing:border-box;
+  font:400 22px/1 "Julius Sans One",Poppins,sans-serif;color:#e6edf0;text-decoration:none;opacity:.78;text-shadow:0 0 8px rgba(4,6,12,.9);-webkit-tap-highlight-color:transparent}
+.tn-ret:hover,.tn-ret:focus-visible{opacity:1}
+.tn-ret:focus-visible{outline:2px solid #55DAA1;outline-offset:2px}
+@media print{.tn-ret{display:none}}
 /* one position marker: crumb + depth rail; the cards' bottom dot-pager is dropped */
 #opc .oc-dots{display:none!important}
 .rooms[hidden]{display:none!important}
 .deck .p-room{display:none!important}
+/* chrome budget (Sketch board D): a film page keeps its mark; Index · List · Contact live in the mark's menu at the whole sky */
+header.top nav.links{display:none!important}

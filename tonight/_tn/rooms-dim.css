@@ -1,0 +1,18 @@
+/* tonight · low glare in the rooms (restore, after Sketch board 0 §4): rooms stay night. A dark backdrop around the prints,
+   dimmed mats and prints, the safelight kept as the Darkroom's identity, no mid-grey page behind the work. Toolbars: dim,
+   small, in the free faces, no pure white, no pill backgrounds. No Reduce Motion branch. */
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(fonts/julius-sans-one.woff2) format("woff2")}
+:root{--paper:#3e3a35!important;--ink-base:#d6dee2;--ink:#d6dee2}
+.room,.wall{background:radial-gradient(120% 75% at 80% 0%,#24130f,#0c0807 55%,#060404),#060404!important}
+body.dr:not(.safe) .room,body.dr:not(.safe) .wall{background:radial-gradient(130% 90% at 50% 0%,#191715,#090807 70%),#090807!important}
+body.safe.dr .room,body.safe.dr .wall{background:radial-gradient(120% 75% at 80% 0%,#2e100c,#120605 55%,#080303),#080303!important}
+.floor{filter:brightness(.6)}
+.pr img,.pr video,.wall img,.wall video,.mat img,.mat video,.stack img,.stack video,.hero img,.fm img,.cell .win img{filter:brightness(.5)!important;-webkit-filter:brightness(.5)!important}
+.pr .pp,.wall .page img,.wall .page video,.mat{box-shadow:0 10px 22px rgba(0,0,0,.7)!important}
+.sky::before{opacity:.32}
+.hero{background:#05070a!important}
+.lab-btn,.rooms,.amb{background:none!important;border-color:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;box-shadow:none!important}
+.lab-btn,.rooms .lab-btn{font-family:"Julius Sans One",Poppins,sans-serif!important;font-size:11px!important;letter-spacing:.14em;text-transform:lowercase;color:#bfc9cd!important}
+.rooms .lab-btn.on{background:none!important;color:#55DAA1!important;border-bottom:1px solid rgba(85,218,161,.5)!important}
+.lab-hint{background:none!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font:400 11px/1.6 "Julius Sans One",Poppins,sans-serif!important;letter-spacing:.12em;color:#aeb9bd!important;text-shadow:0 0 8px #000}
+.lab-top .sig{color:#e6edf0!important}

@@ -1,42 +1,67 @@
-/* tonight · the way home (spec K12). There is no floating pill any more: the ᑕᐣᓯ mark already in each piece's own bar
- is the way home. Its own behaviour is kept (it flies to that piece's FAR in one move); tapped again at FAR it opens
- the constellation. Only a page with no mark of its own gets a small mark in its top-left corner. Nothing here moves on its own; Reduce Motion changes nothing.
- The page that loads this sets data-tn-root (relative path to the tonight/ root) and optionally data-tn-href. */
+/* tonight · the way back (restore, Nov 12). Nothing floats, nothing is drawn in another face, no page is taken over.
+ - In the opener's frame it stands aside (the outer page has its own mark).
+ - A piece's own ᑕᐣᓯ that pointed off the page (the old index, the tiled moon, the opener) now flies to the whole sky:
+   the constellation, at its whole field (K12). The piece's own in-page mark keeps its own job (its own FAR); pressed
+   again at that FAR, it flies to the whole sky.
+ - Entered from the constellation: Esc at the piece's top level, a pinch-out at its top, or Back goes out one level, to
+   the star you entered from (the constellation saved its camera when you went in). A page with no way out of its own
+   gets one quiet "‹" (no mark is added).
+ Nothing here moves on its own; there is no Reduce Motion branch. The page sets data-tn-root (path to tonight/). */
 (function(){
-  var s=document.currentScript,root=(s&&s.getAttribute('data-tn-root'))||'./',href=(s&&s.getAttribute('data-tn-href'))||(root+'hub/');
+  var s=document.currentScript,root=(s&&s.getAttribute('data-tn-root'))||'./';
   try{if(window.self!==window.top)return}catch(e){return}
-  if(s&&s.getAttribute('data-tn-mode')==='own')return;   /* the piece wires its own mark (the blend: FAR first, then home) */
+  if(s&&s.getAttribute('data-tn-mode')==='own')return;
+  var SKY=new URL(root+'#far',location.href),ROOT=new URL(root,location.href);
+  var OFF=[new URL(root+'constellation-blend/',location.href).pathname,new URL(root+'hub/',location.href).pathname,new URL(root+'tiled-moon/',location.href).pathname,ROOT.pathname,ROOT.pathname+'index.html'];
+  function ret(){try{var r=JSON.parse(sessionStorage.getItem('tn-ret')||'null'),room=sessionStorage.getItem('tn-room');
+      if(r&&room&&location.pathname.indexOf(room)===0)return r}catch(e){}return null}
+  function atTop(){var h=document.documentElement;return !h.classList.contains('deep')&&(!location.hash||location.hash==='#'||location.hash==='#/')&&!document.querySelector('[role=dialog]:not([hidden]),dialog[open]')}
+  function sky(){location.href=SKY.href}
+  /* one level out, to the star you came in from */
+  var leaving=false;
+  function out(){if(leaving)return;var r=ret();if(!r){sky();return}leaving=true;setTimeout(function(){leaving=false},1500);
+    var ref='';try{ref=document.referrer?new URL(document.referrer).pathname:''}catch(e){}
+    /* a piece with its own ladder keeps one history entry per place: step over them all, back to the star */
+    var n=1+(window.LAB&&LAB.layer&&LAB.layer.depth?LAB.layer.depth():0);
+    if(ref===ROOT.pathname&&history.length>n){history.go(-n);return}
+    location.href=new URL(r.href,location.href).pathname+'#back'}
   var MARK=/^\s*ᑕᐣᓯ\s*$/;
-  function findMark(){
-    var sel='a.sig,button.sig,.sig,[data-mark],#mark,.mark,.brand,.logo,a[lang="cr"],button[lang="cr"],span[lang="cr"]';
-    var c=[].slice.call(document.querySelectorAll(sel));
-    [].forEach.call(document.querySelectorAll('a,button,span,div,b,strong,h1'),function(e){if(e.children.length===0&&MARK.test(e.textContent||''))c.push(e)});
-    for(var i=0;i<c.length;i++){var e=c[i],r=e.getBoundingClientRect();if(!r.width||!r.height)continue;
-      if(r.top<140&&r.left<window.innerWidth*0.5&&(MARK.test(e.textContent||'')||e.querySelector('svg')||/sig|mark|brand|logo/.test(e.className)))return e}
-    return null}
-  /* the added mark never sits on the page's own controls: first free corner wins */
-  function busy(x,y){var es=document.elementsFromPoint(x,y);for(var i=0;i<es.length;i++){var e=es[i];if(e.classList&&e.classList.contains('tn-mark'))continue;if(e.closest&&e.closest('a,button,input,select,textarea,[role=button],[role=slider],label'))return true}return false}
-  function place(m){var W=innerWidth,H=innerHeight,c=[['left','top'],['right','top'],['left','bottom'],['right','bottom']];
-    for(var i=0;i<c.length;i++){m.style.left=m.style.right=m.style.top=m.style.bottom='';
-      m.style[c[i][0]]='calc(10px + env(safe-area-inset-'+c[i][0]+',0px))';m.style[c[i][1]]='calc(8px + env(safe-area-inset-'+c[i][1]+',0px))';
-      var r=m.getBoundingClientRect(),pts=[[r.left+2,r.top+2],[r.right-2,r.top+2],[r.left+2,r.bottom-2],[r.right-2,r.bottom-2],[(r.left+r.right)/2,(r.top+r.bottom)/2]],hit=false;
-      for(var k=0;k<pts.length;k++){if(busy(pts[k][0],pts[k][1])){hit=true;break}}
-      if(!hit)return}
-    /* every corner taken: sit just below the top-left controls */
-    m.style.left='calc(10px + env(safe-area-inset-left,0px))';m.style.right='';m.style.bottom='';m.style.top='calc(64px + env(safe-area-inset-top,0px))'}
-  function go(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();window.top.location.href=href}
-  function wire(fallback){
-    if(document.documentElement.hasAttribute('data-tn-home'))return;
-    var m=findMark();
-    if(!m){if(!fallback)return;m=document.createElement('a');m.className='tn-mark';m.lang='cr';m.textContent='ᑕᐣᓯ';(document.body||document.documentElement).appendChild(m);place(m)}
-    document.documentElement.setAttribute('data-tn-home',m.classList.contains('tn-mark')?'added':'own');
-    if(m.classList.contains('tn-mark')){m.href=href;m.target='_top';m.setAttribute('aria-label','home · the constellation');m.addEventListener('click',go,true)}
-    else if(m.tagName==='A'&&m.getAttribute('href')&&m.getAttribute('href').charAt(0)!=='#'){/* the piece's own mark link (its FAR, K12): untouched */}
-    else{/* the piece's own mark flies to its FAR (K12); tapped again at FAR it goes home */
-      m.addEventListener('click',function(e){var h=document.documentElement;if(!h.classList.contains('deep')&&(!location.hash||location.hash==='#')&&!document.querySelector('[role=dialog]:not([hidden])'))go(e)},true)}
-    m.style.cursor='pointer';
-    ['pointerdown','touchstart','mousedown'].forEach(function(t){m.addEventListener(t,function(e){e.stopPropagation()},{passive:true,capture:true})});
-  }
-  function later(){wire();[300,1000,2000].forEach(function(t){setTimeout(function(){wire()},t)});setTimeout(function(){wire(true)},3200)}  /* pieces that build their bar after load */
+  function marks(){var c=[].slice.call(document.querySelectorAll('a.sig,button.sig,.sig'));
+    [].forEach.call(document.querySelectorAll('a,button'),function(e){if(e.children.length===0&&MARK.test(e.textContent||'')&&c.indexOf(e)<0)c.push(e)});
+    return c.filter(function(e){return MARK.test(e.textContent||'')&&!e.classList.contains('tn-ret')})}
+  function wireMark(m){if(m.hasAttribute('data-tn-w'))return;m.setAttribute('data-tn-w','1');
+    var href=m.tagName==='A'?m.getAttribute('href'):null,u=null;try{u=href?new URL(href,location.href):null}catch(e){}
+    if(u&&(OFF.indexOf(u.pathname)>=0||(u.pathname!==location.pathname&&ret()))){m.setAttribute('href',SKY.href);m.removeAttribute('target');m.setAttribute('aria-label','the whole sky');return}
+    /* its own mark (its own FAR): its own job first; pressed again at that FAR, the whole sky */
+    m.addEventListener('click',function(e){if(atTop()&&(!u||u.pathname===location.pathname)){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();sky()}},true)}
+  function wire(){var ms=marks();ms.forEach(wireMark);
+    var x=document.querySelector('.tn-ret'),r=ret();
+    if(ms.length||!r){if(x)x.remove();return}
+    if(x)return;
+    /* entered from the constellation and no way out of its own: one quiet "‹", top left, nothing else */
+    var a=document.createElement('a');a.className='tn-ret';a.href=new URL(r.href,location.href).pathname+'#back';a.setAttribute('aria-label','back to the constellation, where you were');a.textContent='‹';
+    a.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();out()},true);
+    ['pointerdown','touchstart','mousedown'].forEach(function(t){a.addEventListener(t,function(e){e.stopPropagation()},{passive:true,capture:true})});
+    (document.body||document.documentElement).appendChild(a)}
+  /* pieces with their own ladder of layers (the Darkroom and the Photo lab: LAB.layer, where Back / Esc / pinch-out
+     rise one place): at the bottom of that ladder they used to reload themselves; now the last step out is ours */
+  function hookLab(){var L=window.LAB;if(!L||!L.leave||L.leave._tn)return;var orig=L.leave;
+    L.leave=function(href){var u=null;try{u=new URL(href||'',location.href)}catch(e){}
+      if(!u||u.pathname===location.pathname||OFF.indexOf(u.pathname)>=0){if(ret())out();else sky();return}return orig.apply(this,arguments)};L.leave._tn=1}
+  function own(){return !!(window.LAB&&window.LAB.layer)}
+  /* its ladder's last place (the room itself): Esc there, or Back to below it, is the step out to the star */
+  addEventListener('keydown',function(e){if(e.key!=='Escape'||!own()||!ret())return;var d=LAB.layer.depth(),t=LAB.layer.top();
+    setTimeout(function(){if(!e.defaultPrevented&&d<=1&&LAB.layer.depth()===d&&(!d||(LAB.rooms&&t===LAB.rooms.current)))out()},0)});
+  addEventListener('popstate',function(){if(!own()||!ret())return;setTimeout(function(){if(LAB.layer.depth()===0)out()},0)});
+  /* Esc and pinch-out at the piece's top level: only when the piece itself did not use them */
+  addEventListener('keydown',function(e){if(e.key!=='Escape'||!ret()||own())return;setTimeout(function(){if(!e.defaultPrevented&&atTop())out()},0)});
+  var T=null;function dist(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)||1}
+  function labTop(){var L=window.LAB.layer,d=L.depth();return d===0||(d===1&&LAB.rooms&&L.top()===LAB.rooms.current)}
+  function top2(){return own()?labTop():atTop()}
+  addEventListener('touchstart',function(e){T=(e.touches.length===2&&!e.defaultPrevented&&ret()&&top2()&&(!window.visualViewport||visualViewport.scale<=1.01)&&(window.scrollY||0)<4)?{d:dist(e.touches),h:location.hash}:null},{passive:true});
+  addEventListener('touchmove',function(e){if(!T||e.touches.length!==2)return;if(dist(e.touches)/T.d<.55&&location.hash===T.h&&top2()){T=null;out()}},{passive:true});
+  addEventListener('touchend',function(e){if(e.touches.length<2)T=null},{passive:true});
+  /* pieces that build their bar after load */
+  function later(){wire();hookLab();[400,1200,2500].forEach(function(t){setTimeout(function(){wire();hookLab()},t)})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',later);else later();
 })();

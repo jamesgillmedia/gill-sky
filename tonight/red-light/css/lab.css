@@ -166,9 +166,6 @@ body.dr .dbg-sw.on{border-color:rgba(227,139,124,.75);color:var(--mint)}
 body.dr .dbg-k{color:#a07a76}
 body.dr #clips,body.dr #sort,body.dr #dbg-sort{/* sort/clips stay available in the debug strip */}
 body.dr #clips{display:none}
-@media (prefers-reduced-motion: reduce){
-  .lab-hint{transition:none}
-}
 .lab-hint.instant{transition:none}
 
 .lab-top{flex-wrap:wrap;row-gap:8px;align-items:center}

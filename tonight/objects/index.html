@@ -7,9 +7,15 @@
 <meta name="theme-color" content="#06070a">
 <link rel="icon" href="data:,">
 <link rel="stylesheet" href="css/c.css">
-<link rel="stylesheet" href="ctl/ambx.css">
-<link rel="stylesheet" href="ctl/objects-controls.css">
-<link rel="stylesheet" href="../_tn/back.css"><script src="../_tn/back.js" data-tn-root="../" defer></script></head><body>
+
+
+<link rel="stylesheet" href="../_tn/back.css"><script src="../_tn/back.js" data-tn-root="../" defer></script><style>/* tonight restore: the controls in the one family (Julius Sans One, hairline, no filled pills); the glow tray and the link out to the old index are gone */
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../_tn/fonts/julius-sans-one.woff2) format("woff2")}
+#hud>*{background:none!important;border:0!important;border-radius:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;font:400 11px "Julius Sans One",Poppins,sans-serif!important;letter-spacing:.14em!important;text-transform:lowercase;color:#e6edf0!important;text-shadow:0 0 8px rgba(8,8,12,.9);min-height:44px}
+#hud{padding-left:52px}
+body:not(.at-board) .tn-ret{display:none}
+</style>
+</head><body>
 <canvas id="gl" aria-label="the object rings, one behind another in the dark"></canvas>
 <div id="board" class="on" aria-label="objects board">
   <header class="bh"><div class="bt">Objects</div><div class="bm" id="bcount"></div></header>
@@ -20,7 +26,6 @@
 <div id="hud">
   <button id="back" type="button" aria-label="up one layer">‹ Back</button>
   <button id="home" type="button">Board</button>
-  <a id="m4" href="../hub/#objects">board ›</a>
 </div>
 <div id="cap" role="status" aria-live="polite"><div class="t"></div><div class="s"></div><div class="n"></div></div>
 <button id="prev" class="side" type="button" aria-label="previous">‹</button>
@@ -34,7 +39,7 @@
 <div id="hint" class="gone"></div>
 <div id="veil"></div>
 <script src="js/media.js"></script>
-<script src="ctl/ambx.js"></script>
-<script src="ctl/objects-controls.js"></script>
+
+
 <script type="module" src="js/app.js"></script>
 </body></html>
