@@ -1011,7 +1011,7 @@ function momentClip(src, work){
   /* The Devil's one preview clip is not each still's own moment; fading into it swaps the picture and re-frames it. */
   if(work&&work.id==='film/one-with-the-devil'&&/\/owtd\/stills\//.test(src||''))return '';
   if(m.pv&&!/\/sc\//.test(m.pv))return m.pv;
-  if(m.clip&&!/\/sc\//.test(m.clip)&&!/youtube|youtu\.be/i.test(m.clip))return m.clip;
+  if(m.clip&&!/\/sc\//.test(m.clip)&&!/^https?:/i.test(m.clip))return m.clip; /* only this site's own clips */
   return '';
 }
 function heroOf(work,poster){

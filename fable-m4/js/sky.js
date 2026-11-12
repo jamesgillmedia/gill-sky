@@ -1484,7 +1484,7 @@ function renderSheet(el,it){
     return '<a href="'+o.chapter+'/'+o.slug+'/">'+esc(name)+'</a>';
   }).filter(Boolean).join(' · ');
   rel=rel?'<p class="rel">'+rel+'</p>':'';
-  var watch=(m.url&&!/youtube\.com|youtu\.be|vimeo\.com/i.test(m.url))?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
+  var watch=(m.url&&/^https:\/\/(open\.spotify\.com|music\.apple\.com)\//i.test(m.url)) /* listen links only; never an off-site video host */?'<p class="rel"><a href="'+esc(m.url)+'">'+esc(it.title)+'</a></p>':'';
   if(it.body&&!body)body='<div class="prose"><p>'+esc(it.body).split('\n\n').map(function(p){return p}).join('</p><p>')+'</p></div>';
   var role=it.role||'';
   if(role==='Director · Director of Photography'&&(it.credits||[]).length)role='';
