@@ -24,7 +24,7 @@ const W = window.__world, ROOT = document.documentElement;
 const D = await fetch(M4 + 'data.json').then(r => r.json());
 const CH = {}, BY = {}; D.chapters.forEach(c => { CH[c.k] = c; c.cards.forEach(x => BY[x.id] = x) });
 const FILMS = (window.GJ_FILMS || []), FBY = {}; FILMS.forEach(f => FBY[f.s] = f);
-const PRIVATE = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881/i;
+const PRIVATE = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881|IMG_1342/i;
 /* where each data.json id sits in R10's sky (the hidden #data lists that world.js reads) */
 const AT = {}; $$('#data .it').forEach(el => { AT[el.dataset.id] = { k: el.closest('.ch').id, w: el.dataset.k, el } });
 const PHOTOS = $$('#photo .it').map(el => ({ id: el.dataset.id, w: el.dataset.k, big: UP(el.dataset.big), thumb: UP(($('img', el) || {}).dataset ? $('img', el).dataset.src : '') })).filter(p => !PRIVATE.test(p.id + p.big + p.thumb));

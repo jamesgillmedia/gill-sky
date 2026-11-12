@@ -1,6 +1,6 @@
 /* Shell only. Video and audio are never stored; everything else off this origin streams.
    The cache name follows this folder, so a copy (u4 beside u3) does not share a shell. */
-var SHELL_REV = '104';
+var SHELL_REV = '105';
 var FOLDER = new URL('./', self.location).pathname.replace(/\/+$/, '') || '/';
 var CACHE = 'shell-' + FOLDER + '-' + SHELL_REV;
 var SHELL = [
@@ -42,7 +42,7 @@ self.addEventListener('install', function (event) {
 
 self.addEventListener('activate', function (event) {
   event.waitUntil(caches.keys().then(function (keys) {
-    return Promise.all(keys.filter(function (k) { return k !== CACHE; }).map(function (k) { return caches.delete(k); }));
+    return Promise.all(keys.filter(function (k) { return k.indexOf('shell-' + FOLDER + '-') === 0 && k !== CACHE; }).map(function (k) { return caches.delete(k); }));
   }).then(function () { return self.clients.claim(); }));
 });
 

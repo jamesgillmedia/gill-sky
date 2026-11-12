@@ -289,8 +289,6 @@ function cedarShots(){
   list.push(shot(ST+'unfired-480.webp',{clip:'media/nov9/IMG_2787.mp4',title:'unfired cup'}));
   list.push(shot(ST+'cup-hand-480.webp',{clip:'media/nov9/IMG_2793.mp4',title:'cup'}));
   list.push(shot(ST+'teapot-960.webp',{title:'teapot'}));
-  list.push(shot(ST+'clay-table-960.webp',{title:'clay table'}));
-  list.push(shot(ST+'flower-table-960.webp',{title:'flower table'}));
   return list;
 }
 function build(ctx){
@@ -321,7 +319,7 @@ function build(ctx){
     addItem(byId,ch,{
       id:'objects/process',chapter:'objects',slug:'process',title:'process',
       role:'making',meta:'cedar, clay, the studio',kind:'object',
-      pageHref:'objects/hand-carved-piece/',media:{thumb:ST+'clay-table-480.webp',big:ST+'clay-table-960.webp'},
+      pageHref:'objects/hand-carved-piece/',media:{thumb:ST+'teapot-480.webp',big:ST+'teapot-960.webp'},
       credits:[],shots:cedarShots().slice(5),related:[],also:[],in_progress:false,isNew:false,body:'',ox:0,oy:0,sx:0,sy:0,gx:0,gy:0
     });
   }

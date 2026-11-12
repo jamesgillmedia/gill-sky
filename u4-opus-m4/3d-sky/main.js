@@ -4,7 +4,7 @@
    No service worker. No autoplay. Never links to YouTube. Data + media: ../data.json, ../media/. */
 import * as THREE from './vendor/three.module.min.js';
 const html = document.documentElement, $ = s => document.querySelector(s);
-const PRIVATE = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881/i;
+const PRIVATE = /IMG_1936|IMG_1188|IMG_1189|IMG_6405|IMG_6606|IMG_6612|22179A95|IMG_5722|IMG_1187|IMG_6881|IMG_1342/i;
 const ORDER = ['film', 'photo', 'objects', 'sound', 'about', 'space'];
 const NAME = { film: 'Film', photo: 'Photo', objects: 'Objects', sound: 'Sound', about: 'About', space: 'Space' };
 const PYR = ['weird-kid', 'sleepwalker', 'celebraciones', 'legends', 'stay-gold', 'just-the-beginning']; /* r3: 1 / 2 / 3 */
