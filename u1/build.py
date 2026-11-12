@@ -501,8 +501,7 @@ def main():
 
 def scan():
     bad = ["Two-Spirit", "Joshua", "award-winning", "Retail Revolution", "they/them",
-           "Norway House", "IMG_1936", "IMG_6881", "IMG_1187", "IMG_1188", "IMG_1189",
-           "IMG_5722", "IMG_6405", "IMG_6606", "IMG_6612", "22179A95", "Best Student"]
+           "Norway House", "Best Student"]
     hits = []
     for p in ROOT.rglob("*"):
         if p.suffix not in {".html", ".json", ".css", ".js"}:
