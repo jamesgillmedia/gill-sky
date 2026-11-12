@@ -1012,6 +1012,8 @@ function boardCount(key,items){
   var n=0;
   items.forEach(function(it){if(key==='sound'?it.kind==='track':true)n++});
   var noun={film:'works',photo:'photographs',objects:'pieces',space:'pieces',sound:'songs'}[key];
+  /* Film: the player steps through the films; the Demo Reel is its own moving filmstrip, so it is named apart (37 films + demo reel, not 38) */
+  if(key==='film'){var nf=0,nr=0;items.forEach(function(it){if(it.kind==='film')nf++;else if(it.kind==='reel')nr++});if(nf)return nf+' films'+(nr?' + demo reel':'')}
   return noun&&n?n+' '+noun:'';
 }
 function realTitle(it){
@@ -1707,7 +1709,7 @@ function onDown(e){
   noteTouch(e.clientX,e.clientY);
   var card=$('hirecard');
   if(card&&!card.hidden&&!e.target.closest('#hire')){hireOpen(false);return}
-  if(e.target.closest('#bar,#wcrumb,#wrail,#ginside,#ochip,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
+  if(e.target.closest('#bar,#wcrumb,#wrail,#ginside,#gobj3d,#ochip,#layer,#layers,#dive,.snd,.reel,.sheet,#mmap,#reel,#apro'))return;
   if(phase==='arrive'||phase==='land'){rippleAt(e.clientX,e.clientY);drag={x:e.clientX,y:e.clientY,id:e.pointerId,t:now()};moved=false;return}
   if(phase!=='sky')return;
   var over=false;
@@ -2638,13 +2640,16 @@ function syncCrumb(label){
    or above it if the mini-map leaves no room. Never moves anything else. */
 function syncInside(rl){
   var gi=$('ginside');if(!gi)return;
-  var show=phase==='sky'&&cur.lv===1&&cur.k==='objects'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn());
+  var at=phase==='sky'&&cur.lv===1&&cur.k==='objects'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn());
+  /* one door at a time: the chapter landing offers 'objects in 3d' (objects-3d/), its board offers 'go inside' (../inside/) */
+  var g3=$('gobj3d'),show=at&&!!cur.b,s3=at&&!cur.b&&!!g3;
   if(gi.hidden===show)gi.hidden=!show;
-  if(!show)return;
-  var rb=rl&&!rl.hidden?rl.getBoundingClientRect():null,m=mapBox(),gw=gi.offsetWidth||110;
+  if(g3&&g3.hidden===s3)g3.hidden=!s3;
+  var el=show?gi:s3?g3:null;if(!el)return;
+  var rb=rl&&!rl.hidden?rl.getBoundingClientRect():null,m=mapBox(),gw=el.offsetWidth||120;
   var x=rb&&rb.width?Math.round(rb.right+8):10,b='';
   if(x+gw>m.l-8){x=rb&&rb.width?Math.round(rb.left):10;b='calc(54px + var(--sb))'}
-  gi.style.left=x+'px';gi.style.bottom=b;
+  el.style.left=x+'px';el.style.bottom=b;
 }
 function syncHist(){
   if(PEND&&window.GJ_DEPTH){
@@ -2716,6 +2721,8 @@ function farHome(){
 }
 
 function go(next){
+  /* Nov 11: a film opens in the Film player (js/filmplayer.js) over the board, not as a sky level */
+  if(next&&next.lv===2&&next.k==='film'&&phase==='sky'&&byId[next.id]&&window.GJ_FP&&GJ_FP.has(byId[next.id].slug)){sel=null;syncChip();GJ_FP.open(byId[next.id].slug);ui();return}
   if(window.GJ_INNER)GJ_INNER.reset();
   cur=next;sel=null;
   if(window.GJ_DEPTH)GJ_DEPTH.sync(cur,depthApi());
@@ -2888,14 +2895,17 @@ function dust(){
   for(var i=0;i<16;i++)h+='<i style="left:'+(rnd(i)*100).toFixed(1)+'%;top:'+(rnd(i+9)*100).toFixed(1)+'%;opacity:'+(0.2+rnd(i+3)*.6).toFixed(2)+'"></i>';
   d.innerHTML=h;
 }
-/* The opening title card's cards, from the data: Weird Kid first, then the preview-cards order. To Go carries the live
-   small Momo loop tile (momo-480) and its song (never autoplayed). Missing ids are skipped. */
+/* The opening title card's cards, from the data: Weird Kid first, then the preview-cards order. To Go carries a muted
+   preview clip, the live small Momo loop tile (momo-480) and its song (never autoplayed). Missing ids are skipped. */
 function openCards(){
   var ids=['film/weird-kid','sound/to-go','film/one-with-the-devil','objects/hand-carved-piece','film/sleepwalker','film/repeat-feat-jessie-reyez'];
   return ids.map(function(id){
     var it=byId[id];if(!it)return null;var m=it.media||{};
     var c={id:id,title:it.title,role:it.role||'',meta:it.meta||'',still:m.big||m.thumb||'',clip:m.pv||m.clip||'',kind:it.chapter==='sound'?'sound':it.chapter==='film'?'film':'object',portrait:m.h>m.w};
-    if(id==='sound/to-go'){c.clip='';c.momo=['media/pro2/img/sound/momo-480.webm','media/pro2/img/sound/momo-480.mp4'];c.momoPoster='media/pro2/img/sound/momo-480.jpg';c.audio='media/pro2/audio/to-go.mp3'}
+    /* recut 1c: the Weird Kid and Repeat cards play full-resolution cuts of the same shots with the letterbox removed */
+    if(id==='film/weird-kid'){c.clip='media/v3/media/pv/22-card.mp4';c.still='media/v3/media/pv/22-card.webp'}
+    if(id==='film/repeat-feat-jessie-reyez'){c.clip='media/v3/media/pv/16-card.mp4';c.still='media/v3/media/pv/16-card.webp'}
+    if(id==='sound/to-go'){c.clip='media/v3/media/pv/to-go.mp4';c.still='media/v3/media/pv/to-go.webp';c.momo=['media/pro2/img/sound/momo-480.webm','media/pro2/img/sound/momo-480.mp4'];c.momoPoster='media/pro2/img/sound/momo-480.jpg';c.audio='media/pro2/audio/to-go.mp3'}
     return c;
   }).filter(Boolean);
 }

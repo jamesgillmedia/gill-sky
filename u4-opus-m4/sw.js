@@ -1,6 +1,6 @@
 /* Shell only. Video and audio are never stored; everything else off this origin streams.
    The cache name follows this folder, so a copy (u4 beside u3) does not share a shell. */
-var SHELL_REV = '99';
+var SHELL_REV = '102';
 var FOLDER = new URL('./', self.location).pathname.replace(/\/+$/, '') || '/';
 var CACHE = 'shell-' + FOLDER + '-' + SHELL_REV;
 var SHELL = [
@@ -20,6 +20,9 @@ var SHELL = [
   './js/nov9.js',
   './js/inner.js',
   './js/framing.js',
+  './js/filmdata.js',
+  './js/filmplayer.js',
+  './css/filmplayer.css',
   './js/depth.js',
   './js/debug.js',
   './js/songtap.js',
@@ -47,17 +50,25 @@ function isMedia(url) {
   return /\.(mp4|webm|m4v|mov|ogv|mp3|m4a|ogg|wav|aac)(\?|$)/i.test(url.pathname);
 }
 
+/* Exact shell paths only (the old endsWith match also caught 3d/index.html and every folder's './').
+   The scope covers the subfolders, so 3d/ (own sw), 3d-sky/ and objects-3d/ are left to the network. */
+var SHELL_PATHS = SHELL.map(function (p) { return new URL(p, self.location).pathname; });
+var OWN = ['3d/', '3d-sky/', 'objects-3d/'].map(function (p) { return new URL(p, self.location).pathname; });
+function isShell(url) { return SHELL_PATHS.indexOf(url.pathname) !== -1; }
+function isSub(url) { return OWN.some(function (p) { return url.pathname.indexOf(p) === 0 || url.pathname + '/' === p; }); }
+
 self.addEventListener('fetch', function (event) {
   var req = event.request;
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  if (isSub(url)) return;
   if (isMedia(url)) return;
   if (req.headers.get('range')) return;
   event.respondWith(caches.open(CACHE).then(function (cache) {
     return cache.match(req).then(function (hit) {
       var fresh = fetch(req).then(function (res) {
-        if (res && res.ok && SHELL.some(function (p) { return url.pathname.endsWith(p.replace('./', '/')) || url.pathname.endsWith(p.slice(1)); })) {
+        if (res && res.ok && isShell(url)) {
           cache.put(req, res.clone());
         }
         return res;

@@ -68,7 +68,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:#cfd8e6;overflow:hidde
 .rl-cell{aspect-ratio:1;padding:0;border:0;background:#0b1015;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .rl-cell img{max-width:100%;max-height:100%;display:block;-webkit-user-drag:none}
 .rl-cell.on{outline:1px solid var(--mint);outline-offset:1px}
-.reelon #panel,.reelon #cap,.reelon #where,.reelon #home,.reelon #site{display:none}
+.reelon #panel,.reelon #cap,.reelon #where,.reelon #home,.reelon #site,.reelon #hyb{display:none}
 /* ---------- save 2 · Spirit Eye (js/spirit-eye.js) ---------- */
 .sx{position:fixed;left:0;right:0;bottom:0;z-index:2;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:44px max(20px,env(safe-area-inset-left)) max(22px,calc(env(safe-area-inset-bottom) + 14px));box-sizing:border-box;text-align:center;
@@ -123,3 +123,13 @@ html:not(.sem) #sedial,html:not(.sem) #setext,html:not(.sem) #seprog{display:non
 @media (min-width:700px){.sx{max-height:46vh}.sx img.pimg{max-width:400px}}
 .se-s .pn{font-size:11px;letter-spacing:.14em;color:var(--dim)}
 .se-s img.pimg{width:100%;height:auto}
+#hyb{position:fixed;right:12px;top:calc(max(10px,env(safe-area-inset-top)) + 38px);z-index:3;color:#cfd8e6;text-decoration:none;font:300 12px/1 Poppins,sans-serif;letter-spacing:.08em;opacity:.7;padding:8px 10px;border:1px solid rgba(207,216,230,.25);border-radius:16px;background:rgba(4,6,12,.4)}
+/* chapter labels under the entry stars: gilljames/previews .sl (Julius 12px, .22em, uppercase; Poppins count; 96x46 target) */
+#cll{position:fixed;inset:0;pointer-events:none;z-index:2}
+.sl3{position:absolute;left:0;top:0;min-width:96px;min-height:46px;padding:4px 10px;border:0;background:none;color:#e6edf0;pointer-events:auto;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;transition:opacity .25s;will-change:transform;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sl3[hidden]{display:none}
+.sl3 b{font:400 12px/1 "Julius Sans One",sans-serif;letter-spacing:.22em;text-transform:uppercase;padding-left:.22em;white-space:nowrap;text-shadow:0 0 6px #03050a,0 0 2px #03050a;transition:color .2s,text-shadow .2s}
+.sl3 small{font:300 10.5px/1.15 Poppins,sans-serif;color:#c3ccd0;letter-spacing:.05em;white-space:nowrap;text-shadow:0 0 4px #03050a}
+.sl3:hover b,.sl3:focus-visible b{color:#fff;text-shadow:0 0 10px rgba(205,225,255,.65),0 0 2px #03050a}
+.sl3:focus-visible{outline:1px solid rgba(85,218,161,.8);outline-offset:-4px;border-radius:10px}
+.reelon #cll{display:none}

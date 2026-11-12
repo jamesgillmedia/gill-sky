@@ -3,7 +3,7 @@
    It starts on Weird Kid. It is a swipeable strip, one card wide: full-bleed still + clip, the Julius title, the mint role
    line, a shot counter, the sky drawn behind it. It rides the reel's drift: while a clip plays the strip creeps a little
    with the clip's time, and when the clip ends it glides on to the next card (no loop). A still holds 4 s. The To Go card
-   carries the live small Momo loop tile (momo-480) and a play button; audio never autoplays. After the last card the sky
+   carries a muted preview clip, the live small Momo loop tile (momo-480) and a play button; audio never autoplays. After the last card the sky
    opens. A tap (or Esc) goes straight to the sky; swipe, arrows or a sideways wheel move between cards; a pinch carries on
    into the sky (sky.js owns the pinch). Motion is the same with Reduce Motion on. Ideas from _preview-cards (read only). */
 (function(){
@@ -57,7 +57,7 @@ function build(c,i,copy){
   var ty=el('div','oc-ty');
   if(c.momo){
     var f=el('figure','oc-momo'),mv=vid(c.momo,c.momoPoster);mv.setAttribute('aria-label','momo, from the To Go animation');
-    if(copy==='main')mv.addEventListener('ended',function(){if(song&&!song.paused){mv.currentTime=0;mv.play().catch(function(){})}else ended(i)});
+    if(copy==='main')mv.addEventListener('ended',function(){if((song&&!song.paused)||c.clip){mv.currentTime=0;mv.play().catch(function(){})}else ended(i)});
     f.appendChild(mv);f.appendChild(el('figcaption','','momo'));ty.appendChild(f);
   }
   ty.appendChild(el('h2','',esc(c.title)));ty.appendChild(el('p','oc-role',esc(c.role||'')));ty.appendChild(el('p','oc-meta',esc(c.meta||'')));

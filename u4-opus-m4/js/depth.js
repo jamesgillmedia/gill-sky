@@ -303,6 +303,8 @@ function openTile(api,it){
     return;
   }
   var filmish0=work.kind==='film'||work.kind==='reel';
+  /* Nov 11: a film opens in the Film player (js/filmplayer.js) on top of the board: real film, its stills, ‹ › between films */
+  if(filmish0&&!it._shot&&window.GJ_FP&&GJ_FP.has(work.slug)){dropFly();setBleed(false);GJ_FP.open(work.slug);return}
   if(filmish0&&!it._shot){openFilm(api,work,null);return}
   if((work.chapter==='objects'||cur.k==='objects')&&!it._shot){
     api.setCur({lv:2,k:'objects',id:work.id});
@@ -1004,7 +1006,8 @@ function setBleed(on){
   document.documentElement.classList.toggle('bleed', !!on);
 }
 function momentClip(src, work){
-  var reel=src&&String(src).match(/\/reel\/(.+)\.webp$/);
+  /* only the Demo Reel's own frames (media/pro2/reel/<a-e>/NNN.webp) have a moment clip; Reel 2026 stills (frames/reel/) do not */
+  var reel=src&&String(src).match(/(?:^|\/)media\/pro2\/reel\/([a-e]\/\d+)\.webp$/);
   if(reel)return 'media/pro2/reel/'+reel[1]+'.mp4';
   var m=work&&work.media||{};
   if(work&&work.id==='film/weird-kid')return '';
@@ -1430,7 +1433,7 @@ window.GJ_DEPTH={
    Exempt, by design: #calc and #moons (the About backdrops stay ambient loops), the reel (.rl, it runs its own ended→next). */
 (function(){
 'use strict';
-var EXEMPT='#calc,#moons,.rl video';
+var EXEMPT='#calc,#moons,.rl video,#fp video';
 function own(v){return v&&v.tagName==='VIDEO'&&!v.matches(EXEMPT)}
 function unloop(v){if(own(v)&&(v.loop||v.hasAttribute('loop'))){v.loop=false;v.removeAttribute('loop')}}
 function sweep(n){

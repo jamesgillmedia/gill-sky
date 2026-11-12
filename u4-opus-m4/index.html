@@ -14,6 +14,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="css/sky.css">
+<link rel="stylesheet" href="css/filmplayer.css">
 </head>
 <body>
 <div id="stage" role="application" aria-label="Gill James. Pinch in to go deeper, pinch out to step back one level.">
@@ -32,11 +33,12 @@
 <p id="crumb"><a class="sig" href="#/" lang="cr">ᑕᐣᓯ</a> · <span id="where">the sky</span></p>
 <nav class="chips" aria-label="shortcuts"><button type="button" data-ch="film" aria-label="film">▶</button><button type="button" data-jump="poem" aria-label="moon">○</button><button type="button" data-jump="joio" aria-label="joio">◻</button><button type="button" data-ch="sound" aria-label="music">∿</button><button type="button" data-ch="about" aria-label="bio">ᑕ</button></nav>
 <button type="button" id="reel">▶ Reel</button>
-<nav class="nav" aria-label="pages"><button type="button" id="hire" hidden aria-expanded="false">Hire</button><a href="list/">List</a><a href="contact/">Contact</a></nav>
+<nav class="nav" aria-label="pages"><button type="button" id="hire" hidden aria-expanded="false">Hire</button><a href="list/">List</a><a href="contact/">Contact</a><a href="3d/" id="go3d" aria-label="enter in 3D">3D</a></nav>
 </header>
 <nav id="wcrumb" aria-label="where you are" hidden></nav>
 <nav id="wrail" aria-label="depth" hidden></nav>
 <a id="ginside" href="../inside/#objects" hidden>go inside <span aria-hidden="true">›</span></a>
+<a id="gobj3d" class="g3" href="objects-3d/" hidden>objects in 3d <span aria-hidden="true">›</span></a>
 <button type="button" id="ochip" hidden></button>
 <p id="shint" hidden>pinch to fly in · drag to look around · double-tap to pull back</p>
 <div id="apro" hidden>
@@ -86,6 +88,8 @@
 <script src="js/nov9.js"></script>
 <script src="js/inner.js"></script>
 <script src="js/framing.js"></script>
+<script src="js/filmdata.js"></script>
+<script src="js/filmplayer.js"></script>
 <script src="js/depth.js"></script>
 <script src="js/layers.js"></script>
 <script src="js/opening.js"></script>

@@ -393,6 +393,11 @@ h2.tt small{display:block;white-space:normal;font:300 11px/1.4 Poppins,sans-seri
 #ginside{position:absolute;z-index:7;left:max(10px,var(--sl));bottom:calc(4px + var(--sb));display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;
  border-radius:22px;border:1px solid rgba(255,255,255,.18);background:rgba(3,5,10,.62);font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mint);white-space:nowrap}
 #ginside[hidden]{display:none}
+#gobj3d{position:absolute;z-index:7;bottom:calc(4px + var(--sb));display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid rgba(255,255,255,.18);background:rgba(3,5,10,.62);font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--mint);white-space:nowrap}
+#gobj3d[hidden]{display:none}
+#gobj3d span{font-size:14px;color:rgba(228,235,245,.7)}
+#gobj3d:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+html.bleed #gobj3d{opacity:0;pointer-events:none}
 #ginside span{font-size:14px;color:rgba(228,235,245,.7)}
 #ginside:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
 /* Item 2: the first-tap chip, "<count> · open ›" under a sky name, "open ›" under a tile. 44px tall to touch. */
@@ -446,3 +451,5 @@ html:not(.port) #dive{left:27%}
 
 /* Item B: scrollers inside the stage scroll with one finger but never start a browser pinch-zoom. */
 #layer .sheet,#layer .cutsheet,#apro,#laytext{touch-action:pan-y}
+/* m4-integrate: the way into the 3d site, a small outlined '3D' at the end of the pages nav, clear of the screen edge */
+#bar .nav #go3d{margin:0 max(4px,var(--sr)) 0 6px;padding:0 7px;min-height:24px;align-self:center;border:1px solid rgba(255,255,255,.24);border-radius:12px;color:var(--ink)}
