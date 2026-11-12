@@ -2359,9 +2359,10 @@ function hashOf(c){
   if(c.id&&byId[c.id])return '#'+byId[c.id].chapter+'/'+byId[c.id].slug;
   return '#/';
 }
-/* fable-m4: one door per chapter landing (lv1, not the board): Objects -> objects-3d/ (lit specimen viewer). */
+/* fable-m4: one door per chapter landing (lv1, not the board): Objects -> objects-3d/ (lit specimen viewer);
+   Photo -> ../photo-lab/ (the Horizon room with the contact sheet, the lab root; no other lab rooms are linked). */
 function syncDoors(){
-  var doors={objects:'gobj3d'},k;
+  var doors={objects:'gobj3d',photo:'gphoto'},k;
   for(k in doors){var el=$(doors[k]);if(!el)continue;
     var on=phase==='sky'&&cur.lv===1&&cur.k===k&&!cur.b&&!cur.cards&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn());
     if(el.hidden===on)el.hidden=!on}
