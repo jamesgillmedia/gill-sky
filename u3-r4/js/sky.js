@@ -1631,17 +1631,8 @@ function fillPoem(){
 }
 function typePoem(){
   var host=$('typed');if(!host||host._go)return;host._go=1;
-  var lines=(data.poem||[]).slice(),n=0,pos=0;
-  var spans=lines.map(function(){var s=document.createElement('span');host.appendChild(s);return s});
-  (function tick(){
-    if(!host.isConnected||n>=lines.length)return;
-    pos++;spans[n].textContent=lines[n].slice(0,pos);
-    if(pos>=lines[n].length){
-      if(n===0){var poem=document.getElementById('poem');if(poem)poem.classList.add('ready')}
-      n++;pos=0;
-    }
-    setTimeout(tick,pos===0?260:38);
-  })();
+  (data.poem||[]).forEach(function(l){var s=document.createElement('span');s.textContent=l;host.appendChild(s)});
+  var poem=document.getElementById('poem');if(poem)poem.classList.add('ready');
 }
 function dust(){
   var d=$('dust'),h='';
