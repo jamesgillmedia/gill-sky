@@ -42,17 +42,17 @@ var ROOMS=[
     lsRow('gj.vol','volume',0,100,100,100,poke),
     lsRow('gj.flash','flash',0,100,60,100,setFlash),
     lsRow('gj.sound.invert','invert',0,100,0,1,poke)]},
-  {id:'objects',name:'objects',door:'../objects/',rows:[
+  {id:'objects',name:'objects',door:'../objects/',off:true,rows:[
     lsRow('gj.amb.objects.glow','glow',0,150,100,1),
     lsRow('gj.amb.objects.haze','haze',0,250,100,1),
     lsRow('gj.amb.objects.stars','rings',0,200,100,1),
     lsRow('gj.amb.objects.lamp','lamp',20,160,100,1)]},
-  {id:'spaces',name:'spaces',door:'../spaces/forest-garden/',rows:[
+  {id:'spaces',name:'spaces',door:'../spaces/forest-garden/',off:true,rows:[
     lsRow('gj.amb.garden.day','day – night',0,100,0,1),
     lsRow('gj.amb.garden.haze','haze',0,300,100,1),
     lsRow('gj.amb.garden.glow','glow',0,150,100,1),
     lsRow('gj.amb.garden.star','stars',0,200,100,1)]},
-  {id:'photo',name:'photo',rows:[
+  {id:'photo',name:'photo',off:true,rows:[
     lsRow('gj.photo.room','room light',0,200,100,1),
     lsRow('gj.photo.lamp','lamp glow',0,200,100,1)]}
 ];
@@ -106,6 +106,9 @@ function contextRows(c){
   if(c.mod&&c.mod.chapter===c.room&&c.mod.tune)return rows.slice();
   return rows.filter(function(r){return focus.indexOf(r.k)>=0});
 }
+/* rooms whose sliders are only saved here: nothing in this shell reads them yet */
+var OFF_NOTE='not active here · saved only';
+function isOff(id){var R=roomById(id);return !!(R&&R.off)}
 var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
 function safelight(){
   var G=D2(),el=document.getElementById('safelight');
@@ -160,7 +163,8 @@ function paint(){
   pl.hidden=!tuneOn;if(!tuneOn)return;
   var c=ctx(),here=c.room,level=c.levelName;
   var title=here+(level&&level!==here?' · '+level:'');
-  var h='<section class="mm-ctx"><h3>'+title+' <span>here</span></h3>';
+  var offHere=isOff(here)&&!(c.mod&&c.mod.chapter===here&&c.mod.tune);
+  var h='<section class="mm-ctx'+(offHere?' mm-off-room':'')+'"><h3>'+title+' <span>here</span>'+(offHere?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
   h+=rowsHtml(contextRows(c));
   h+='</section>';
   h+='<button type="button" class="mm-all" aria-expanded="'+(allOn?'true':'false')+'">'+(allOn?'close rooms':'all rooms')+'</button>';
@@ -168,7 +172,7 @@ function paint(){
     h+='<div class="mm-more">';
     ROOMS.forEach(function(R){
       if(R.id===here)return;
-      h+='<section class="mm-room"><h3>'+R.name+(R.door?' <em>applies in the room</em>':'')+'</h3>';
+      h+='<section class="mm-room'+(R.off?' mm-off-room':'')+'"><h3>'+R.name+(R.off?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
       h+=rowsHtml(R.rows);
       h+='</section>';
     });

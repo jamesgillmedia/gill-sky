@@ -40,3 +40,7 @@
 #markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{flex:0 0 auto;white-space:nowrap;padding-left:2px;padding-right:2px}
 @media (max-width:359px){#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{font-size:9px;letter-spacing:.08em}}
 #markmenu nav a,#markmenu nav button,#markmenu nav .mm-off{display:inline-flex;align-items:center}
+
+/* rooms that are saved-only in this shell: sliders stay usable but read as inactive, and say so */
+#markmenu .mm-off-room label{opacity:.5}
+#markmenu .mm-off-room h3 em{display:block;margin-top:2px;color:rgba(228,235,245,.62)}
