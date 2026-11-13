@@ -6,7 +6,7 @@
 #markmenu{position:fixed;z-index:60;left:calc(10px + env(safe-area-inset-left,0px));top:calc(54px + env(safe-area-inset-top,0px));width:min(360px,calc(100vw - 20px));overflow:auto;
  background:none;border:0;border-radius:0;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none;
  padding:16px 18px 22px 20px;max-height:calc(100vh - 150px);perspective:900px;perspective-origin:var(--ox,40px) 0;scrollbar-width:none;
- opacity:0;transition:opacity .34s linear;color:#e8e4dc;letter-spacing:.04em}
+ opacity:0;transition:opacity .18s linear;color:#e8e4dc;letter-spacing:.04em}
 #markmenu[hidden]{display:none}
 #markmenu::-webkit-scrollbar{display:none}
 #markmenu.mm-in{opacity:1}
