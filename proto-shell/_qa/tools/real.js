@@ -56,7 +56,13 @@ async function journey(R,out){
     await R.shot('slider held, ghost dial');
     if(R.touch)await L.touch(R.cdp,'touchEnd',[]);else await p.mouse.up();
     await sleep(200);const mid=await p.evaluate(()=>{const arc=document.getElementById('gjdial-ghost'),menu=document.getElementById('markmenu');return {menu:getComputedStyle(menu).opacity,away:menu.classList.contains('gd-away'),on:!!(arc&&(arc.classList.contains('on')||arc.classList.contains('out')))}});
-    await sleep(1200);const gone=await p.evaluate(()=>{const arc=document.getElementById('gjdial-ghost'),menu=document.getElementById('markmenu'),snd=document.getElementById('snd');return {menu:getComputedStyle(menu).opacity,away:menu.classList.contains('gd-away'),on:!!(arc&&(arc.classList.contains('on')||arc.classList.contains('out'))),snd:snd?getComputedStyle(snd).opacity:'1'}});
+    /* the arc is gone at about a second, then the drawer fades back. A slow frame can still be mid-fade at 1.4s, so poll until it has arrived. */
+    let gone=null;
+    for(let i=0;i<10;i++){
+      await sleep(i?250:1000);
+      gone=await p.evaluate(()=>{const arc=document.getElementById('gjdial-ghost'),menu=document.getElementById('markmenu'),snd=document.getElementById('snd');return {menu:getComputedStyle(menu).opacity,away:menu.classList.contains('gd-away'),on:!!(arc&&(arc.classList.contains('on')||arc.classList.contains('out'))),snd:snd?getComputedStyle(snd).opacity:'1'}});
+      if(!gone.on&&!gone.away&&+gone.menu>=0.95)break;
+    }
     await p.evaluate(()=>GJ_MARKMENU.show(false));
     if(!(+h.menu<0.05&&h.on&&h.away&&!h.peek))return 'drawer did not hide / edge arc did not show '+JSON.stringify(h);
     if(+h.snd<0.99)return 'waveform dimmed while the slider was held '+h.snd;
