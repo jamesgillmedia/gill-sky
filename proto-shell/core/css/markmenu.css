@@ -34,3 +34,9 @@
 #markmenu .mm-resets{display:flex;gap:16px;align-items:center}
 
 #markmenu .mm-rooms [data-go].on{color:#d9b98a}
+
+/* phone: the rooms row stays on one line (6 labels in 326px at 390). Even spacing, no wrapping; tracking eases off on narrower phones. */
+#markmenu .mm-rooms{flex-wrap:nowrap;justify-content:space-between;gap:6px}
+#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{flex:0 0 auto;white-space:nowrap;padding-left:2px;padding-right:2px}
+@media (max-width:359px){#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{font-size:9px;letter-spacing:.08em}}
+#markmenu nav a,#markmenu nav button,#markmenu nav .mm-off{display:inline-flex;align-items:center}
