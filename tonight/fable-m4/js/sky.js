@@ -1920,6 +1920,8 @@ function tap(x,y){
   }
   var h=hit(x,y);
   if(!h||h.type==='panel'){if(!h)sel=null;return}
+  /* snap lock (Gill, live test): a tap on a film tile does nothing until the board has locked: not while a pinch or wheel still drives it, not before the board has fully bloomed, not in the 600 ms after it snapped */
+  if(h.type==='work'&&filmBoard()&&byId[h.id]&&byId[h.id].chapter==='film'&&(FSCRUB||bloom<.97||now()<FLOCK))return;
   /* preview-film-snap, opening one thing.
  From the film board (the menu of films) one tap goes straight to that film's page: no reveal.
  From the loose map (somewhere else in the sky) the second tap on a film plays the tile reveal (exploration), then the same page. */
