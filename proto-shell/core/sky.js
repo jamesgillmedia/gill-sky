@@ -11,6 +11,11 @@
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 function sstep(a,b,v){var u=clamp((v-a)/(b-a),0,1);return u*u*(3-2*u)}
 function seeded(seed){var s=seed>>>0;return function(){s=(s+0x6D2B79F5)>>>0;var t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+/* sky mood (gj.tune.mood, 0-200, 100 = the sky as written): m runs -1 (hushed, cool, sparse) to +1 (lit, warm, wider glow).
+   At m = 0 every factor below is exactly 1 and the field colour is the original #dfe7f2, so 100 draws what it always drew. */
+function moodOf(T){var v=T&&T.mood!=null?+T.mood:1;return clamp(v-1,-1,1)}
+var FIELD_RGB=[223,231,242],FIELD_COOL=[150,175,215],FIELD_WARM=[244,230,208];
+function moodField(m){if(!m)return '#dfe7f2';var t=m<0?FIELD_COOL:FIELD_WARM,u=Math.abs(m),c=FIELD_RGB.map(function(a,i){return Math.round(a+(t[i]-a)*u)});return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
 function glowSprite(rgb){var c=document.createElement('canvas');c.width=c.height=128;var q=c.getContext('2d'),gr=q.createRadialGradient(64,64,0,64,64,64);
   gr.addColorStop(0,'rgba('+rgb+',.95)');gr.addColorStop(.16,'rgba('+rgb+',.42)');gr.addColorStop(.42,'rgba('+rgb+',.10)');gr.addColorStop(1,'rgba('+rgb+',0)');q.fillStyle=gr;q.fillRect(0,0,128,128);return c}
 var DEP={film:1.10,photo:.92,objects:1.04,spaces:1.07,about:.95,sound:.88};
@@ -72,19 +77,23 @@ function Sky(D){
   K.proj=function(cam,x,y,z,o){z=zE(cam,z);var k=Math.pow(cam.zf(),(z-1)*.38),s=cam.s*k;o=o||[0,0,0];
     o[0]=cam.W/2+(x-cam.x)*s+cam.tilt.x*(z-1)*2.2;o[1]=cam.H/2+(y-cam.y)*s+cam.tilt.y*(z-1)*2.2;o[2]=s;return o};
   function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle='#fff';g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
+  /* the mood wash: the page wash (#13202e at 50% 0 into --bg, STANDARDS §4), growing with mood above 100. Behind everything. */
+  K.drawWash=function(g,cam,T){var m=moodOf(T);if(m<=0)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
+    gr.addColorStop(0,'rgba(19,32,46,'+(m*.95).toFixed(3)+')');gr.addColorStop(1,'rgba(19,32,46,0)');g.fillStyle=gr;g.fillRect(0,0,W,H)};
   K.draw=function(g,cam,t,T,st,hide){
     var o=[0,0,0],W=cam.W,H=cam.H,z=cam.zf(),sS=T.starS||1,sG=T.starG||1,lA=T.lineA||1,lW=T.lineW||1;
-    K.FIELD.forEach(function(p){K.proj(cam,p.x,p.y,p.z,o);if(o[0]<-4||o[0]>W+4||o[1]<-4||o[1]>H+4)return;
-      g.globalAlpha=Math.min(1,p.b)*.55;g.fillStyle='#dfe7f2';var r=p.b>.9?1.4:.9;g.fillRect(o[0]-r/2,o[1]-r/2,r,r)});g.globalAlpha=1;
+    var m=moodOf(T),fa=1+m*.6,fcol=moodField(m),mg=1+m*.5,ml=1+m*.45,hush=m<0?-m*.4:0;
+    K.FIELD.forEach(function(p){if(p.b<hush)return;K.proj(cam,p.x,p.y,p.z,o);if(o[0]<-4||o[0]>W+4||o[1]<-4||o[1]>H+4)return;
+      g.globalAlpha=Math.min(1,Math.min(1,p.b)*.55*fa);g.fillStyle=fcol;var r=p.b>.9?1.4:.9;g.fillRect(o[0]-r/2,o[1]-r/2,r,r)});g.globalAlpha=1;
     var zs=clamp(Math.sqrt(z),1,3.2);
     K.CH.forEach(function(c){if(hide&&hide(c.k))return;
       var here=st.lv>=1&&st.k===c.k,dim=st.lv>=1&&!here?.35:1,pts=c.stars.map(function(s){return K.proj(cam,s.x,s.y,s.z,[0,0,0])});
-      g.strokeStyle='rgba('+c.tint+','+(.34*lA*dim)+')';g.lineWidth=lW;
+      g.strokeStyle='rgba('+c.tint+','+Math.min(1,.34*lA*ml*dim)+')';g.lineWidth=lW;
       c.e.forEach(function(e){var a=pts[e[0]],b=pts[e[1]];if(!a||!b)return;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()});
       c.stars.forEach(function(s,i){var p=pts[i];if(p[0]<-30||p[0]>W+30||p[1]<-30||p[1]>H+30)return;
-        var rad=(s.dec?.6:.9+s.b*1.3)*sS*zs,gs=(s.dec?8:14+s.b*22)*sG*zs;dot(g,p[0],p[1],rad,(s.dec?.45:.6+s.b*.4)*dim,K.GL[c.k],gs)});
+        var rad=(s.dec?.6:.9+s.b*1.3)*sS*zs,gs=(s.dec?8:14+s.b*22)*sG*mg*zs;dot(g,p[0],p[1],rad,(s.dec?.45:.6+s.b*.4)*dim,K.GL[c.k],gs)});
       if(c.k!=='film'||!hide)c.works.forEach(function(wk){if(!wk||wk.star>=0)return;K.proj(cam,wk.x,wk.y,c.z,o);if(o[0]<-10||o[0]>W+10||o[1]<-10||o[1]>H+10)return;
-        dot(g,o[0],o[1],.7*sS*zs,.5*dim,K.GL[c.k],9*sG*zs)});
+        dot(g,o[0],o[1],.7*sS*zs,.5*dim,K.GL[c.k],9*sG*mg*zs)});
       var nm=K.proj(cam,c.cx,c.cy+c.ex.y1,c.z,[0,0,0]),na=(1-sstep(2.2,3.6,z))*dim,fs=clamp(12*Math.pow(z,.35),11,18);
       c._name=[nm[0],nm[1]+16,fs];
       if(na>.02){g.globalAlpha=na;g.font='400 '+fs.toFixed(1)+'px "Julius Sans One",Poppins,sans-serif';g.textAlign='center';g.fillStyle='rgba('+c.tint+',.95)';

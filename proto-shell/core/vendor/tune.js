@@ -24,12 +24,12 @@ function lsRow(key,label,min,max,def,scale,after){
 }
 function poke(key){try{window.dispatchEvent(new StorageEvent('storage',{key:key}))}catch(e){}}
 function setFlash(key){var t=T();if(t)t.set({flash:rd('gj.flash',.6)});try{document.documentElement.style.setProperty('--flash',String(rd('gj.flash',.6)))}catch(e){}}
-var D=(window.GJ_TUNE&&GJ_TUNE.defaults&&GJ_TUNE.defaults())||{map:1.3,stars:1.2,lineA:1,starS:1,starG:1,fdens:1,fgap:1};
+var D=(window.GJ_TUNE&&GJ_TUNE.defaults&&GJ_TUNE.defaults())||{mood:1,map:1.3,stars:1.2,lineA:1,starS:1,starG:1,fdens:1,fgap:1};
 
 /* Built-in room sets. A module may replace its chapter's context set with module.tune. */
 var ROOMS=[
   {id:'sky',name:'sky',rows:[
-    lsRow('gj.tune.mood','mood',0,200,100,1),
+    tuneRow('mood','mood',0,200,D.mood),
     tuneRow('map','star spread',60,160,D.map),
     tuneRow('starG','glow',0,200,D.starG),
     tuneRow('stars','stars',40,180,D.stars),
@@ -231,7 +231,7 @@ function hookLadder(){
 }
 function restore(){
   var t=T();if(t){var o={},any=false;
-    ['map','stars','starS','starG','lineA','fdens','fgap'].forEach(function(k){var v=rd('gj.tune.'+k,null);if(v!=null&&D[k]!=null){o[k]=D[k]*v/100;any=true}});
+    ['mood','map','stars','starS','starG','lineA','fdens','fgap'].forEach(function(k){var v=rd('gj.tune.'+k,null);if(v!=null&&D[k]!=null){o[k]=D[k]*v/100;any=true}});
     if(any)t.set(o)}
   setFlash();
   safelight();

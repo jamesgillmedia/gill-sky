@@ -43,7 +43,7 @@ function boot(skyD,tracks,shape){
   document.addEventListener('lab-variant',function(e){SH.variant=e.detail.v;if(M.variant)M.variant(e.detail.v,SH);relayout()});
   GJ_DEC.on(function(){relayout()});
   var T=GJ_TUNE.values();
-  (function(){var f=GJ_TUNE.set,r=GJ_TUNE.reset;GJ_TUNE.set=function(p){f(p);T=GJ_TUNE.values();relayout()};GJ_TUNE.reset=function(){r();T=GJ_TUNE.values();relayout()}})();
+  (function(){var f=GJ_TUNE.set,r=GJ_TUNE.reset;GJ_TUNE.set=function(p){f(p);T=GJ_TUNE.values();if(p&&Object.keys(p).some(function(k){return k!=='mood'}))relayout()};GJ_TUNE.reset=function(){r();T=GJ_TUNE.values();relayout()}})();
   function relayout(){resize(true)}
   function resize(keep){var DPR=Math.min(devicePixelRatio||1,2),W=innerWidth,H=innerHeight;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);g.setTransform(DPR,0,0,DPR,0,0);
     cam.W=W;cam.H=H;sky.layout(W,H,T);if(M.layout)M.layout(W,H,SH);
@@ -85,6 +85,7 @@ function boot(skyD,tracks,shape){
   function frame(t){requestAnimationFrame(frame);var dt=Math.min(.05,(t-last)/1000);last=t;cam.step(t,dt);
     var W=cam.W,H=cam.H;g.clearRect(0,0,W,H);
     g.fillStyle='#04070b';g.fillRect(0,0,W,H); /* --bg */
+    sky.drawWash(g,cam,T);
     sky.draw(g,cam,t,T,ladder.cur,M.hide?function(k){return M.hide(k,SH)}:null);
     soundLayer(t);
     if(M.draw)M.draw(g,cam,t,SH,T);

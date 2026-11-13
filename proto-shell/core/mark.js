@@ -14,8 +14,8 @@ w.GJ_DEC={defaults:function(){return JSON.parse(JSON.stringify(DECDEF))},get:dec
   set:function(k,v){if(!(k in DECDEF))return;DECV[k]=typeof DECDEF[k]==='number'?+v:String(v);try{localStorage.setItem('gj.dec.'+k,String(v))}catch(e){}hooks.forEach(function(f){f('dec',k)})},
   reset:function(){Object.keys(DECDEF).forEach(function(k){try{localStorage.removeItem('gj.dec.'+k)}catch(e){}});DECV={};hooks.forEach(function(f){f('dec','*')})},
   on:function(f){hooks.push(f)}};
-/* m4 TDEF (c9621b3 sky.js) + fdens/fgap (preview-film-snap) */
-var TDEF={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1},TUNE=JSON.parse(JSON.stringify(TDEF));
+/* m4 TDEF (c9621b3 sky.js) + fdens/fgap (preview-film-snap) + mood (this shell; 1 = the sky as written, gj.tune.mood 100) */
+var TDEF={mood:1,map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1},TUNE=JSON.parse(JSON.stringify(TDEF));
 w.GJ_TUNE={get:function(k){return TUNE[k]},values:function(){return JSON.parse(JSON.stringify(TUNE))},defaults:function(){return JSON.parse(JSON.stringify(TDEF))},
   set:function(p){if(!p)return;Object.keys(p).forEach(function(k){if(k in TDEF&&isFinite(+p[k]))TUNE[k]=+p[k]});hooks.forEach(function(f){f('tune',Object.keys(p))})},
   reset:function(){TUNE=JSON.parse(JSON.stringify(TDEF));hooks.forEach(function(f){f('tune','*')})}};
