@@ -2437,11 +2437,13 @@ function deeper(x,y){
   }
 }
 function markUp(){
+  if(window.GJ_MARKMENU&&GJ_MARKMENU.open){GJ_MARKMENU.show(false);return}
   if(window.GJ_DEPTH){
     var s=GJ_DEPTH.state();
     if(s&&s.film>1){GJ_DEPTH.pinchOut(depthApi());return}
   }
   if(document.querySelector('.enterframe')&&window.GJ_DEPTH){GJ_DEPTH.pinchOut(depthApi());return}
+  if(cur.lv===0&&!bioOn)return;
   back();
 }
 function back(){
