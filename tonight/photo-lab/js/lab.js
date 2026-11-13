@@ -164,7 +164,7 @@ LAB.ambient={
     var ink=cs.getPropertyValue('--ink-base').trim()||'#eef3f5';
     var dim=cs.getPropertyValue('--dim-base').trim()||'#c9d3d6';
     var mute=cs.getPropertyValue('--mute-base').trim()||'#8fa3aa';
-    var mint=cs.getPropertyValue('--mint-base').trim()||'#55DAA1';
+    var mint=cs.getPropertyValue('--mint-base').trim()||'#e8e4dc';
     /* Dark room colours scale with --amb. Text stays readable by not falling as far. */
     root.style.setProperty('--bg',mixHex(bg,v));
     root.style.setProperty('--ink',mixHex(ink,.42+.58*v));

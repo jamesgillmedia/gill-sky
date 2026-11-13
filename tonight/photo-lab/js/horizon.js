@@ -37,6 +37,8 @@ function build(){parkVideos(framesE);parkVideos(reflE);framesE.innerHTML='';refl
   rt.innerHTML=L.map(function(p){return'<i style="background:'+p.avg+'"></i>'}).join('');size();buildSheet()}
 function size(){W=innerWidth;H=innerHeight;var land=W>H;HY=Math.round(H*(land&&H<500?.70:.64));
   FH=land?Math.min(H*.52,HY-64):Math.min(H*.40,HY-96);
+  /* Nov 13 pass: the drying line hangs above the horizon; the standing print stays clear of it */
+  if(LAB.lineBottom){var lb=LAB.lineBottom();if(lb)FH=Math.max(120,Math.min(FH,HY-lb-14))}
   els.forEach(function(f,i){var p=L[i],h=FH,w=h*p.w/p.h;if(w>W*(land?.6:.86)){w=W*(land?.6:.86);h=w*p.h/p.w}[f,rels[i]].forEach(function(e){e.style.width=w+'px';e.style.height=h+'px';e.style.marginLeft=(-w/2)+'px'});f.style.marginTop=(-h)+'px';f._w=w});
   sky.style.setProperty('--hy',HY+'px');lastCur=-1;paint();
   var c=colCount();if(c!==cols){cols=c;grid.style.setProperty('--cols',cols)}}
@@ -50,17 +52,21 @@ function paint(){if(!els.length)return;
     var s=a<1?1-.54*a:Math.max(.2,.46-.05*(a-1)),reach=cw/2+g+nw/2,x=a<1?d*reach:Math.sign(d)*(reach+(a-1)*(nw+g)),
         sink=a<1.6?0:(a-1.6)*FH*.11;
     f.style.transform='translate('+x.toFixed(1)+'px,'+sink.toFixed(1)+'px) scale('+s.toFixed(3)+')';
-    r.style.transform='translate('+x.toFixed(1)+'px,'+(-sink).toFixed(1)+'px) scale('+s.toFixed(3)+','+(-s).toFixed(3)+')';
+    r.style.transform='translate('+x.toFixed(1)+'px,'+(-sink).toFixed(1)+'px) scale('+s.toFixed(3)+')';/* Nov 13: mirrored in CSS (img scaleY(-1)), so the reflection hangs down from the horizon instead of flipping up out of view */
     f.style.zIndex=r.style.zIndex=100-Math.round(a*10);
     f.style.filter=a>.5?'brightness('+(1-Math.min(.45,(a-.5)*.12)).toFixed(2)+')':'';f.classList.toggle('cur',i===cur)}
   var i0=Math.max(0,Math.floor(pos)),i1=Math.min(L.length-1,i0+1),t=pos-i0,a0=L[i0],a1=L[i1];
   /* magic-base 1112: the wall stays dark on every screen (Gill: dark background in every room); the tint still follows the photograph, the photograph itself is untouched */
-  var top=mix(dark(a0.top,.16),dark(a1.top,.16),t),hor=mix(dark(a0.bot,.42),dark(a1.bot,.42),t),wat=mix(dark(a0.bot,.14),dark(a1.bot,.14),t);
+  /* Nov 13 pass (Sketch decision 4 = B): a dark night sky and black water. Only a trace (6-12%) of the standing photograph's own
+     colour reaches the sky near the horizon; the photograph itself is untouched. */
+  var NT='#05070c',NH='#0b1018',NW='#04060a';
+  var top=mix(NT,mix(dark(a0.top,.5),dark(a1.top,.5),t).replace(/rgb\(|\)/g,'').split(',').reduce(function(h,v){v=(+v).toString(16);return h+(v.length<2?'0':'')+v},'#'),.06),
+      hor=mix(NH,mix(dark(a0.bot,.6),dark(a1.bot,.6),t).replace(/rgb\(|\)/g,'').split(',').reduce(function(h,v){v=(+v).toString(16);return h+(v.length<2?'0':'')+v},'#'),.12),wat=NW;
   sky.style.setProperty('--skyg','linear-gradient(180deg,'+top+' 0%,'+hor+' '+HY+'px,'+wat+' '+(HY+1)+'px,var(--bg) 100%)');sky.style.setProperty('--wc',wat);
   rt.style.transform='translateX('+(-(pos*6+2.5)).toFixed(1)+'px)';
   if(cur!==lastCur){lastCur=cur;var ch=rt.children;for(var k=0;k<ch.length;k++)ch[k].classList.toggle('on',k===cur);
     var p=L[cur];nowE.textContent=LAB.num(p)+' · light '+Math.round(p.lum*100);
-    document.querySelector('meta[name=theme-color]').content=dark(a0.top,.5);
+    document.querySelector('meta[name=theme-color]').content='#05070c';
     markSheetCur()}}
 function loop(){raf=0;var d=target-pos;if(Math.abs(d)<.002){pos=target;paint();return}pos+=d*.11;paint();raf=requestAnimationFrame(loop)}
 function go(t,now){target=Math.max(0,Math.min(L.length-1,t));if(now){pos=target;paint()}else if(!raf)raf=requestAnimationFrame(loop)}
@@ -137,7 +143,9 @@ sortB.addEventListener('click',function(){var id=L[Math.round(pos)].id;mode=mode
 /* ---------- the day ---------- */
 var cp=null;
 function near(p){var i=L.indexOf(p),out=[];for(var d=1;out.length<8&&d<L.length;d++){if(L[i+d])out.push(L[i+d]);if(out.length<8&&L[i-d])out.push(L[i-d])}return out}
-function fillDay(p){cp=p;parkVideos($('hero'));parkVideos(stack);var hero=$('hero');hero.innerHTML='';hero.style.setProperty('--hg','linear-gradient(180deg,'+p.top+','+dark(p.bot,.4)+')');
+/* the day keeps a trace of the photograph, held inside the night field. A light wash (the picture's own grey or beige) is never the page. */
+function nightWash(h,t){return mix('#05070c',dark(h,.55),t)}
+function fillDay(p){cp=p;parkVideos($('hero'));parkVideos(stack);var hero=$('hero');hero.innerHTML='';hero.style.setProperty('--hg','linear-gradient(180deg,'+nightWash(p.top,.10)+','+nightWash(p.bot,.05)+')');
   if(LAB.isClip(p)){var v=getClipVid(p,'day');if(!v.getAttribute('src'))v.src=LAB.clip(p);hero.appendChild(v);LAB.arm(v)}
   else{var im=new Image();im.id='himg';im.alt='photograph '+LAB.num(p);im.src=LAB.img(p);hero.appendChild(im)}
   cred.innerHTML='<span>frame <b>'+LAB.num(p)+'</b> of '+L.length+'</span><span><i class="sw" style="background:'+p.avg+'"></i>measured light <b>'+Math.round(p.lum*100)+'</b></span>'+
@@ -168,7 +176,12 @@ function camera(){if(LAB.layer.top()==='camera back')return;
 $('cam').addEventListener('click',camera);
 
 document.addEventListener('keydown',function(e){var top=LAB.layer.top();if(top==='camera back')return;
-  if(top==='day'){if(e.key==='Escape')LAB.layer.back();else if(e.key==='+'||e.key==='=')camera();return}
+  if(top==='day'){if(e.key==='Escape'){e.preventDefault();e.stopImmediatePropagation();
+    var backTo=L.indexOf(cp);LAB.layer.back();
+    /* one level up is the horizon. If the history step under the day was the empty lab root, stand on the horizon instead of leaving it. */
+    var rise=function(){if(LAB.layer.top()==='day')return;if(LAB.layer.top()!=='horizon')enterHorizon(backTo>=0?backTo:Math.round(pos))};
+    setTimeout(rise,0);setTimeout(rise,80);
+  }else if(e.key==='+'||e.key==='=')camera();return}
   if(atSheet()){
     if(e.key==='ArrowRight'){go(Math.round(target)+1,true);scrollCur();e.preventDefault()}
     else if(e.key==='ArrowLeft'){go(Math.round(target)-1,true);scrollCur();e.preventDefault()}
@@ -202,5 +215,5 @@ function hideHorizon(){els.forEach(function(f,i){armEl(f,false);armEl(rels[i],fa
 LAB.horizon={enter:enterHorizon,leave:leaveHorizon,go:go,size:size,show:showHorizon,hide:hideHorizon,
   photoAt:function(i){return L[Math.max(0,Math.min(L.length-1,i))]},
   indexOf:function(p){return L.indexOf(p)},
-  pos:function(){return Math.round(pos)}};
+  pos:function(){return Math.round(pos)},fpos:function(){return pos},hy:function(){return HY},list:function(){return L}};
 })();
