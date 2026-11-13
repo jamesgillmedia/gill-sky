@@ -13,7 +13,7 @@
 @keyframes fpShrink{to{transform:scale(.08,.06);opacity:1}}
 .fp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease;animation:none;z-index:1}
 .fp-frame img.on{opacity:1}
-.fp-frame video.fp-loop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#04070b;pointer-events:none}
+.fp-frame video.fp-loop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;background:#04070b;pointer-events:none}
 .fp-frame img.fp-now{transition:none}
 #layer .sheet.film.fp.fp-full .fp-cards{opacity:.5}
 #layer .sheet.film.fp .fp-t,#layer .sheet.film.fp .fp-card b{color:#e8e4dc}
