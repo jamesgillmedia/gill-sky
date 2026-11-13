@@ -45,3 +45,6 @@
 #markmenu .mm-off-room label{opacity:.5}
 #markmenu .mm-off-room h3 em{display:block;margin-top:2px;color:rgba(var(--mm-ink-rgb),.62)}
 #markmenu .mm-theme b em{font:300 9px Poppins,sans-serif;font-style:normal;letter-spacing:.02em;text-transform:none;color:rgba(var(--mm-ink-rgb),.62);margin-left:6px}
+
+/* the waveform player is never covered: the menu stops above the Sound dock and scrolls inside itself */
+#markmenu{max-height:calc(100vh - 54px - 112px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}

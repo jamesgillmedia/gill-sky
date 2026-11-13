@@ -33,7 +33,7 @@ function build(){
 /* module stylesheets: a module ships plain CSS (its own colours); Red maps every colour in it to the same light on the red ink (same luminance and alpha;
    black stays black), so a module inherits Red without knowing about it. Never mapped: the mint "new" marker, the safelight, and any rule for a part that
    shows a photograph or a film (MODSKIP): the calculator's photo face, its sides, display wall and glitch canvas, the moon grid. Built only while Red is on. */
-var RED=[255,90,77],MODSKIP=/\.ac3-(face|bevel|side|floor|wall|back)\b|#glitch|#grain|#calc\b|#moons/,modSheet=null;
+var RED=[255,68,87],MODSKIP=/\.ac3-(face|bevel|side|floor|wall|back)\b|#glitch|#grain|#calc\b|#moons/,modSheet=null;
 function keep(r,g,b){
   if(Math.abs(r-85)<45&&Math.abs(g-218)<40&&Math.abs(b-161)<45)return true;      /* mint, new work */
   if(g>=180&&g>r+8&&g>b+25)return true;                                           /* mint lit states (#e7f6c8 …) */

@@ -26,7 +26,9 @@ function Sky(D){
   /* glow sprites by colour; the theme decides the colour (red: every constellation red, the one you are in or adjusting gold) */
   K.spr=function(rgb){return SPR[rgb]||(SPR[rgb]=glowSprite(rgb))};
   K.tintOf=function(k){var c=K.chapter(k);return P.chapter||(c?c.tint:'255,255,255')};
-  K.col=function(c,here){return P.active&&(here||P.adj==='sky'||P.adj===c.k)?P.active:(P.chapter||c.tint)};
+  /* Red is not one red: hushed pulls the chapter ink toward a deep crimson, lit toward a light rose (quantised so the glow sprites stay few) */
+  K.col=function(c,here){if(P.active&&(here||P.adj==='sky'||P.adj===c.k))return P.active;if(!P.chapter)return c.tint;var m=Math.round(K.mood*5)/5;if(!m)return P.chapter;var b=P.chapter.split(',').map(Number),t=m<0?[120,24,40]:[255,176,186],u=Math.abs(m)*.55;return b.map(function(v,i){return Math.round(v+(t[i]-v)*u)}).join(',')};
+  K.mood=0;
   K.retheme=function(){K.GW=glowSprite(P.glow);K.CH.forEach(function(c){K.GL[c.k]=K.spr(P.chapter||c.tint)})};
   /* m4 placeChapter, positions only: n works in list order (isNew first) */
   function place(k,n,port,isNew){
@@ -84,7 +86,7 @@ function Sky(D){
   K.core=P.core;
   K.proj=function(cam,x,y,z,o){z=zE(cam,z);var k=Math.pow(cam.zf(),(z-1)*.38),s=cam.s*k;o=o||[0,0,0];
     o[0]=cam.W/2+(x-cam.x)*s+cam.tilt.x*(z-1)*2.2;o[1]=cam.H/2+(y-cam.y)*s+cam.tilt.y*(z-1)*2.2;o[2]=s;return o};
-  function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle=K.core;g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
+  function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;if(P.name==='red'){gs*=.62;a*=.9}g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle=K.core;g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
   /* the mood wash: the page wash (#13202e at 50% 0 into --bg, STANDARDS §4), growing with mood above 100. Behind everything. */
   /* red mode: the dotted floor. A lattice of fine dots in the world at depth .55, so it slides under the constellations as you move
      (spacing doubles as you zoom in so the dots stay 18-36 px apart). Static: nothing in it moves by itself. */
@@ -92,7 +94,7 @@ function Sky(D){
     var x0=Math.floor((cam.x-W/2/px-sp)/sp)*sp,y0=Math.floor((cam.y-H/2/px-sp)/sp)*sp,x1=cam.x+W/2/px+sp,y1=cam.y+H/2/px+sp;
     g.fillStyle='rgba('+P.grid+','+(.5*(1+m*.5)).toFixed(3)+')';
     for(var y=y0;y<y1;y+=sp)for(var x=x0;x<x1;x+=sp){K.proj(cam,x,y,z,o);if(o[0]<-2||o[0]>W+2||o[1]<-2||o[1]>H+2)continue;g.fillRect(o[0]-.5,o[1]-.5,1.2,1.2)}}
-  K.drawWash=function(g,cam,T){var m=moodOf(T);K.core=moodCore(m);if(P.grid)floor(g,cam,m);if(m<=0||!P.wash)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
+  K.drawWash=function(g,cam,T){var m=moodOf(T);K.core=moodCore(m);K.mood=m;if(P.grid)floor(g,cam,m);if(m<=0||!P.wash)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
     gr.addColorStop(0,'rgba('+P.wash+','+(m*.95).toFixed(3)+')');gr.addColorStop(1,'rgba('+P.wash+',0)');g.fillStyle=gr;g.fillRect(0,0,W,H)};
   K.draw=function(g,cam,t,T,st,hide){
     var o=[0,0,0],W=cam.W,H=cam.H,z=cam.zf(),sS=T.starS||1,sG=T.starG||1,lA=T.lineA||1,lW=T.lineW||1;

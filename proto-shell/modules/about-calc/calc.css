@@ -90,3 +90,10 @@
 /* touch without select, on the object: the same ring as core #water .rip (STANDARDS §touch-without-select) */
 #acalc .ac-water{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:4}
 #acalc .ac-water .rip{position:absolute;width:18px;height:18px;margin:-9px;border:1px solid rgba(255,255,255,.55);border-radius:50%;animation:rip 1.5s ease-out forwards;pointer-events:none}
+
+/* Red: red ink carries less light than the night ink, so the poem and the bio sit on a darker ground (measured in NOTES.md); photos stay true colour above and around */
+html[data-theme=red] body #acalc #laytext{background:linear-gradient(transparent 6%,rgba(0,0,0,.84) 24%,rgba(0,0,0,.88) 76%,transparent)}
+html[data-theme=red] body #acalc #laytext.lv4,html[data-theme=red] body #acalc #laytext.lv5,html[data-theme=red] body #acalc #laytext.lv6,html[data-theme=red] body #acalc #laytext.lv7{background:rgba(0,0,0,.88)}
+html[data-theme=red] body #acalc .ac3-box{background:rgba(0,0,0,.84)}
+html[data-theme=red] body #acalc .ac3-box.on{background:rgba(0,0,0,.92)}
+@media(min-width:900px){html[data-theme=red] body #acalc #laytext.lv2{background:rgba(0,0,0,.88)}}

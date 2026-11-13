@@ -11,8 +11,8 @@ function el(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttr
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 w.ShellCallout=function(sh){
   var svg=el('svg',{id:'callouts','aria-hidden':'true'}),defs=el('defs',{},svg),rg=el('radialGradient',{id:'co-glow'},defs);
-  [[0,.9],[.3,.35],[1,0]].forEach(function(q){el('stop',{offset:q[0],'stop-color':'#e8c48a','stop-opacity':q[1]},rg)});
-  var g=el('g',{},svg),stars=[0,1,2,3,4].map(function(){var s=el('g',{class:'co-star'},g);el('circle',{r:9,fill:'url(#co-glow)'},s);el('circle',{r:1.6,fill:'#ffe9c4'},s);return s}),br=[0,1,2,3].map(function(){return el('path',{class:'co-br'},g)}),
+  [[0,.8],[.3,.22],[1,0]].forEach(function(q){el('stop',{offset:q[0],'stop-color':'#e8c48a','stop-opacity':q[1]},rg)});
+  var g=el('g',{},svg),stars=[0,1,2,3,4].map(function(){var s=el('g',{class:'co-star'},g);el('circle',{r:6,fill:'url(#co-glow)'},s);el('circle',{r:1.6,fill:'#ffe9c4'},s);return s}),br=[0,1,2,3].map(function(){return el('path',{class:'co-br'},g)}),
     ln=el('path',{class:'co-ln'},g),box=el('rect',{class:'co-box',rx:2},g),t1=el('text',{class:'co-t1'},g),t2=el('text',{class:'co-t2'},g);
   document.body.appendChild(svg);g.style.display='none';
   var cur=null,API={};
