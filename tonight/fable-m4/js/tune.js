@@ -132,7 +132,7 @@ function contextRows(c){
 /* rooms whose sliders are only saved here: nothing in this shell reads them yet */
 var OFF_NOTE='not active here · saved only';
 function isOff(id){var R=roomById(id);return !!(R&&R.off)}
-var PTR=null,HOLD=false,kbT=0,unfoldT=0;
+var PTR=null,HOLD=false,kbT=0,unfoldT=0,CFOCUS=null;
 var MARK='#crumb .sig,#omark,.lab-top .sig,[data-tn-mark]';
 function markEl(){return document.querySelector(MARK)}
 function dial(){return window.GJ_DIAL||window.GJ_GHOST||null}
@@ -206,7 +206,9 @@ function build(){
     var sb=e.target.closest('[data-seg-k]');
     if(sb){var srow=findRow(sb.getAttribute('data-seg-k'));if(srow)srow.apply(sb.getAttribute('data-v'),true);paint();return}
     var dvb=e.target.closest('[data-drawer]');
-    if(dvb){setDrawer(dvb.getAttribute('data-drawer'));paint();return}
+    if(dvb){CFOCUS=null;setDrawer(dvb.getAttribute('data-drawer'));paint();return}
+    var cf=e.target.closest('[data-cfocus]');
+    if(cf){CFOCUS=cf.getAttribute('data-cfocus');paint();return}
     var vb2=e.target.closest('[data-var]');
     if(vb2&&window.GJ_VAR){GJ_VAR.set(vb2.getAttribute('data-var-room'),vb2.getAttribute('data-var'));paint();return}
     var db=e.target.closest('[data-dec]');
@@ -258,8 +260,16 @@ function build(){
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
   /* a touch outside closes the drawer and is only that: the following click never reaches the room */
   var SWALLOW=0;
-  addEventListener('keydown',function(e){if(open&&e.key==='Escape'){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();show(false)}},true);
-  document.addEventListener('pointerdown',function(e){if(open&&outside(e)){SWALLOW=Date.now()+1500;show(false)}},true);
+  var NAVK={ArrowLeft:1,ArrowRight:1,ArrowUp:1,ArrowDown:1,PageUp:1,PageDown:1,Home:1,End:1};
+  addEventListener('keydown',function(e){
+    if(!open||!(e.key==='Escape'||NAVK[e.key]))return;
+    e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();show(false);
+  },true);
+  addEventListener('wheel',function(e){
+    if(!open)return;
+    e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();show(false);
+  },{capture:true,passive:false});
+  document.addEventListener('pointerdown',function(e){if(open&&outside(e)){SWALLOW=Date.now()+1500;window.__gjNavSwallow=SWALLOW;show(false)}},true);
   document.addEventListener('click',function(e){if(SWALLOW&&Date.now()<SWALLOW&&outside(e)){SWALLOW=0;e.stopPropagation();e.preventDefault()}},true);
 }
 function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].rows[j];
@@ -280,6 +290,7 @@ function rowsHtml(rows){
     }
     if(r.seg){var sv=String(r.get());h+='<div class="mm-seg mm-rowseg'+(r.dev?' mm-devrow':'')+'"><b>'+r.label+(r.dev?' <em>dev</em>':'')+'</b><span role="radiogroup" aria-label="'+r.label+'">';
       r.seg.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(sv===o[0])+'" data-seg-k="'+r.k+'" data-v="'+o[0]+'">'+o[1]+'</button>'});h+='</span></div>';return}
+    if(DV==='C'&&CFOCUS!==r.k){h+='<button type="button" class="mm-clab" data-cfocus="'+r.k+'">'+r.label+'</button>';return}
     var v=r.get();
     h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+r.label+'"><output>'+v+'</output></label>'});
   return h;
@@ -294,7 +305,8 @@ function paint(){
   var title=here+(level&&level!==here?' · '+level:'');
   var offHere=isOff(here)&&!(c.mod&&c.mod.chapter===here&&c.mod.tune);
   var h='<section class="mm-ctx'+(offHere?' mm-off-room':'')+'"><h3>'+title+' <span>here</span>'+(offHere?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
-  h+=rowsHtml(contextRows(c));
+  var ctxRows=contextRows(c);if(DV==='C')ctxRows=ctxRows.slice(0,4);
+  h+=rowsHtml(ctxRows);
   /* Film room pass: A/B/C variant toggle, only in a room that has variants (js/variants.js). */
   var GV=window.GJ_VAR;
   if(GV&&GV.has(here)){var av=GV.get(here),VR=GV.rooms[here];
@@ -369,10 +381,22 @@ function show(on){
   if(open){
     menu.classList.remove('mm-in','mm-folding');menu.hidden=false;paint();origin();
     void menu.offsetWidth;
-    requestAnimationFrame(function(){if(open)menu.classList.add('mm-in')});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){if(open){origin();menu.classList.add('mm-in')}})});
+    if(history.state&&history.state.u1&&!history.state.mm&&!window.__gjMmFromPop){
+      try{history.pushState({u1:1,cur:history.state.cur,n:history.state.n,mm:1},'',location.hash);window.__gjMmSent=1}catch(err){}
+    }
   }else if(was&&!menu.hidden){
-    try{window.__gjCamHold=Date.now()+900}catch(e){}
+    CFOCUS=null;
+    try{
+      window.__gjCamHold=Date.now()+900;
+      var sc=window.__u1&&__u1.cur;
+      if(sc)window.__gjCamSnap=JSON.stringify({lv:sc.lv,k:sc.k,id:sc.id,b:sc.b?1:0,cards:sc.cards?1:0});
+    }catch(e){}
     menu.classList.add('mm-folding');menu.classList.remove('mm-in');HOLD=false;
+    if(window.__gjMmSent&&history.state&&history.state.mm&&!window.__gjMmFromPop){
+      window.__gjMmPop=1;window.__gjMmSent=0;
+      try{history.back()}catch(err){}
+    }
     var d=dial();if(d&&d.hide)d.hide();
     foldT=setTimeout(function(){if(!open){menu.hidden=true;menu.classList.remove('mm-folding')}},rmOn()?240:640);
   }else menu.hidden=true;

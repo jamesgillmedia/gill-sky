@@ -27,3 +27,13 @@ Plan drawings sit smaller on a `#04070b` mat with a soft vignette. The dev row `
 Gallery sheets and the drifting tiles fade in from `#04070b`. One hint line reads `the mark closes the sheet · next wraps to the start`, then leaves. The mark and crumb keep a `#04070b` text-shadow so the top bar stays readable over the garden.
 
 `tonight/fable-m4/versions/se-a/` carries the same sheet, caption, card, and fade. The live room is `tonight/spaces/forest-garden/`.
+
+## About · drawer closes first, and the fold matches the mark
+
+While the drawer is open, arrow keys, Escape, the wheel, and Back close the drawer and leave the room where it is. A tap outside is swallowed so it does not also step the room. The camera keeps the pose it had when the drawer opened.
+
+Layer 1 words sit on a `#04070b` plate. Leaving the moon pauses the tiles, hides them, and shows the board through a clear exit, so the bright moon wall does not flash on the way out. The sky canvas fills `#04070b` before it draws.
+
+Drawer A is the default: no scrim, a hairline off the mark, and the room stays visible. B and C are dev toggles (`?dev=1`). B is typewritten labels on one hairline, with no panel behind the room. C is the current room's labels only; a label opens its slider, and sky labels that would sit under the drawer are not drawn. Slider tracks are 55% of the row. Dev defaults off.
+
+The mark, the name, and the chapter labels are `#e8e4dc`. The sky and About keep the To Go bar at full opacity. Tapping it outside Film opens a sheet from the touch point; Film keeps its own bar. Reduce Motion keeps the drawer's end pose and drops the transition. Touch glow is skipped on the film board and when bloom is high, and it draws over the scene instead of adding light onto the photographs. The safelight layer is `z-index: 55`. The calibre star layer stays deferred.

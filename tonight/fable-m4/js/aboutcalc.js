@@ -19,7 +19,7 @@ var DEF={tilt:16,depth:22,light:330,gspeed:100};
 function val(k){return rd('gj.acalc.'+k,DEF[k])}
 var V=(function(){var q=/(?:^|[?&])(?:v|calc)=([ABC])(?:&|$)/.exec(location.search);if(q){wr('gj.acalc.v',q[1]);return q[1]}
   try{var s=localStorage.getItem('gj.acalc.v');if(s==='A'||s==='B'||s==='C')return s}catch(e){}return 'B'})();
-function dev(){var q=/(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);if(q){wr('gj.dev',q[1])}return rd('gj.dev',1)!==0}
+function dev(){var q=/(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);if(q){wr('gj.dev',q[1])}return rd('gj.dev',0)!==0}
 var K=function(){return V==='C'?{t:1.6,d:1.8}:{t:1,d:1}};
 var L=null,O={},BUILT=false,clk=0,lastT=0;
 var BOXOF={2:0,3:1,4:2,5:2,6:3,7:3},HOME=[2,3,5,7],TAG=['poem','bio · short','bio','bio · long'],NUM=['2','3','4 · 5','6 · 7'];
@@ -38,9 +38,10 @@ function build(){
     [0,1,2,3].map(function(i){return '<div class="ac3-box" data-i="'+i+'"><em class="ac3-tag"><i>'+NUM[i]+'</i> '+TAG[i]+'</em><div class="ac3-txt"></div></div>'}).join('')+
     '</div>';
   var lab=document.createElement('p');lab.className='ac3-vlab';lab.setAttribute('aria-hidden','true');
-  L.insertBefore(w,$('moons'));L.appendChild(lab);
+  var flat=document.createElement('div');flat.className='ac3-words2';flat.hidden=true;flat.innerHTML=linesHtml(texts()[0]);
+  L.insertBefore(w,$('moons'));L.appendChild(lab);L.appendChild(flat);
   O.wrap=w;O.el=w.querySelector('.ac3-obj');O.face=w.querySelector('.ac3-face canvas');O.floor=w.querySelector('.ac3-floor canvas');
-  O.words=w.querySelector('.ac3-words');O.boxes=[].slice.call(w.querySelectorAll('.ac3-box'));O.lab=lab;O.shadow=w.querySelector('.ac3-shadow');
+  O.words=w.querySelector('.ac3-words');O.flat=flat;O.boxes=[].slice.call(w.querySelectorAll('.ac3-box'));O.lab=lab;O.shadow=w.querySelector('.ac3-shadow');
   O.sides=[].slice.call(w.querySelectorAll('.ac3-side')).map(function(s){var c=s.querySelector('canvas');return {k:s.className.split(' ')[1],c:c,ctx:c.getContext('2d'),i:s.querySelector('i')}});
   var fg=O.face.getContext('2d');O.face.width=4;O.face.height=4;fg.fillStyle='#04070b';fg.fillRect(0,0,4,4);
   O.T={x:0,y:0,vx:0,vy:0,tx:0,ty:0,d:val('depth'),vd:0,td:val('depth')};O.G={bands:[],burst:0,frame:null,prev:null};
@@ -97,6 +98,17 @@ function step(dt){
   var a=Math.max(1,val('tilt')*K().t),La=val('light')*Math.PI/180,sp=clamp(1+(T.y*Math.sin(La)+T.x*Math.cos(La))/a*.35,.4,1.8);
   s.setProperty('--spec',sp.toFixed(2));s.setProperty('--shx',(50+T.y*1.6).toFixed(1)+'%');s.setProperty('--shy',(30-T.x*1.6).toFixed(1)+'%');
   O.wrap.style.setProperty('--tx',(T.y*-.8).toFixed(1)+'px');O.wrap.style.setProperty('--ty',(T.x*.8).toFixed(1)+'px');
+  if(O.flat&&L){
+    var on=L.classList.contains('ac-l1')&&!L.hidden&&!L.classList.contains('exit');
+    O.flat.hidden=!on;
+    if(on){
+      var well=O.el.querySelector('.ac3-well'),lr=L.getBoundingClientRect();
+      if(well){var r=well.getBoundingClientRect();
+        O.flat.style.left=(r.left-lr.left)+'px';O.flat.style.top=(r.top-lr.top)+'px';
+        O.flat.style.width=Math.max(40,r.width)+'px';O.flat.style.height=Math.max(28,r.height)+'px';
+      }
+    }
+  }
 }
 /* ---------- the face: the same m4 glitch pixels ---------- */
 function draw3(t){

@@ -51,16 +51,23 @@
  background:linear-gradient(160deg,rgba(232,228,220,.07),rgba(232,228,220,0) 40%)}
 /* layer 1: the display reads the words. The photo's green digits step back (dimmed under a scrim) so the words never sit on top of them */
 #layers .ac3-words{inset:0;transform:translateZ(calc(var(--rd) * -1 + 1.5px));display:flex;flex-direction:column;justify-content:center;padding:0 7%;
- color:#e8e4dc;text-shadow:0 0 8px rgba(232,228,220,.30),0 1px 2px rgba(0,0,0,.95);font-weight:300;letter-spacing:.02em;overflow:hidden;opacity:0;transition:opacity .48s ease}
+ color:#e8e4dc;font-weight:300;letter-spacing:.02em;overflow:hidden;opacity:0!important}
+#layers .ac3-words2{position:absolute;z-index:5;display:flex;flex-direction:column;justify-content:center;padding:0 8%;box-sizing:border-box;color:#e8e4dc;background:#04070b;pointer-events:none;font-weight:300;letter-spacing:.02em;overflow:hidden}
+#layers .ac3-words2 span{display:block;line-height:1.2;font-size:clamp(13px,3.6vw,20px)}
+#layers .ac3-words2[hidden]{display:none}
+#layers.exit.toboard{background:transparent;box-shadow:none}
+#layers.exit.toboard #moons{opacity:0!important}
+#layers.exit:not(.toboard) #moons{object-fit:contain;width:68%;height:68%;left:16%;top:16%;inset:auto;background:#04070b}
 #layers .ac3-words span{display:block;font-size:var(--wf,15px);line-height:1.16;white-space:nowrap}
 #layers.ac-l1 .ac3-words{opacity:1}
 #layers.ac-live.ac-l1 .ac3-floor canvas{opacity:.22}
 #layers.ac-l1 .ac3-scrim{background:rgba(4,7,11,.55)}
 #layers .ac3-words.flick{opacity:.62}
 /* the four keys: the poem and the bio as real text, each plane a little proud of the face. Closed: a readable tag + the first lines. Open: lifted, filling the face */
-#layers .ac3-box.ac-pend{opacity:0!important;transition:none!important}
+#layers .ac3-box.ac-pend{opacity:1!important}
+#layers .ac3-box.ac-pend .ac3-txt,#layers .ac3-box.ac-pend .ac3-tag{opacity:0;transition:none}
 #layers .ac3-box{left:var(--bx);top:var(--by);width:var(--bw);height:var(--bh);transform:translateZ(calc(var(--d) / 2 + var(--bz,2px)));
- background:linear-gradient(180deg,rgba(10,15,20,.86),rgba(4,7,11,.90));border-radius:7px;
+ background:#05070c;border-radius:7px;
  box-shadow:0 0 0 1px rgba(232,228,220,.12),inset 0 1px 0 rgba(232,228,220,.10),0 calc(var(--bz,2px) * .6) calc(var(--bz,2px) * 1.6) rgba(0,0,0,.55);
  color:#e8e4dc;overflow:hidden;padding:8px 9px;box-sizing:border-box;font-size:calc(var(--fs,11px) * .78);line-height:1.38;
  transition:left .52s cubic-bezier(.22,.7,.2,1),top .52s cubic-bezier(.22,.7,.2,1),width .52s cubic-bezier(.22,.7,.2,1),height .52s cubic-bezier(.22,.7,.2,1),transform .52s cubic-bezier(.22,.7,.2,1),opacity .4s ease,padding .4s ease}
