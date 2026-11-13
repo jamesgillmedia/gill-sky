@@ -46,12 +46,19 @@
 
   function openPiece(i) { var bi = P[i].bi, c = cards && cards.children[bi]; if (c) c.click() }
 
-  /* ---------- variants ---------- */
+  /* ---------- variants: the A/B/C switch lives in the tune drawer, not the top bar ---------- */
+  document.documentElement.setAttribute('data-tn-room', 'objects');
   var V = 'A';
-  var tv = window.TNV && TNV.mount({ room: 'objects', def: 'A', into: $('ovar'),
+  var tv = window.TNV && TNV.mount({ room: 'objects', def: 'A',
     list: [{ k: 'A', name: 'drift' }, { k: 'B', name: 'specimen case' }, { k: 'C', name: 'slow orbit · compare only' }],
     onChange: function (v) { V = v; layout(true) } });
   if (tv) V = tv.v;
+  if (window.GJ_MARKMENU) GJ_MARKMENU.variant('objects', {
+    k: 'tn.v.objects', label: 'layout', dev: 1, def: 'A',
+    seg: [['A', 'A · drift'], ['B', 'B · specimen case'], ['C', 'C · slow orbit']],
+    get: function () { return tv ? tv.v : V },
+    apply: function (v) { if (tv) tv.set(v); else { V = v; layout(true) } }
+  });
 
   /* ---------- layout ---------- */
   var W = 0, H = 0, land = false, cur = 0;
@@ -150,7 +157,11 @@
   function atFront() { return document.body.classList.contains('at-board') && !document.body.classList.contains('at-detail') && boardEl.scrollTop < 40 }
   function toFront() { var o = window.__objc; if (document.body.classList.contains('at-detail')) { history.back(); return }
     if (o && o.S && o.S.lv !== 'board') { o.toBoard(); setTimeout(function () { boardEl.scrollTo({ top: 0 }) }, 700); return } boardEl.scrollTo({ top: 0, behavior: 'smooth' }) }
-  $('omark').addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); if (atFront()) toSky(); else toFront() });
+  $('omark').addEventListener('click', function (e) {
+    e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+    if (window.GJ_MARKMENU) { GJ_MARKMENU.toggle(); return }
+    if (atFront()) toSky(); else toFront();
+  }, true);
   /* Esc at the front, with nothing open: out to the star you came from (one level out). Inside, Esc still rises one layer. */
   addEventListener('keydown', function (e) { if (e.key === 'Escape' && atFront() && !e.defaultPrevented) { var o = window.__objc; if (o && o.S && o.S.lv === 'board') { e.stopImmediatePropagation(); e.preventDefault(); toSky() } } }, true);
   window.__front = { get v() { return V }, set: function (v) { tv ? tv.set(v) : (V = v, layout()) }, get cur() { return cur }, layout: layout, toSky: toSky, atFront: atFront,

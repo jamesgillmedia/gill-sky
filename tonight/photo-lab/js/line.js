@@ -78,12 +78,17 @@ addEventListener('resize',function(){clearTimeout(relayout.t);relayout.t=setTime
 relayout();setTimeout(relayout,400);/* fonts settle the bar height */
 kick(.5);
 
-/* ---------- dev variants ---------- */
-var into=document.createElement('span');into.className='lab-var';var ref=$('sheetBtn');if(bar)bar.insertBefore(into,ref||null);
+/* ---------- dev variants: the A/B switch lives in the tune drawer, not the top bar ---------- */
 function camOpen(){return LAB.layer.top()==='camera back'}
 function apply(v){if(v==='B'){if(!camOpen()){var c=$('cam');if(c)c.click()}}else if(camOpen())LAB.layer.back()}
-var tv=window.TNV&&TNV.mount({room:'photo',def:'A',into:into,list:[{k:'A',name:'prints on a line'},{k:'B',name:'camera back first'}],onChange:apply});
+var tv=window.TNV&&TNV.mount({room:'photo',def:'A',list:[{k:'A',name:'prints on a line'},{k:'B',name:'camera back first'}],onChange:apply});
 if(tv&&tv.v==='B')setTimeout(function(){apply('B')},300);
+if(window.GJ_MARKMENU)GJ_MARKMENU.variant('photo',{
+  k:'tn.v.photo',label:'layout',dev:1,def:'A',
+  seg:[['A','A · prints on a line'],['B','B · camera back']],
+  get:function(){return tv?tv.v:'A'},
+  apply:function(v){if(tv)tv.set(v)}
+});
 window.__line={get prints(){return PR.map(function(q){var r=q.el.getBoundingClientRect();return {n:LAB.num(q.p),x:r.left+r.width/2,y:r.top+r.height/2,w:r.width,h:r.height,th:q.th}})},kick:kick,get v(){return tv?tv.v:'A'},set:function(v){tv&&tv.set(v)}};
 
 /* NAV: the mark never loops. At the horizon (the lab's first view) it goes back to the photo star in the sky;
@@ -91,6 +96,7 @@ window.__line={get prints(){return PR.map(function(q){var r=q.el.getBoundingClie
    reloaded the lab forever and dropped the sky referrer, so the mark could never leave (a trap). */
 (function(){var m=document.querySelector('.lab-top .sig');if(!m)return;
   m.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    if(window.GJ_MARKMENU){GJ_MARKMENU.toggle();return}
     var t=LAB.layer.top();if(!t||t==='horizon'){location.href='../constellation-blend/#back';return}
     location.href='./'+location.search},true)})();
 })();

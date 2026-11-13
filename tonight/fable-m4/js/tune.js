@@ -4,7 +4,10 @@
    is one tap away. Values are kept per room on this device. Reset this room / reset all.
    The menu repaints live when the ladder changes while it is open.
    Slider widgets and hooks are the same as preview-film-snap tune.js (GJ_TUNE, gj.vol / gj.flash,
-   gj.amb.*, GJ_DEC). Nothing here grades a photograph or a film frame. */
+   gj.amb.*, GJ_DEC). Nothing here grades a photograph or a film frame.
+   about-1113: the drawer is a small 3D object that unfolds out of the mark. While a slider is held, dial.js
+   hides it (gd-away) and only the ghost arc shows; tune.js does not clear gd-away on pointer-up.
+   The drawer unfolds again when the arc has gone. */
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
@@ -106,9 +109,10 @@ function moduleRows(mod){
 }
 function ctx(){
   var st=(window.__u1&&__u1.cur)||{lv:0,k:null,id:null};
-  var room=(st.lv>0&&st.k)?String(st.k):'sky';
+  var pinned=document.documentElement.getAttribute('data-tn-room');
+  var room=pinned||((st.lv>0&&st.k)?String(st.k):'sky');
   var lv=st.lv||0;
-  var levelName=lv===0?'sky':lv===1?'mid':lv===2?'board':lv===3?'work':'';
+  var levelName=pinned?'':(lv===0?'sky':lv===1?'mid':lv===2?'board':lv===3?'work':'');
   var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
   return {room:room,lv:lv,levelName:levelName,mod:mod,st:st};
 }
@@ -128,31 +132,69 @@ function contextRows(c){
 /* rooms whose sliders are only saved here: nothing in this shell reads them yet */
 var OFF_NOTE='not active here · saved only';
 function isOff(id){var R=roomById(id);return !!(R&&R.off)}
-var PTR=null,HOLD=false,kbT=0;
-/* the ghost dial is every slider's default feedback (from preview-proto-shell aced1af3): while a slider is held the menu hides and the dial shows the value at a
- free screen edge away from the thumb; where there is no safe place the menu just stays visible */
+var PTR=null,HOLD=false,kbT=0,unfoldT=0;
+var MARK='#crumb .sig,#omark,.lab-top .sig,[data-tn-mark]';
+function markEl(){return document.querySelector(MARK)}
+function dial(){return window.GJ_DIAL||window.GJ_GHOST||null}
+/* the ghost dial is every slider's default feedback: while a slider is held the whole drawer hides
+   and the arc shows the value at a free screen edge. dial.js adds gd-away only when the arc can sit;
+   a held slider hides the drawer either way. Do not clear gd-away here. */
 function ghost(r,info){
-  if(!window.GJ_GHOST||!menu)return;var b=r.getBoundingClientRect(),p=HOLD&&PTR?PTR:{x:b.left+b.width/2,y:b.top+b.height/2};info.x=p.x;info.y=p.y;
-  var placed=GJ_GHOST.update(info);
-  if(!HOLD){clearTimeout(kbT);kbT=setTimeout(function(){GJ_GHOST.release()},400)}}
+  var d=dial();if(!d||!menu)return;
+  var b=r.getBoundingClientRect(),p=HOLD&&PTR?PTR:{x:b.left+b.width/2,y:b.top+b.height/2};info.x=p.x;info.y=p.y;
+  d.update(info);
+  if(HOLD)menu.classList.add('gd-away');
+  if(!HOLD){clearTimeout(kbT);kbT=setTimeout(function(){d.release()},400)}
+}
 var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
+/* Three looks on a dev switch: A constellation, B contact-sheet strip, C ghost.
+   ?drawer=A|B|C, localStorage gj.drawer. Default A. Dev rows hide when gj.dev is 0 (?dev=0). */
+var DV=(function(){var q=/(?:^|[?&])drawer=([ABC])(?:&|$)/.exec(location.search);if(q){wr('gj.drawer',q[1]);return q[1]}
+  try{var v=localStorage.getItem('gj.drawer');if(v==='A'||v==='B'||v==='C')return v}catch(e){}return 'A'})();
+function devOn(){var q=/(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);if(q)wr('gj.dev',q[1]);return rd('gj.dev',1)!==0}
+var RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;function rmOn(){return !!(RMQ&&RMQ.matches)}
+var foldT=0;
+function setDrawer(v){DV=v==='B'||v==='C'?v:'A';wr('gj.drawer',DV);if(menu){menu.classList.remove('dv-A','dv-B','dv-C');menu.classList.add('dv-'+DV)}}
+function planes(){if(!menu)return;var i=0,list=[].slice.call(menu.querySelectorAll('.mm-3d>nav,.mm-plate>*'));
+  list.forEach(function(el){el.style.setProperty('--i',String(i));el.style.setProperty('--z',(Math.max(0,3-i)*7-6)+'px');i++});menu.style.setProperty('--n',String(i))}
+function origin(){if(!menu)return;var m=markEl(),r=m&&m.getBoundingClientRect(),b=menu.getBoundingClientRect();
+  if(!r||!r.width)return;menu.style.setProperty('--ox',(r.left+r.width/2-b.left).toFixed(0)+'px');menu.style.setProperty('--oy',(r.top+r.height/2-b.top+menu.scrollTop).toFixed(0)+'px')}
+function parallax(x,y){if(!menu||!open||HOLD)return;var px=Math.max(-1,Math.min(1,(x/innerWidth-.5)*2)),py=Math.max(-1,Math.min(1,(y/innerHeight-.5)*2));
+  menu.style.setProperty('--px',px.toFixed(3));menu.style.setProperty('--py',py.toFixed(3))}
+function abs(path){
+  var s=document.querySelector('script[data-tn-root]');
+  var root=(s&&s.getAttribute('data-tn-root'))||'../';
+  try{return new URL(root+path,location.href).pathname}catch(e){return root+path}
+}
+function goRoom(name){
+  if(window.__depth){__depth.goTo(name);return}
+  var dest={sky:'fable-m4/',film:'fable-m4/',sound:'fable-m4/'}[name];
+  if(!dest)return;
+  location.href=abs(dest)+(name==='sky'?'':'#'+name);
+}
 function safelight(){
   var G=D2(),el=document.getElementById('safelight');
   if(!el){el=document.createElement('div');el.id='safelight';el.setAttribute('aria-hidden','true');(document.getElementById('stage')||document.body).appendChild(el)}
   var on=G&&+G.get('safelight')===1,k=G?Math.max(0,Math.min(100,+G.get('safeK')))/100:0.6;
   el.hidden=!on;el.style.setProperty('--safe',on?String(k):'0');
 }
+function outside(e){return !e.target.closest('#markmenu,'+MARK)}
 function build(){
   menu=document.createElement('div');menu.id='markmenu';menu.hidden=true;menu.setAttribute('role','dialog');menu.setAttribute('aria-label','the mark menu');
-  menu.innerHTML='<nav class="mm-top"><a href="list/">list</a><a href="contact/">contact</a><button type="button" class="mm-tune" aria-expanded="false">tune</button></nav>'+
-    '<nav class="mm-rooms" aria-label="rooms"><button type="button" data-go="sky">sky</button><button type="button" data-go="film">film</button><button type="button" data-go="sound">sound</button><a href="../objects/">objects</a><a href="../spaces/forest-garden/">spaces</a></nav>'+
-    '<div class="mm-plate" hidden></div>';
+  menu.className='dv-'+DV;
+  menu.innerHTML='<div class="mm-3d"><nav class="mm-top"><a data-href="fable-m4/list/" href="list/">list</a><a data-href="fable-m4/contact/" href="contact/">contact</a><button type="button" class="mm-tune" aria-expanded="false">tune</button></nav>'+
+    '<nav class="mm-rooms" aria-label="rooms"><button type="button" data-go="sky">sky</button><button type="button" data-go="film">film</button><button type="button" data-go="sound">sound</button><a data-href="objects/" data-room="objects" href="../objects/">objects</a><a data-href="spaces/forest-garden/" data-room="spaces" href="../spaces/forest-garden/">spaces</a></nav>'+
+    '<div class="mm-plate" hidden></div></div>';
   document.body.appendChild(menu);
+  menu.querySelectorAll('[data-href]').forEach(function(a){a.setAttribute('href',abs(a.getAttribute('data-href')))});
+  addEventListener('pointermove',function(e){parallax(e.clientX,e.clientY)},{passive:true});
   menu.addEventListener('pointerdown',function(e){e.stopPropagation()});
   menu.addEventListener('click',function(e){
     e.stopPropagation();
+    var roomA=e.target.closest('[data-room]');
+    if(roomA&&roomA.getAttribute('data-room')===ctx().room){e.preventDefault();return}
     var b=e.target.closest('[data-go]');
-    if(b){if(window.__depth)__depth.goTo(b.getAttribute('data-go'));return}
+    if(b){goRoom(b.getAttribute('data-go'));return}
     var vb=e.target.closest('[data-snd-var]');
     if(vb){setSndVar(vb.getAttribute('data-snd-var'));paint();return}
     if(e.target.closest('.mm-tune')){tuneOn=!tuneOn;paint();return}
@@ -161,6 +203,10 @@ function build(){
     if(e.target.closest('.mm-reset')){reset();return}
     var tb2=e.target.closest('[data-theme-set]');
     if(tb2&&window.GJ_THEME){GJ_THEME.set(tb2.getAttribute('data-theme-set'));paint();return}
+    var sb=e.target.closest('[data-seg-k]');
+    if(sb){var srow=findRow(sb.getAttribute('data-seg-k'));if(srow)srow.apply(sb.getAttribute('data-v'),true);paint();return}
+    var dvb=e.target.closest('[data-drawer]');
+    if(dvb){setDrawer(dvb.getAttribute('data-drawer'));paint();return}
     var db=e.target.closest('[data-dec]');
     if(db&&D2()){D2().set(db.getAttribute('data-dec'),db.getAttribute('data-v'));safelight();paint();return}
   });
@@ -178,10 +224,31 @@ function build(){
   });
   menu.addEventListener('pointerdown',function(e){PTR={x:e.clientX,y:e.clientY};if(e.target.closest('input[type=range]'))HOLD=true},true);
   menu.addEventListener('pointermove',function(e){if(HOLD)PTR={x:e.clientX,y:e.clientY}},true);
-  function letGo(){HOLD=false;if(window.GJ_GHOST)GJ_GHOST.release()}
+  function letGo(){
+    var d=dial();
+    var hidden=!!(menu&&menu.classList.contains('gd-away'));
+    HOLD=false;
+    /* do not strip gd-away or mm-peek: dial.js owns the hide and clears gd-away after the arc is gone */
+    if(hidden&&open&&menu&&!rmOn()){menu.classList.add('mm-snap');menu.classList.remove('mm-in');void menu.offsetWidth;menu.classList.remove('mm-snap')}
+    if(d)d.release();
+    if(!(hidden&&open&&menu))return;
+    clearInterval(unfoldT);var n=0;
+    unfoldT=setInterval(function(){
+      if(!menu||!open){clearInterval(unfoldT);return}
+      if(menu.classList.contains('gd-away')&&++n<40)return;
+      clearInterval(unfoldT);
+      if(!open)return;
+      if(rmOn()){menu.classList.add('mm-in');return}
+      requestAnimationFrame(function(){if(open)menu.classList.add('mm-in')});
+    },40);
+  }
   ['pointerup','pointercancel','touchend','touchcancel'].forEach(function(n){addEventListener(n,letGo,true)});addEventListener('blur',letGo);
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
-  document.addEventListener('pointerdown',function(e){if(open&&!e.target.closest('#markmenu,#crumb .sig'))show(false)},true);
+  /* a touch outside closes the drawer and is only that: the following click never reaches the room */
+  var SWALLOW=0;
+  addEventListener('keydown',function(e){if(open&&e.key==='Escape'){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();show(false)}},true);
+  document.addEventListener('pointerdown',function(e){if(open&&outside(e)){SWALLOW=Date.now()+1500;show(false)}},true);
+  document.addEventListener('click',function(e){if(SWALLOW&&Date.now()<SWALLOW&&outside(e)){SWALLOW=0;e.stopPropagation();e.preventDefault()}},true);
 }
 function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].rows[j];
   var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
@@ -191,6 +258,7 @@ function roomOfRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows
   var m=(window.__shell&&__shell.mod)||null;return m&&m.chapter||null}
 function rowsHtml(rows){
   var h='';rows.forEach(function(r){
+    if(r.dev&&!devOn())return;
     if(r.toggle){
       h+='<div class="mm-seg" role="radiogroup" aria-label="'+r.label+'"><b>'+r.label+'</b><span>';
       r.options.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(r.get()===o)+'" data-snd-var="'+o+'">'+o+'</button>'});
@@ -198,6 +266,8 @@ function rowsHtml(rows){
       if(r.hint)h+='<p class="mm-hint">'+r.hint()+'</p>';
       return;
     }
+    if(r.seg){var sv=String(r.get());h+='<div class="mm-seg mm-rowseg'+(r.dev?' mm-devrow':'')+'"><b>'+r.label+(r.dev?' <em>dev</em>':'')+'</b><span role="radiogroup" aria-label="'+r.label+'">';
+      r.seg.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(sv===o[0])+'" data-seg-k="'+r.k+'" data-v="'+o[0]+'">'+o[1]+'</button>'});h+='</span></div>';return}
     var v=r.get();
     h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+r.label+'"><output>'+v+'</output></label>'});
   return h;
@@ -207,7 +277,7 @@ function paint(){
   var sndR=roomById('sound');if(sndR)sndR.rows=soundRows();
   var pl=menu.querySelector('.mm-plate'),tb=menu.querySelector('.mm-tune');
   tb.setAttribute('aria-expanded',tuneOn?'true':'false');tb.classList.toggle('on',tuneOn);
-  pl.hidden=!tuneOn;if(!tuneOn)return;
+  pl.hidden=!tuneOn;if(!tuneOn){planes();return}
   var c=ctx(),here=c.room,level=c.levelName;
   var title=here+(level&&level!==here?' · '+level:'');
   var offHere=isOff(here)&&!(c.mod&&c.mod.chapter===here&&c.mod.tune);
@@ -235,6 +305,8 @@ function paint(){
   }
   var G=D2();
   var mot=G?G.get('motion'):100,snap=G?G.get('snapAt'):34,sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60,rv=G?+G.get('ripples'):1;
+  if(devOn()){h+='<section class="mm-devsec"><h3>dev <em>hidden at launch · drawer '+DV+'</em></h3><div class="mm-seg"><b>drawer</b><span role="radiogroup" aria-label="drawer">';
+    [['A','A · constellation'],['B','B · contact strip'],['C','C · ghost']].forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(DV===o[0])+'" data-drawer="'+o[0]+'">'+o[1]+'</button>'});h+='</span></div></section>'}
   h+='<section class="mm-globals"><h3>globals</h3>';
   var TH=window.GJ_THEME,tp=TH?TH.pref:'night';
   if(TH)h+='<div class="mm-seg mm-theme"><b>colour mode'+(TH.exempt(here)?' <em>this room keeps its own look</em>':'')+'</b><span role="radiogroup" aria-label="colour mode"><button type="button" role="radio" aria-checked="'+(tp==='night')+'" data-theme-set="night">night</button><button type="button" role="radio" aria-checked="'+(tp==='red')+'" data-theme-set="red">red</button></span></div>';
@@ -245,22 +317,25 @@ function paint(){
   h+='<div class="mm-seg"><b>ripples (water)</b><span><button type="button" role="radio" aria-checked="'+(rv===1)+'" data-dec="ripples" data-v="1">on</button><button type="button" role="radio" aria-checked="'+(rv===0)+'" data-dec="ripples" data-v="0">off</button></span></div>';
   h+='</section>';
   h+='<p class="mm-foot"><span class="mm-resets"><button type="button" class="mm-reset mm-reset-room">reset '+here+'</button><button type="button" class="mm-reset">reset all</button></span></p>';
-  pl.innerHTML=h;
-  /* highlight the current room in the nav */
-  menu.querySelectorAll('.mm-rooms [data-go]').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-go')===here)});
+  pl.innerHTML=h;planes();
+  menu.querySelectorAll('.mm-rooms [data-go],.mm-rooms [data-room]').forEach(function(el){
+    var id=el.getAttribute('data-go')||el.getAttribute('data-room');
+    el.classList.toggle('on',id===here);
+  });
 }
 function resetRoom(){
   var c=ctx(),R=roomById(c.room);
   var all=(c.mod&&c.mod.chapter===c.room&&moduleRows(c.mod))||(R?R.rows:contextRows(c));
+  all=all.filter(function(r){return !r.dev});
   all.forEach(function(r){rm(r.k)});
   all.forEach(function(r){r.apply(r.get(),true)});
   poke('gj.vol');poke('gj.sound.invert');setFlash();
   paint();
 }
 function reset(){
-  ROOMS.forEach(function(R){R.rows.forEach(function(r){rm(r.k)})});
+  ROOMS.forEach(function(R){R.rows.forEach(function(r){if(r.dev)return;rm(r.k)})});
   var extra=moduleRows((window.__shell&&__shell.mod)||(window.Shell&&Shell.mod));
-  if(extra)extra.forEach(function(r){rm(r.k)});
+  if(extra)extra.forEach(function(r){if(r.dev)return;rm(r.k);if(r.apply)r.apply(r.get(),true)});
   if(T())T().reset();
   if(D2())D2().reset();
   poke('gj.vol');poke('gj.sound.invert');setFlash();safelight();
@@ -268,11 +343,20 @@ function reset(){
 }
 function show(on){
   if(!menu)build();
-  open=!!on;menu.hidden=!open;
-  var s=document.querySelector('#crumb .sig');if(s)s.setAttribute('aria-expanded',open?'true':'false');
-  if(open)paint();
+  var was=open;open=!!on;
+  var s=markEl();if(s)s.setAttribute('aria-expanded',open?'true':'false');
+  document.documentElement.classList.toggle('mm-open',open);
+  clearTimeout(foldT);
+  if(open){
+    menu.classList.remove('mm-in','mm-folding');menu.hidden=false;paint();origin();
+    void menu.offsetWidth;
+    requestAnimationFrame(function(){if(open)menu.classList.add('mm-in')});
+  }else if(was&&!menu.hidden){
+    menu.classList.add('mm-folding');menu.classList.remove('mm-in');HOLD=false;
+    var d=dial();if(d&&d.hide)d.hide();
+    foldT=setTimeout(function(){if(!open){menu.hidden=true;menu.classList.remove('mm-folding')}},rmOn()?240:640);
+  }else menu.hidden=true;
 }
-/* the real site has no ladder callback: while the tune plate is open, repaint when the room or level changes */
 function hookLadder(){
   if(hooked)return;hooked=true;var last='';
   setInterval(function(){if(!(open&&tuneOn))return;var s=window.__u1?JSON.stringify([__u1.cur.lv,__u1.cur.k,__u1.cur.b]):'';if(s!==last){last=s;paint()}},250);
@@ -284,9 +368,19 @@ function restore(){
   setFlash();
   safelight();
 }
-var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();hookLadder();return}if(++tries<200)setTimeout(wait,50)})();
+function addVariant(room,row){
+  var R=roomById(room);
+  if(!R){R={id:room,name:room,rows:[]};ROOMS.push(R)}
+  R.rows=R.rows.filter(function(r){return r.k!==row.k});
+  R.rows.unshift(row);
+  var f=CTX_FOCUS[room];
+  if(f&&f.indexOf(row.k)<0)f.unshift(row.k);
+  if(open&&tuneOn)paint();
+}
+var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();hookLadder();return}if(++tries<40)setTimeout(wait,50);else{restore();hookLadder()}})();
 if(window.GJ_THEME)GJ_THEME.on(function(w){if(w!=='adj'&&open&&tuneOn)paint()});
 window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},
+  variant:addVariant,
   context:function(){return ctx()},
   rooms:function(){return ROOMS.map(function(R){return {id:R.id,rows:R.rows.map(function(r){return r.label})}})}};
 })();
