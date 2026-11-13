@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   var css=document.createElement('style');
-  css.textContent='#togo{position:fixed;z-index:100;left:0;right:0;bottom:0;display:flex;align-items:center;gap:12px;height:calc(36px + env(safe-area-inset-bottom,0px));padding:0 14px env(safe-area-inset-bottom,0px);background:#04070b;color:#eef3f5;opacity:1;pointer-events:none;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em}#togo canvas{display:block;flex:0 0 auto;opacity:1}#togo span{opacity:1;white-space:nowrap}';
+  css.textContent='#togo{position:fixed;z-index:100;left:0;right:0;bottom:0;display:flex;align-items:center;gap:12px;height:calc(36px + env(safe-area-inset-bottom,0px));padding:0 14px env(safe-area-inset-bottom,0px);background:#04070b;color:#e8e4dc;opacity:1;pointer-events:none;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em}#togo canvas{display:block;flex:0 0 auto;opacity:1}#togo span{opacity:1;white-space:nowrap}';
   document.head.appendChild(css);
   var peaks=[0.413,0.602,0.426,0.446,0.753,0.682,0.753,0.928,0.841,1,0.92,0.898,0.997,0.89,0.929,0.994,0.908,0.843];
   function mount(){
