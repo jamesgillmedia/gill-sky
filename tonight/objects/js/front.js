@@ -60,6 +60,96 @@
     apply: function (v) { if (tv) tv.set(v); else { V = v; layout(true) } }
   });
 
+  /* Variant A only: discs and their captions stay 8px apart, and fully inside the stage. */
+  function pieceBox(e, bx, by) {
+    var x = bx - e.w / 2, y = by - e.h / 2, r = bx + e.w / 2, b = by + e.h / 2;
+    if (e.el.classList.contains('lab')) {
+      var lab = e.el.querySelector('.pl');
+      if (lab && lab.offsetWidth > 2 && lab.offsetHeight > 2) {
+        var lw = lab.offsetWidth, lh = lab.offsetHeight, lx = bx - lw / 2, ly = by + e.h / 2 + 12;
+        if (lx < x) x = lx;
+        if (lx + lw > r) r = lx + lw;
+        if (ly + lh > b) b = ly + lh;
+      }
+    }
+    return { x: x, y: y, r: r, b: b };
+  }
+  function pieceGap(A, B) {
+    var ox = Math.min(A.r, B.r) - Math.max(A.x, B.x), oy = Math.min(A.b, B.b) - Math.max(A.y, B.y);
+    var sx = Math.max(0, Math.max(A.x - B.r, B.x - A.r)), sy = Math.max(0, Math.max(A.y - B.b, B.y - A.b));
+    var g = (sx > 0 && sy > 0) ? Math.hypot(sx, sy) : Math.max(sx, sy);
+    return { hit: ox > 0.5 && oy > 0.5, ox: ox, oy: oy, g: g };
+  }
+  function piecesClear() {
+    var i, j;
+    for (i = 0; i < els.length; i++) {
+      if (els[i].el.style.display === 'none') continue;
+      var A = pieceBox(els[i], els[i].bx, els[i].by);
+      if (A.x < 2 || A.y < 2 || A.r > W - 2 || A.b > H - 2) return false;
+      for (j = i + 1; j < els.length; j++) {
+        if (els[j].el.style.display === 'none') continue;
+        var g = pieceGap(A, pieceBox(els[j], els[j].bx, els[j].by));
+        if (g.hit || g.g < 9.5) return false;
+      }
+    }
+    return true;
+  }
+  function keepPieceGap() {
+    if (V !== 'A' || !(W > 0) || !(H > 0)) return;
+    var saved = els.map(function (e) { return { bx: e.bx, by: e.by, w: e.w, h: e.h }; });
+    var GAP = 10, pad = 2, scale = 1, attempt, pass, i, j;
+    function placeScale() {
+      els.forEach(function (e, n) {
+        e.w = saved[n].w * scale; e.h = saved[n].h * scale; e.bx = saved[n].bx; e.by = saved[n].by;
+        var pl = e.el.querySelector('.pl');
+        if (pl) pl.style.maxWidth = Math.min(220, Math.max(88, e.w * 0.92)) + 'px';
+        e.el.style.width = e.w + 'px'; e.el.style.height = e.h + 'px';
+        e.el.style.marginLeft = (-e.w / 2) + 'px'; e.el.style.marginTop = (-e.h / 2) + 'px';
+      });
+    }
+    function fits(e, bx, by) { var b = pieceBox(e, bx, by); return b.x >= pad && b.y >= pad && b.r <= W - pad && b.b <= H - pad }
+    function pushOf(A, B) {
+      var g = pieceGap(A, B); if (!g.hit && g.g >= GAP) return null;
+      var acx = (A.x + A.r) / 2, acy = (A.y + A.b) / 2, bcx = (B.x + B.r) / 2, bcy = (B.y + B.b) / 2, dx = 0, dy = 0, need;
+      if (g.hit) {
+        if (g.ox <= g.oy) dx = (bcx >= acx ? 1 : -1) * (g.ox + GAP);
+        else dy = (bcy >= acy ? 1 : -1) * (g.oy + GAP);
+      } else {
+        var sx = Math.max(0, Math.max(A.x - B.r, B.x - A.r)), sy = Math.max(0, Math.max(A.y - B.b, B.y - A.b));
+        if (sx > 0 && sy > 0) { var len = Math.hypot(bcx - acx, bcy - acy) || 1; need = GAP - g.g; dx = (bcx - acx) / len * need; dy = (bcy - acy) / len * need }
+        else if (sy === 0 || (sx > 0 && sx <= sy)) { dx = (bcx >= acx ? 1 : -1) * (GAP - sx) }
+        else { dy = (bcy >= acy ? 1 : -1) * (GAP - sy) }
+      }
+      return { dx: dx, dy: dy };
+    }
+    for (attempt = 0; attempt < 8; attempt++) {
+      placeScale();
+      for (pass = 0; pass < 36; pass++) {
+        var moved = false;
+        for (i = 0; i < els.length; i++) {
+          if (els[i].el.style.display === 'none') continue;
+          for (j = i + 1; j < els.length; j++) {
+            if (els[j].el.style.display === 'none') continue;
+            var push = pushOf(pieceBox(els[i], els[i].bx, els[i].by), pieceBox(els[j], els[j].bx, els[j].by));
+            if (!push) continue;
+            var mi = els[i], mj = els[j];
+            if (fits(mj, mj.bx + push.dx, mj.by + push.dy)) { mj.bx += push.dx; mj.by += push.dy; moved = true }
+            else if (i !== 0 && fits(mi, mi.bx - push.dx, mi.by - push.dy)) { mi.bx -= push.dx; mi.by -= push.dy; moved = true }
+            else {
+              var hx = push.dx / 2, hy = push.dy / 2;
+              if (fits(mj, mj.bx + hx, mj.by + hy) && (i === 0 || fits(mi, mi.bx - hx, mi.by - hy))) {
+                mj.bx += hx; mj.by += hy; if (i !== 0) { mi.bx -= hx; mi.by -= hy } moved = true;
+              }
+            }
+          }
+        }
+        if (!moved) break;
+      }
+      if (piecesClear()) return;
+      scale *= 0.88;
+    }
+  }
+
   /* ---------- layout ---------- */
   var W = 0, H = 0, land = false, cur = 0;
   function fitImg(i, w, h) { var im = els[i].el.querySelector('img'); im.style.width = '100%'; im.style.height = '100%' }
@@ -88,6 +178,7 @@
       el.style.zIndex = z; el.style.display = show ? '' : 'none'; el.classList.toggle('lab', !!lab);
       el.classList.toggle('cur', V === 'B' && i === cur);
     });
+    if (V === 'A') keepPieceGap();
     cap.textContent = V === 'B' ? (cur + 1) + ' / ' + els.length : '';
     cap.style.top = (V === 'B' ? (els[cur].by + els[cur].h / 2 + 38) : -999) + 'px';
     drawTunnel(); tick(true);

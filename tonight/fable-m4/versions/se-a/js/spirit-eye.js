@@ -190,7 +190,9 @@ export function mount(THREE, scene, ctx) {
   /* a tile waits as the dark ground colour (never grey), then fades in once its image is decoded. redT.hold keeps Red from tinting the placeholder. */
   const DARK = new THREE.Color(0x04070b), LIT = new THREE.Color(0xffffff), FADE = 700;
   const cardMat = () => { const m = new THREE.MeshBasicMaterial({ color: 0x04070b, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); m.userData.redT = { hold: 1 }; return m };
+  let sheetKey = '';
   function placeAll(aspect) {
+    sheetKey = '';
     [...planes, ...cards].forEach(m => { g.remove(m); m.geometry.dispose(); m.children.forEach(ch => { if (ch.geometry) ch.geometry.dispose(); if (ch.material) ch.material.dispose() }) }); planes.length = 0; cards.length = 0;
     const pos = V(0, 0, 0), look = V(0, 0, 0), fwd = V(0, 0, 0), right = V(0, 0, 0), up = V(0, 0, 0), sx = Math.min(1, aspect / 1.05);
     STOPS.forEach((st, i) => {
@@ -199,21 +201,22 @@ export function mount(THREE, scene, ctx) {
         const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cardMat()); const yy = sx < 1 && x ? y + Math.sign(x) * w * .3 * (1 - sx) : y;
         m.position.copy(pos).addScaledVector(fwd, d).addScaledVector(right, x * sx).addScaledVector(up, yy); m.up.copy(up); m.lookAt(pos);
         const ww = w * (sx < 1 ? .5 + .5 * sx : 1) * (isPlan ? .72 : 1);
-        m.userData = { stop: i, w: ww, base: m.position.clone(), fwd: fwd.clone(), d, plan: isPlan ? 1 : 0, ready: 0 };
+        m.userData = { stop: i, w: ww, base: m.position.clone(), home: m.position.clone(), fwd: fwd.clone(), d, plan: isPlan ? 1 : 0, ready: 0 };
         if (!isPlan) m.userData.keepTrue = 1;
         m.scale.set(ww, ww * .624, 1); m.renderOrder = 4; g.add(m); planes.push(m);
         /* a plan drawing is a sheet on a dark mat: smaller than the page it came from, the mat a little larger and just behind it */
         if (isPlan) { m.material.color.copy(LIT); m.material.userData.sheet = 1;
           const mat = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cardMat()); mat.position.set(0, 0, -.03); mat.scale.set(1.16, 1.22, 1); mat.renderOrder = 3; delete mat.material.userData.redT; m.add(mat) } /* the mat is a plain dark colour, so Red takes it to its own black like every other dark */
-        tex(f, t => { m.material.map = t; m.material.needsUpdate = true; m.userData.ready = performance.now(); m.scale.y = m.userData.w * t.image.height / t.image.width; if (isPlan && ctx.onPlan) ctx.onPlan(m.material) }) });
+        tex(f, t => { m.material.map = t; m.material.needsUpdate = true; m.userData.ready = performance.now(); m.scale.y = m.userData.w * t.image.height / t.image.width; m.userData.homeScale = m.scale.clone(); if (isPlan && ctx.onPlan) ctx.onPlan(m.material) }) });
       if (st.cards) { frame(i, pos, look, fwd, right, up);
         /* a layered wall of the page's plants in the garden: columns by screen shape, rows staggered in depth */
         const cols = aspect < .8 ? 2 : 4, rows = Math.ceil(st.cards.length / cols), tv = Math.tan(30 * Math.PI / 180), W = SW(), H = SH();
-        const nar = aspect < .8, topPx = 74, botPx = nar ? 86 : 78, labPx = nar ? 64 : 34, chPx = (H - topPx - botPx) / rows, cwPx = W * .94 / cols;
+        const nar = aspect < .8, topPx = 74, botPx = nar ? 86 : 78, gap = 10, labelH = nar ? 72 : 56;
+        const labPx = labelH + gap, chPx = (H - topPx - botPx) / rows, cwPx = W * .94 / cols;
         st.cards.forEach((c, j) => { const col = j % cols, row = Math.floor(j / cols), d = 9 + (col % 2) * 1.2 + row * .8;
           const vh = 2 * d * tv, k = vh / H; /* world units per css px at this depth */
-          const bw = cwPx * .86 * k, bh = Math.max(20, chPx - labPx - 8) * k;
-          const xo = (col - (cols - 1) / 2) * cwPx * k, yo = (H / 2 - (topPx + chPx * row + (chPx - labPx) / 2)) * k;
+          const bhPx = Math.max(24, chPx - labPx - gap), bw = cwPx * .86 * k, bh = bhPx * k;
+          const xo = (col - (cols - 1) / 2) * cwPx * k, yo = (H / 2 - (topPx + chPx * row + bhPx / 2)) * k;
           const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cardMat()); m.material.depthTest = false;
           m.position.copy(pos).addScaledVector(fwd, d).addScaledVector(right, xo).addScaledVector(up, yo); m.up.copy(up); m.lookAt(pos);
           m.userData = { stop: i, bw, bh, t: c.t, j, ready: 0, keepTrue: 1 }; m.scale.set(bw, bh, 1); m.renderOrder = 12; /* after the mist, the shafts and the pool of light (6 to 9): they are additive and take the Red ink, and a photo must not */ g.add(m); cards.push(m);
@@ -242,16 +245,83 @@ export function mount(THREE, scene, ctx) {
       const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line'), dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); dot.setAttribute('r', 3); LINES.appendChild(ln); LINES.appendChild(dot); CO.push({ c, e, ln, dot }) });
     cards.filter(m => m.userData.stop === i).forEach(m => { const e = document.createElement('div'); e.className = 'tag'; e.textContent = m.userData.t; CALL.appendChild(e); CO.push({ card: m, e }) });
     coShown = i }
-  const pv = V(0, 0, 0);
+  const pv = V(0, 0, 0), nR = V(0, 0, 0), nU = V(0, 0, 0);
+  function sheetPx(m, cam) {
+    m.updateWorldMatrix(true, false);
+    const W = SW(), H = SH(); let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+    [[-.5, -.5], [.5, -.5], [.5, .5], [-.5, .5]].forEach(([x, y]) => {
+      pv.set(x, y, 0); m.localToWorld(pv).project(cam);
+      const sx = (pv.x + 1) / 2 * W, sy = (1 - pv.y) / 2 * H;
+      if (sx < minx) minx = sx; if (sx > maxx) maxx = sx; if (sy < miny) miny = sy; if (sy > maxy) maxy = sy;
+    });
+    return { x: minx, y: miny, w: Math.max(0, maxx - minx), h: Math.max(0, maxy - miny) };
+  }
+  function nudgeSheet(m, cam, px, py) {
+    const d = m.userData.d || 8, k = (2 * d * Math.tan(Math.PI / 6)) / Math.max(1, SH());
+    nR.set(1, 0, 0).transformDirection(cam.matrixWorld); nU.set(0, 1, 0).transformDirection(cam.matrixWorld);
+    m.position.addScaledVector(nR, px * k); m.position.addScaledVector(nU, -py * k);
+  }
+  function sheetSep(A, B) {
+    const ax2 = A.x + A.w, ay2 = A.y + A.h, bx2 = B.x + B.w, by2 = B.y + B.h;
+    const ox = Math.min(ax2, bx2) - Math.max(A.x, B.x), oy = Math.min(ay2, by2) - Math.max(A.y, B.y);
+    const sx = Math.max(0, Math.max(A.x - bx2, B.x - ax2)), sy = Math.max(0, Math.max(A.y - by2, B.y - ay2));
+    const g = (sx > 0 && sy > 0) ? Math.hypot(sx, sy) : Math.max(sx, sy);
+    return { hit: ox > 0.5 && oy > 0.5, ox, oy, sx, sy, g };
+  }
+  /* Drawings at one stop keep 8px between them and stay on the screen. Smaller if that is the only way they all fit. */
+  function settleSheets(cam, stop) {
+    if (stop < 0 || !atRest() || ctx.fly) return;
+    const all = planes.filter(m => m.userData.stop === stop);
+    if (all.length < 2 || all.some(m => !m.userData.ready || !m.userData.homeScale || !m.userData.home)) return;
+    const key = stop + '|' + SW() + 'x' + SH(); if (sheetKey === key) return;
+    const W = SW(), H = SH(), GAP = 10, M = 8;
+    const inside = b => b.x >= M - 0.5 && b.y >= M - 0.5 && b.x + b.w <= W - M + 0.5 && b.y + b.h <= H - M + 0.5;
+    const clear = () => {
+      const boxes = all.map(m => sheetPx(m, cam));
+      if (boxes.some(b => !inside(b))) return false;
+      for (let i = 0; i < boxes.length; i++) for (let j = i + 1; j < boxes.length; j++) {
+        const g = sheetSep(boxes[i], boxes[j]); if (g.hit || g.g < 9.5) return false;
+      }
+      return true;
+    };
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const sc = Math.pow(0.9, attempt);
+      all.forEach(m => { m.position.copy(m.userData.home); m.scale.copy(m.userData.homeScale); if (sc !== 1) m.scale.multiplyScalar(sc) });
+      for (let pass = 0; pass < 28; pass++) {
+        let moved = false;
+        all.forEach(m => {
+          const b = sheetPx(m, cam); let px = 0, py = 0;
+          if (b.x < M) px = M - b.x; else if (b.x + b.w > W - M) px = (W - M) - (b.x + b.w);
+          if (b.y < M) py = M - b.y; else if (b.y + b.h > H - M) py = (H - M) - (b.y + b.h);
+          if (px || py) { nudgeSheet(m, cam, px, py); moved = true }
+        });
+        for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
+          const A = sheetPx(all[i], cam), B = sheetPx(all[j], cam), g = sheetSep(A, B);
+          if (!g.hit && g.g >= GAP) continue;
+          const acx = A.x + A.w / 2, acy = A.y + A.h / 2, bcx = B.x + B.w / 2, bcy = B.y + B.h / 2;
+          let dx = 0, dy = 0;
+          if (g.hit) { if (g.ox <= g.oy) dx = (bcx >= acx ? 1 : -1) * (g.ox + GAP); else dy = (bcy >= acy ? 1 : -1) * (g.oy + GAP) }
+          else if (g.sx > 0 && g.sy > 0) { const len = Math.hypot(bcx - acx, bcy - acy) || 1, need = GAP - g.g; dx = (bcx - acx) / len * need; dy = (bcy - acy) / len * need }
+          else if (g.sy === 0 || (g.sx > 0 && g.sx <= g.sy)) dx = (bcx >= acx ? 1 : -1) * (GAP - g.sx);
+          else dy = (bcy >= acy ? 1 : -1) * (GAP - g.sy);
+          nudgeSheet(all[j], cam, dx, dy); moved = true;
+        }
+        if (!moved) break;
+      }
+      if (clear()) break;
+    }
+    all.forEach(m => { if (m.userData.base) m.userData.base.copy(m.position) });
+    sheetKey = key;
+  }
   function placeCallouts(cam) { const W = SW(), H = SH(), show = CALL.classList.contains('on');
     LINES.style.opacity = show ? 1 : 0;
     CO.forEach(o => {
-      if (o.card) { const m = o.card, nar = W / H < .8; let x, y;
-        /* two columns (phone): the caption hangs under the photo's real lower edge, so no plate ever sits on a photograph. Four columns: a small pill on the lower edge, as before. */
-        if (nar) { m.updateWorldMatrix(true, false); pv.set(-.5, -.5, 0); m.localToWorld(pv).project(cam); const x1 = pv.x, y1 = pv.y; pv.set(.5, -.5, 0); m.localToWorld(pv).project(cam);
-          x = ((x1 + pv.x) / 2 + 1) / 2 * W; y = (1 - Math.min(y1, pv.y)) / 2 * H + 6 }
-        else { pv.copy(m.position).addScaledVector(m.up, -m.scale.y / 2).project(cam); x = (pv.x + 1) / 2 * W; y = (1 - pv.y) / 2 * H - 2 }
-        o.e.style.maxWidth = Math.max(110, W / (nar ? 2.2 : 4.4)) + 'px'; o.e.style.transform = `translate(${(x - o.e.offsetWidth / 2).toFixed(1)}px,${y.toFixed(1)}px)`; return }
+      if (o.card) { const m = o.card, nar = W / H < .8, cols = nar ? 2 : 4;
+        /* the caption hangs 8px under the photograph on every screen, and stays inside its column */
+        m.updateWorldMatrix(true, false); pv.set(-.5, -.5, 0); m.localToWorld(pv).project(cam); const x1 = pv.x, y1 = pv.y; pv.set(.5, -.5, 0); m.localToWorld(pv).project(cam);
+        const x = ((x1 + pv.x) / 2 + 1) / 2 * W, y = (1 - Math.min(y1, pv.y)) / 2 * H + 10;
+        o.e.style.maxWidth = Math.max(72, W * .94 / cols - 12) + 'px';
+        o.e.style.transform = `translate(${(x - o.e.offsetWidth / 2).toFixed(1)}px,${y.toFixed(1)}px)`; return }
       const a = o.c.at === 'front' ? head.position : pv.set(...o.c.at); const p = a.clone().project(cam); const x = (p.x + 1) / 2 * W, y = (1 - p.y) / 2 * H;
       const ew = o.e.offsetWidth, eh = o.e.offsetHeight; let lx = x + o.c.dx * W, ly = y + o.c.dy * H; lx = Math.max(10, Math.min(W - ew - 10, lx - (o.c.dx < 0 ? ew : 0))); ly = Math.max(70, Math.min(H - eh - 96, ly));
       o.e.style.transform = `translate(${lx.toFixed(1)}px,${ly.toFixed(1)}px)`;
@@ -310,6 +380,7 @@ export function mount(THREE, scene, ctx) {
       else { m.material.color.copy(DARK).lerp(LIT, rv * rv); m.material.opacity = op } /* a photo comes up out of the dark tile */
       m.visible = op > .01;
       m.children.forEach(ch => { if (ch.material) ch.material.opacity = op }) });
+    settleSheets(cam, i);
     if (coShown >= 0 && CALL.classList.contains('on')) placeCallouts(cam); else LINES.style.opacity = 0;
     
     const dl = cam.position.distanceTo(lensGlow.position); faceM.opacity *= dl < 5 ? .5 : 1;

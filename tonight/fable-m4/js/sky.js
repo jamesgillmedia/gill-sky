@@ -955,7 +955,7 @@ function boardSpec(key,items){
   var room=boardRoom(),n=items.length||1,leadSig=(items[0]&&items[0].feat)||0,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'')+'|'+tk('fdens')+'|'+tk('fgap')+'|'+leadSig;
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
   var maxW=Math.min(W-28,680,room.w),pad=10,gap=8,head=44,AW=maxW+28;
-  if(key==='film'||key==='objects'){pad=8;gap=6}
+  if(key==='film'||key==='objects'){pad=8;gap=key==='objects'?8:6}
   if(key==='film'){
     /* preview-film-snap: the site-3d catalogue. A wide, dense contents page: 3 across on a phone, 4 on a tablet, 6 on a desktop. */
     maxW=Math.min(W-20,1120,room.w);pad=10;head=PORT||W<520?64:78;
@@ -964,6 +964,12 @@ function boardSpec(key,items){
   var cols=key==='about'?(AW<520?1:2):key==='film'?Math.max(2,Math.round((W<600?3:W<1100?4:6)*tk('fdens'))):(AW<520?3:AW<860?4:6);
   if(key==='photo')gap=14;
   var tw=(maxW-pad*2-gap*(cols-1))/cols;
+  if(key==='photo'){
+    /* Prints tilt up to 0.05 rad. The gap has to survive that tilt, so the tilted boxes still clear by 8px. */
+    var ps=Math.sin(0.05),pc=Math.cos(0.05),pi;
+    for(pi=0;pi<3;pi++){tw=(maxW-pad*2-gap*(cols-1))/cols;gap=Math.ceil(8+tw*1.5*ps-tw*(1-pc))}
+    tw=(maxW-pad*2-gap*(cols-1))/cols;
+  }
   var cap=(key==='film'||key==='objects'||key==='sound')?26:0;
   var th=key==='about'?46:(key==='objects'||key==='sound')?tw:key==='film'?tw*9/16:tw*9/16;
   var rects=[],bottom=0,i;
@@ -976,15 +982,16 @@ function boardSpec(key,items){
     });
     bottom=Math.max.apply(null,colH);
   }else if(key==='sound'){
-    var segW=(maxW-pad*2)/3,rowS=128,nt=0;
+    var gapS=8,segW=(maxW-pad*2-gapS*2)/3,rowS=120,nt=0;
     cap=0;
     items.forEach(function(it,j){
-      if(it.kind==='track'){var r=Math.floor(nt/3),c=nt%3;rects.push({x:c*segW,y:r*rowS,w:segW,h:rowS});nt++;return}
-      var y0s=Math.ceil(nt/3)*rowS+24,prev=rects[rects.length-1],segs=soundSegs(it),lw=0;
+      if(it.kind==='track'){var r=Math.floor(nt/3),c=nt%3;rects.push({x:c*(segW+gapS),y:r*(rowS+gapS),w:segW,h:rowS});nt++;return}
+      var y0s=Math.ceil(nt/3)*(rowS+gapS)+24,prev=rects[rects.length-1],segs=soundSegs(it),lw=0;
       g.font='300 10.5px Poppins,sans-serif';
       segs.forEach(function(sg){lw+=g.measureText(sg[0]).width});
-      if(it.id==='sound/lost-coffee-apple-music'&&prev&&prev.text)rects.push({x:prev.x+prev.w,y:prev.y,w:lw,h:18,text:1});
-      else rects.push({x:0,y:prev&&prev.text?prev.y+22:y0s,w:lw,h:18,text:1});
+      var share=it.id==='sound/lost-coffee-apple-music'&&prev&&prev.text,nx=share?prev.x+prev.w+gapS:0;
+      if(share&&nx+lw<=maxW-pad*2)rects.push({x:nx,y:prev.y,w:lw,h:18,text:1});
+      else rects.push({x:0,y:prev&&prev.text?prev.y+18+gapS:y0s,w:lw,h:18,text:1});
     });
     rects.forEach(function(r){bottom=Math.max(bottom,r.y+r.h)});
   }else if(key==='film'){
