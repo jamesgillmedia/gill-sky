@@ -15,7 +15,7 @@
       where:function(){var r=cur();return r?r.title:'the board'},
       sliders:[
         {type:'sec',label:'rings'},
-        {k:'glow',label:'all rings',min:0,max:150,def:100,aria:'glow of every ring',apply:function(v){A.G=v/100;O.apply()}},
+        {k:'glow',label:'all rings',min:0,max:150,def:18,aria:'glow of every ring',apply:function(v){A.G=v/100;O.apply()}},
         {k:'ring',label:function(){var r=cur();return r?r.title:'this ring'},aria:function(){var r=cur();return 'glow of this ring'+(r?': '+r.title:'')},
           scope:function(){var r=cur();return r?r.id:'none'},show:function(){return !!cur()},min:0,max:150,def:100,
           apply:function(v){var s=O.state();if(s.lv==='board')return;A.Rk[s.r]=v/100;O.apply()}},

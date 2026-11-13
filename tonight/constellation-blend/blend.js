@@ -104,7 +104,7 @@ function up(e){var p=PT.get(e.pointerId);if(!p)return;PT.delete(e.pointerId);
   if(pinch){if(pinch.ids.indexOf(e.pointerId)>=0){pinch=null;settleZoom()}drag=null;return}
   if(gLock){drag=null;return}
   if(drag&&drag.id===e.pointerId){var dur=now()-p.t0;
-    var touch=e.pointerType==='touch'||e.pointerType==='pen';
+    var touch=e.pointerType==='touch'||e.pointerType==='pen'||!!(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&e.pointerType!=='mouse');
     if(drag.moved<(touch?24:10)&&dur<(touch?520:350))tap(e.clientX,e.clientY,touch);
     else if(zf()>1.12){fling(drag.vx*sstep(1.12,1.8,zf()),drag.vy*sstep(1.12,1.8,zf()))}
     drag=null;if(!tiltOn){T.tx=0;T.ty=0}}}
@@ -124,17 +124,27 @@ addEventListener('keydown',function(e){var k=e.key;lastIn=now();firstTouch();
   else if(k.indexOf('Arrow')===0){chipOff();e.preventDefault();var d=80/cam.s;glideTo(cam.x+(k==='ArrowRight'?d:k==='ArrowLeft'?-d:0),cam.y+(k==='ArrowDown'?d:k==='ArrowUp'?-d:0),cam.s,300)}});
 /* tap: a work glides in until it resolves (and again for more), a chapter fits its figure, the mark goes home */
 function cardPx(w){return Math.max(w.cw,w.chh)*cam.s}
-function chapterAt(x,y){var wp=toWorld(x,y),hit=null;
-  for(var i=0;i<CH.length;i++){var C=CH[i];if(Math.abs(wp[0]-C.cx)<FIG_W*.7&&Math.abs(wp[1]-C.cy)<FIG_H*.9)hit=C}return hit}
+function chapterAt(x,y,pad){var wp=toWorld(x,y),hit=null,best=1e9,px=pad||.7,py=pad?pad*1.15:.9;
+  for(var i=0;i<CH.length;i++){var C=CH[i],dx=Math.abs(wp[0]-C.cx),dy=Math.abs(wp[1]-C.cy);
+    if(dx<FIG_W*px&&dy<FIG_H*py){var d=Math.hypot(wp[0]-C.cx,wp[1]-C.cy);if(d<best){best=d;hit=C}}}return hit}
 function roomOf(c){return c&&(c.k==='objects'||c.k==='photo')?c:null}
 function tap(x,y,touch){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,y-lastTap.y)<30;lastTap={t:t,x:x,y:y};
   var o=[0,0,0],best=null,bd=1e9;
   WORKS.forEach(function(w){proj(w.x,w.y,zE(w.z),o);var px=cardPx(w),hw=Math.max(22,w.cw*cam.s/2+6),hh=Math.max(22,w.chh*cam.s/2+6);
     if(Math.abs(o[0]-x)<=hw&&Math.abs(o[1]-y)<=hh){var d=Math.hypot(o[0]-x,o[1]-y);if(d<bd){bd=d;best=w}}});
   var named=nameAt(x,y);
-  /* a finger on the Objects or Photo figure (while the stars are still stars, not a big picture) shows open › */
-  var room=roomOf(named)||((touch&&(!best||cardPx(best)<48))?roomOf(chapterAt(x,y)):null);
-  if(CHIP.k){
+  /* a finger on the Objects or Photo figure shows open ›. A star under the finger does not count as a picture until it is large. */
+  var fig=roomOf(chapterAt(x,y,touch?1.05:.7));
+  var starBig=best&&cardPx(best)>=110;
+  var starRoom=(best&&!starBig)?roomOf(best.c):null;
+  var room=roomOf(named)||starRoom||((fig&&!starBig)?fig:null);
+  /* second tap on the same constellation enters, even after the first tap has zoomed a star up under the finger */
+  if(CHIP.k&&(CHIP.k==='objects'||CHIP.k==='photo')){
+    var same=(named&&named.k===CHIP.k)||(fig&&fig.k===CHIP.k)||(starRoom&&starRoom.k===CHIP.k)||(room&&room.k===CHIP.k);
+    var again=Math.hypot(x-(CHIP.x||x),y-(CHIP.y||y))<96;
+    if(same||again){enterRoom(CHIP.k==='photo'?'../photo-lab/':'../objects/');return}
+    chipOff();if(!dbl)return}
+  else if(CHIP.k){
     if(room&&room.k===CHIP.k){enterRoom(room.k==='photo'?'../photo-lab/':'../objects/');return}
     chipOff();if(!dbl)return}
   if(dbl){stepOut();lastTap.t=0;return}
@@ -335,7 +345,7 @@ var ROOMS={film:[['open ›','../fable-m4/#film']],photo:[['darkroom ›','../re
   spaces:[['spirit eye ›','../fable-m4/versions/se-a/'],['forest garden ›','../spaces/forest-garden/']],about:[['open ›','../fable-m4/#about/bio']],sound:[['open ›','../fable-m4/#sound']]};
 var CHIP={k:null},CE=document.getElementById('chip');
 function chipOff(){if(!CHIP.k)return;CHIP.k=null;CE.classList.remove('on');CE.hidden=true}
-function chipOn(c,w,x,y){var rs=ROOMS[c.k];if(!rs)return;CHIP.k=c.k;CHIP.w=w||null;
+function chipOn(c,w,x,y){var rs=ROOMS[c.k];if(!rs)return;CHIP.k=c.k;CHIP.w=w||null;CHIP.x=x;CHIP.y=y;
   var h='<span class="nm" style="color:rgb('+c.tint+')">'+esc(w&&w.t?w.t:c.nm)+'</span>';
   rs.forEach(function(r){h+='<a href="'+esc(r[1])+'" data-room="1">'+esc(r[0])+'</a>'});CE.innerHTML=h;CE.hidden=false;
   var bw=CE.offsetWidth,bh=CE.offsetHeight,px=clamp(x-bw/2,10,W-bw-10),py=y+18;if(py+bh>H-12)py=y-bh-18;
@@ -345,7 +355,25 @@ function nameAt(x,y){if(1-sstep(2.2,3.6,zf())<.3)return null;var hit=null;
   CH.forEach(function(c){proj(c.cx,c.cy+FIG_H*.5+14,zE(c.z),o);var fs=clamp(12*Math.pow(zf(),.35),11,18);g.font='400 '+fs.toFixed(1)+'px "Julius Sans One", sans-serif';
     var hw=Math.max(44,g.measureText(c.nm.toUpperCase()).width/2+18);if(Math.abs(x-o[0])<=hw&&y>=o[1]-14&&y<=o[1]+fs*2.6+8)hit=c});return hit}
 function save(){try{sessionStorage.setItem('tn-ret',JSON.stringify({href:location.pathname+location.search,cam:{x:cam.x,y:cam.y,s:cam.s},S0:S0,W:W,H:H,b:BOARD?BOARD.slug:null,t:Date.now()}))}catch(e){}}
-function enterRoom(href){save();try{sessionStorage.setItem('tn-room',new URL(href,location.href).pathname)}catch(e){}location.href=href}
+function handoffSnap(dir,x,y){var url='';try{url=cv.toDataURL('image/jpeg',.52)}catch(e){}
+  try{sessionStorage.setItem('tn-handoff',JSON.stringify({url:url,x:Math.round(x),y:Math.round(y),t:Date.now(),dir:dir||'in'}))}catch(e){}}
+function handoffPlay(dir){var raw=null;try{raw=sessionStorage.getItem('tn-handoff')}catch(e){}if(!raw)return;
+  var o;try{o=JSON.parse(raw)}catch(e){return}if(!o||o.dir!==dir||!o.url||Date.now()-(o.t||0)>15000)return;
+  try{sessionStorage.removeItem('tn-handoff')}catch(e){}
+  var el=document.createElement('div');el.setAttribute('aria-hidden','true');
+  el.style.cssText='position:fixed;inset:0;z-index:40;pointer-events:none;background:#04070b center/cover no-repeat;transform-origin:'+(o.x||innerWidth/2)+'px '+(o.y||innerHeight/2)+'px;opacity:1';
+  el.style.backgroundImage='url('+o.url+')';document.body.appendChild(el);
+  if(dir==='out')el.style.transform='scale(1.28)';
+  requestAnimationFrame(function(){requestAnimationFrame(function(){
+    el.style.transition='transform .6s cubic-bezier(.2,.7,.2,1),opacity .6s linear';
+    el.style.transform=dir==='out'?'scale(1)':'scale(1.12)';el.style.opacity='0'})});
+  setTimeout(function(){el.remove()},700)}
+function enterRoom(href){save();
+  var k=/photo-lab/.test(href)?'photo':/objects/.test(href)?'objects':null;
+  var C=k&&CH.find(function(c){return c.k===k});
+  var p=C?proj(C.cx,C.cy,zE(C.z),[0,0,0]):[W/2,H/2,0];
+  handoffSnap('in',p[0],p[1]);
+  try{sessionStorage.setItem('tn-room',new URL(href,location.href).pathname)}catch(e){}location.href=href}
 document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a[data-room]');if(!a)return;e.preventDefault();enterRoom(a.getAttribute('href'))},true);
 function fromOpener(){try{return sessionStorage.getItem('tn-op')==='1'}catch(e){return false}}
 function toOpener(){location.href='../#sky'}
@@ -361,7 +389,7 @@ function restore(){var r=null;try{r=JSON.parse(sessionStorage.getItem('tn-ret')|
   var k=(r.W===W&&r.H===H)?1:S0/(r.S0||S0);cam.x=r.cam.x;cam.y=r.cam.y;cam.s=clamp(r.cam.s*k,S0,SMAX);glide=null;firstTouch();
   if(r.b){var w=filmBySlug(r.b);if(w){history.replaceState(null,'',location.pathname+location.search);history.pushState({b:w.slug},'','#film/'+w.slug);pushed=true;openBoard(w,false,true);cam.x=r.cam.x;cam.y=r.cam.y;cam.s=clamp(r.cam.s*k,S0,SMAX)}}
   return true}
-function boot(){var h=location.hash,nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
+function boot(){handoffPlay('out');var h=location.hash,nav=(performance.getEntriesByType&&performance.getEntriesByType('navigation')[0])||{};
   var m=/^#in\/?([a-z]*)$/.exec(h);
   if(m){try{sessionStorage.setItem('tn-op','1');sessionStorage.removeItem('tn-ret')}catch(e){}history.replaceState(null,'',location.pathname+location.search);
     var C=CH.find(function(q){return q.k===m[1]});firstTouch();

@@ -7,7 +7,7 @@
 .water::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 1px,transparent 1px 7px);animation:drift 9s linear infinite}
 @keyframes drift{to{background-position:0 70px}}
 .frames{position:absolute;left:0;right:0;top:0;height:var(--hy);overflow:hidden;pointer-events:none;z-index:2}
-.refl{position:absolute;left:0;right:0;top:var(--hy);bottom:0;overflow:hidden;pointer-events:none;z-index:1;opacity:.42;filter:blur(2px);-webkit-mask:linear-gradient(180deg,#000,transparent 55%);mask:linear-gradient(180deg,#000,transparent 55%)}
+.refl{position:absolute;left:0;right:0;top:var(--hy);bottom:0;overflow:hidden;pointer-events:none;z-index:1;opacity:.22;filter:blur(2px);-webkit-mask:linear-gradient(180deg,#000,transparent 55%);mask:linear-gradient(180deg,#000,transparent 55%)}
 .refl .fm{top:0;transform-origin:50% 0;pointer-events:none}
 .fm{position:absolute;left:50%;top:100%;transform-origin:50% 100%;will-change:transform,opacity;pointer-events:auto;cursor:pointer}
 .fm img{display:block;width:100%;height:100%;object-fit:cover}
@@ -42,11 +42,11 @@ body.marking .cell{cursor:cell}
 body.marking .cell .win{cursor:cell}
 
 /* the day: the m4 film-page shape, a big hero then large full-width stills stacked */
-.day{position:fixed;inset:0;z-index:40;background:var(--bg,#04070b);opacity:0;transition:opacity 1s var(--ease)}
+.day{position:fixed;inset:0;z-index:40;background:#05070c;opacity:0;transition:opacity .6s var(--ease)}
 .day.open{opacity:1}
 .day[hidden]{display:none}
 .dsc{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:calc(40px + var(--sb))}
-.hero{margin:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;background:var(--hg,var(--bg));transition:background 1s var(--ease)}
+.hero{margin:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;background-color:#05070c;background-image:var(--hg,none);transition:background 1s var(--ease)}
 .hero img{max-width:100%;max-height:calc(100% - 120px);margin-top:40px;object-fit:contain;transform:scale(.97);opacity:0;transition:transform 1.2s var(--ease),opacity 1.2s var(--ease)}
 .day.open .hero img{transform:none;opacity:1}
 .cred{padding:22px calc(18px + var(--sr)) 26px calc(18px + var(--sl));display:flex;flex-wrap:wrap;gap:6px 26px;font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--line)}
@@ -64,7 +64,7 @@ body.marking .cell .win{cursor:cell}
 
 body.sheet-open .lab-top{background:color-mix(in srgb, var(--bg) 94%, transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .sc{scroll-padding-top:calc(66px + var(--st));scroll-padding-bottom:calc(16px + var(--sb))}
-@media (max-width:620px){.lab-top .crumb{display:none}}
+@media (max-width:620px){.lab-top .crumb{display:inline;flex:0 1 auto}.lab-top .crumb b,.lab-top .crumb #where{display:none}.lab-top .crumb::before{content:"PHOTO";letter-spacing:.18em;font-size:10px;color:var(--ink)}}
 
 .fm video,.cell .win video{display:block;width:100%;height:100%;object-fit:cover;background:#050607}
 .hero video{max-width:100%;max-height:calc(100% - 120px);margin-top:40px;object-fit:contain;width:auto;height:auto;transform:scale(.97);opacity:0;transition:transform 1.2s var(--ease),opacity 1.2s var(--ease)}

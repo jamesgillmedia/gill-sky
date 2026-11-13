@@ -83,6 +83,7 @@ function camOpen(){return LAB.layer.top()==='camera back'}
 function apply(v){if(v==='B'){if(!camOpen()){var c=$('cam');if(c)c.click()}}else if(camOpen())LAB.layer.back()}
 var tv=window.TNV&&TNV.mount({room:'photo',def:'A',list:[{k:'A',name:'prints on a line'},{k:'B',name:'camera back first'}],onChange:apply});
 if(tv&&tv.v==='B')setTimeout(function(){apply('B')},300);
+var more=$('more');if(more)more.addEventListener('click',function(){var box=document.querySelector('.lab-modes');if(!box)return;var on=box.classList.toggle('open');more.setAttribute('aria-expanded',on?'true':'false')});
 if(window.GJ_MARKMENU)GJ_MARKMENU.variant('photo',{
   k:'tn.v.photo',label:'layout',dev:1,def:'A',
   seg:[['A','A · prints on a line'],['B','B · camera back']],
@@ -95,8 +96,12 @@ window.__line={get prints(){return PR.map(function(q){var r=q.el.getBoundingClie
    from any deeper place (day page, sheet, camera back, wall) it comes back to the horizon first. Was href="./" only, which
    reloaded the lab forever and dropped the sky referrer, so the mark could never leave (a trap). */
 (function(){var m=document.querySelector('.lab-top .sig');if(!m)return;
+  function sky(){if(window.TN_HANDOFF)TN_HANDOFF.out();location.href='../constellation-blend/#back'}
   m.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
-    if(window.GJ_MARKMENU){GJ_MARKMENU.toggle();return}
-    var t=LAB.layer.top();if(!t||t==='horizon'){location.href='../constellation-blend/#back';return}
-    location.href='./'+location.search},true)})();
+    var t=LAB.layer.top();
+    /* the contact sheet is the root (no layer). One step to the line, never straight to the sky. */
+    if(!t){if(LAB.rooms)LAB.rooms.enter(null);return}
+    /* day, camera back, wall, darkroom: one step toward the line */
+    if(t!=='horizon'){LAB.layer.back();return}
+    sky()},true)})();
 })();

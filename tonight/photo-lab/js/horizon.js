@@ -36,10 +36,11 @@ function build(){parkVideos(framesE);parkVideos(reflE);framesE.innerHTML='';refl
     framesE.appendChild(f);els.push(f);var r=LAB.el('div','fm');putMedia(r,p,true);reflE.appendChild(r);rels.push(r)});
   rt.innerHTML=L.map(function(p){return'<i style="background:'+p.avg+'"></i>'}).join('');size();buildSheet()}
 function size(){W=innerWidth;H=innerHeight;var land=W>H;HY=Math.round(H*(land&&H<500?.70:.64));
-  FH=land?Math.min(H*.52,HY-64):Math.min(H*.40,HY-96);
+  FH=land?Math.min(H*.42,HY-64):Math.min(H*.34,HY-96);
   /* Nov 13 pass: the drying line hangs above the horizon; the standing print stays clear of it */
   if(LAB.lineBottom){var lb=LAB.lineBottom();if(lb)FH=Math.max(120,Math.min(FH,HY-lb-14))}
-  els.forEach(function(f,i){var p=L[i],h=FH,w=h*p.w/p.h;if(w>W*(land?.6:.86)){w=W*(land?.6:.86);h=w*p.h/p.w}[f,rels[i]].forEach(function(e){e.style.width=w+'px';e.style.height=h+'px';e.style.marginLeft=(-w/2)+'px'});f.style.marginTop=(-h)+'px';f._w=w});
+  var cap=W<700?.45:.30;
+  els.forEach(function(f,i){var p=L[i],h=FH,w=h*p.w/p.h;if(w>W*cap){w=W*cap;h=w*p.h/p.w}[f,rels[i]].forEach(function(e){e.style.width=w+'px';e.style.height=h+'px';e.style.marginLeft=(-w/2)+'px'});f.style.marginTop=(-h)+'px';f._w=w});
   sky.style.setProperty('--hy',HY+'px');lastCur=-1;paint();
   var c=colCount();if(c!==cols){cols=c;grid.style.setProperty('--cols',cols)}}
 var lastCur=-1;
@@ -54,7 +55,7 @@ function paint(){if(!els.length)return;
     f.style.transform='translate('+x.toFixed(1)+'px,'+sink.toFixed(1)+'px) scale('+s.toFixed(3)+')';
     r.style.transform='translate('+x.toFixed(1)+'px,'+(-sink).toFixed(1)+'px) scale('+s.toFixed(3)+')';/* Nov 13: mirrored in CSS (img scaleY(-1)), so the reflection hangs down from the horizon instead of flipping up out of view */
     f.style.zIndex=r.style.zIndex=100-Math.round(a*10);
-    f.style.filter=a>.5?'brightness('+(1-Math.min(.45,(a-.5)*.12)).toFixed(2)+')':'';f.classList.toggle('cur',i===cur)}
+    f.style.filter=a>.35?'brightness('+(1-Math.min(.62,(a-.35)*.22)).toFixed(2)+')':'';f.classList.toggle('cur',i===cur)}
   var i0=Math.max(0,Math.floor(pos)),i1=Math.min(L.length-1,i0+1),t=pos-i0,a0=L[i0],a1=L[i1];
   /* magic-base 1112: the wall stays dark on every screen (Gill: dark background in every room); the tint still follows the photograph, the photograph itself is untouched */
   /* Nov 13 pass (Sketch decision 4 = B): a dark night sky and black water. Only a trace (6-12%) of the standing photograph's own
@@ -96,7 +97,8 @@ function paintSheetMarks(){for(var i=0;i<grid.children.length;i++){var b=grid.ch
 
 function atSheet(){return !LAB.layer.depth()}
 function showSheet(on){
-  pencilB.hidden=!on;$('back').hidden=on;document.body.classList.toggle('sheet-open',on);sheetB.classList.toggle('on',on);sheetB.setAttribute('aria-pressed',on);
+  pencilB.hidden=!on;document.body.classList.toggle('sheet-open',on);sheetB.classList.toggle('on',on);sheetB.setAttribute('aria-pressed',on);
+  $('back').hidden=false;$('back').classList.toggle('slot',!!on);$('back').disabled=!!on;
   if(on){setMarking(false);sheet.hidden=false;void sheet.offsetWidth;sheet.classList.add('open');where.textContent='contact sheet';
     markSheetCur();requestAnimationFrame(function(){scrollCur()});
     els.forEach(function(f,i){armEl(f,false);armEl(rels[i],false)});watchSheet();
@@ -144,8 +146,8 @@ sortB.addEventListener('click',function(){var id=L[Math.round(pos)].id;mode=mode
 var cp=null;
 function near(p){var i=L.indexOf(p),out=[];for(var d=1;out.length<8&&d<L.length;d++){if(L[i+d])out.push(L[i+d]);if(out.length<8&&L[i-d])out.push(L[i-d])}return out}
 /* the day keeps a trace of the photograph, held inside the night field. A light wash (the picture's own grey or beige) is never the page. */
-function nightWash(h,t){return mix('#05070c',dark(h,.55),t)}
-function fillDay(p){cp=p;parkVideos($('hero'));parkVideos(stack);var hero=$('hero');hero.innerHTML='';hero.style.setProperty('--hg','linear-gradient(180deg,'+nightWash(p.top,.10)+','+nightWash(p.bot,.05)+')');
+function nightWash(h,t){return mix('#05070c',dark(h,.22),Math.min(.12,Math.max(.06,t)))}
+function fillDay(p){cp=p;parkVideos($('hero'));parkVideos(stack);var hero=$('hero');hero.innerHTML='';hero.style.backgroundColor='#05070c';hero.style.setProperty('--hg','linear-gradient(180deg,'+nightWash(p.top,.08)+','+nightWash(p.bot,.06)+')');
   if(LAB.isClip(p)){var v=getClipVid(p,'day');if(!v.getAttribute('src'))v.src=LAB.clip(p);hero.appendChild(v);LAB.arm(v)}
   else{var im=new Image();im.id='himg';im.alt='photograph '+LAB.num(p);im.src=LAB.img(p);hero.appendChild(im)}
   cred.innerHTML='<span>frame <b>'+LAB.num(p)+'</b> of '+L.length+'</span><span><i class="sw" style="background:'+p.avg+'"></i>measured light <b>'+Math.round(p.lum*100)+'</b></span>'+
@@ -189,11 +191,14 @@ document.addEventListener('keydown',function(e){var top=LAB.layer.top();if(top==
     else if(e.key==='m'||e.key==='M')setMarking(!marking);
     return}
   if(e.key==='ArrowRight'){go(Math.round(target)+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(Math.round(target)-1);e.preventDefault()}
-  else if(e.key==='Enter'||e.key==='+'||e.key==='='){openDay(L[Math.round(pos)])}else if(e.key==='Escape')leaveHorizon()});
+  else if(e.key==='Enter'||e.key==='+'||e.key==='='){openDay(L[Math.round(pos)])}else if(e.key==='Escape'){if(LAB.layer.top()==='horizon'){if(window.TN_HANDOFF)TN_HANDOFF.out();location.href='../constellation-blend/#back'}else leaveHorizon()}});
 
 function syncHearts(){els.forEach(function(f,i){var h=f.querySelector('.h'),on=LAB.hearts.has(L[i].id);if(on&&!h)f.appendChild(LAB.el('span','h','♥'));else if(!on&&h)h.remove()});paintSheetMarks()}
 document.addEventListener('lab:hearts',syncHearts);
-$('back').addEventListener('click',function(){if(LAB.layer.depth())LAB.layer.back()});
+$('back').addEventListener('click',function(){var t=LAB.layer.top();
+  if(t==='day'||t==='camera back'||t==='wall'){LAB.layer.back();return}
+  if(t==='horizon'||!t){if(window.TN_HANDOFF)TN_HANDOFF.out();location.href='../constellation-blend/#back';return}
+  if(LAB.layer.depth())LAB.layer.back()});
 addEventListener('resize',size);
 
 try{history.replaceState({lab:0},'')}catch(e){}

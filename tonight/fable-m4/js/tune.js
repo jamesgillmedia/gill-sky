@@ -151,7 +151,7 @@ var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
    ?drawer=A|B|C, localStorage gj.drawer. Default A. Dev rows hide when gj.dev is 0 (?dev=0). */
 var DV=(function(){var q=/(?:^|[?&])drawer=([ABC])(?:&|$)/.exec(location.search);if(q){wr('gj.drawer',q[1]);return q[1]}
   try{var v=localStorage.getItem('gj.drawer');if(v==='A'||v==='B'||v==='C')return v}catch(e){}return 'A'})();
-function devOn(){var q=/(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);if(q)wr('gj.dev',q[1]);return rd('gj.dev',1)!==0}
+function devOn(){var q=/(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);if(q)wr('gj.dev',q[1]);return rd('gj.dev',0)!==0}
 var RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;function rmOn(){return !!(RMQ&&RMQ.matches)}
 var foldT=0;
 function setDrawer(v){DV=v==='B'||v==='C'?v:'A';wr('gj.drawer',DV);if(menu){menu.classList.remove('dv-A','dv-B','dv-C');menu.classList.add('dv-'+DV)}}
