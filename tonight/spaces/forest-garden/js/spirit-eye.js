@@ -186,7 +186,7 @@ export function mount(THREE, scene, ctx) {
   const FU = { uF: { value: 0 }, uB: { value: .05 }, uDay: { value: 0 } };
   const fibers = new THREE.LineSegments(fgeo, new THREE.ShaderMaterial({ uniforms: FU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: 'attribute float aT,aId,aL,aG;varying float vT,vId,vL,vG;void main(){vT=aT;vId=aId;vL=aL;vG=aG;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: 'uniform float uF,uB,uDay;varying float vT,vId,vL,vG;void main(){float lag=(fract(vId*13.7)-.5)*.036;float F=uF+lag;float lit=1.-smoothstep(F-.007,F+.007,vT);float head=exp(-abs(vT-F)*52.)*step(.01,F)*(1.-step(.999,F));float tr1=exp(-abs(vT-(F-.04))*70.)*step(.05,F);float tr2=exp(-abs(vT-(F-.085))*82.)*step(.1,F);float tex=.8+.2*sin(vT*42.+vId*6.1);float day=1.-.55*uDay;float a=(uB*.7+lit*(.26+.38*(1.-vT))*tex+head*1.65+tr1*.9+tr2*.48)*vG*day;vec3 col=mix(vec3(.78,.97,1.),vec3(.95,.96,.84),vT);col=mix(col,vec3(.62,.93,.9),.2);gl_FragColor=vec4(col*a,1.);}' }));
+    fragmentShader: 'uniform float uF,uB,uDay;varying float vT,vId,vL,vG;void main(){float lag=(fract(vId*13.7)-.5)*.036;float F=uF+lag;float lit=1.-smoothstep(F-.007,F+.007,vT);float head=exp(-abs(vT-F)*52.)*step(.01,F)*(1.-step(.999,F));float tr1=exp(-abs(vT-(F-.04))*70.)*step(.05,F);float tr2=exp(-abs(vT-(F-.085))*82.)*step(.1,F);float tex=.8+.2*sin(vT*42.+vId*6.1);float day=1.-.55*uDay;float a=(uB*.28+lit*(.08+.12*(1.-vT))*tex+head*.5+tr1*.28+tr2*.14)*vG*day;vec3 col=mix(vec3(.78,.97,1.),vec3(.95,.96,.84),vT);col=mix(col,vec3(.62,.93,.9),.2);gl_FragColor=vec4(col*a,1.);}' }));
   fibers.renderOrder = 7; g.add(fibers);
   const tipN = strands.length, tipPos = new Float32Array(tipN * 3), tipG = new THREE.BufferGeometry();
   tipG.setAttribute('position', new THREE.BufferAttribute(tipPos, 3));
@@ -343,17 +343,17 @@ export function mount(THREE, scene, ctx) {
     const a = ang(s); sun.position.set(Math.cos(a) * 7.6, .9, -Math.sin(a) * 7.6); sunCore.position.copy(sun.position);
     const sa = a + .9; skySun.position.set(Math.cos(sa) * 26, 30, -Math.sin(sa) * 26); skyCore.position.copy(skySun.position);
     rd.set(0, LENS_Y, 0).sub(skySun.position); const len = rd.length(); rd.normalize(); Q.setFromUnitVectors(Y, rd); ray.quaternion.copy(Q); ray.position.copy(skySun.position); ray.scale.set(1, len, 1);
-    rayU.uR.value = R; rayU.uI.value = (cam.position.y > 0 ? 1 : .25) * Math.max(.1, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 3) / 8));
-    lensGlow.material.opacity = Math.min(1, R * R * 1.1) * (cam.position.y > 0 ? 1 : .5) * Math.max(.08, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 2.5) / 7)); lensGlow.scale.setScalar(4 + 4 * R);
+    rayU.uR.value = R; rayU.uI.value = (cam.position.y > 0 ? .28 : .08) * Math.max(.1, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 3) / 8));
+    lensGlow.material.opacity = Math.min(.4, R * R * .45) * (cam.position.y > 0 ? 1 : .5) * Math.max(.08, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 2.5) / 7)); lensGlow.scale.setScalar(2.4 + 2.2 * R);
     const day = ctx.dayNight ? ctx.dayNight() : 0, dayGlow = 1 - .72 * day;
     skySun.scale.setScalar(9 * (1 + 1.15 * day)); skyCore.scale.setScalar(2.4 * (1 + 1.5 * day));
     skySun.material.color.setRGB(1, 1 - .08 * day, .78 - .28 * day);
     water.material.color.copy(waterNight).lerp(waterDay, day);
-    FU.uF.value = F; FU.uDay.value = day; UB.uF.value = F; const dxz = Math.hypot(cam.position.x, cam.position.z); UB.uI.value = (.1 + .38 * F) * Math.min(1, Math.max(.12, (dxz - 2.4) / 7)) * dayGlow;
+    FU.uF.value = F; FU.uDay.value = day; UB.uF.value = F; const dxz = Math.hypot(cam.position.x, cam.position.z); UB.uI.value = (.03 + .08 * F) * Math.min(1, Math.max(.12, (dxz - 2.4) / 7)) * dayGlow;
     head.position.set(0, FTOP + (FBOT - FTOP) * F, 0); head.material.opacity = (F > .01 && F < .995 ? .9 : 0) * dayGlow;
     placeTips(F); tips.material.opacity = (F > .01 && F < .995 ? .9 : 0) * dayGlow; tips.material.size = .22 + .12 * (1 - day);
     entry.material.opacity = Math.min(.85, .15 + .7 * Math.max(F, R)) * (1 - .65 * day);
-    const L = Math.max(0, (F - .9) / .1); pool.material.opacity = .9 * L * dayGlow; ripples.forEach((r, k) => r.material.opacity = .25 * L * (1 - k * .25) * dayGlow); lightGarden(.08 + .92 * L);
+    const L = Math.max(0, (F - .9) / .1); pool.material.opacity = .22 * L * dayGlow; ripples.forEach((r, k) => r.material.opacity = .25 * L * (1 - k * .25) * dayGlow); lightGarden(.08 + .92 * L);
     motes.material.opacity = (.12 + .6 * F) * (1 - .8 * day);
     if (true) { poseAt(s, cp, cl);
       if (enter) { const u = Math.min(1, (now - enter.t0) / T_ENTER), k = EASE(u); cp.lerpVectors(enter.p, cp, k); cl.lerpVectors(enter.l, cl, k); if (u >= 1) { enter = null; settleAt = now } }

@@ -111,7 +111,7 @@ if(uRedR>0.){vec3 W=vec3(.2126,.7152,.0722);float l0=dot(diffuseColor.rgb,W);
       const sw = RM ? 0 : Math.sin(t * .05 + m.userData.seed) * 1.2; m.position.x = m.userData.base.x + sw; m.position.z = m.userData.base.z + (RM ? 0 : Math.cos(t * .04 + m.userData.seed) * .9);
       const dc = cam.position.distanceTo(m.position); m.material.uniforms.uA.value = (m.userData.flat ? (variant === 'B' ? .3 : .2) : (m.userData.where === 'under' ? (variant === 'B' ? .12 : .32) : .14)) * Math.min(1, Math.max(0, (dc - 2.5) / 6)) * (red ? 1.1 : 1) });
     const dxz = Math.hypot(cam.position.x, cam.position.z), near = Math.min(1, Math.max(.15, (dxz - 1.2) / 6));
-    shafts.forEach(m => { m.visible = F > .01; m.material.uniforms.uF.value = F; m.material.uniforms.uI.value = (.16 + .3 * F) * near });
+    shafts.forEach(m => { m.visible = F > .01; m.material.uniforms.uF.value = F; m.material.uniforms.uI.value = (.04 + .06 * F) * near });
     if (now - scanAt > 1000) { scanAt = now; scan() } tick();
     if (red && scene.fog) scene.fog.color.setRGB(.012, .004, .006);
     if (red && o.renderer) o.renderer.setClearColor(0x030102, 1);
