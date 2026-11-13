@@ -107,23 +107,28 @@ function draw3(t){
   O._still=GJ_BIOCTL.noflash();
   var fx=Math.round(R.x*k),fy=Math.round(R.y*k),fw=Math.max(1,Math.round(R.w*k)),fh=Math.max(1,Math.round(R.h*k));
   var fl=O.floor;if(fl.width!==fw||fl.height!==fh){fl.width=fw;fl.height=fh}
-  fl.getContext('2d').drawImage(c,fx,fy,fw,fh,0,0,fw,fh);
+  var fg=fl.getContext('2d');
+  fg.drawImage(c,fx,fy,fw,fh,0,0,fw,fh);
   O.sides.forEach(function(s){var sc=s.c,x2=s.ctx;
     if(s.k==='l')x2.drawImage(c,0,0,2,bh,0,0,sc.width,sc.height);else if(s.k==='r')x2.drawImage(c,bw-2,0,2,bh,0,0,sc.width,sc.height);
     else if(s.k==='t')x2.drawImage(c,0,0,bw,2,0,0,sc.width,sc.height);else x2.drawImage(c,0,bh-2,bw,2,0,0,sc.width,sc.height)});
-  g.clearRect(fx,fy,fw,fh);
+  if(fw>1&&fh>1)g.clearRect(fx,fy,fw,fh);
+  if(L&&!L.classList.contains('ac-live'))L.classList.add('ac-live');
 }
 /* ---------- layers ---------- */
 function paint(flick,lv){
   if(!BUILT)build();if(!O.el)return;
-  var tx=texts(),on=BOXOF[lv];
+  var tx=texts(),on=BOXOF[lv],pend=[];
   L.classList.toggle('ac-l1',lv===1);
   O.boxes.forEach(function(b,i){
     var want=on===i?lv:HOME[i],t=b.querySelector('.ac3-txt');
-    if(b._lv!==want){t.innerHTML=linesHtml(tx[want-1]);b._lv=want;b.scrollTop=0}
+    if(b._lv!==want){t.innerHTML=linesHtml(tx[want-1]);b._lv=want;b.scrollTop=0;pend.push(b)}
     b.className='ac3-box'+(on===i?' on lv'+lv:'')+(on!=null&&on!==i?' dim':'')+(on===i&&lv===7?' sel':'');
     var tg=b.querySelector('.ac3-tag i');if(tg)tg.textContent=on===i?String(lv):NUM[i];
   });
+  /* the new face is in the DOM before it is shown, so a layer change never flashes an empty dark square */
+  if(pend.length){pend.forEach(function(b){b.classList.add('ac-pend')});
+    requestAnimationFrame(function(){requestAnimationFrame(function(){pend.forEach(function(b){b.classList.remove('ac-pend')})})})}
   if(flick){var el=on!=null?O.boxes[on]:O.words;el.classList.add('flick');O.G.burst=8;setTimeout(function(){el.classList.remove('flick')},40)}
   rest();
 }

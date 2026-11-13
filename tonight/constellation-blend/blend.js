@@ -127,25 +127,29 @@ function cardPx(w){return Math.max(w.cw,w.chh)*cam.s}
 function chapterAt(x,y,pad){var wp=toWorld(x,y),hit=null,best=1e9,px=pad||.7,py=pad?pad*1.15:.9;
   for(var i=0;i<CH.length;i++){var C=CH[i],dx=Math.abs(wp[0]-C.cx),dy=Math.abs(wp[1]-C.cy);
     if(dx<FIG_W*px&&dy<FIG_H*py){var d=Math.hypot(wp[0]-C.cx,wp[1]-C.cy);if(d<best){best=d;hit=C}}}return hit}
-function roomOf(c){return c&&(c.k==='objects'||c.k==='photo')?c:null}
+function roomOf(c){return c&&ROOMS[c.k]?c:null}
+function goChip(k){
+  var rs=ROOMS[k];if(!rs)return;
+  if(k==='photo'){enterRoom('../photo-lab/');return}
+  if(rs.length===1)enterRoom(rs[0][1]);
+}
 function tap(x,y,touch){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,y-lastTap.y)<30;lastTap={t:t,x:x,y:y};
   var o=[0,0,0],best=null,bd=1e9;
   WORKS.forEach(function(w){proj(w.x,w.y,zE(w.z),o);var px=cardPx(w),hw=Math.max(22,w.cw*cam.s/2+6),hh=Math.max(22,w.chh*cam.s/2+6);
     if(Math.abs(o[0]-x)<=hw&&Math.abs(o[1]-y)<=hh){var d=Math.hypot(o[0]-x,o[1]-y);if(d<bd){bd=d;best=w}}});
   var named=nameAt(x,y);
-  /* a finger on the Objects or Photo figure shows open ›. A star under the finger does not count as a picture until it is large. */
+  /* a finger on any chapter figure shows its menu. A star under the finger does not count until it is large.
+     A film star still opens that film's board. Spaces keeps both links; a second tap on a one-link room enters. */
   var fig=roomOf(chapterAt(x,y,touch?1.05:.7));
   var starBig=best&&cardPx(best)>=110;
-  var starRoom=(best&&!starBig)?roomOf(best.c):null;
+  var filmStar=best&&best.c.k==='film'&&!starBig&&bd<28;
+  var starRoom=(best&&!starBig&&!filmStar)?roomOf(best.c):null;
+  if(filmStar&&fig&&fig.k==='film')fig=null;
   var room=roomOf(named)||starRoom||((fig&&!starBig)?fig:null);
-  /* second tap on the same constellation enters, even after the first tap has zoomed a star up under the finger */
-  if(CHIP.k&&(CHIP.k==='objects'||CHIP.k==='photo')){
+  if(CHIP.k){
     var same=(named&&named.k===CHIP.k)||(fig&&fig.k===CHIP.k)||(starRoom&&starRoom.k===CHIP.k)||(room&&room.k===CHIP.k);
     var again=Math.hypot(x-(CHIP.x||x),y-(CHIP.y||y))<96;
-    if(same||again){enterRoom(CHIP.k==='photo'?'../photo-lab/':'../objects/');return}
-    chipOff();if(!dbl)return}
-  else if(CHIP.k){
-    if(room&&room.k===CHIP.k){enterRoom(room.k==='photo'?'../photo-lab/':'../objects/');return}
+    if(same||again){if(filmStar&&CHIP.k==='film'){openBoard(best,true);return}goChip(CHIP.k);return}
     chipOff();if(!dbl)return}
   if(dbl){stepOut();lastTap.t=0;return}
   if(named){chipOn(named,null,x,y);return}

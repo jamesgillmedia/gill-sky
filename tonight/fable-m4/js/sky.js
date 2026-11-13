@@ -864,16 +864,23 @@ function drawCentre(a){
 }
 function drawNames(fa){
   g.textAlign='center';g.textBaseline='alphabetic';
+  g.font='400 13px "Julius Sans One",Poppins,sans-serif';
+  var o=sp(0,0),gf=clamp(26*Math.sqrt(rest.s/Math.max(.2,FAR.s)),22,48);
+  var block=cur.lv===0?{x0:o[0]-96,y0:o[1]-gf*.35,x1:o[0]+96,y1:o[1]+gf*.62+56}:null;
   ORDER.forEach(function(k){
-    var c=CH[k],p=sp(c.x,c.y+c.ex.y1),y=p[1]+20;
-    if(y<48||y>H-8)return;
+    var c=CH[k],p=sp(c.x,c.y+c.ex.y1),x=p[0],y=p[1]+20;
+    var hw=g.measureText(k.toUpperCase()).width/2+10;
+    if(block){
+      var n=0,vx=x-o[0],vy=y-o[1],m=Math.hypot(vx,vy)||1;vx/=m;vy/=m;
+      while(n++<14&&x+hw>block.x0&&x-hw<block.x1&&y>block.y0&&y-16<block.y1){x+=vx*12;y+=vy*12}
+    }
+    if(y<56||y>H-8||x<12||x>W-12)return;
     var on=sel&&sel.type==='ch'&&sel.k===k;
     g.globalAlpha=1;
-    g.font='400 13px "Julius Sans One",Poppins,sans-serif';
     g.shadowColor='rgba(4,7,11,.92)';g.shadowBlur=8;g.shadowOffsetY=1;
     g.fillStyle=on?'rgb('+MINT+')':'#f7f4ee';
     g.letterSpacing='2.5px';
-    g.fillText(k.toUpperCase(),p[0],y);
+    g.fillText(k.toUpperCase(),x,y);
     g.letterSpacing='0px';g.shadowBlur=0;g.shadowOffsetY=0;
     g.globalAlpha=1;
   });
@@ -1642,7 +1649,9 @@ function renderReel(el,it){
 
 /* ---------- input ---------- */
 function bind(){
-  stage.addEventListener('pointerdown',function(){if(!HINTSEEN&&levelOf(cur)===1)seenHint()},true);
+  function pokeHint(){var h=$('shint');if(!HINTSEEN&&h&&h.classList.contains('on'))seenHint()}
+  stage.addEventListener('pointerdown',pokeHint,true);
+  stage.addEventListener('wheel',pokeHint,{passive:true});
   window.addEventListener('pointerdown',function(){if(SKYIN.t0)skyIntroEnd()},true);
   var wc=$('wcrumb'),wr=$('wrail');
   function wjump(e){var b=e.target.closest('[data-lv]');if(!b)return;e.preventDefault();e.stopPropagation();jumpLevel(+b.getAttribute('data-lv'))}
@@ -1701,7 +1710,17 @@ function bind(){
   if(mapBtn)mapBtn.addEventListener('click',function(e){e.stopPropagation();jumpMap(e)});
   var ax=$('aprox');
   if(ax)ax.addEventListener('click',function(e){e.stopPropagation();back()});
-  addEventListener('resize',function(){layout();arriveAt(cur,true)});
+  addEventListener('resize',function(){
+    /* the drawer folding must not refit the map: a scrollbar or shadow used to fire resize and arriveAt snapped the camera */
+    if(Date.now()<(window.__gjCamHold||0)){
+      var nw=innerWidth,nh=innerHeight;
+      if(nw===W&&nh===H)return;
+      DPR=Math.min(2,devicePixelRatio||1);W=nw;H=nh;PORT=H>W*1.05;
+      cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);cv.style.width=W+'px';cv.style.height=H+'px';
+      return;
+    }
+    layout();arriveAt(cur,true);
+  });
   addEventListener('popstate',onPop);
 }
 function onDown(e){
@@ -2413,8 +2432,11 @@ function syncHint(){
   var h=$('shint');if(!h)return;
   try{if(sessionStorage.getItem('gj-m4-hint'))HINTSEEN=true}catch(e){}
   var on=!HINTSEEN&&phase==='sky'&&levelOf(cur)===1&&cur.k!=='progress';
-  h.hidden=!on&&!h._fading;
-  h.classList.toggle('on',on);
+  if(on){
+    if(h.hidden){h.classList.remove('on');h.hidden=false;void h.offsetWidth;
+      requestAnimationFrame(function(){if(!HINTSEEN)h.classList.add('on')});
+    }else h.classList.add('on');
+  }else if(!h._fading){h.classList.remove('on');h.hidden=true}
   if(on&&!h._t){h._t=setTimeout(function(){seenHint()},9000)}
 }
 function seenHint(){
@@ -2451,7 +2473,8 @@ function placeHint(){
     for(var i=0;i<boxes.length;i++){var b=boxes[i];if(b[0]<h._x1&&h._x0<b[2]&&b[1]<y1&&y<b[3])return false}
     return true;
   }
-  var top=92+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--st'))||0);
+  var bar=$('bar'),bb=bar?bar.getBoundingClientRect().bottom:0;
+  var top=Math.max(bb+16,92+(parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--st'))||0));
   var y=h._y;
   if(!free(y)){
     y=null;

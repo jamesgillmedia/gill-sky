@@ -234,6 +234,10 @@
       svg.classList.remove('out');
       svg.classList.add('on');
       hideDrawer();
+    } else if (holding) {
+      /* a held slider hides the drawer even when the arc has no free edge */
+      svg.classList.remove('on', 'out');
+      hideDrawer();
     } else {
       svg.classList.remove('on', 'out');
       showDrawer();
@@ -248,7 +252,11 @@
   function release() {
     holding = false;
     kick(); /* settle at w = 9 */
-    if (!svg || !isVisible()) { showDrawer(); return; }
+    /* the arc never sat (the calculator fills the screen): still wait the same second before the drawer returns */
+    if (!svg || !isVisible()) {
+      hideT = setTimeout(function () { if (!holding) showDrawer(); }, LINGER + FADE_OUT);
+      return;
+    }
     clearTimeout(hideT); clearTimeout(fadeT);
     if (rm()) {
       hideT = setTimeout(function () { hideNow(); showDrawer(); }, LINGER + FADE_OUT);
@@ -269,8 +277,15 @@
     if (!u) return null;
     var c = u.cur || {}, all = [[0, 0, innerWidth, innerHeight]];
     if (c.k === 'film' && (c.b || c.lv >= 2)) return all;
-    if (c.lv >= 2) return all;
-    if (u.bio && u.bio.on) return all;
+    if (c.lv >= 2 && !(u.bio && u.bio.on)) return all;
+    /* the calculator, not the whole screen: an edge stays free so the arc can sit while the drawer hides */
+    if (u.bio && u.bio.on) {
+      var el = document.querySelector('#layers .ac3-obj') || document.getElementById('calcstage') || document.getElementById('layers');
+      if (!el) return all;
+      var b = el.getBoundingClientRect();
+      if (b.width < 8 || b.height < 8 || b.width > innerWidth * .92 && b.height > innerHeight * .92) return all;
+      return [[b.left - 16, b.top - 16, b.right + 16, b.bottom + 16]];
+    }
     return null;
   });
 

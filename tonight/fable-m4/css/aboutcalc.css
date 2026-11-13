@@ -13,17 +13,21 @@
  transform-style:preserve-3d;transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 #layers .ac3-obj.drag{cursor:grabbing}
 #layers .ac3-obj>*{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden}
-#layers .ac3-face{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:var(--r);overflow:hidden}
-#layers .ac3-face canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#layers .ac3-face{inset:0;transform:translateZ(calc(var(--d) / 2));border-radius:var(--r);overflow:hidden;background:#04070b}
+#layers .ac3-face canvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:#04070b;opacity:0}
+#layers.ac-live .ac3-face canvas{opacity:1;transition:opacity .4s ease}
 /* a sheen that follows the tilt: the face is glass-and-plastic, not a flat print. Strong in C, faint in B. Never over the digits (the well sits above it) */
-#layers .ac3-sheen{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:calc(.10 * var(--spec,1));
+#layers .ac3-sheen{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0;
  background:radial-gradient(ellipse 70% 46% at var(--shx,50%) var(--shy,30%),rgba(232,228,220,.55),rgba(232,228,220,0) 70%)}
-#layers[data-v=C] .ac3-sheen{opacity:calc(.22 * var(--spec,1))}
+#layers.ac-live .ac3-sheen{opacity:calc(.10 * var(--spec,1))}
+#layers.ac-live[data-v=C] .ac3-sheen{opacity:calc(.22 * var(--spec,1))}
 #layers .ac3-bevel{inset:0;transform:translateZ(calc(var(--d) / 2 + .5px));border-radius:var(--r);pointer-events:none;
  box-shadow:inset 0 0 0 1px rgba(232,228,220,.14),inset 0 0 0 3px rgba(0,0,0,.30),inset 0 0 14px rgba(0,0,0,.45);
  background:linear-gradient(var(--la),rgba(232,228,220,calc(.16 * var(--spec,1))) 0%,rgba(232,228,220,0) 34%,rgba(0,0,0,0) 64%,rgba(0,0,0,.32) 100%)}
 #layers .ac3-back{inset:0;transform:rotateY(180deg) translateZ(calc(var(--d) / 2));border-radius:var(--r);background:#3d4140}
-#layers .ac3-side{left:50%;top:50%;overflow:hidden}
+#layers .ac3-side{left:50%;top:50%;overflow:hidden;background:#04070b}
+#layers .ac3-side canvas{opacity:0}
+#layers.ac-live .ac3-side canvas{opacity:1;transition:opacity .4s ease}
 #layers .ac3-side canvas{width:100%;height:100%;display:block}
 #layers .ac3-side i{position:absolute;inset:0;background:#000;opacity:.4}
 #layers .ac3-side.l,#layers .ac3-side.r{width:var(--d);height:calc(var(--h) - 2 * var(--r));margin:calc((var(--h) - 2 * var(--r)) / -2) 0 0 calc(var(--d) / -2)}
@@ -36,7 +40,8 @@
 #layers .ac3-well{left:var(--dx);top:var(--dy);width:var(--dw);height:var(--dh);transform-style:preserve-3d;transform:translateZ(calc(var(--d) / 2));pointer-events:none}
 #layers .ac3-well>*{position:absolute;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 #layers .ac3-floor{inset:0;transform:translateZ(calc(var(--rd) * -1));background:#04070b;overflow:hidden;border-radius:3px}
-#layers .ac3-floor canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.9;transition:opacity .48s ease}
+#layers .ac3-floor canvas{position:absolute;inset:0;width:100%;height:100%;opacity:0;background:#04070b;transition:opacity .4s ease}
+#layers.ac-live .ac3-floor canvas{opacity:.9}
 #layers .ac3-scrim{position:absolute;inset:0;background:rgba(4,7,11,.0);transition:background .48s ease}
 #layers .ac3-wall.t{left:0;top:0;width:100%;height:var(--rd);transform-origin:50% 0;transform:rotateX(90deg);background:linear-gradient(#000,#0b1210)}
 #layers .ac3-wall.b{left:0;bottom:0;width:100%;height:var(--rd);transform-origin:50% 100%;transform:rotateX(-90deg);background:#26302c}
@@ -49,10 +54,11 @@
  color:#e8e4dc;text-shadow:0 0 8px rgba(232,228,220,.30),0 1px 2px rgba(0,0,0,.95);font-weight:300;letter-spacing:.02em;overflow:hidden;opacity:0;transition:opacity .48s ease}
 #layers .ac3-words span{display:block;font-size:var(--wf,15px);line-height:1.16;white-space:nowrap}
 #layers.ac-l1 .ac3-words{opacity:1}
-#layers.ac-l1 .ac3-floor canvas{opacity:.22}
+#layers.ac-live.ac-l1 .ac3-floor canvas{opacity:.22}
 #layers.ac-l1 .ac3-scrim{background:rgba(4,7,11,.55)}
 #layers .ac3-words.flick{opacity:.62}
 /* the four keys: the poem and the bio as real text, each plane a little proud of the face. Closed: a readable tag + the first lines. Open: lifted, filling the face */
+#layers .ac3-box.ac-pend{opacity:0!important;transition:none!important}
 #layers .ac3-box{left:var(--bx);top:var(--by);width:var(--bw);height:var(--bh);transform:translateZ(calc(var(--d) / 2 + var(--bz,2px)));
  background:linear-gradient(180deg,rgba(10,15,20,.86),rgba(4,7,11,.90));border-radius:7px;
  box-shadow:0 0 0 1px rgba(232,228,220,.12),inset 0 1px 0 rgba(232,228,220,.10),0 calc(var(--bz,2px) * .6) calc(var(--bz,2px) * 1.6) rgba(0,0,0,.55);

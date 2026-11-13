@@ -49,7 +49,11 @@ html.mm-open #crumb .sig,html.mm-open #omark,html.mm-open .lab-top .sig,html.mm-
 #markmenu .mm-seg button{border:0;border-radius:0;background:none;padding:5px 0 4px;min-height:28px;font:300 10.5px Poppins,sans-serif;letter-spacing:.1em;color:rgba(232,228,220,.5)}
 #markmenu .mm-seg button[aria-checked=true]{background:none;color:#e8e4dc;box-shadow:inset 0 -1px 0 #e8e4dc}
 #markmenu .mm-reset{font:400 9px "Julius Sans One",Poppins,sans-serif;letter-spacing:.24em;color:rgba(232,228,220,.62)}
-#markmenu .mm-devsec{padding:4px 0}
+#markmenu .mm-devsec{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:8px 0 4px}
+#markmenu .mm-devsec h3{margin:0;line-height:1.4}
+#markmenu .mm-devnote{margin:0;font:300 10px/1.45 Poppins,sans-serif;letter-spacing:.08em;color:rgba(232,228,220,.55)}
+#markmenu .mm-devsec .mm-seg{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin:0}
+#markmenu .mm-devsec .mm-seg b{display:block;margin:0}
 /* sliders: a hairline and a small mark, never a chunky native control */
 body #markmenu input[type=range]{-webkit-appearance:none;appearance:none;background:none;height:24px;margin:0;accent-color:#e8e4dc}
 body #markmenu input[type=range]::-webkit-slider-runnable-track{height:1px;background:rgba(232,228,220,.30);border:0}
@@ -76,7 +80,9 @@ body #markmenu.dv-A input[type=range]::-moz-range-thumb{width:7px;height:7px;box
 #markmenu.dv-B{background:linear-gradient(90deg,rgba(6,6,6,.94),rgba(6,6,6,.9) 80%,rgba(6,6,6,0)),linear-gradient(rgba(6,6,6,0),rgba(6,6,6,0));padding-left:30px;-webkit-mask-image:linear-gradient(#000 88%,transparent);mask-image:linear-gradient(#000 88%,transparent)}
 #markmenu.dv-B .mm-3d{counter-reset:mmf}
 #markmenu.dv-B .mm-3d::before{content:"";position:absolute;left:-20px;top:-6px;bottom:0;width:6px;
- background:repeating-linear-gradient(180deg,rgba(232,228,220,.20) 0 7px,transparent 7px 15px);border-radius:1px}
+ background:repeating-linear-gradient(180deg,rgba(232,228,220,.20) 0 7px,transparent 7px 15px);border-radius:1px;
+ opacity:1;transition:opacity .26s linear}
+#markmenu.mm-folding.dv-B .mm-3d::before,#markmenu.gd-away.dv-B .mm-3d::before,#markmenu.mm-back.dv-B .mm-3d::before{opacity:0}
 #markmenu.dv-B,#markmenu.dv-B nav a,#markmenu.dv-B nav button,#markmenu.dv-B h3,#markmenu.dv-B label,#markmenu.dv-B output,#markmenu.dv-B .mm-seg b,#markmenu.dv-B .mm-seg button,#markmenu.dv-B .mm-all,#markmenu.dv-B .mm-reset{
  font-family:"Courier Prime","Courier New",ui-monospace,Menlo,monospace;font-weight:400;text-transform:uppercase}
 #markmenu.dv-B label,#markmenu.dv-B .mm-seg b{font-size:10px;letter-spacing:.12em}

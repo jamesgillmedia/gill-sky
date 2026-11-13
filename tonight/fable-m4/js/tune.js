@@ -222,7 +222,15 @@ function build(){
     row.apply(v,true);
     var o=r.parentNode.querySelector('output');if(o)o.textContent=v;
   });
-  menu.addEventListener('pointerdown',function(e){PTR={x:e.clientX,y:e.clientY};if(e.target.closest('input[type=range]'))HOLD=true},true);
+  menu.addEventListener('pointerdown',function(e){
+    PTR={x:e.clientX,y:e.clientY};
+    var r=e.target.closest('input[type=range]');if(!r)return;
+    HOLD=true;menu.classList.add('gd-away');
+    var row=findRow(r.getAttribute('data-k')||'');
+    var info=row?{name:row.label,min:row.min,max:row.max,def:row.def,value:+r.value}
+      :{name:(r.getAttribute('aria-label')||'value').replace(/,.*$/,''),min:+r.min,max:+r.max,def:+r.value,value:+r.value};
+    ghost(r,info);
+  },true);
   menu.addEventListener('pointermove',function(e){if(HOLD)PTR={x:e.clientX,y:e.clientY}},true);
   function letGo(){
     var d=dial();
@@ -307,7 +315,7 @@ function paint(){
   }
   var G=D2();
   var mot=G?G.get('motion'):100,snap=G?G.get('snapAt'):34,sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60,rv=G?+G.get('ripples'):1;
-  if(devOn()){h+='<section class="mm-devsec"><h3>dev <em>hidden at launch · drawer '+DV+'</em></h3><div class="mm-seg"><b>drawer</b><span role="radiogroup" aria-label="drawer">';
+  if(devOn()){h+='<section class="mm-devsec"><h3>dev</h3><p class="mm-devnote">hidden at launch · drawer '+DV+'</p><div class="mm-seg"><b>drawer</b><span role="radiogroup" aria-label="drawer">';
     [['A','A · constellation'],['B','B · contact strip'],['C','C · ghost']].forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(DV===o[0])+'" data-drawer="'+o[0]+'">'+o[1]+'</button>'});h+='</span></div></section>'}
   h+='<section class="mm-globals"><h3>globals</h3>';
   var TH=window.GJ_THEME,tp=TH?TH.pref:'night';
@@ -354,6 +362,7 @@ function show(on){
     void menu.offsetWidth;
     requestAnimationFrame(function(){if(open)menu.classList.add('mm-in')});
   }else if(was&&!menu.hidden){
+    try{window.__gjCamHold=Date.now()+900}catch(e){}
     menu.classList.add('mm-folding');menu.classList.remove('mm-in');HOLD=false;
     var d=dial();if(d&&d.hide)d.hide();
     foldT=setTimeout(function(){if(!open){menu.hidden=true;menu.classList.remove('mm-folding')}},rmOn()?240:640);

@@ -7,6 +7,7 @@
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-text-size-adjust:100%}
 body{font:300 14px/1.45 Poppins,Syl,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body::after{content:"";position:fixed;inset:-40px;background:#04070b;z-index:-1;pointer-events:none}
 button,a{font:inherit;color:inherit}
 button{background:none;border:0;padding:0;cursor:pointer}
 button,a,#bar,#dive,.hire-card{-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
@@ -15,7 +16,7 @@ a{text-decoration:none}
 #stage{position:fixed;inset:0;background:
  radial-gradient(120% 80% at 50% 42%,#121c2e 0%,#070d18 52%,#04070b 100%);
  touch-action:none}
-canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block;background:#04070b}
 .water{position:absolute;inset:0;background:#061018 center/cover no-repeat;
  background-image:url(../media/v2/img/hero/water-1600.webp);
  opacity:0;transition:opacity calc(1s * var(--gj-delay, 1)) ease;pointer-events:none}
@@ -277,14 +278,14 @@ html.reelon #mmap{display:none !important}
 .matte .tie{position:absolute;left:16px;right:92px;bottom:calc(78px + var(--sb));z-index:3;margin:0;
  font-size:12px;line-height:1.45;font-weight:300;color:rgba(226,234,242,.78)}
 .matte .tie a{color:inherit;text-decoration:underline;text-underline-offset:3px}
-#layers{position:absolute;inset:0;z-index:5;overflow:hidden;background:#04070b}
+#layers{position:absolute;inset:0;z-index:5;overflow:hidden;background:#04070b;box-shadow:0 0 0 80px #04070b}
 #layers[hidden]{display:none}
 /* While the seven layers are open they are the page. The static bio sheet in #layer stays out of the way, and every other use of #layer is untouched. */
 #layers.on~#layer{display:none}
-#calcstage{position:absolute;inset:0;overflow:hidden;z-index:0}
-#calczoom{position:absolute;inset:0;transform-origin:52% 66%;transition:transform .48s ease}
-#calc{position:absolute;width:2px;height:2px;opacity:0;pointer-events:none}
-#glitch{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#calcstage{position:absolute;inset:-4%;overflow:hidden;z-index:0;background:#04070b}
+#calczoom{position:absolute;inset:0;transform-origin:52% 66%;transition:transform .48s ease;background:#04070b}
+#calc{position:absolute;width:2px;height:2px;opacity:0;pointer-events:none;background:#04070b}
+#glitch{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;background:#04070b}
 #moons{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .75s ease;z-index:1}
 #layers.exit #calcstage,#layers.exit #laytext,#layers.exit #lrail{opacity:0;transition:opacity .75s ease}
 #layers.exit #moons{opacity:1}
@@ -392,7 +393,7 @@ html.wc #layer .sheet.full,html.wc #layer .sheet.film,html.wc #layer .sheet.cuts
 html.wc #layer .sheet{padding-bottom:calc(46px + var(--sb))}
 html.wc .filmfield h2{top:calc(80px + var(--st))}
 html.wc #laytext{top:calc(80px + var(--st))}
-#shint{position:absolute;z-index:9;left:max(12px,var(--sl));right:max(108px,calc(var(--sr) + 108px));bottom:calc(64px + var(--sb));margin:0;text-align:left;pointer-events:none;
+#shint{position:absolute;z-index:9;left:max(12px,var(--sl));right:max(12px,var(--sr));bottom:calc(64px + var(--sb));margin:0;max-width:calc(100% - 24px);text-align:left;pointer-events:none;
  padding:8px 12px;border-radius:8px;background:#04070b;border:1px solid rgba(255,255,255,.1);
  font:300 11px/1.45 Poppins,sans-serif;letter-spacing:.1em;color:rgba(228,235,245,.82);opacity:0;transition:opacity 1.2s ease,top .4s ease}
 #shint.on{opacity:1}
