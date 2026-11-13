@@ -17,6 +17,7 @@ Promise.all([J('core/tokens.json').then(function(t){w.TK=t;return t}),J('data/sk
   .catch(function(e){$('where0').textContent='could not load: '+e.message;console.error(e)});
 
 function boot(skyD,tracks,shape){
+  if(w.GJ_THEME&&GJ_THEME.refresh)GJ_THEME.refresh();
   var PAL=w.GJ_THEME.pal;
   var cv=$('cv'),g=cv.getContext('2d'),M=MODS[mid]||{id:mid,variants:{A:'A'}};SH.mod=M;
   var sky=ShellSky(skyD);SH.sky=sky;
