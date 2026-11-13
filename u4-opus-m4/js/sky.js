@@ -408,8 +408,9 @@ function boards(){
 function boardScale(){return clamp(W/280,1.15,2.4)}
 /* Item 1: every chapter lands inside the safe area. The rect runs from under the header and crumb to above the
    map / rail band, with 12px sides on a phone and 24px on a wide screen, plus the device insets. The chapter
-   camera fits the tiles (and the title line under them) into it, never past it. On a wide screen the tiles grow
-   (up to 2.4x, film 90-110px) as far as they can without two tiles touching. */
+   camera fits the tiles (and the title line under them) into it, never past it. Tiles grow up to 2.4×
+   (a film strip about 110px) and, where the screen is short, shrink below 1×, stopping at the largest
+   size where two tiles still do not touch. */
 var INS=null;
 function insets(){
   if(INS&&INS.w===W&&INS.h===H)return INS;
@@ -434,17 +435,19 @@ function midFit(k){
   if(!pts.length)return null;
   var x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
   pts.forEach(function(p){x0=Math.min(x0,p[0]);x1=Math.max(x1,p[0]);y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])});
-  var bw=Math.max(1,x1-x0),bh=Math.max(1,y1-y0),Kmax=W>=900&&H>=600?2.4:W>=600?1.6:1,K,tl,s;
+  var bw=Math.max(1,x1-x0),bh=Math.max(1,y1-y0),Kmax=2.4,Kmin=.45,K,tl,s,guard=0;
   function fits(tl,s){
+    if(!(s>0.02))return false;
     var t=pts.filter(function(p){return p[2]});
     for(var i=0;i<t.length;i++)for(var j=i+1;j<t.length;j++){
       if(Math.abs(t[i][0]-t[j][0])*s<tl.w+6&&Math.abs(t[i][1]-t[j][1])*s<tl.h+tl.lab+4)return false}
     return true;
   }
-  for(K=Kmax;;K=Math.max(1,K-.1)){
+  for(K=Kmax;guard<48;guard++){
     tl=midTile(k,K);
     s=Math.min((S.r-S.l-tl.w-4)/bw,(S.b-S.t-tl.h-tl.lab-4)/bh);
-    if(K<=1||fits(tl,s))break;
+    if(fits(tl,s)||K<=Kmin)break;
+    K=Math.max(Kmin,Math.round((K-.05)*100)/100);
   }
   var mx=(S.l+S.r)/2,my=(S.t+tl.h/2+S.b-tl.h/2-tl.lab)/2;
   return {x:(x0+x1)/2-(mx-W/2)/s,y:(y0+y1)/2-(my-H/2)/s,s:s,K:K,w:tl.w,h:tl.h,lab:tl.lab};
