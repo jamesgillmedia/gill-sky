@@ -40,8 +40,17 @@ async function journey(R,out){
     if(!await set(200))return 'mood slider missing';await p.evaluate(()=>GJ_MARKMENU.show(false));await sleep(500);const a=await px();
     await p.evaluate(()=>GJ_MARKMENU.show(true));await set(0);await p.evaluate(()=>GJ_MARKMENU.show(false));await sleep(500);const b=await px();
     await p.evaluate(()=>{GJ_MARKMENU.show(true);document.querySelector('.mm-reset:not(.mm-reset-room)').click();GJ_MARKMENU.show(false)});if(a===b)return 'mood does not change the sky'});
-  await R.step('ghost dial while a slider is held',async()=>{await p.evaluate(()=>{GJ_MARKMENU.show(false);__depth.goTo('sky')});await sleep(1800);await p.evaluate(()=>{GJ_MARKMENU.show(true)});await p.evaluate(()=>{const t=document.querySelector('.mm-tune');if(t.getAttribute('aria-expanded')!=='true')t.click()});await sleep(250);
-    const r=await p.evaluate(()=>{const i=document.querySelector('#markmenu input[data-k="gj.tune.mood"]');i.scrollIntoView({block:'center'});const b=i.getBoundingClientRect();return [b.left+b.width*.5,b.top+b.height/2]});
+  await R.step('ghost dial while a slider is held',async()=>{await p.evaluate(()=>{GJ_MARKMENU.show(false);__depth.goTo('sky')});await sleep(1800);await p.evaluate(()=>{GJ_MARKMENU.show(true)});await p.evaluate(()=>{const t=document.querySelector('.mm-tune');if(t.getAttribute('aria-expanded')!=='true')t.click()});
+    /* the drawer unfolds out of the mark for about 0.6s. A point taken mid-fold sits on the mark, and that tap closes the drawer. Wait until the mood row is a wide, settled control. */
+    await p.waitForFunction(()=>{
+      const i=document.querySelector('#markmenu input[data-k="gj.tune.mood"]');
+      const m=document.getElementById('markmenu');
+      if(!i||!m||m.hidden)return false;
+      i.scrollIntoView({block:'center'});
+      const b=i.getBoundingClientRect();
+      return +getComputedStyle(m).opacity>0.9 && b.width>80 && b.height<48 && b.top>20 && b.bottom<innerHeight-8;
+    }, null, {timeout:5000});
+    const r=await p.evaluate(()=>{const i=document.querySelector('#markmenu input[data-k="gj.tune.mood"]');const b=i.getBoundingClientRect();return [b.left+Math.min(b.width*0.45,120),b.top+b.height/2]});
     if(R.touch){await L.touch(R.cdp,'touchStart',[[r[0],r[1]]]);for(let i=1;i<=5;i++){await L.touch(R.cdp,'touchMove',[[r[0]+i*9,r[1]]]);await sleep(30)}}else{await p.mouse.move(r[0],r[1]);await p.mouse.down();for(let i=1;i<=5;i++){await p.mouse.move(r[0]+i*9,r[1]);await sleep(30)}}
     await sleep(360);const h=await p.evaluate(()=>{const arc=document.getElementById('gjdial-ghost'),menu=document.getElementById('markmenu'),snd=document.getElementById('snd');const q=arc&&arc.querySelector('.gd-arc');const box=q?q.getBBox():null;return {menu:getComputedStyle(menu).opacity,away:menu.classList.contains('gd-away'),peek:menu.classList.contains('mm-peek'),on:!!(arc&&arc.classList.contains('on')),snd:snd?getComputedStyle(snd).opacity:'1',name:arc&&arc.querySelector('.gd-name')?arc.querySelector('.gd-name').textContent:'',box:box?[Math.round(box.x),Math.round(box.y),Math.round(box.width),Math.round(box.height)]:null,W:innerWidth}});
     await R.shot('slider held, ghost dial');
