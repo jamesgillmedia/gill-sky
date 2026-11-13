@@ -228,8 +228,10 @@ function build(){
     var d=dial();
     var hidden=!!(menu&&menu.classList.contains('gd-away'));
     HOLD=false;
-    /* do not strip gd-away or mm-peek: dial.js owns the hide and clears gd-away after the arc is gone */
-    if(hidden&&open&&menu&&!rmOn()){menu.classList.add('mm-snap');menu.classList.remove('mm-in');void menu.offsetWidth;menu.classList.remove('mm-snap')}
+    /* do not strip gd-away or mm-peek: dial.js owns the hide and clears gd-away after the arc is gone.
+       mm-in stays, so the drawer is already "open" when the arc gives it back. mm-back only refolds the
+       planes while they are invisible, and comes off as they fade in, which replays the unfold. */
+    if(hidden&&open&&menu&&!rmOn())menu.classList.add('mm-back');
     if(d)d.release();
     if(!(hidden&&open&&menu))return;
     clearInterval(unfoldT);var n=0;
@@ -238,8 +240,8 @@ function build(){
       if(menu.classList.contains('gd-away')&&++n<40)return;
       clearInterval(unfoldT);
       if(!open)return;
-      if(rmOn()){menu.classList.add('mm-in');return}
-      requestAnimationFrame(function(){if(open)menu.classList.add('mm-in')});
+      menu.classList.remove('mm-back');
+      menu.classList.add('mm-in');
     },40);
   }
   ['pointerup','pointercancel','touchend','touchcancel'].forEach(function(n){addEventListener(n,letGo,true)});addEventListener('blur',letGo);

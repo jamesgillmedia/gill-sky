@@ -107,6 +107,9 @@ body #markmenu.dv-C input[type=range]::-moz-range-thumb{width:5px;height:5px}
 #markmenu.mm-peek,#markmenu.mm-peek *{transition:none!important}
 #markmenu.mm-peek{opacity:0!important;visibility:visible}
 #markmenu.mm-snap,#markmenu.mm-snap *{transition:none!important}
+/* refold while the ghost arc has the drawer hidden, so the fade back in is also an unfold */
+#markmenu.mm-back .mm-3d{transform:translateZ(-80px) scale(.16) rotateX(-58deg) rotateY(22deg)!important;transition:none!important}
+#markmenu.mm-back .mm-3d>nav,#markmenu.mm-back .mm-plate>*{transform:translateY(-6px) rotateX(-88deg)!important;opacity:0!important;transition:none!important}
 
 /* structure the sky sheet already provides, so the same drawer stands up in a room that does not load sky.css */
 #markmenu nav{display:flex;gap:18px;flex-wrap:wrap}
