@@ -2,7 +2,7 @@
 @font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../media/pro2/fonts/poppins-300.woff2) format("woff2")}
 @font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/pro2/fonts/julius-sans-one.woff2) format("woff2")}
 @font-face{font-family:Syl;font-weight:700;font-display:swap;src:url(../media/pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
-:root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--meta:#93a1a6;--mint:#55DAA1;--line:rgba(255,255,255,.14);
+:root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--meta:#93a1a6;--mint:#e8e4dc;--line:rgba(255,255,255,.14);
  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box}html{background:var(--bg);color:var(--ink);overscroll-behavior:none}
 body{margin:0;overscroll-behavior:none;touch-action:manipulation;font:300 15px/1.55 Poppins,Syl,system-ui,sans-serif;background:
@@ -67,12 +67,12 @@ html.js .sketch{display:block}
 .sketch .cl{flex:1;min-width:0;display:flex;align-items:center;gap:8px;min-height:44px;font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#f2f8fa}
 .sketch .cl span{flex:none}
 .sketch .cl input{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;background:transparent;cursor:pointer;--p:100%}
-.sketch .cl input::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(85,218,161,.75) var(--p),rgba(220,232,240,.28) var(--p))}
+.sketch .cl input::-webkit-slider-runnable-track{height:1px;background:linear-gradient(90deg,rgba(232,228,220,.75) var(--p),rgba(220,232,240,.28) var(--p))}
 .sketch .cl input::-moz-range-track{height:1px;background:rgba(220,232,240,.28)}
-.sketch .cl input::-moz-range-progress{height:1px;background:rgba(85,218,161,.75)}
-.sketch .cl input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5.5px;border-radius:50%;border:0;background:#e8f1f4}
-.sketch .cl input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;border:0;background:#e8f1f4}
-.sketch .cl input:focus-visible{outline:1px solid rgba(85,218,161,.8);outline-offset:-10px;border-radius:6px}
-.songsel{outline:1.5px solid rgb(85,218,161);outline-offset:3px;box-shadow:0 0 14px rgba(85,218,161,.45)}
-#songtitle{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.9);border:1px solid rgba(85,218,161,.55);color:#e8f1f4;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
+.sketch .cl input::-moz-range-progress{height:1px;background:rgba(232,228,220,.75)}
+.sketch .cl input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5.5px;border-radius:50%;border:0;background:#e8e4dc;box-shadow:0 0 6px rgba(232,228,220,.45)}
+.sketch .cl input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;border:0;background:#e8e4dc;box-shadow:0 0 6px rgba(232,228,220,.45)}
+.sketch .cl input:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:-10px;border-radius:6px}
+.songsel{outline:1.5px solid #e8e4dc;outline-offset:3px;box-shadow:0 0 14px rgba(232,228,220,.45)}
+#songtitle{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.9);border:1px solid rgba(232,228,220,.55);color:#e8e4dc;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
 #songtitle.on{opacity:1}

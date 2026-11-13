@@ -7,10 +7,10 @@
   background:rgba(4,7,11,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#f2f8fa;font:500 10.5px/1 var(--ambx-font,Poppins,system-ui,sans-serif);letter-spacing:.14em;text-transform:uppercase;
   text-shadow:0 0 8px #03050a,0 1px 2px #03050a;cursor:pointer}
 .ambx-tg::before{content:"";position:absolute;inset:-7px -4px}
-.ambx-tg i{width:7px;height:7px;border-radius:50%;background:#e8f1f4;box-shadow:0 0 6px rgba(190,225,255,.6);opacity:calc(.35 + .65*var(--ambx-lit,1))}
-.ambx-tg[aria-expanded=true]{border-color:rgba(85,218,161,.6)}
-.ambx-tg[aria-expanded=true] i{background:#55DAA1;box-shadow:0 0 8px rgba(85,218,161,.7)}
-.ambx-tg:focus-visible{outline:1px solid rgba(85,218,161,.8);outline-offset:2px}
+.ambx-tg i{width:7px;height:7px;border-radius:50%;background:#e8e4dc;box-shadow:0 0 6px rgba(232,228,220,.55);opacity:calc(.35 + .65*var(--ambx-lit,1))}
+.ambx-tg[aria-expanded=true]{border-color:rgba(232,228,220,.6)}
+.ambx-tg[aria-expanded=true] i{background:#e8e4dc;box-shadow:0 0 8px rgba(232,228,220,.7)}
+.ambx-tg:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:2px}
 .ambx-p{position:absolute;line-height:1;right:var(--ambx-pr,0);left:var(--ambx-pl,auto);bottom:var(--ambx-pb,calc(100% + 2px));top:var(--ambx-pt,auto);width:min(318px,calc(100vw - 24px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px)));
   max-height:var(--ambx-maxh,calc(100vh - 120px));overflow:auto;overscroll-behavior:contain;box-sizing:border-box;padding:4px 14px 6px;border:1px solid rgba(220,232,240,.16);border-radius:14px;
   background:rgba(4,7,11,.74);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 18px 40px rgba(0,0,0,.45)}
@@ -18,23 +18,23 @@
 .ambx .cl{display:flex;align-items:center;gap:8px;height:44px;margin:0;font-size:12.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#f2f8fa;text-shadow:0 0 8px #03050a,0 1px 2px #03050a}
 .ambx .cl[hidden]{display:none}
 .ambx .cl span{flex:none;width:var(--ambx-lw,74px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
-.ambx{--ambx-fill:rgba(85,218,161,.75);--ambx-rest:rgba(220,232,240,.28)}
+.ambx{--ambx-fill:rgba(232,228,220,.75);--ambx-rest:rgba(220,232,240,.28)}
 .ambx .cl input{-webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;cursor:pointer;touch-action:pan-y;--p:100%;--d:50%;background:linear-gradient(90deg,var(--ambx-fill) var(--p),var(--ambx-rest) var(--p)) 0 50%/100% 1px no-repeat}
 
 
 
 .ambx .cl input::-webkit-slider-runnable-track{height:1px;background:transparent}
 .ambx .cl input::-moz-range-track{height:1px;background:transparent}
-.ambx .cl input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5.5px;border-radius:50%;border:0;background:#e8f1f4;box-shadow:0 0 6px rgba(190,225,255,.5)}
-.ambx .cl input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;border:0;background:#e8f1f4;box-shadow:0 0 6px rgba(190,225,255,.5)}
-.ambx .cl input:focus-visible{outline:1px solid rgba(85,218,161,.8);outline-offset:-10px;border-radius:6px}
+.ambx .cl input::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;margin-top:-5.5px;border-radius:50%;border:0;background:#e8e4dc;box-shadow:0 0 6px rgba(232,228,220,.45)}
+.ambx .cl input::-moz-range-thumb{width:12px;height:12px;border-radius:50%;border:0;background:#e8e4dc;box-shadow:0 0 6px rgba(232,228,220,.45)}
+.ambx .cl input:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:-10px;border-radius:6px}
 /* a faint tick where the room's own default sits */
 .ambx .cl .rw{position:relative;flex:1;min-width:0;display:flex}
 .ambx .cl .rw::after{content:"";position:absolute;left:calc(6px + (100% - 12px) * var(--d));top:50%;width:1px;height:7px;margin:-3.5px 0 0 -.5px;background:rgba(220,232,240,.38);pointer-events:none}
 .ambx-f{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:36px;margin-top:2px;border-top:1px solid rgba(220,232,240,.1);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(201,211,214,.62)}
 .ambx-f b{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ambx-rs{min-height:36px;padding:0 2px 0 10px;border:0;background:none;color:#f2f8fa;font:500 10px/1 var(--ambx-font,Poppins,system-ui,sans-serif);letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
-.ambx-rs:focus-visible{outline:1px solid rgba(85,218,161,.8)}
+.ambx-rs:focus-visible{outline:1px solid rgba(232,228,220,.8)}
 /* section names and hardware switches (a lit LED when on), shared by every room; skins below set the material */
 .ambx-sec{margin:8px 0 0;height:12px;line-height:12px;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:rgba(201,211,214,.55)}
 .ambx-sec[hidden]{display:none}
@@ -44,11 +44,11 @@
   background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,0) 60%),rgba(10,13,18,.9);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 2px 4px rgba(0,0,0,.45);
   color:#dfe8ee;font:500 10.5px/1 var(--ambx-font,Poppins,system-ui,sans-serif);letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
 .ambx-sw .led{flex:none;width:6px;height:6px;border-radius:50%;background:#2a3036;box-shadow:inset 0 1px 1px rgba(0,0,0,.6)}
-.ambx-sw.on{color:#fff;border-color:rgba(85,218,161,.55);box-shadow:inset 0 2px 3px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.05)}
-.ambx-sw.on .led{background:#55DAA1;box-shadow:0 0 6px 1px rgba(85,218,161,.75)}
+.ambx-sw.on{color:#fff;border-color:rgba(232,228,220,.55);box-shadow:inset 0 2px 3px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.05)}
+.ambx-sw.on .led{background:#e8e4dc;box-shadow:0 0 6px 1px rgba(232,228,220,.75)}
 .ambx-sw:disabled{opacity:.4;cursor:default}
 .ambx-sw[hidden]{display:none}
-.ambx-sw:focus-visible{outline:1px solid rgba(85,218,161,.8);outline-offset:2px}
+.ambx-sw:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:2px}
 .ambx-sw:active{transform:translateY(1px)}
 
 /* ---------- skins: the same controls in each room's material ---------- */

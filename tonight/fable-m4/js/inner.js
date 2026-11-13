@@ -136,7 +136,7 @@ function drawShot(g,s,w,h,big){
   }
   if(s.peak!=null){
     var bh=8+s.peak*(big?h*0.35:28);
-    g.fillStyle='rgba(85,218,161,.85)';
+    g.fillStyle='rgba(232,228,220,.85)';
     g.fillRect(s.x-1.5,s.y-bh/2,3,bh);
     return;
   }
@@ -203,7 +203,7 @@ function paint(){
 }
 function drawWave(g,shots,W,H,sc){
   var n=shots.length,i,x,y,bh;
-  g.strokeStyle='rgba(85,218,161,.9)';g.beginPath();
+  g.strokeStyle='rgba(232,228,220,.9)';g.beginPath();
   for(i=0;i<n;i++){
     x=(i/(n-1||1))*W*sc-(W*(sc-1)/2);
     bh=shots[i].peak*H*0.28;
