@@ -917,7 +917,8 @@ function followEnd(){
 }
 function holdOut(){return !!COOL&&performance.now()-COOL<1200}
 /* Swipe or arrow keys step through the stills of the same film while one fills the screen.
- The next still fades in over this one as the finger moves (same drag rule as the reel: horizontal, past a small slop), and the ends stop. */
+ The picture stays fully bright while the finger moves. On a commit the next still is decoded,
+ then it cuts in at full opacity. Nothing fades, and the ends stop. */
 var SW=null,SWB=0;
 function stillNodes(){return document.querySelectorAll('#layer .framewall img[data-hi="1"]')}
 function stillOpen(){return filmLv===3&&!!filmWork&&fly&&fly.el&&fly.el.classList.contains('in')&&!holdOut()}
@@ -937,20 +938,36 @@ function stillLayer(i){
   return {el:el,i:i,src:src};
 }
 function stillCommit(L){
+  if(!L||!L.el||!fly)return;
   var old=fly.el;
   SWB=1;
-  L.el.style.transition='opacity .26s ease';
-  void L.el.offsetWidth;
-  L.el.style.opacity='1';
-  fly={el:L.el,i:L.i};
-  filmFocus=L.i;filmSrc=L.src;
-  var node=stillNodes()[L.i];
-  if(node&&node.scrollIntoView)node.scrollIntoView({block:'center'});
-  setTimeout(function(){
-    if(old.parentNode&&old!==fly.el)old.parentNode.removeChild(old);
-    if(fly&&fly.el===L.el)L.el.style.transition='';
-    SWB=0;
-  },300);
+  var img=L.el.querySelector('img');
+  var prev=old&&old.querySelector('img');
+  if(prev&&prev.getAttribute('src')){
+    L.el.style.backgroundColor='#04070b';
+    L.el.style.backgroundImage='url("'+String(prev.getAttribute('src')).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")';
+    L.el.style.backgroundSize='cover';
+    L.el.style.backgroundPosition='center';
+  }
+  function go(){
+    if(!L.el.parentNode){SWB=0;return}
+    L.el.style.transition='none';
+    L.el.style.opacity='1';
+    fly={el:L.el,i:L.i};
+    filmFocus=L.i;filmSrc=L.src;
+    var node=stillNodes()[L.i];
+    if(node&&node.scrollIntoView)node.scrollIntoView({block:'center'});
+    requestAnimationFrame(function(){
+      if(old&&old.parentNode&&(!fly||old!==fly.el))old.parentNode.removeChild(old);
+      if(fly&&fly.el===L.el){
+        L.el.style.transition='';
+        if(img&&img.getAttribute('src'))L.el.style.backgroundImage='url("'+String(img.getAttribute('src')).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")';
+      }
+      SWB=0;
+    });
+  }
+  var p=img&&typeof img.decode==='function'?img.decode():null;
+  if(p&&p.then)p.then(go,go);else go();
 }
 function stillRevert(L){
   var el=fly&&fly.el;
@@ -985,10 +1002,9 @@ addEventListener('pointermove',function(e){
     SW.dir=dir;
     SW.L=(to>=0&&to<stillNodes().length)?stillLayer(to):null;
   }
-  var prog=Math.max(0,Math.min(1,Math.abs(dx)/(innerWidth*.5)));
-  fly.el.style.transition='none';
-  fly.el.style.transform='translateX('+(dx*(SW.L?.28:.1)).toFixed(1)+'px)';
-  if(SW.L)SW.L.el.style.opacity=prog.toFixed(3);
+  /* The current still does not slide or fade. A partial incoming picture would dim it. */
+  if(fly.el.style.transform){fly.el.style.transition='none';fly.el.style.transform=''}
+  if(SW.L)SW.L.el.style.opacity='0';
   SW.dx=dx;
 },true);
 function swEnd(e){

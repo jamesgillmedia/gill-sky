@@ -1,10 +1,13 @@
 /* Film room pass (Nov 13): the featured player.
- A work with real stills opens on those stills. The first still is up at once. The rest dissolve
- into it (1.2 s, the same dissolve with Reduce Motion). Under it: a thin progress line, a filmstrip,
- the title, role · year, verified awards and credits, then the other featured films.
+ A work with real stills opens on those stills. The first still is up at once. The next one waits
+ until it has decoded, then cuts in at full opacity. The outgoing still stays fully bright until
+ that cut. No dissolve, including with Reduce Motion. Under it: a thin progress line, a filmstrip
+ (every thumb at full brightness; the selected one is a warm-white line), the title, role · year,
+ verified awards and credits, then the other featured films at full brightness.
  The player is a full-size state, not a scrolling page. A slim To Go bar stays at full brightness.
  Tapping the bar grows the player from the touch point. A downward swipe shrinks it back into the bar.
- Tapping another featured card grows that film from the card. */
+ A sideways swipe on the picture steps the still, the same full-brightness cut. Tapping another
+ featured card grows that film from the card. */
 (function(){
 'use strict';
 var FEAT=['film/one-with-the-devil','film/weird-kid','film/back-to-the-start','film/backward-fall','film/legends'];
@@ -18,7 +21,7 @@ function filmOn(){var u=window.__u1;return !!(u&&u.cur&&u.cur.k==='film')}
 function halt(){if(FP.t){clearInterval(FP.t);FP.t=0}}
 function stop(){halt();if(FP.root){var v=FP.root.querySelector('video.fp-loop');if(v){try{v.pause()}catch(e){}}}}
 /* Weird Kid's player hero is the 720p loop: poster, then the webm, then the mp4.
-   It stays out of the board markup until this player opens. The stills keep dissolving under it.
+   It stays out of the board markup until this player opens. The stills cut under it at full brightness.
    Reduce Motion does not freeze the loop. The board ladder in playback.js still prefers AV1. */
 function loopHtml(work){
   if(!work||work.id!=='film/weird-kid')return '';
@@ -32,23 +35,69 @@ function armLoop(root){
   v.muted=true;v.defaultMuted=true;v.setAttribute('muted','');
   v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');
   v.loop=true;
+  /* The loop cuts in once a frame is decoded. It does not fade over the still. */
+  function show(){v.classList.add('live')}
+  v.addEventListener('loadeddata',show);
+  v.addEventListener('playing',show);
+  if(v.readyState>=2)show();
   var p=v.play();if(p&&p.catch)p.catch(function(){});
+}
+var showGen=0;
+function decodeIm(im){
+  if(!im)return Promise.resolve();
+  if(typeof im.decode==='function')return im.decode().catch(function(){});
+  if(im.complete&&im.naturalWidth)return Promise.resolve();
+  return new Promise(function(res){
+    im.addEventListener('load',function(){res()},{once:true});
+    im.addEventListener('error',function(){res()},{once:true});
+  });
+}
+/* The plate behind the stack keeps the outgoing still, so a gap between bitmaps cannot flash black. */
+function plate(frame,im){
+  if(!frame||!im)return;
+  var src=im.currentSrc||im.getAttribute('src')||'';
+  if(!src)return;
+  frame.style.backgroundImage='url("'+String(src).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")';
+  frame.style.backgroundSize='cover';
+  frame.style.backgroundPosition='center';
+  frame.style.backgroundColor='#04070b';
 }
 function show(i,first){
   var r=FP.root;if(!r||!r.isConnected){stop();return}
   var ims=r.querySelectorAll('.fp-frame img'),th=r.querySelectorAll('.fp-strip button'),n=ims.length;if(!n)return;
-  i=((i%n)+n)%n;var prev=FP.i;FP.i=i;
-  if(!first){
-    for(var j=0;j<n;j++)ims[j].classList.remove('fp-now');
-    if(ims[prev])void ims[prev].offsetWidth;
+  i=((i%n)+n)%n;
+  var prev=FP.i,gen=++showGen;
+  function mark(){
+    for(var k=0;k<n;k++)if(th[k])th[k].classList.toggle('on',k===i);
+    var bar=r.querySelector('.fp-bar i');if(bar)bar.style.width=(((i+1)/n)*100).toFixed(2)+'%';
+    var st=r.querySelector('.fp-strip'),cur=th[i];
+    if(st&&cur&&st.scrollWidth>st.clientWidth+2){var x=cur.offsetLeft-st.clientWidth/2+cur.clientWidth/2;st.scrollLeft=Math.max(0,x)}
   }
-  for(var k=0;k<n;k++){
-    ims[k].classList.toggle('on',k===i);
-    if(th[k])th[k].classList.toggle('on',k===i);
+  function cut(){
+    if(gen!==showGen||!r.isConnected)return;
+    var frame=r.querySelector('.fp-frame'),incoming=ims[i],outgoing=ims[prev];
+    plate(frame,outgoing&&outgoing.classList.contains('on')?outgoing:incoming);
+    if(incoming){incoming.style.zIndex='3';incoming.classList.add('on')}
+    FP.i=i;mark();
+    requestAnimationFrame(function(){
+      if(gen!==showGen||!r.isConnected)return;
+      for(var k=0;k<n;k++)if(k!==i){ims[k].classList.remove('on');ims[k].style.zIndex=''}
+      plate(frame,incoming);
+    });
   }
-  var bar=r.querySelector('.fp-bar i');if(bar)bar.style.width=(((i+1)/n)*100).toFixed(2)+'%';
-  var st=r.querySelector('.fp-strip'),cur=th[i];
-  if(st&&cur&&st.scrollWidth>st.clientWidth+2){var x=cur.offsetLeft-st.clientWidth/2+cur.clientWidth/2;st.scrollLeft=Math.max(0,x)}
+  if(first||i===prev){
+    FP.i=i;
+    for(var k=0;k<n;k++){
+      var on=k===i;
+      ims[k].classList.toggle('on',on);
+      ims[k].style.zIndex=on?'3':'';
+    }
+    mark();
+    plate(r.querySelector('.fp-frame'),ims[i]);
+    return;
+  }
+  /* Leave the current still fully opaque until the next bitmap is ready, then cut. Never a partial fade. */
+  decodeIm(ims[i]).then(cut);
 }
 function run(){halt();FP.t=setInterval(function(){if(document.hidden)return;show(FP.i+1)},hold())}
 function card(w){
@@ -96,9 +145,10 @@ function paint(el,work,under){
     (next?'<div class="fp-next"><p class="fp-lab">featured</p><div class="fp-cards">'+next+'</div></div>':'')+
     (under||'')+'</div>';
   FP.root=el.querySelector('.sheet.fp');FP.i=0;
+  [].forEach.call(FP.root.querySelectorAll('.fp-frame img'),decodeIm);
   applyFrom(FP.root);
-  var y0=0,y1=0,pid=0,drag=false;
-  function onMove(e){if(drag&&e.pointerId===pid)y1=e.clientY}
+  var y0=0,y1=0,x0=0,x1=0,pid=0,drag=false;
+  function onMove(e){if(drag&&e.pointerId===pid){y1=e.clientY;x1=e.clientX}}
   function endDrag(e){
     if(!drag||e.pointerId!==pid)return;drag=false;
     window.removeEventListener('pointermove',onMove,true);
@@ -107,17 +157,21 @@ function paint(el,work,under){
     window.removeEventListener('mouseup',endMouse,true);
     if(e.stopPropagation)e.stopPropagation();
     var y=e.type==='pointercancel'?y1:e.clientY;
-    if(y-y0>64)shrink();
+    var x=e.type==='pointercancel'?x1:e.clientX;
+    var dx=x-x0,dy=y-y0;
+    /* Sideways steps the still. The picture does not move or fade while the finger is down. */
+    if(Math.abs(dx)>56&&Math.abs(dx)>Math.abs(dy)*1.25){show(FP.i+(dx<0?1:-1));run();return}
+    if(dy>64)shrink();
   }
   function endMouse(e){
     if(!drag)return;
-    endDrag({pointerId:pid,clientY:e.clientY,type:'pointerup'});
+    endDrag({pointerId:pid,clientX:e.clientX!=null?e.clientX:x1,clientY:e.clientY,type:'pointerup'});
   }
   FP.root.addEventListener('pointerdown',function(e){
     if(e.target.closest('a,button,input'))return;
     if(e.cancelable)e.preventDefault();
     e.stopPropagation();
-    y0=y1=e.clientY;pid=e.pointerId;drag=true;
+    y0=y1=e.clientY;x0=x1=e.clientX;pid=e.pointerId;drag=true;
     window.addEventListener('pointermove',onMove,true);
     window.addEventListener('pointerup',endDrag,true);
     window.addEventListener('pointercancel',endDrag,true);
