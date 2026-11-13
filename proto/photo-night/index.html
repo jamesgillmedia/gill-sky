@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#04070b">
+<title>photo-night · photo</title>
+<style>
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../../tonight/tiled-moon/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../../tonight/tiled-moon/fonts/julius-sans-one.woff2) format("woff2")}
+:root{
+  --bg:#04070b;--ink:#eef3f5;--dim:#9aa8b2;
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:300 13px/1.4 Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{
+  min-height:100dvh;
+  /* night-sky language matching Film — no silver shelf, no safelight grade */
+  background:
+    radial-gradient(120% 80% at 50% 42%,#121c2e 0%,#070d18 52%,#04070b 100%);
+}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff}
+header{
+  position:sticky;top:0;z-index:4;
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:calc(14px + var(--st)) 18px 12px;
+  background:linear-gradient(180deg,rgba(4,7,11,.94),rgba(4,7,11,.55) 75%,transparent);
+}
+.brand{font-family:"Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase;font-size:15px}
+.meta{color:var(--dim);letter-spacing:.08em;font-size:11px}
+.hint{margin-left:auto;color:rgba(238,243,245,.4);font-size:11px;letter-spacing:.06em}
+main{position:relative;z-index:1;padding:4px 14px calc(32px + var(--sb));max-width:1040px;margin:0 auto}
+/* Hand-placed asymmetric stacks — never grid-for-grid's-sake; dense at mid scroll, sparse at edges */
+.rail{
+  display:flex;flex-direction:column;gap:36px;
+}
+.shot{
+  margin:0;padding:0;border:0;background:none;color:inherit;
+  width:min(100%,78%);text-align:left;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.shot:nth-child(3n){align-self:flex-end;width:min(100%,70%)}
+.shot:nth-child(3n+1){align-self:flex-start;width:min(100%,84%)}
+.shot:nth-child(5n){width:min(100%,62%);margin-left:8%}
+.shot:nth-child(7n){width:min(100%,88%)}
+.shot .fr{
+  position:relative;display:block;width:100%;
+  background:rgba(8,14,24,.5);
+  box-shadow:0 18px 40px rgba(0,0,0,.45);
+}
+/* photographs never colour-graded: no filter / blend on the image */
+.shot img{
+  display:block;width:100%;height:auto;
+  vertical-align:middle;
+  filter:none!important;mix-blend-mode:normal!important;
+}
+.shot .tag{
+  display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:8px;color:var(--dim);font-size:11px;letter-spacing:.08em;
+}
+.shot.on .fr{outline:1px solid rgba(200,220,240,.28);outline-offset:3px}
+/* open state: still no grade */
+.lightbox{
+  position:fixed;inset:0;z-index:10;display:none;
+  align-items:center;justify-content:center;
+  padding:calc(48px + var(--st)) 16px calc(24px + var(--sb));
+  background:rgba(4,7,11,.92);
+}
+.lightbox.open{display:flex}
+.lightbox img{
+  max-width:100%;max-height:100%;width:auto;height:auto;object-fit:contain;
+  filter:none!important;mix-blend-mode:normal!important;
+  box-shadow:0 24px 60px rgba(0,0,0,.55);
+}
+.lightbox button.close{
+  position:absolute;top:calc(12px + var(--st));right:14px;
+  min-width:44px;min-height:44px;border:0;background:none;color:var(--dim);
+  font:inherit;letter-spacing:.1em;cursor:pointer;
+}
+@media(min-width:720px){
+  .rail{gap:48px}
+  .shot{width:min(100%,52%)}
+  .shot:nth-child(3n){align-self:flex-end;width:min(100%,46%);margin-right:4%}
+  .shot:nth-child(3n+1){align-self:flex-start;width:min(100%,56%);margin-left:2%}
+  .shot:nth-child(5n){width:min(100%,40%);margin-left:18%}
+  .shot:nth-child(7n){width:min(100%,64%);margin-left:8%}
+  .shot:nth-child(4n+2){width:min(100%,48%);align-self:center}
+}
+@media(prefers-reduced-motion:reduce){
+  .shot .fr,.lightbox{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="stars" id="stars" aria-hidden="true"></div>
+<header>
+  <span class="brand">gill james</span>
+  <span class="meta">photo · night</span>
+  <span class="hint">room B · no shelf</span>
+</header>
+<main>
+  <div class="rail" id="rail" role="list"></div>
+</main>
+<div class="lightbox" id="lb" hidden>
+  <button type="button" class="close" id="close" aria-label="close">close</button>
+  <img id="lbimg" alt="">
+</div>
+<script>
+(function(){
+'use strict';
+/* Photographs from tonight/photo-lab — titles are empty in source; no invented captions.
+   First 39 = Photo chapter; show still photographs only (skip clip kinds). */
+var TH='../../tonight/photo-lab/media/th/';
+var IMG='../../tonight/photo-lab/media/img/';
+/* w/h from LAB_PHOTOS; n is the only factual label we show */
+var PHOTOS=[
+  {n:1,w:960,h:1200},{n:2,w:960,h:1198},{n:3,w:960,h:1200},{n:4,w:960,h:1200},
+  {n:5,w:960,h:406},{n:6,w:960,h:960},{n:7,w:960,h:640},{n:8,w:960,h:1200},
+  {n:9,w:960,h:1198},{n:10,w:960,h:1200},{n:11,w:960,h:1200},{n:12,w:960,h:1200},
+  {n:13,w:960,h:1280},{n:14,w:960,h:539},{n:15,w:960,h:1280},{n:16,w:960,h:1200},
+  {n:17,w:960,h:1280},{n:18,w:960,h:1200},{n:19,w:960,h:1280},{n:20,w:960,h:1200},
+  {n:21,w:960,h:1200},{n:22,w:960,h:1200},{n:23,w:960,h:410},{n:24,w:960,h:1200},
+  {n:25,w:960,h:1200},{n:26,w:960,h:1200},{n:27,w:900,h:1600},{n:28,w:960,h:1200},
+  {n:29,w:960,h:1200},{n:30,w:960,h:1200},{n:31,w:960,h:1200},{n:32,w:960,h:540},
+  {n:33,w:960,h:1200},{n:34,w:960,h:1200},{n:35,w:960,h:1200},{n:36,w:960,h:1200},
+  {n:37,w:960,h:1200},{n:38,w:960,h:1200},{n:39,w:960,h:1200}
+];
+
+var stars=document.getElementById('stars'),rail=document.getElementById('rail');
+var lb=document.getElementById('lb'),lbimg=document.getElementById('lbimg'),closeB=document.getElementById('close');
+var s=11;function rnd(){s=(s*16807)%2147483647;return s/2147483647}
+var nStar=innerWidth<700?40:70;
+for(var i=0;i<nStar;i++){
+  var el=document.createElement('i');
+  el.style.left=(rnd()*100)+'%';el.style.top=(rnd()*100)+'%';
+  el.style.opacity=String(.12+rnd()*.4);
+  stars.appendChild(el);
+}
+
+function pad(n){return n<10?'0'+n:String(n)}
+
+PHOTOS.forEach(function(p,i){
+  var id='p'+pad(p.n);
+  var b=document.createElement('button');
+  b.type='button';b.className='shot';b.setAttribute('role','listitem');
+  b.setAttribute('aria-label','photograph '+p.n);
+  var ar=(p.w/p.h).toFixed(4);
+  b.innerHTML='<span class="fr" style="aspect-ratio:'+ar+'"><img src="'+TH+id+'.webp" alt="" width="'+p.w+'" height="'+p.h+'" loading="'+(i<6?'eager':'lazy')+'" decoding="async"></span><span class="tag"><span>'+p.n+'</span><span>'+p.w+'×'+p.h+'</span></span>';
+  b.addEventListener('click',function(){
+    document.querySelectorAll('.shot.on').forEach(function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    lbimg.src=IMG+id+'.webp';
+    lbimg.alt='';
+    lb.hidden=false;lb.classList.add('open');
+  });
+  rail.appendChild(b);
+});
+
+function close(){
+  lb.classList.remove('open');lb.hidden=true;lbimg.removeAttribute('src');
+}
+closeB.addEventListener('click',close);
+lb.addEventListener('click',function(e){if(e.target===lb)close()});
+addEventListener('keydown',function(e){if(e.key==='Escape')close()});
+})();
+</script>
+</body>
+</html>

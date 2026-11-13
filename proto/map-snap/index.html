@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#04070b">
+<title>map-snap · film</title>
+<style>
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../../tonight/tiled-moon/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../../tonight/tiled-moon/fonts/julius-sans-one.woff2) format("woff2")}
+:root{--bg:#04070b;--ink:#eef3f5;--dim:#9aa8b2;--st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:300 13px/1.4 Poppins,system-ui,sans-serif;touch-action:none;-webkit-font-smoothing:antialiased}
+#stage{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(120% 80% at 50% 40%,#121c2e 0%,#070d18 55%,#04070b 100%);
+}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+header{
+  position:absolute;z-index:3;left:0;right:0;top:0;
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:calc(12px + var(--st)) 16px 10px;
+  background:linear-gradient(180deg,rgba(4,7,11,.75),transparent);
+  pointer-events:none;
+}
+.brand{font-family:"Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase;font-size:15px}
+.meta{color:var(--dim);letter-spacing:.08em;font-size:11px}
+#hint{
+  position:absolute;z-index:3;left:0;right:0;bottom:calc(14px + var(--sb));
+  text-align:center;margin:0;pointer-events:none;
+  font-size:11px;letter-spacing:.1em;color:rgba(238,243,245,.42);
+}
+#counts{
+  position:absolute;z-index:3;left:16px;bottom:calc(44px + var(--sb));
+  display:flex;flex-direction:column;gap:4px;pointer-events:none;
+  opacity:0;transform:translateY(8px);
+  transition:opacity .45s ease,transform .45s ease;
+}
+#counts.on{opacity:1;transform:none}
+#counts span{font-size:11px;letter-spacing:.08em;color:rgba(200,220,240,.72)}
+#counts b{font-weight:300;color:#eef3f5}
+@media(prefers-reduced-motion:reduce){
+  #counts{transition:none}
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="cv" aria-label="floating film map: pinch or scroll continuously; settles softly into the board"></canvas>
+  <header>
+    <span class="brand">gill james</span>
+    <span class="meta">film · map snap</span>
+  </header>
+  <div id="counts" aria-live="polite"></div>
+  <p id="hint">pinch / scroll continuously · double-click steps out</p>
+</div>
+<script>
+(function(){
+'use strict';
+/* Brief: continuous soft zoom (never a level jump per notch); double-click steps out one level.
+   Film: m4 loose map snaps to site-3d board with counts on pinch-in.
+   Density: sparse at top → dense at the snap. */
+var TN='../../tonight/tiled-moon/img/films/';
+var M4='../../tonight/film/m4/media/';
+var FILMS=[
+  {t:'Demo Reel',src:M4+'pro2/reel/a/001.webp',kind:'reel'},
+  {t:'Reel 2026',src:M4+'v3/media/reel/thumb.jpg',kind:'reel'},
+  {t:'Gill Cinematography Demo Reel 2025',src:TN+'01-400.webp',kind:'reel'},
+  {t:'One With the Devil',src:M4+'owtd/stills/09_landscape.jpg',kind:'short'},
+  {t:'Coca-Cola · Celebraciones',src:TN+'02-400.webp',kind:'commercial'},
+  {t:'AXE · Stay Gold',src:TN+'03-400.webp',kind:'commercial'},
+  {t:'BMW Legends',src:TN+'04-400.webp',kind:'commercial'},
+  {t:'BMW · Drift',src:TN+'05-400.webp',kind:'commercial'},
+  {t:'AXE · Golden Moment [Dir. Cut]',src:TN+'06-400.webp',kind:'commercial'},
+  {t:'Cover With Love · Isabelle · Band-Aid',src:TN+'07-400.webp',kind:'commercial'},
+  {t:'No Place Like Home',src:TN+'08-400.webp',kind:'commercial'},
+  {t:'Yara · The Smell Needs To Go',src:TN+'09-400.webp',kind:'commercial'},
+  {t:'A&W Brew Bar: Coffee Teaser',src:TN+'10-400.webp',kind:'commercial'},
+  {t:'Explorers · Huggies',src:TN+'11-400.webp',kind:'commercial'},
+  {t:'Sun Kissed · John Frieda',src:TN+'12-400.webp',kind:'commercial'},
+  {t:'Hey Ocean! · Sleepwalker',src:TN+'13-400.webp',kind:'music video'},
+  {t:'REEL ‘24',src:TN+'15-400.webp',kind:'reel'},
+  {t:'Allan Rayman · Repeat',src:TN+'16-400.webp',kind:'music video'},
+  {t:'Flower Crown · Claritin',src:TN+'17-400.webp',kind:'commercial'},
+  {t:'Backward Fall',src:TN+'18-400.webp',kind:'short'},
+  {t:"Arc'teryx S18",src:TN+'19-400.webp',kind:'brand film'},
+  {t:'Old Man Canyon · Back to the Start',src:TN+'20-400.webp',kind:'music video'},
+  {t:'Lets Grow Good Together',src:TN+'21-400.webp',kind:'brand film'},
+  {t:'Weird Kid',src:TN+'22-400.webp',kind:'music video'},
+  {t:"VERONA'S OBSESSION",src:TN+'23-400.webp',kind:'music video'},
+  {t:'Obedience Gets You Nowhere',src:TN+'24-400.webp',kind:'commercial'},
+  {t:'Wild Leaf · Fire',src:TN+'25-400.webp',kind:'commercial'},
+  {t:'Modern Man · Braun',src:TN+'26-400.webp',kind:'commercial'},
+  {t:'Phantoms & Friends',src:TN+'27-400.webp',kind:'music video'},
+  {t:'Summer Is Here · Shock Top',src:TN+'28-400.webp',kind:'commercial'},
+  {t:'Eat Well · Westin',src:TN+'29-400.webp',kind:'commercial'},
+  {t:"Buddy Time: Grandpa's Story",src:TN+'30-400.webp',kind:'commercial'},
+  {t:'Wild Leaf · Hike',src:TN+'31-400.webp',kind:'commercial'},
+  {t:'Wild Leaf · Canoe',src:TN+'32-400.webp',kind:'commercial'},
+  {t:'Mandie',src:TN+'33-400.webp',kind:'brand film'},
+  {t:'Just The Beginning',src:TN+'34-400.webp',kind:'commercial'},
+  {t:'Mansions · Ltl Dstryr',src:TN+'35-400.webp',kind:'music video'},
+  {t:'FIAT · Journeys x Todd',src:TN+'36-400.webp',kind:'commercial'}
+];
+
+var cv=document.getElementById('cv'),g=cv.getContext('2d');
+var countsEl=document.getElementById('counts'),hint=document.getElementById('hint');
+var W=0,H=0,dpr=1;
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Continuous depth 0 (loose/sparse) → 1 (dense board). No per-notch levels. */
+var z=0, zVel=0, driving=false, settleTo=null;
+var SNAP_IN=0.62;   /* past this on release → soft settle into board */
+var STEP_OUT=0.34;  /* double-click steps out by this amount (one level) */
+
+function seed(n){var s=n>>>0;return function(){s=(s+0x6D2B79F5)>>>0;var t=Math.imul(s^s>>>15,1|s);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+var rnd=seed(42);
+
+function layout(){
+  /* site-3d-ish board: dense, slightly asymmetric column widths */
+  var cols=W<600?3:(W<960?4:5);
+  var gapX=W<600?7:10, gapY=W<600?9:12;
+  var padX=W<600?12:24, padY=W<600?68:84;
+  var usable=W-padX*2-(cols-1)*gapX;
+  var baseW=usable/cols;
+  var rows=Math.ceil(FILMS.length/cols);
+  FILMS.forEach(function(f,i){
+    var c=i%cols,r=(i/cols)|0;
+    /* asymmetric: alternate slightly taller/wider cells */
+    var jiggle=(i%5===2)?1.08:(i%5===4)?0.92:1;
+    var tw=baseW*jiggle, th=tw*9/16;
+    var xOff=(i%7===3)?6:(i%7===5)?-4:0;
+    f.bx=padX+c*(baseW+gapX)+xOff+(baseW-tw)/2;
+    f.by=padY+r*(baseW*9/16+gapY)+(i%3===1?4:0);
+    f.bw=tw;f.bh=th;
+    /* loose: sparse scatter, different depths */
+    var a=rnd()*6.2832, rad=50+rnd()*Math.min(W,H)*.32;
+    f.lx=W*.5+Math.cos(a)*rad*(.5+rnd()*.85)-tw*.5;
+    f.ly=H*.44+Math.sin(a)*rad*.65-th*.45;
+    f.lr=(-14+rnd()*28)*Math.PI/180;
+    f.lz=.55+rnd()*.7;
+    f.lw=tw*(.55+rnd()*.5);f.lh=f.lw*9/16;
+  });
+}
+
+function loadImgs(){
+  FILMS.forEach(function(f){var im=new Image();im.decoding='async';im.src=f.src;f.img=im});
+}
+
+function resize(){
+  dpr=Math.min(devicePixelRatio||1,2);
+  W=innerWidth;H=innerHeight;
+  cv.width=(W*dpr)|0;cv.height=(H*dpr)|0;
+  cv.style.width=W+'px';cv.style.height=H+'px';
+  g.setTransform(dpr,0,0,dpr,0,0);
+  layout();
+}
+
+function lerp(a,b,t){return a+(b-a)*t}
+function clamp(v,a,b){return v<a?a:v>b?b:v}
+function smoother(t){t=clamp(t,0,1);return t*t*t*(t*(t*6-15)+10)}
+
+function kindCounts(){
+  var n={};FILMS.forEach(function(f){n[f.kind]=(n[f.kind]||0)+1});
+  var order=['commercial','music video','brand film','short','reel'];
+  return order.filter(function(k){return n[k]}).map(function(k){return {k:k,n:n[k]}});
+}
+
+function updateChrome(){
+  var show=z>.55;
+  countsEl.classList.toggle('on',show);
+  if(show){
+    var bits=kindCounts().map(function(c){return '<span><b>'+c.n+'</b> '+c.k+(c.n===1?'':'s')+'</span>'});
+    bits.unshift('<span><b>'+FILMS.length+'</b> films</span>');
+    countsEl.innerHTML=bits.join('');
+  }
+  if(z>.9)hint.textContent='board · double-click steps out';
+  else if(z>.45)hint.textContent='settling into the board';
+  else hint.textContent='loose map · pinch / scroll in';
+}
+
+function draw(){
+  g.clearRect(0,0,W,H);
+  g.fillStyle='rgba(255,255,255,.22)';
+  for(var i=0;i<55;i++){
+    var sx=Math.abs(Math.sin(i*12.9898)*43758.5453)%1;
+    var sy=Math.abs(Math.sin(i*78.233)*24634.634)%1;
+    g.globalAlpha=.12+sx*.3;
+    g.fillRect((sx*W)|0,(sy*H)|0,1,1);
+  }
+  g.globalAlpha=1;
+  var u=smoother(z);
+  var sorted=FILMS.slice().sort(function(a,b){return lerp(a.lz,1,u)-lerp(b.lz,1,u)});
+  sorted.forEach(function(f){
+    var x=lerp(f.lx,f.bx,u), y=lerp(f.ly,f.by,u);
+    var w=lerp(f.lw,f.bw,u), h=lerp(f.lh,f.bh,u);
+    var rot=lerp(f.lr,0,u);
+    var alpha=lerp(.42+.2*f.lz,1,u);
+    g.save();
+    g.translate(x+w/2,y+h/2);g.rotate(rot);
+    g.globalAlpha=alpha;
+    g.fillStyle='#0a1220';
+    g.fillRect(-w/2,-h/2,w,h);
+    if(f.img&&f.img.complete&&f.img.naturalWidth)g.drawImage(f.img,-w/2,-h/2,w,h);
+    g.strokeStyle='rgba(200,220,240,'+(0.06+0.14*u)+')';
+    g.lineWidth=1;g.strokeRect(-w/2+.5,-h/2+.5,w-1,h-1);
+    g.restore();
+  });
+  updateChrome();
+}
+
+/* Soft dynamics: while driving, z follows input continuously; on release, soft settle
+   (into board if past SNAP_IN, else damp to rest — never a discrete notch jump). */
+var last=performance.now();
+function tick(now){
+  var dt=Math.min(.05,(now-last)/1000);last=now;
+  if(reduce){
+    if(settleTo!=null){z=settleTo;settleTo=null}
+    zVel=0;
+  }else if(settleTo!=null){
+    var k=11,c=2*Math.sqrt(k);
+    var a=k*(settleTo-z)-c*zVel;
+    zVel+=a*dt;z+=zVel*dt;
+    if(Math.abs(settleTo-z)<.001&&Math.abs(zVel)<.003){z=settleTo;zVel=0;settleTo=null}
+  }else if(!driving&&Math.abs(zVel)>.0005){
+    /* friction damp after continuous scroll */
+    zVel*=Math.exp(-dt*6.5);
+    z=clamp(z+zVel*dt,0,1);
+    if(Math.abs(zVel)<.001)zVel=0;
+  }
+  z=clamp(z,0,1);
+  draw();
+  requestAnimationFrame(tick);
+}
+
+function driveTo(v){
+  driving=true;settleTo=null;
+  z=clamp(v,0,1);zVel=0;
+}
+function nudge(dz){
+  driving=true;settleTo=null;
+  zVel=0;
+  z=clamp(z+dz,0,1);
+}
+function endDrive(){
+  driving=false;
+  /* soft snap decision only on release — continuous settle, not a jump */
+  if(z>=SNAP_IN)settleTo=1;
+  else if(z<=0.08)settleTo=0;
+  else settleTo=null; /* rest where you left it, with residual damp */
+}
+function stepOut(){
+  driving=false;
+  settleTo=clamp(z-STEP_OUT,0,1);
+  if(settleTo<0.12)settleTo=0;
+}
+
+/* ---------- input: pinch + continuous wheel; double-click steps out ---------- */
+var PT=new Map(),pinch=null,wheelTimer=0;
+
+cv.addEventListener('pointerdown',function(e){
+  cv.setPointerCapture(e.pointerId);
+  PT.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(PT.size===2){
+    var a=[...PT.values()];
+    pinch={d0:Math.max(10,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),z0:z};
+    driving=true;settleTo=null;
+  }
+},{passive:true});
+
+cv.addEventListener('pointermove',function(e){
+  if(!PT.has(e.pointerId))return;
+  PT.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch&&PT.size>=2){
+    var a=[...PT.values()],d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+    var r=d/pinch.d0;
+    /* pinch in (smaller spread) → deeper toward board, continuous */
+    driveTo(pinch.z0+Math.log(Math.max(.2,Math.min(5,1/r)))/Math.log(3.2)*.7);
+  }
+},{passive:true});
+
+function endPtr(e){
+  PT.delete(e.pointerId);
+  if(PT.size<2&&pinch){pinch=null;endDrive()}
+}
+cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+
+/* Desktop: two-finger scroll / wheel zooms continuously — never one level per notch */
+cv.addEventListener('wheel',function(e){
+  e.preventDefault();
+  var dy=e.deltaY*(e.deltaMode===1?16:e.deltaMode===2?H:1);
+  var scale=e.ctrlKey?.0024:.00115; /* ctrl ≈ trackpad pinch */
+  nudge(-dy*scale);
+  clearTimeout(wheelTimer);
+  wheelTimer=setTimeout(function(){endDrive()},160);
+},{passive:false});
+
+cv.addEventListener('dblclick',function(e){
+  e.preventDefault();
+  stepOut();
+});
+
+addEventListener('keydown',function(e){
+  if(e.key==='+'||e.key==='='){nudge(.12);endDrive();e.preventDefault()}
+  if(e.key==='-'||e.key==='_'){stepOut();e.preventDefault()}
+  if(e.key==='Escape'){settleTo=0;driving=false;e.preventDefault()}
+});
+
+addEventListener('resize',resize);
+resize();loadImgs();
+if(reduce){z=1;hint.textContent='board · counts on'}
+requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

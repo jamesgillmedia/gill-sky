@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#04070b">
+<title>tile-reveal · film</title>
+<style>
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../../tonight/tiled-moon/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../../tonight/tiled-moon/fonts/julius-sans-one.woff2) format("woff2")}
+:root{
+  --bg:#04070b;--ink:#eef3f5;--dim:#9aa8b2;--line:rgba(255,255,255,.14);
+  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:300 13px/1.4 Poppins,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{
+  min-height:100dvh;
+  background:
+    radial-gradient(110% 70% at 50% 18%,#1a2740 0%,transparent 55%),
+    radial-gradient(90% 60% at 80% 90%,#0a1524 0%,transparent 50%),
+    linear-gradient(180deg,#070d18 0%,#04070b 55%,#020408 100%);
+}
+.stars{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;opacity:.35}
+header{
+  position:sticky;top:0;z-index:5;
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;
+  padding:calc(14px + var(--st)) 18px 12px;
+  background:linear-gradient(180deg,rgba(4,7,11,.92),rgba(4,7,11,.55) 70%,transparent);
+}
+.brand{font-family:"Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase;font-size:15px}
+.meta{color:var(--dim);letter-spacing:.08em;font-size:11px}
+.hint{margin-left:auto;color:rgba(238,243,245,.45);font-size:11px;letter-spacing:.06em}
+main{position:relative;z-index:1;padding:8px 14px calc(28px + var(--sb))}
+.grid{
+  /* asymmetric dense board — slight offsets, not a flat equal grid */
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
+  gap:14px 10px;
+  max-width:1100px;margin:0 auto;
+  align-items:start;
+}
+@media(min-width:720px){.grid{grid-template-columns:repeat(auto-fill,minmax(176px,1fr));gap:18px 14px}}
+.tile{
+  position:relative;aspect-ratio:16/9;border:0;padding:0;cursor:pointer;
+  background:rgba(8,14,24,.85);border-radius:2px;overflow:hidden;
+  color:inherit;isolation:isolate;
+  box-shadow:0 10px 28px rgba(0,0,0,.35);
+  -webkit-tap-highlight-color:transparent;
+}
+.tile:nth-child(3n){transform:translate(6px,4px)}
+.tile:nth-child(5n){transform:translate(-4px,8px)}
+.tile:nth-child(7n){width:92%;justify-self:end}
+.tile:nth-child(4n+2){margin-top:10px}
+.tile.on:nth-child(3n),.tile.on:nth-child(5n){transform:none}
+.tile.on:nth-child(4n+2){margin-top:10px}
+.tile .fr{position:absolute;inset:0;overflow:hidden}
+.tile img{
+  width:100%;height:100%;object-fit:cover;display:block;
+  opacity:0;transform:scale(1.04);
+  filter:brightness(.55) saturate(.85);
+}
+.tile .veil{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(4,7,11,.15),rgba(4,7,11,.55)),
+    repeating-linear-gradient(90deg,transparent 0 11px,rgba(4,7,11,.35) 11px 12px);
+  opacity:1;
+}
+.tile .cap{
+  position:absolute;left:0;right:0;bottom:0;z-index:3;
+  padding:18px 8px 7px;text-align:left;
+  background:linear-gradient(transparent,rgba(4,7,11,.88));
+  opacity:0;transform:translateY(6px);
+}
+.tile .cap b{display:block;font-weight:300;font-size:11px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .cap small{display:block;color:var(--dim);font-size:10px;letter-spacing:.04em;margin-top:2px}
+.tile.on img{opacity:1;filter:none}
+.tile.on .veil{opacity:0}
+.tile.on .cap{opacity:1;transform:none}
+
+/* per-tile reveal treatments */
+.tile[data-rx="wipe"] .fr{clip-path:inset(0 100% 0 0)}
+.tile[data-rx="wipe"].on .fr{clip-path:inset(0 0 0 0);transition:clip-path .7s cubic-bezier(.2,.7,.2,1)}
+.tile[data-rx="wipe"].on img{transition:opacity .2s,filter .5s}
+
+.tile[data-rx="iris"] .fr{clip-path:circle(0% at 50% 50%)}
+.tile[data-rx="iris"].on .fr{clip-path:circle(80% at 50% 50%);transition:clip-path .75s cubic-bezier(.15,.8,.2,1)}
+.tile[data-rx="iris"].on img{transition:opacity .15s,filter .45s}
+
+.tile[data-rx="rise"] img{transform:translateY(28%) scale(1.02);opacity:0}
+.tile[data-rx="rise"].on img{transform:none;opacity:1;transition:transform .7s cubic-bezier(.2,.75,.2,1),opacity .35s,filter .5s}
+.tile[data-rx="rise"].on .veil{transition:opacity .5s}
+
+.tile[data-rx="shutter"] .veil{background:#04070b;opacity:1}
+.tile[data-rx="shutter"] .veil::before,.tile[data-rx="shutter"] .veil::after{
+  content:"";position:absolute;left:0;right:0;height:52%;background:#04070b;
+}
+.tile[data-rx="shutter"] .veil::before{top:0}
+.tile[data-rx="shutter"] .veil::after{bottom:0}
+.tile[data-rx="shutter"].on img{opacity:1;transition:opacity .2s,filter .4s}
+.tile[data-rx="shutter"].on .veil::before{transform:translateY(-105%);transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.tile[data-rx="shutter"].on .veil::after{transform:translateY(105%);transition:transform .55s cubic-bezier(.2,.8,.2,1)}
+.tile[data-rx="shutter"].on .veil{background:transparent;transition:background .2s .4s}
+
+.tile[data-rx="grain"] img{opacity:0;filter:contrast(1.2) brightness(.2)}
+.tile[data-rx="grain"].on img{opacity:1;filter:none;transition:opacity .15s,filter 1s ease}
+.tile[data-rx="grain"].on .veil{opacity:0;transition:opacity .8s}
+
+.tile[data-rx="sprocket"] .fr{clip-path:inset(50% 0 50% 0)}
+.tile[data-rx="sprocket"].on .fr{clip-path:inset(0 0 0 0);transition:clip-path .65s cubic-bezier(.18,.75,.2,1)}
+.tile[data-rx="sprocket"].on img{opacity:1;transition:opacity .2s,filter .45s}
+
+.tile.on .cap{transition:opacity .45s .15s,transform .45s .15s}
+
+@media(prefers-reduced-motion:reduce){
+  .tile .fr,.tile img,.tile .veil,.tile .veil::before,.tile .veil::after,.tile .cap{transition:none!important}
+  .tile[data-rx] .fr{clip-path:none!important}
+  .tile[data-rx] img{transform:none!important;opacity:0;filter:brightness(.55)}
+  .tile[data-rx].on img{opacity:1;filter:none}
+  .tile[data-rx].on .veil,.tile[data-rx].on .veil::before,.tile[data-rx].on .veil::after{opacity:0;transform:none}
+  .tile[data-rx].on .cap{opacity:1;transform:none}
+}
+</style>
+</head>
+<body>
+<div class="stars" id="stars" aria-hidden="true"></div>
+<header>
+  <span class="brand">gill james</span>
+  <span class="meta">film · tile reveal</span>
+  <span class="hint">tap a tile · exploration</span>
+</header>
+<main>
+  <div class="grid" id="grid" role="list"></div>
+</main>
+<script>
+(function(){
+'use strict';
+var TN='../../tonight/tiled-moon/img/films/';
+var M4='../../tonight/film/m4/media/';
+/* Real titles / meta from u4-opus-m4 data.json · thumbs from tonight */
+var FILMS=[
+  {slug:'demo-reel',title:'Demo Reel',meta:'201 shots · a moving filmstrip',src:M4+'pro2/reel/a/001.webp',rx:'wipe'},
+  {slug:'reel-2026',title:'Reel 2026',meta:'reel · 01:13',src:M4+'v3/media/reel/thumb.jpg',rx:'iris'},
+  {slug:'cinematography-demo-reel-2025',title:'Gill Cinematography Demo Reel 2025',meta:'reel · 04:20',src:TN+'01-400.webp',rx:'shutter'},
+  {slug:'one-with-the-devil',title:'One With the Devil',meta:'short · 2015',src:M4+'owtd/stills/09_landscape.jpg',rx:'rise'},
+  {slug:'celebraciones',title:'Coca-Cola · Celebraciones',meta:'commercial',src:TN+'02-400.webp',rx:'grain'},
+  {slug:'stay-gold',title:'AXE · Stay Gold',meta:'commercial',src:TN+'03-400.webp',rx:'sprocket'},
+  {slug:'legends',title:'BMW Legends',meta:'commercial · 00:33',src:TN+'04-400.webp',rx:'wipe'},
+  {slug:'drift',title:'BMW · Drift',meta:'commercial',src:TN+'05-400.webp',rx:'iris'},
+  {slug:'golden-moment-directors-cut',title:'AXE · Golden Moment [Dir. Cut]',meta:'commercial',src:TN+'06-400.webp',rx:'rise'},
+  {slug:'cover-with-love-isabelle',title:'Cover With Love · Isabelle · Band-Aid',meta:'commercial',src:TN+'07-400.webp',rx:'shutter'},
+  {slug:'no-place-like-home',title:'Big Brothers Big Sisters of Canada · No Place Like Home',meta:'commercial · 00:30',src:TN+'08-400.webp',rx:'grain'},
+  {slug:'the-smell-needs-to-go',title:'Yara · The Smell Needs To Go',meta:'commercial',src:TN+'09-400.webp',rx:'sprocket'},
+  {slug:'brew-bar-coffee-teaser',title:'A&W Brew Bar: Coffee Teaser',meta:'commercial · 00:36',src:TN+'10-400.webp',rx:'wipe'},
+  {slug:'explorers',title:'Explorers · Huggies',meta:'commercial · 00:30',src:TN+'11-400.webp',rx:'iris'},
+  {slug:'sun-kissed',title:'Sun Kissed · John Frieda',meta:'commercial · 00:30',src:TN+'12-400.webp',rx:'rise'},
+  {slug:'sleepwalker',title:'Hey Ocean! · Sleepwalker',meta:'music video · 04:06',src:TN+'13-400.webp',rx:'shutter'},
+  {slug:'reel-24',title:'REEL ‘24',meta:'reel',src:TN+'15-400.webp',rx:'grain'},
+  {slug:'repeat-feat-jessie-reyez',title:'Allan Rayman · Repeat',meta:'music video · 03:36',src:TN+'16-400.webp',rx:'sprocket'},
+  {slug:'flower-crown',title:'Flower Crown · Claritin',meta:'commercial · 00:15',src:TN+'17-400.webp',rx:'wipe'},
+  {slug:'backward-fall',title:'Backward Fall',meta:'short · 10:14',src:TN+'18-400.webp',rx:'iris'},
+  {slug:'s18',title:"Arc'teryx S18",meta:'brand film · 01:00',src:TN+'19-400.webp',rx:'rise'},
+  {slug:'back-to-the-start',title:'Old Man Canyon · Back to the Start',meta:'music video · 03:58',src:TN+'20-400.webp',rx:'shutter'},
+  {slug:'lets-grow-good-together',title:'Lets Grow Good Together · Brand Film',meta:'brand film · 02:57',src:TN+'21-400.webp',rx:'grain'},
+  {slug:'weird-kid',title:"Chris Malinchak and Kiesza · 'Weird Kid'",meta:'music video · 03:44',src:TN+'22-400.webp',rx:'sprocket'},
+  {slug:'veronas-obsession',title:"ALLAN RAYMAN · VERONA'S OBSESSION",meta:'music video · 09:15',src:TN+'23-400.webp',rx:'wipe'},
+  {slug:'obedience-gets-you-nowhere',title:'19 Crimes x Malamen · Obedience Gets You Nowhere',meta:'commercial · 00:58',src:TN+'24-400.webp',rx:'iris'},
+  {slug:'fire',title:'Wild Leaf · Fire · IG (4x5)',meta:'commercial · 00:12',src:TN+'25-400.webp',rx:'rise',note:'thumb 16:9'},
+  {slug:'modern-man',title:'Modern Man · Braun',meta:'commercial · 00:52',src:TN+'26-400.webp',rx:'shutter'},
+  {slug:'phantoms-and-friends',title:'Old Man Canyon · Phantoms & Friends',meta:'music video · 03:54',src:TN+'27-400.webp',rx:'grain'},
+  {slug:'summer-is-here',title:'Summer Is Here · Shock Top',meta:'commercial · 00:30',src:TN+'28-400.webp',rx:'sprocket'},
+  {slug:'eat-well',title:'Eat Well · Westin Hotels & Resorts',meta:'commercial · 00:41',src:TN+'29-400.webp',rx:'wipe'},
+  {slug:'buddy-time-grandpas-story',title:"Buddy Time: Grandpa's Story · LEGO · 15s cut",meta:'commercial · 00:19',src:TN+'30-400.webp',rx:'iris'},
+  {slug:'hike',title:'Wild Leaf · Hike · IG (4x5)',meta:'commercial · 00:17',src:TN+'31-400.webp',rx:'rise',note:'thumb 16:9'},
+  {slug:'canoe',title:'Wild Leaf · Canoe · IG (4x5)',meta:'commercial · 00:15',src:TN+'32-400.webp',rx:'shutter',note:'thumb 16:9'},
+  {slug:'mandie',title:'Mandie',meta:'brand film · 05:51',src:TN+'33-400.webp',rx:'grain'},
+  {slug:'just-the-beginning',title:'Just The Beginning',meta:'commercial · 00:55',src:TN+'34-400.webp',rx:'sprocket'},
+  {slug:'ltl-dstryr',title:'Mansions · Ltl Dstryr',meta:'music video · 04:53',src:TN+'35-400.webp',rx:'wipe'},
+  {slug:'journeys-x-todd',title:'FIAT · Journeys x Todd',meta:'commercial',src:TN+'36-400.webp',rx:'iris'}
+];
+
+var stars=document.getElementById('stars'),grid=document.getElementById('grid');
+var n=window.innerWidth<700?48:90,s=7;
+function rnd(){s=(s*16807)%2147483647;return s/2147483647}
+for(var i=0;i<n;i++){
+  var el=document.createElement('i');
+  el.style.left=(rnd()*100)+'%';el.style.top=(rnd()*100)+'%';
+  el.style.opacity=String(.15+rnd()*.45);el.style.transform='scale('+(0.6+rnd()*1.4)+')';
+  stars.appendChild(el);
+}
+
+FILMS.forEach(function(f,i){
+  var b=document.createElement('button');
+  b.type='button';b.className='tile';b.setAttribute('data-rx',f.rx);
+  b.setAttribute('aria-pressed','false');
+  b.setAttribute('aria-label',f.title);
+  b.innerHTML='<span class="fr"><img src="'+f.src+'" alt="" loading="'+(i<8?'eager':'lazy')+'" decoding="async" width="400" height="225"></span><span class="veil" aria-hidden="true"></span><span class="cap"><b>'+f.title+'</b><small>'+f.meta+'</small></span>';
+  b.addEventListener('click',function(){
+    var on=!b.classList.contains('on');
+    b.classList.toggle('on',on);
+    b.setAttribute('aria-pressed',on?'true':'false');
+  });
+  grid.appendChild(b);
+});
+})();
+</script>
+</body>
+</html>
