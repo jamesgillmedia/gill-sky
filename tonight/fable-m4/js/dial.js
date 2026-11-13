@@ -102,7 +102,14 @@
     /* the Sound waveform player — never sit on it, never dim it */
     ['snd', 'wave'].forEach(function (id) {
       d = document.getElementById(id);
-      if (d) { b = d.getBoundingClientRect(); if (b.height > 0) out.push([b.left, b.top - 6, b.right, b.bottom]); }
+      if (!d) return;
+      b = d.getBoundingClientRect();
+      if (b.height <= 0) return;
+      /* a docked player is avoided whole. The Sound room's player fills the screen;
+         avoiding all of it would leave the arc nowhere to sit, so only its rail is kept clear.
+         The player's opacity is never changed. */
+      if (b.height > innerHeight * .85 && b.width > innerWidth * .85) out.push([b.left, Math.max(b.top, b.bottom - 130), b.right, b.bottom]);
+      else out.push([b.left, b.top - 6, b.right, b.bottom]);
     });
     avoidFns.forEach(function (f) {
       try { (f() || []).forEach(function (q) { out.push(q); }); } catch (e) {}

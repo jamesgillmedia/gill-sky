@@ -580,6 +580,11 @@ function sync(cur,api){
   if(!cur||cur.lv===0){board=null;filmLv=0;filmWork=null;still=null;piece=null;snd=null;dropFly();setBleed(false);hideSound();return}
   if(cur.k!=='sound'&&soundOn)hideSound();
   if(cur.lv===1){
+    if(cur.k==='sound'){
+      filmLv=0;still=null;filmWork=null;piece=null;dropFly();setBleed(false);board=null;
+      if(!soundOn)showSound('togo',false);
+      return;
+    }
     filmLv=0;still=null;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);
     if(soundOn)hideSound();
     var fw=cur.id&&api.byId(cur.id),fk=fw&&shotsOf(fw);

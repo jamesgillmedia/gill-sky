@@ -566,3 +566,4 @@ html[data-theme=red] #ghostdial{--gd-ink:255,68,87}
 @media (prefers-reduced-motion:reduce){#ghostdial,#ghostdial.out{transition:none}}
 /* while a slider is held the menu disappears (still under the finger, so the drag carries on); only when the ghost dial found a safe place */
 #markmenu.mm-peek{opacity:0!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+#markmenu .mm-hint{margin:0 0 6px;font:300 9px Poppins,sans-serif;letter-spacing:.02em;text-transform:none;color:rgba(228,235,245,.62)}

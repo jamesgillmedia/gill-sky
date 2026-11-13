@@ -24,6 +24,32 @@ function lsRow(key,label,min,max,def,scale,after){
 }
 function poke(key){try{window.dispatchEvent(new StorageEvent('storage',{key:key}))}catch(e){}}
 function setFlash(key){var t=T();if(t)t.set({flash:rd('gj.flash',.6)});try{document.documentElement.style.setProperty('--flash',String(rd('gj.flash',.6)))}catch(e){}}
+function sndVar(){try{var v=localStorage.getItem('gj.sound.var');return v==='B'||v==='C'?v:'A'}catch(e){return 'A'}}
+function setSndVar(v){try{localStorage.setItem('gj.sound.var',v==='B'||v==='C'?v:'A')}catch(e){}}
+var SNDHINT={A:'A · low-pass pull, linear camera sweep (main)',B:'B · band-pass sweep on the pull',C:'C · low-pass, figure-eight camera sweep'};
+function soundRows(){
+  var red=window.GJ_THEME&&GJ_THEME.eff==='red';
+  var rows=[
+    {k:'gj.sound.var',label:'dev · A B C',toggle:true,options:['A','B','C'],get:sndVar,apply:function(){},hint:function(){return SNDHINT[sndVar()]||''}},
+    lsRow('gj.vol','volume',0,100,100,100,poke),
+    lsRow('gj.flash','flash',0,100,60,100,setFlash),
+    lsRow('gj.sound.sweep','camera sweep speed',0,200,50,1),
+    lsRow('gj.sound.sweepLen','camera sweep length',20,200,100,1),
+    lsRow('gj.sound.glow','star glow',0,200,100,1),
+    lsRow('gj.sound.size','star size',50,200,100,1),
+    lsRow('gj.sound.sway','chime sway',0,200,100,1),
+    lsRow('gj.sound.resp','chime response',0,200,100,1),
+    lsRow('gj.sound.wfB','waveform brightness',80,140,100,1),
+    lsRow('gj.sound.wfT','waveform thickness',80,250,100,1),
+    lsRow('gj.sound.fAmt','filter amount',0,100,100,1),
+    lsRow('gj.sound.fFloor','filter cutoff (low end, Hz)',100,4000,380,1),
+    lsRow('gj.sound.fQ','filter resonance',3,120,8,1),
+    lsRow('gj.sound.fog','fog and atmosphere',0,100,30,1),
+    lsRow('gj.sound.rBright','red brightness',60,140,100,1),
+    lsRow('gj.sound.rGlow','red glow depth',0,200,100,1)];
+  if(!red)rows=rows.filter(function(r){return r.k!=='gj.sound.rBright'&&r.k!=='gj.sound.rGlow'});
+  return rows;
+}
 var D=(window.GJ_TUNE&&GJ_TUNE.defaults&&GJ_TUNE.defaults())||{mood:1,map:1.3,stars:1.2,lineA:1,starS:1,starG:1,fdens:1,fgap:1};
 
 /* Built-in room sets. A module may replace its chapter's context set with module.tune. */
@@ -38,9 +64,7 @@ var ROOMS=[
   {id:'film',name:'film',rows:[
     tuneRow('fdens','snap density',60,140,D.fdens),
     tuneRow('fgap','frame gap',25,300,D.fgap)]},
-  {id:'sound',name:'sound',rows:[
-    lsRow('gj.vol','volume',0,100,100,100,poke),
-    lsRow('gj.flash','flash',0,100,60,100,setFlash)]},
+  {id:'sound',name:'sound',rows:[]},
   {id:'objects',name:'objects',door:'../objects/',rows:[
     lsRow('gj.amb.objects.glow','all rings',0,150,100,1),
     lsRow('gj.amb.objects.haze','haze',0,250,100,1),
@@ -56,7 +80,7 @@ var ROOMS=[
 var CTX_FOCUS={
   sky:['gj.tune.mood','gj.tune.map','gj.tune.starG'],
   film:['gj.tune.fdens','gj.tune.fgap'],
-  sound:['gj.vol','gj.flash'],
+  sound:null,
   objects:['gj.amb.objects.glow','gj.amb.objects.haze','gj.amb.objects.stars','gj.amb.objects.lamp'],
   spaces:['gj.amb.garden.day','gj.amb.garden.star','gj.amb.garden.glow','gj.amb.garden.haze']
 };
@@ -129,6 +153,8 @@ function build(){
     e.stopPropagation();
     var b=e.target.closest('[data-go]');
     if(b){if(window.__depth)__depth.goTo(b.getAttribute('data-go'));return}
+    var vb=e.target.closest('[data-snd-var]');
+    if(vb){setSndVar(vb.getAttribute('data-snd-var'));paint();return}
     if(e.target.closest('.mm-tune')){tuneOn=!tuneOn;paint();return}
     if(e.target.closest('.mm-all')){allOn=!allOn;paint();return}
     if(e.target.closest('.mm-reset-room')){resetRoom();return}
@@ -164,12 +190,21 @@ function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.l
 function roomOfRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].id;
   var m=(window.__shell&&__shell.mod)||null;return m&&m.chapter||null}
 function rowsHtml(rows){
-  var h='';rows.forEach(function(r){var v=r.get();
+  var h='';rows.forEach(function(r){
+    if(r.toggle){
+      h+='<div class="mm-seg" role="radiogroup" aria-label="'+r.label+'"><b>'+r.label+'</b><span>';
+      r.options.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(r.get()===o)+'" data-snd-var="'+o+'">'+o+'</button>'});
+      h+='</span></div>';
+      if(r.hint)h+='<p class="mm-hint">'+r.hint()+'</p>';
+      return;
+    }
+    var v=r.get();
     h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+r.label+'"><output>'+v+'</output></label>'});
   return h;
 }
 function paint(){
   if(!menu)return;
+  var sndR=roomById('sound');if(sndR)sndR.rows=soundRows();
   var pl=menu.querySelector('.mm-plate'),tb=menu.querySelector('.mm-tune');
   tb.setAttribute('aria-expanded',tuneOn?'true':'false');tb.classList.toggle('on',tuneOn);
   pl.hidden=!tuneOn;if(!tuneOn)return;

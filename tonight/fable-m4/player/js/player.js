@@ -62,20 +62,35 @@ function env(i){i=Math.max(0,Math.min(N-1,i));var a=Math.floor(i),b=Math.min(N-1
 function band(i,j){i=Math.max(0,Math.min(N-1,Math.round(i)));return T.bands[i][j]}
 /* ---------- whole-track waveform on the rail (mirrored hairline bars, the played part mint) ---------- */
 var railT=0,highlight=-1,pulseStar=0;
-function drawWF(){if(!T||!wf.width)return;var c=wf.getContext('2d'),w=wf.width,h=wf.height,n=Math.min(N,Math.floor(w/(2*DPR))),pf=railT/T.dur;c.clearRect(0,0,w,h);
+function drawWF(){if(!T||!wf.width)return;var c=wf.getContext('2d'),w=wf.width,h=wf.height,n=Math.min(N,Math.floor(w/(2*DPR))),pf=railT/T.dur,bri=Math.max(.8,SND.wfB/100),th=Math.max(.8,SND.wfT/100);c.clearRect(0,0,w,h);
   for(var i=0;i<n;i++){var p=0;var a=Math.floor(i/n*N),b=Math.floor((i+1)/n*N);for(var j=a;j<b;j++)p=Math.max(p,T.peaks[j]);
-    var x=(i+.5)/n*w,y=Math.max(.6*DPR,p*h*.42),on=i/n<pf,rd=window.GJ_THEME&&GJ_THEME.eff==='red';c.fillStyle=rd?(on?'rgba(255,208,214,'+(.7+.3*p).toFixed(2)+')':'rgba(255,160,170,'+(.42+.4*p).toFixed(2)+')'):on?'rgba(85,218,161,'+(.35+.5*p).toFixed(2)+')':'rgba(220,232,240,'+(.14+.3*p).toFixed(2)+')';c.fillRect(x-.5*DPR,h/2-y,DPR,2*y)}}
+    var x=(i+.5)/n*w,y=Math.max(.6*DPR,p*h*.42*th),on=i/n<pf,rd=window.GJ_THEME&&GJ_THEME.eff==='red';c.globalAlpha=bri;c.fillStyle=rd?(on?'rgba(255,208,214,'+(.7+.3*p).toFixed(2)+')':'rgba(255,160,170,'+(.42+.4*p).toFixed(2)+')'):on?'rgba(85,218,161,'+(.35+.5*p).toFixed(2)+')':'rgba(220,232,240,'+(.14+.3*p).toFixed(2)+')';c.fillRect(x-.5*DPR*th,h/2-y,Math.max(1,DPR*th),2*y)}
+  c.globalAlpha=1;if(PULL&&SOUND.s[PULL.si]){var sx=SOUND.s[PULL.si][0],a0=Math.max(0,sx-.07),a1=Math.min(1,sx+.07);c.fillStyle='rgba(232,196,138,.28)';c.fillRect(a0*w,0,(a1-a0)*w,h)}}
 if(window.GJ_THEME)GJ_THEME.on(function(w){if(w==='theme')drawWF()});
 /* ---------- audio graph ---------- */
-var AC=null,AN=null,GN=null,FD=null,TD=null;
+var AC=null,AN=null,GN=null,FD=null,TD=null,LP=null,BP=null,DRY=null,WET=null;
 function initAudio(){if(REC){FD=FD||new Uint8Array(256);TD=TD||new Uint8Array(512);return}if(AC)return;var C=window.AudioContext||window.webkitAudioContext;AC=new C();var src=AC.createMediaElementSource(au);
-  AN=AC.createAnalyser();AN.fftSize=512;AN.smoothingTimeConstant=.72;GN=AC.createGain();src.connect(AN);AN.connect(GN);GN.connect(AC.destination);
+  AN=AC.createAnalyser();AN.fftSize=512;AN.smoothingTimeConstant=.72;
+  LP=AC.createBiquadFilter();LP.type='lowpass';LP.frequency.value=20000;LP.Q.value=.7;
+  BP=AC.createBiquadFilter();BP.type='bandpass';BP.frequency.value=1400;BP.Q.value=.8;
+  DRY=AC.createGain();DRY.gain.value=1;WET=AC.createGain();WET.gain.value=0;GN=AC.createGain();
+  src.connect(AN);AN.connect(LP);LP.connect(DRY);DRY.connect(GN);AN.connect(BP);BP.connect(WET);WET.connect(GN);GN.connect(AC.destination);
   FD=new Uint8Array(AN.frequencyBinCount);TD=new Uint8Array(AN.fftSize)}
 /* Gill's two controls: volume (gain after the analyser, so the visuals never change with it) and flash (scales every beat-synced brightness; 0 = steady and dim, 1 = the original look) */
 function lsr(k,d){try{var v=parseFloat(localStorage.getItem(k));return isFinite(v)?Math.max(0,Math.min(1,v)):d}catch(x){return d}}
 var VOL=lsr('gj.vol',1),FL=lsr('gj.flash',.6),DIM=.35+.65*FL;
 function setFlash(v,keep){FL=v;DIM=.35+.65*v;document.documentElement.style.setProperty('--flash',v);if(!keep)try{localStorage.setItem('gj.flash',v)}catch(x){}}
 function setVol(v,keep){VOL=v;if(GN)GN.gain.setTargetAtTime(FG.v*VOL,AC.currentTime,.05);if(CB)CB.gain.setTargetAtTime((au.paused?.3:.13)*VOL,AC.currentTime,.05);if(!keep)try{localStorage.setItem('gj.vol',v)}catch(x){}}
+/* Sound sliders (the tune menu writes gj.sound.*). Defaults are this look. The waveform brightness slider cannot go below 0.8. */
+function sndN(k,d){try{var v=parseFloat(localStorage.getItem(k));return isFinite(v)?v:d}catch(e){return d}}
+var SND={sweep:50,sweepLen:100,glow:100,size:100,sway:100,resp:100,wfB:100,wfT:100,fAmt:100,fFloor:380,fQ:8,fog:30,rBright:100,rGlow:100,variant:'A'};
+function readSnd(){SND.sweep=sndN('gj.sound.sweep',50);SND.sweepLen=sndN('gj.sound.sweepLen',100);SND.glow=sndN('gj.sound.glow',100);SND.size=sndN('gj.sound.size',100);SND.sway=sndN('gj.sound.sway',100);SND.resp=sndN('gj.sound.resp',100);SND.wfB=Math.max(80,sndN('gj.sound.wfB',100));SND.wfT=Math.max(80,sndN('gj.sound.wfT',100));SND.fAmt=sndN('gj.sound.fAmt',100);SND.fFloor=sndN('gj.sound.fFloor',380);SND.fQ=sndN('gj.sound.fQ',8);SND.fog=sndN('gj.sound.fog',30);SND.rBright=sndN('gj.sound.rBright',100);SND.rGlow=sndN('gj.sound.rGlow',100);try{var vr=localStorage.getItem('gj.sound.var');SND.variant=vr==='B'||vr==='C'?vr:'A'}catch(e){SND.variant='A'}}
+readSnd();
+function reduced(){try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}}
+function setPullFilter(amt){if(!AC||!LP)return;amt=Math.max(0,Math.min(1,amt));var now=AC.currentTime,tau=amt>0.01?.08:.22,floor=Math.max(80,Math.min(8000,SND.fFloor)),q=Math.max(.3,Math.min(12,SND.fQ/10)),freq=20000*Math.pow(floor/20000,amt);
+  LP.frequency.setTargetAtTime(freq,now,tau);LP.Q.setTargetAtTime(q,now,tau);
+  if(SND.variant==='B'){DRY.gain.setTargetAtTime(1-amt,now,tau);WET.gain.setTargetAtTime(amt,now,tau);BP.frequency.setTargetAtTime(floor+(4000-floor)*(1-amt*.5),now,tau);BP.Q.setTargetAtTime(q,now,tau)}
+  else{DRY.gain.setTargetAtTime(1,now,tau);WET.gain.setTargetAtTime(0,now,tau)}}
 setFlash(FL,1);
 function vol(v,t){FG.v=v;if(GN)GN.gain.setTargetAtTime(v*VOL,AC.currentTime,t||.08)}
 var L={rms:0,low:0,mid:0,high:0,beat:0,avgLow:.2,lastBeat:0};
@@ -152,7 +167,7 @@ function tick(now,dt){if(REC&&pauseAt>0&&VT>=pauseAt){pauseAt=-1;if(mode!=='in'&
   if(L.beat>0.62)PUSH=Math.min(1.2,PUSH+L.beat*0.45);
   PUSH*=Math.max(0,1-dt*1.6);
   if(REC)LOG.push([VT,au.currentTime,au.paused?0:1,dragging?1:0,FG.v]);
-  pulseStar=Math.max(0,pulseStar-dt*.8);recentStep(dt);sweepStep(dt);chStep(dt);draw(now,dt);introStep(dt);ui()}
+  pulseStar=Math.max(0,pulseStar-dt*.8);pullStep(dt);recentStep(dt);sweepStep(dt);chStep(dt);draw(now,dt);introStep(dt);ui()}
 function draw(now,dt){var c=g;c.setTransform(DPR,0,0,DPR,0,0);setView();DBG={stars:0,songPos:[],labels:[]};
   var m=ease(dive),cx=px(camZ)*m+ORB.x,cy=py(camZ)*m+ORB.y,cz=camZ;
   /* sky: navy radial + background star dust (parallax: drifts with the camera path inside) */
@@ -211,15 +226,17 @@ function draw(now,dt){var c=g;c.setTransform(DPR,0,0,DPR,0,0);setView();DBG={sta
     var hz=Math.min(1,(sp[0]?sp[0][2]:F/DZ)/(F/DZ));
     for(var i=0;i<CH.length;i++){var ch=CH[i],q=sp[ch.b];if(q&&ch.L){var bb=bob(ch);sp[ch.b]=[q[0]+(bb[0]-ch.rx)*hz*VW.s,q[1]+(bb[1]-ch.ry)*hz*VW.s,q[2],q[3]]}}
     skyProj=sp;
+    if(PULL&&sp[PULL.si]){var pp=sp[PULL.si];sp[PULL.si]=[pp[0]+PULL.ox,pp[1]+PULL.oy,pp[2],pp[3]]}
     var nr=Math.min(W,520)*.55*hz*VW.s*FIT.s,gx=W/2+VW.x,gy=H*.46+((-H*.07)*FIT.s+FIT.dy)*hz*VW.s+VW.y;var gg=c.createRadialGradient(gx,gy,0,gx,gy,nr);
-    gg.addColorStop(0,'rgba('+SOUND.t+','+(.09*sa).toFixed(3)+')');gg.addColorStop(1,'rgba('+SOUND.t+',0)');c.fillStyle=gg;c.fillRect(0,0,W,H);
+    var fogK=SND.fog/30,redK=(window.GJ_THEME&&GJ_THEME.eff==='red')?(SND.rBright/100):1,glowKnd=SND.glow/100*((window.GJ_THEME&&GJ_THEME.eff==='red')?(SND.rGlow/100):1),sizeK=SND.size/100;
+    gg.addColorStop(0,'rgba('+SOUND.t+','+(.09*sa*fogK*redK).toFixed(3)+')');gg.addColorStop(1,'rgba('+SOUND.t+',0)');c.fillStyle=gg;c.fillRect(0,0,W,H);
     c.strokeStyle='rgba(255,214,208,'+(.5*sa*sa).toFixed(3)+')';c.lineWidth=1;c.beginPath();
     SOUND.e.forEach(function(ed){var ea=sp[ed[0]],eb=sp[ed[1]];if(ea&&eb){c.moveTo(ea[0],ea[1]);c.lineTo(eb[0],eb[1])}});c.stroke();
     for(var k=0;k<SOUND.s.length;k++){var p=sp[k];if(!p)continue;var s=SOUND.s[k],b=s[2]*(.85+.15*Math.sin(tw*1.7+k*1.3)),SF=1.35*hz*Math.sqrt(VW.s);
-      var isSong=STAR2K[k]!=null,sel=k===highlight,gs=(6+30*b*b)*SF*(isSong?1.15:1)*(sel?1.35+.25*pulseStar:1);
+      var isSong=STAR2K[k]!=null,sel=k===highlight,gs=(6+30*b*b)*SF*(isSong?1.15:1)*(sel?1.35+.25*pulseStar:1)*glowKnd*sizeK;
       for(var i=0;i<CH.length;i++)if(CH[i].b===k)gs*=1+.7*CH[i].fl*FL;c.globalAlpha=sa*(.35+.65*b)*(s[3]?.8:1);c.drawImage(sel?GM:GR,p[0]-gs/2,p[1]-gs/2,gs,gs);
       if(sel){c.globalCompositeOperation='lighter';c.drawImage(GM,p[0]-gs*.7,p[1]-gs*.7,gs*1.4,gs*1.4);c.globalCompositeOperation='source-over'}
-      var rad=(.5+1.9*b)*SF*.85*(isSong?1.1:1);c.globalAlpha=sa*(.45+.55*b);c.fillStyle='#fff';c.beginPath();c.arc(p[0],p[1],rad,0,7);c.fill();
+      var rad=(.5+1.9*b)*SF*.85*(isSong?1.1:1)*sizeK;c.globalAlpha=sa*(.45+.55*b)*redK;c.fillStyle='#fff';c.beginPath();c.arc(p[0],p[1],rad,0,7);c.fill();
       DBG.stars++;if(isSong)DBG.songPos.push({k:STAR2K[k],x:+p[0].toFixed(1),y:+p[1].toFixed(1),r:+rad.toFixed(2),sel:sel})}
     c.globalAlpha=1;drawLabels(c,sp,sa)}
   else skyProj=[];
@@ -298,11 +315,11 @@ function recentStep(dt){if(V.z>ZMIN){RC=0;zHi=Math.max(zHi,V.z);return}if(zHi>ZM
 function poke(){SW.idle=0;SW.w=0}
 function nearTempo(){var best=1,bd=1e9;for(var k in STAR2K){var p=skyProj[+k];if(!p)continue;var d=Math.hypot(p[0]-W/2,p[1]-H*.46);if(d<bd){bd=d;best=TRACKS[STAR2K[k]].tempo||1}}return best}
 function sweepStep(dt){var held=!!(p0||PZ||nPT());if(held)poke();
-  if(!SW.on||held||mode!=='sky'||dive>.001||V.z<=1.05){SW.w=0;return}
+  if(reduced()||!SW.on||held||mode!=='sky'||dive>.001||V.z<=1.05||SND.sweep<.5){SW.w=0;return}
   SW.idle+=dt;if(SW.idle<2.5)return;SW.w=Math.min(1,SW.w+dt/1.5);
-  var tp=nearTempo(),b=skyBox(),bw=b[1]-b[0],bh=b[3]-b[2];SW.t+=dt*SW.w*tp;
-  var bx=(b[0]+b[1])/2+bw*.36*Math.sin(SW.t*.11)+bw*.08*Math.sin(SW.t*.037),by=(b[2]+b[3])/2+bh*.3*Math.sin(SW.t*.083+1.1),
-    dx=-(bx-W/2)*V.z-V.x,dy=-(by-H*.46)*V.z-V.y,d=Math.hypot(dx,dy),mx=18*tp*SW.w*dt;
+  var tp=nearTempo(),b=skyBox(),bw=b[1]-b[0],bh=b[3]-b[2],len=SND.sweepLen/100,spd=SND.sweep/50;SW.t+=dt*SW.w*tp;
+  var bx=(b[0]+b[1])/2+bw*.36*len*Math.sin(SW.t*.11)+bw*.08*Math.sin(SW.t*.037),by=(b[2]+b[3])/2+bh*.3*len*Math.sin(SW.t*.083+1.1)+(SND.variant==='C'?bh*.12*len*Math.sin(SW.t*.22):0),
+    dx=-(bx-W/2)*V.z-V.x,dy=-(by-H*.46)*V.z-V.y,d=Math.hypot(dx,dy),mx=18*tp*SW.w*dt*spd;
   if(d>1e-3){var f=Math.min(1,mx/d),x0=V.x,y0=V.y;V.x+=dx*f;V.y+=dy*f;clampPan();SW.moved+=Math.hypot(V.x-x0,V.y-y0)}}
 /* ---------- wind chimes: the five strands that hang from the constellation's line (edges 2-3, 5-6, 7-8, 10-11, 13-14) ----------
  sky only. swipe across the sky = a breeze (swipe speed + direction, capped low) that sways the strands on pendulum physics;
@@ -328,7 +345,8 @@ function segD(x,y,c){var b=bob(c),dx=b[0]-c.px,dy=b[1]-c.py,t=Math.max(0,Math.mi
 function chHit(sx,sy,r){var q=toBase(sx,sy),x=q[0],y=q[1],s=VW.s,best=null,bd=(r||24)/s;for(var i=0;i<CH.length;i++){var c=CH[i],b=bob(c),d=Math.min(segD(x,y,c)+(y<c.py+8/s?99:0),Math.hypot(x-b[0],y-b[1])-4/s);if(d<bd){bd=d;best=c}}return best}
 /* the breeze: wind = swipe velocity (capped low), felt most by the strand under the finger, a little by all of them */
 function wind(x,y,vx,vy,dt){var cap=640,sp=Math.hypot(vx,vy);if(sp>cap){vx*=cap/sp;vy*=cap/sp}
-  for(var i=0;i<CH.length;i++){var c=CH[i],d=segD(x,y,c),wg=.12+.88*Math.exp(-d*d/(2*60*60)),f=vx+.25*Math.abs(vy)*(c.rx<x?-1:1);c.w+=f*.42*wg*(.3+1.4*rnd(i*7.1+chT*61))*dt/c.L}}
+  var sway=SND.sway/100,resp=SND.resp/100;
+  for(var i=0;i<CH.length;i++){var c=CH[i],d=segD(x,y,c),wg=.12+.88*Math.exp(-d*d/(2*60*60)),f=vx+.25*Math.abs(vy)*(c.rx<x?-1:1);c.w+=f*.42*wg*(.3+1.4*rnd(i*7.1+chT*61))*dt/c.L*sway*Math.max(.15,resp)}}
 function pluck(c,x){var dir=x<bob(c)[0]?1:-1;c.w+=dir*22/c.L;c.fl=Math.max(c.fl,.6);chime(c.f,.5,c.v,0)}
 /* synth: struck-tube partials (1, 2.76, 5.4) with their own decays, on a soft bus that sits under the track, 8 voices max */
 var CB=null,VOX=[],unl=false,CHN=0;
@@ -389,8 +407,8 @@ addEventListener('keydown',function(e){if(e.key==='Escape')goOut();if(e.key===' 
 /* intro while zoomed: past ~1.05x the sub-line, picks and dive button fade out and stop taking pointers, so strand tips
  under them are tappable; they ease back in near 1x. the SOUND heading stays, but softly fades while a strand passes over it. */
 var CVD=0,SPK=0,IN=$('intro'),HEAD=IN.querySelector('.sl b'),UIE=[IN.querySelector('.sl small'),$('picks'),$('dive'),IN.querySelector('.m4h')],IA=1,HA=1,HN=false,uiF=0,UR=null;
-function uiRects(){var f=function(e){var r=e.getBoundingClientRect();return[r.left,r.top,r.right,r.bottom]};
-  UR={head:f(HEAD),intro:f(IN),ui:UIE.map(f),hud:[].map.call(document.querySelectorAll('.hud a,.hud .crumb'),f)}}
+function uiRects(){var f=function(e){if(!e)return null;var r=e.getBoundingClientRect();return[r.left,r.top,r.right,r.bottom]};
+  UR={head:f(HEAD),intro:f(IN),ui:UIE.map(f).filter(Boolean),hud:[].map.call(document.querySelectorAll('.hud a,.hud .crumb'),f)}}
 function inR(x,y,r,m){return x>r[0]-m&&x<r[2]+m&&y>r[1]-m&&y<r[3]+m}
 function introStep(dt){if(!UR||(uiF++%30)===0)uiRects();
   var zf=Math.max(0,Math.min(1,(V.z-1.02)/.06)),k=Math.min(1,dt*7);IA+=((1-zf)-IA)*k;if(Math.abs(IA-(1-zf))<.004)IA=1-zf;
@@ -409,7 +427,10 @@ function nearUI(x,y){if(!UR)uiRects();if(inR(x,y,UR.head,22))return true;if(inR(
  a still hold (>=280 ms on sky/star) and release does nothing: it is how you stop the sweep. inside: tap = pause, swipe down = rise.
  a one-finger (or mouse/pen) drag that STARTS within 40 px of a strand = wind (sways + chimes) at every zoom, never pans;
  one that starts on empty sky = pan. two fingers = pinch-zoom + pan together. wheel zooms at the cursor. */
-var p0=null,TAPD=12,TAPT=400,TAPS=280,PT={},PZ=null,afterPinch=false;
+var p0=null,TAPD=12,TAPT=400,TAPS=280,PT={},PZ=null,afterPinch=false,PULL=null;
+function pullStep(dt){if(!PULL)return;var tx=PULL.rel?0:PULL.tx,ty=PULL.rel?0:PULL.ty;
+  if(reduced()){PULL.ox=tx;PULL.oy=ty;PULL.vx=0;PULL.vy=0}else{var wn=PULL.rel?10:16,ex=PULL.ox-tx,ey=PULL.oy-ty,k=Math.exp(-wn*dt),cx=PULL.vx+wn*ex,cy=PULL.vy+wn*ey;PULL.ox=tx+(ex+cx*dt)*k;PULL.oy=ty+(ey+cy*dt)*k;PULL.vx=(PULL.vx-wn*cx*dt)*k;PULL.vy=(PULL.vy-wn*cy*dt)*k}
+  if(PULL.rel&&Math.hypot(PULL.ox,PULL.oy)<.6&&Math.hypot(PULL.vx,PULL.vy)<2)PULL=null}
 function tnow(e){return REC?VT:e.timeStamp/1000}
 function pressMs(e){var d=(tnow(e)-p0.t0)*1000;return d>=0&&d<60000?d:performance.now()-p0.t}
 function nPT(){return Object.keys(PT).length}
@@ -431,22 +452,26 @@ function pinchEnd(t){PZ=null}
 cv.addEventListener('pointerdown',function(e){PT[e.pointerId]={x:e.clientX,y:e.clientY};try{cv.setPointerCapture(e.pointerId)}catch(x){}
   if(nPT()>=2){p0=null;afterPinch=true;if(zoomable()&&!PZ)pinchStart(tnow(e));return}
   if(afterPinch)return;
-  p0={x:e.clientX,y:e.clientY,t:performance.now(),t0:tnow(e),lx:e.clientX,ly:e.clientY,lt:tnow(e),sw:false,vx:0,vy:0,pan:false,orbit:false};
+  p0={x:e.clientX,y:e.clientY,t:performance.now(),t0:tnow(e),lx:e.clientX,ly:e.clientY,lt:tnow(e),sw:false,vx:0,vy:0,pan:false,orbit:false,pull:-1};
   if(mode==='in'||mode==='diving')p0.orbit=true;
-  else if(zoomable()&&!chHit(e.clientX,e.clientY,40))p0.pan=true;
+  else{var hs0=starHit(e.clientX,e.clientY,36);
+    if(hs0>=0&&STAR2K[hs0]&&skyProj[hs0]){p0.pull=hs0;p0.ax=skyProj[hs0][0];p0.ay=skyProj[hs0][1];PULL={si:hs0,ox:0,oy:0,vx:0,vy:0,tx:0,ty:0,rel:false};if(STAR2K[hs0]!==TK)pickTrack(STAR2K[hs0],true)}
+    else if(zoomable()&&!chHit(e.clientX,e.clientY,40))p0.pan=true}
   if(REC)fing={x:e.clientX,y:e.clientY,a:.5,on:true}});
 cv.addEventListener('pointermove',function(e){var P=PT[e.pointerId];if(P){P.x=e.clientX;P.y=e.clientY}if(fing){fing.x=e.clientX;fing.y=e.clientY}
   if(PZ){if(nPT()>=2&&zoomable())pinchMove(tnow(e));return}
   if(!p0)return;
   var sw0=p0.sw;if(!p0.sw&&Math.hypot(e.clientX-p0.x,e.clientY-p0.y)>=TAPD)p0.sw=true;
   var t=tnow(e),dt=Math.max(1/120,t-p0.lt),vx=(e.clientX-p0.lx)/dt,vy=(e.clientY-p0.ly)/dt;p0.vx=p0.vx*.4+vx*.6;p0.vy=p0.vy*.4+vy*.6;
-  if(p0.sw){if(p0.orbit||p0.pan){ORB.x=Math.max(-0.42,Math.min(0.42,ORB.x+(e.clientX-p0.lx)*0.004));ORB.y=Math.max(-0.26,Math.min(0.26,ORB.y+(e.clientY-p0.ly)*0.003))}
+  if(p0.sw){if(p0.pull>=0&&PULL){var dx=e.clientX-p0.ax,dy=e.clientY-p0.ay,mp=Math.min(W,H)*.30,ln=Math.hypot(dx,dy);if(ln>mp){dx*=mp/ln;dy*=mp/ln;ln=mp}PULL.tx=dx;PULL.ty=dy;setPullFilter((ln/mp)*(SND.fAmt/100))}
+    else if(p0.orbit||p0.pan){ORB.x=Math.max(-0.42,Math.min(0.42,ORB.x+(e.clientX-p0.lx)*0.004));ORB.y=Math.max(-0.26,Math.min(0.26,ORB.y+(e.clientY-p0.ly)*0.003))}
     else if(chActive()){var q=toBase(e.clientX,e.clientY);wind(q[0],q[1],p0.vx,p0.vy,Math.min(dt,.05))}}
   p0.lx=e.clientX;p0.ly=e.clientY;p0.lt=t});
 function cvUp(e){delete PT[e.pointerId];if(fing)fing.on=false;
   if(PZ&&nPT()<2)pinchEnd(tnow(e));
   if(afterPinch){if(nPT()===0)afterPinch=false;p0=null;return}
   if(!p0)return;var dy=e.clientY-p0.y,dx=e.clientX-p0.x,tap=Math.abs(dx)+Math.abs(dy)<TAPD,pd=pressMs(e),quick=pd<TAPT;
+  if(p0.pull>=0){if(PULL){PULL.rel=true;PULL.tx=0;PULL.ty=0}setPullFilter(0);if(!tap){p0=null;return}}
   if(p0.pan&&p0.sw){p0=null;return}
   if(chActive()){if(tap&&quick){var sq=pd<TAPS,hs=starHit(p0.x,p0.y,12),hc=chHit(p0.x,p0.y),hit=null;
       /* a tap on the strand just below its star (>= 11 px down) rings the strand, not the star */
@@ -475,7 +500,8 @@ addEventListener('resize',function(){rs();clampPan();uiRects()});if(document.fon
   function lab(el,v){el.setAttribute('aria-valuetext',Math.round(v*100)+'%');el.style.setProperty('--p',Math.round(v*100)+'%')}
   if(cv_){cv_.value=Math.round(VOL*100);lab(cv_,VOL);cv_.addEventListener('input',function(){var v=cv_.value/100;lab(cv_,v);setVol(v)})}
   if(cf_){cf_.value=Math.round(FL*100);lab(cf_,FL);cf_.addEventListener('input',function(){var v=cf_.value/100;lab(cf_,v);setFlash(v)})}
-  addEventListener('storage',function(e){if(e.key==='gj.vol'){var v=lsr('gj.vol',1);setVol(v,1);if(cv_){cv_.value=Math.round(v*100);lab(cv_,v)}}
+  addEventListener('storage',function(e){if(!e.key)return;if(e.key.indexOf('gj.sound.')===0)readSnd();
+    if(e.key==='gj.vol'){var v=lsr('gj.vol',1);setVol(v,1);if(cv_){cv_.value=Math.round(v*100);lab(cv_,v)}}
     if(e.key==='gj.flash'){var f=lsr('gj.flash',.6);setFlash(f,1);if(cf_){cf_.value=Math.round(f*100);lab(cf_,f)}}})})();
 pickTrack(TK);rs();if(Q.get('in')==='1')setTimeout(goIn,320);if(!REC)requestAnimationFrame(frame);else{last=0;tick(0,0)}
 var BOKS=(function(){var sz=96,c=document.createElement('canvas');c.width=c.height=sz;var x=c.getContext('2d'),gr=x.createRadialGradient(sz/2,sz/2,0,sz/2,sz/2,sz/2);
