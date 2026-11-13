@@ -99,26 +99,26 @@ export function mount(THREE, scene, ctx) {
   const water = new THREE.Mesh(new THREE.RingGeometry(6.68, 70, 96, 1), new THREE.MeshBasicMaterial({ color: 0x0a1218, transparent: true, opacity: .9, side: THREE.DoubleSide, depthWrite: true }));
   water.rotation.x = -Math.PI / 2; water.renderOrder = 1; g.add(water);
   const whorl = new THREE.Group(); g.add(whorl);
-  const housing = new THREE.Mesh(new THREE.RingGeometry(5.35, 6.7, 96), new THREE.MeshBasicMaterial({ color: 0xa8bcc4, transparent: true, opacity: .92, side: THREE.DoubleSide, depthWrite: false }));
+  const housing = new THREE.Mesh(new THREE.RingGeometry(5.35, 6.7, 96), new THREE.MeshBasicMaterial({ color: 0x607480, transparent: true, opacity: .55, side: THREE.DoubleSide, depthWrite: false }));
   housing.rotation.x = -Math.PI / 2; housing.position.y = LENS_Y + .02; housing.renderOrder = 3; whorl.add(housing);
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(6.7, 6.7, .9, 96, 1, true), new THREE.MeshBasicMaterial({ color: 0x5d6d74, transparent: true, opacity: .75, side: THREE.DoubleSide, depthWrite: false }));
   wall.position.y = .17; whorl.add(wall);
   const faceM = new THREE.MeshBasicMaterial({ color: 0x223040, transparent: true, opacity: 1, side: THREE.DoubleSide, depthWrite: false });
   const face = new THREE.Mesh(new THREE.CircleGeometry(5.36, 96), faceM); face.rotation.x = -Math.PI / 2; face.position.y = LENS_Y; face.renderOrder = 2; whorl.add(face);
-  tex('s2/p07-plan-dial', t => { faceM.map = t; faceM.color.set(0xffffff); faceM.needsUpdate = true });
+  tex('s2/p07-plan-dial', t => { faceM.map = t; faceM.color.set(0x9aabb4); faceM.needsUpdate = true });
   const ang = s => Math.PI / 2 - s / NS * 6.283;
   const tickPts = []; for (let i = 0; i < NS; i++) { const a = ang(i), r0 = 6.75, r1 = STOPS[i].show ? 7.7 : 7.35; tickPts.push(V(Math.cos(a) * r0, .64, -Math.sin(a) * r0), V(Math.cos(a) * r1, .64, -Math.sin(a) * r1)) }
   whorl.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(tickPts), new THREE.LineBasicMaterial({ color: 0xe6eef2, transparent: true, opacity: .6, depthWrite: false })));
   const glowS = (c, o, sc) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: ctx.glowTex, color: c, transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.scale.set(sc, sc, 1); return m };
-  const sun = glowS(0xffd58a, 1, 2.6); sun.renderOrder = 6; whorl.add(sun);
-  const sunCore = glowS(0xffffff, 1, .8); sunCore.renderOrder = 7; whorl.add(sunCore);
+  const sun = glowS(0xffd58a, .7, 2.1); sun.renderOrder = 6; whorl.add(sun);
+  const sunCore = glowS(0xffffff, .5, .6); sunCore.renderOrder = 7; whorl.add(sunCore);
   /* the sky sun and its ray down to the lens (new): the ray grows with the drag, KR */
   const skySun = glowS(0xfff0c8, 1, 9); skySun.renderOrder = 6; g.add(skySun);
-  const skyCore = glowS(0xffffff, 1, 2.4); g.add(skyCore);
+  const skyCore = glowS(0xffffff, .45, 1.7); g.add(skyCore);
   const rayU = { uR: { value: 0 }, uI: { value: 1 } };
   const ray = new THREE.Mesh(new THREE.CylinderGeometry(.06, 1.1, 1, 24, 32, true).translate(0, -.5, 0), new THREE.ShaderMaterial({ uniforms: rayU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
     vertexShader: 'varying float vY;varying vec3 vN;varying vec3 vV;void main(){vY=-position.y;vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
-    fragmentShader: 'uniform float uR,uI;varying float vY;varying vec3 vN;varying vec3 vV;void main(){float f=pow(abs(dot(vN,vV)),1.4);float lit=1.-smoothstep(uR-.03,uR,vY);float head=exp(-abs(vY-uR)*40.)*step(.02,uR)*(1.-step(.995,uR));float a=uI*f*(lit*(.35+.4*vY)+head*1.6);gl_FragColor=vec4(vec3(1.,.93,.75)*a,1.);}' }));
+    fragmentShader: 'uniform float uR,uI;varying float vY;varying vec3 vN;varying vec3 vV;void main(){float f=pow(abs(dot(vN,vV)),1.4);float lit=1.-smoothstep(uR-.03,uR,vY);float head=exp(-abs(vY-uR)*40.)*step(.02,uR)*(1.-step(.995,uR));float a=min(.22,uI*f*(lit*(.35+.4*vY)+head*.7));gl_FragColor=vec4(vec3(1.,.93,.75)*a,1.);}' }));
   ray.renderOrder = 8; g.add(ray);
   const lensGlow = glowS(0xfff0cc, 0, 7); lensGlow.position.y = LENS_Y + .1; lensGlow.renderOrder = 9; g.add(lensGlow);
   /* ---------- under: the cavern, the column, the fibre optics, the beam (v2, deepened) ---------- */
@@ -146,7 +146,7 @@ export function mount(THREE, scene, ctx) {
   const FU = { uF: { value: 0 }, uB: { value: .06 }, uRed: { value: 0 }, uInk: { value: new THREE.Vector3(1, 68 / 255, 87 / 255) } };
   const fibers = new THREE.LineSegments(fgeo, new THREE.ShaderMaterial({ uniforms: FU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: 'attribute float aT;varying float vT;void main(){vT=aT;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: 'uniform float uF,uB,uRed;uniform vec3 uInk;varying float vT;void main(){float lit=1.-smoothstep(uF-.004,uF+.004,vT);float head=exp(-abs(vT-uF)*55.)*step(.01,uF)*(1.-step(.999,uF));float bodyA=uB*.45+lit*(.1+.14*(1.-vT));float headA=head*.55;vec3 tip=mix(vec3(1.,.97,.9),uInk,uRed);gl_FragColor=vec4(vec3(.85,.98,1.)*bodyA+tip*headA,1.);}' }));
+    fragmentShader: 'uniform float uF,uB,uRed;uniform vec3 uInk;varying float vT;void main(){float lit=1.-smoothstep(uF-.004,uF+.004,vT);float head=exp(-abs(vT-uF)*55.)*step(.01,uF)*(1.-step(.999,uF));float bodyA=uB*.45+lit*(.1+.14*(1.-vT));float headA=head*.55;vec3 tip=mix(vec3(1.,.97,.9),uInk,uRed);gl_FragColor=vec4((vec3(.85,.98,1.)*bodyA+tip*headA)*.55,1.);}' }));
   fibers.material.userData.redEnds = 1; fibers.renderOrder = 7; g.add(fibers);
   const head = glowS(0xfff4d8, 0, 4.2); head.renderOrder = 9; g.add(head);
   const UB = { uI: { value: 0 }, uF: { value: 0 } };
@@ -300,7 +300,7 @@ export function mount(THREE, scene, ctx) {
       if (enter) { const u = Math.min(1, (now - enter.t0) / T_ENTER), k = EASE(u); cp.lerpVectors(enter.p, cp, k); cl.lerpVectors(enter.l, cl, k); if (u >= 1) { enter = null; settleAt = now } }
       cam.position.copy(cp); cam.up.set(0, 1, 0); if (Math.abs(cl.x - cp.x) < 1e-3 && Math.abs(cl.z - cp.z) < 1e-3) cl.z -= .01; cam.lookAt(cl); cam.updateMatrixWorld() }
     const camY = cam.position.y; under.visible = camY < .4;
-    faceM.opacity = Math.max(.16, Math.min(1, (Math.hypot(cam.position.x, cam.position.y - .6, cam.position.z) - 2.2) / 7)); housing.material.opacity = .5 + .42 * faceM.opacity;
+    faceM.opacity = Math.max(.16, Math.min(1, (Math.hypot(cam.position.x, cam.position.y - .6, cam.position.z) - 2.2) / 7)); housing.material.opacity = .22 + .18 * faceM.opacity;
     water.material.opacity = camY < 0 ? .98 : .9; wall.visible = camY > 0;
     [...planes, ...cards].forEach(m => { const d = Math.abs(sm - m.userData.stop), dd = Math.min(d, NS - d); let op = Math.max(0, 1 - dd / .85);
       if (ctx.fly && m.userData.base) { const sd = mod(sm - m.userData.stop + NS / 2, NS) - NS / 2, z = m.userData.d * (1 - .9 * sd); m.position.copy(m.userData.base).addScaledVector(m.userData.fwd, -sd * .9 * m.userData.d);

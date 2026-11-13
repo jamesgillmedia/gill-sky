@@ -1,6 +1,6 @@
 /* se3 standalone: v2's sky (starfield shader, FogExp2, PerspectiveCamera) around the Spirit Eye only. No chapter clusters, no orbit. */
-import * as SE from './spirit-eye.js?v=se3c';
-import * as ATMOS from '../../../../spaces/forest-garden/js/atmos.js?v=se-gf3';
+import * as SE from './spirit-eye.js?v=se3d';
+import * as ATMOS from '../../../../spaces/forest-garden/js/atmos.js?v=se-gf4';
 const html = document.documentElement, $ = s => document.querySelector(s);
 /* ---------- end gallery (parts/gallery/gallery.js behaviour: tap opens large; Back, Esc, browser Back return to the grid) ---------- */
 (function gallery() {
