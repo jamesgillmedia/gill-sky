@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>proto-sites · three directions · Gill Sky</title>
+<meta name="theme-color" content="#04070b">
+<style>
+@font-face{font-family:Poppins;font-weight:300;font-display:swap;src:url(../u4-opus-m4/media/pro2/fonts/poppins-300.woff2) format("woff2")}
+@font-face{font-family:"Julius Sans One";font-display:swap;src:url(../u4-opus-m4/media/pro2/fonts/julius-sans-one.woff2) format("woff2")}
+@font-face{font-family:Syl;font-weight:700;font-display:block;src:url(../u4-opus-m4/media/pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;background:#04070b;color:#eef3f5;font:300 14px/1.5 Poppins,system-ui,sans-serif}
+body{
+  background:
+    radial-gradient(80% 50% at 50% 0%, #121c2c 0%, #04070b 55%);
+  padding:max(20px,env(safe-area-inset-top)) 18px 40px;
+}
+header{max-width:920px;margin:0 auto 28px}
+.sig{font-family:Syl,sans-serif;font-weight:700;font-size:18px;text-decoration:none;color:#fff}
+h1{margin:14px 0 8px;font:400 clamp(26px,6vw,40px)/1.15 "Julius Sans One",sans-serif;letter-spacing:.08em}
+.lede{color:#c9d3d6;max-width:38rem}
+.grid{max-width:920px;margin:0 auto;display:grid;gap:14px}
+@media(min-width:720px){.grid{grid-template-columns:1fr 1fr 1fr}}
+a.card{
+  display:flex;flex-direction:column;justify-content:flex-end;
+  min-height:220px;padding:16px;text-decoration:none;color:inherit;
+  border:1px solid rgba(238,243,245,.14);border-radius:10px;position:relative;overflow:hidden;
+}
+a.card:hover{border-color:rgba(238,243,245,.35)}
+a.card .bg{position:absolute;inset:0;opacity:.9;pointer-events:none}
+a.card.ember .bg{background:radial-gradient(80% 70% at 40% 30%, #3a1a10, #0a0705)}
+a.card.plumb .bg{background:linear-gradient(180deg,#0c1822,#03060a)}
+a.card.chart .bg{background:radial-gradient(70% 60% at 50% 20%, #122038, #03050a)}
+a.card .txt{position:relative;z-index:1}
+a.card h2{font:400 20px/1.2 "Julius Sans One",sans-serif;letter-spacing:.1em;margin-bottom:6px}
+a.card p{color:#c9d3d6;font-size:12px}
+.note{max-width:920px;margin:22px auto 0;color:#9aa8b4;font-size:12px}
+.note code{color:#d5dde6}
+</style>
+</head>
+<body>
+<header>
+  <a class="sig" href="../u4-opus-m4/" lang="cr">ᑕᐣᓯ</a>
+  <h1>proto-sites</h1>
+  <p class="lede">Three original continuous-zoom directions. Shared base: film map→board, fusion mark, film→player, Photo B, mark list·contact·tune, Sound waveform that plays. Not Still / Dense / Tactile.</p>
+</header>
+<nav class="grid">
+  <a class="card ember" href="ember/">
+    <span class="bg" aria-hidden="true"></span>
+    <span class="txt">
+      <h2>ember</h2>
+      <p>Warm residual-glow dive — density as heat after soft settle.</p>
+    </span>
+  </a>
+  <a class="card plumb" href="plumb/">
+    <span class="bg" aria-hidden="true"></span>
+    <span class="txt">
+      <h2>plumb</h2>
+      <p>Depth-marked descent — you always know how deep you are.</p>
+    </span>
+  </a>
+  <a class="card chart" href="chart/">
+    <span class="bg" aria-hidden="true"></span>
+    <span class="txt">
+      <h2>chart</h2>
+      <p>Instrument star-chart — surveying densification as one sky.</p>
+    </span>
+  </a>
+</nav>
+<p class="note">Serve from repo root. Branch <code>preview-cursor-sites</code>. Writes only under <code>proto-sites/</code>.</p>
+</body>
+</html>

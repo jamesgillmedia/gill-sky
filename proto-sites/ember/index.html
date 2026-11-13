@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en" data-dir="ember">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="robots" content="noindex">
+<title>Ember · Gill Sky · proto</title>
+<meta name="theme-color" content="#140a06">
+<link rel="stylesheet" href="../_lib/shell.css">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<div id="app">
+  <div id="stage">
+    <canvas id="boardCv" class="board" aria-label="Film board: pinch or wheel to dive; double-click steps out"></canvas>
+    <canvas id="markCv" class="mark" aria-hidden="true"></canvas>
+    <button type="button" id="markHit" class="mark-hit" aria-label="open mark menu"></button>
+    <div id="markMenu" class="mark-menu" role="menu">
+      <button type="button" id="btnList" role="menuitem">list</button>
+      <button type="button" id="btnContact" role="menuitem">contact</button>
+      <button type="button" id="btnTune" role="menuitem">tune</button>
+    </div>
+    <header class="top">
+      <a class="sig" href="../" lang="cr" aria-label="proto sites">ᑕᐣᓯ</a>
+      <span class="crumb">ember</span>
+      <span class="spacer"></span>
+      <a class="link" id="navFilm" href="#film">film</a>
+      <a class="link" id="navPhoto" href="#photo">photo</a>
+    </header>
+    <button type="button" class="door" id="doorExplore" title="tile exploration entry — not the menu path">explore tiles</button>
+    <p class="hint" id="hint"><b>pinch in</b> · wheel to dive</p>
+    <div class="sound-dock" id="soundDock" aria-label="Sound waveform player">
+      <div id="waveMount"></div>
+    </div>
+  </div>
+
+  <section id="player" class="player" aria-label="Film player">
+    <div class="ph">
+      <button type="button" class="back" id="playerBack" aria-label="back">‹</button>
+      <h1 id="playerTitle"></h1>
+      <p class="role" id="playerRole"></p>
+    </div>
+    <div class="frame" id="playerFrame"></div>
+    <p class="meta" id="playerMeta"></p>
+  </section>
+
+  <section id="photoView" class="photo-view" aria-label="Photo">
+    <button type="button" class="close" id="photoClose">close</button>
+    <h1>photo</h1>
+    <div class="photo-grid" id="photoGrid"></div>
+  </section>
+
+  <section id="explore" class="explore" aria-label="Tile exploration">
+    <button type="button" class="close" id="exploreClose">close</button>
+    <div class="tiles" id="exploreTiles"></div>
+  </section>
+
+  <section id="panelList" class="panel" aria-label="List">
+    <button type="button" class="close">close</button>
+    <h1>list</h1>
+    <div class="list-links" id="listLinks"></div>
+  </section>
+
+  <section id="panelContact" class="panel" aria-label="Contact">
+    <button type="button" class="close">close</button>
+    <h1>contact</h1>
+    <p><a id="contactMail" href="mailto:imjamesgill@gmail.com">imjamesgill@gmail.com</a></p>
+  </section>
+
+  <section id="panelTune" class="panel" aria-label="Tune">
+    <button type="button" class="close">close</button>
+    <div id="tuneMount"></div>
+  </section>
+
+  <section id="panelObjects" class="panel" aria-label="Objects">
+    <button type="button" class="close">close</button>
+    <h1>objects</h1>
+    <div id="objectsView"></div>
+  </section>
+
+  <section id="panelSpaces" class="panel" aria-label="Spaces">
+    <button type="button" class="close">close</button>
+    <h1>spaces</h1>
+    <div id="spacesView"></div>
+  </section>
+
+  <section id="panelAbout" class="panel" aria-label="About">
+    <button type="button" class="close">close</button>
+    <h1>about</h1>
+    <div id="aboutView"></div>
+  </section>
+
+  <section id="panelAboutBody" class="panel" aria-label="Poem">
+    <button type="button" class="close">close</button>
+    <h1>poem</h1>
+    <div id="aboutBody"></div>
+  </section>
+</div>
+<script src="../_lib/mark.js"></script>
+<script src="../_lib/tune.js"></script>
+<script src="../_lib/waveform.js"></script>
+<script src="../_lib/film-board.js"></script>
+<script src="../_lib/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,76 @@
+/* EMBER — warm residual-glow continuous dive.
+   Emphasizes soft materializing light after each settle (Lusion/Igloo taste),
+   density as heat: sparse cool night → snap blooms warm → one work. */
+:root{
+  --bg:#0a0705;
+  --ink:#f4ebe3;
+  --dim:#c9b5a4;
+  --mint:#d4a574;
+  --accent:255,160,96;
+  --mark-rgb:255,220,190;
+  --wave-rgb:255,186,140;
+  --obj-rgb:255,210,170;
+  --panel:rgba(18,10,6,.9);
+}
+html,body{
+  background:
+    radial-gradient(90% 70% at 50% 18%, #2a140c 0%, transparent 55%),
+    radial-gradient(120% 90% at 70% 80%, #1a0c08 0%, #0a0705 60%);
+  color:var(--ink);
+}
+#stage canvas.board{background:transparent}
+.hint b{color:#ffd2a8}
+.top .link{border-color:rgba(255,200,150,.18)}
+.top .link:hover{border-color:rgba(255,200,150,.4);color:#ffe8d2}
+.sound-dock{
+  background:rgba(22,12,8,.78);
+  border-color:rgba(255,180,120,.18);
+  box-shadow:0 -8px 40px rgba(255,100,40,.06);
+}
+.gs-wave-play[aria-pressed="true"]{border-color:#e8b48a;color:#e8b48a}
+.mark-menu{border-color:rgba(255,190,140,.22);background:rgba(22,12,8,.92)}
+.player .role{color:#e8b48a}
+.photo-view{
+  background:
+    radial-gradient(100% 70% at 50% 20%, #1c100c 0%, #0a0705 65%);
+}
+/* soft ember bloom when deep */
+html[data-journey="2"] #stage::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:5;
+  background:radial-gradient(50% 40% at 50% 45%, rgba(255,120,50,.07), transparent 70%);
+}
+html[data-journey="0"] .mark-hit{width:140px;height:140px;margin:-70px}
+.spaces-dial{
+  position:relative;height:220px;border-radius:50%;
+  margin:12px auto;max-width:220px;
+  background:radial-gradient(circle at 50% 40%, rgba(255,180,100,.2), transparent 60%);
+  overflow:hidden;
+}
+.spaces-light{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  opacity:calc(0.35 + var(--glow, .5) * 0.5);
+  filter:none;
+}
+.spaces-knob{width:100%;max-width:280px;accent-color:#e8b48a}
+.spaces-lab,.spaces-list{color:var(--dim);margin-top:10px;max-width:32rem}
+.spaces-list{list-style:none;padding:0}
+.spaces-list li{padding:6px 0;border-bottom:1px solid rgba(255,200,150,.1)}
+.objects-cv{width:100%;display:block}
+.objects-list{list-style:none;margin-top:8px;columns:2;gap:16px;color:var(--dim);font-size:12px}
+.about-calc{
+  max-width:280px;padding:14px;border:1px solid rgba(255,190,140,.25);
+  border-radius:12px;background:rgba(20,10,6,.7);
+}
+.about-display{
+  min-height:48px;padding:12px;margin-bottom:10px;
+  font:400 18px/1.3 "Julius Sans One",sans-serif;letter-spacing:.08em;
+  background:rgba(0,0,0,.35);border-radius:8px;
+}
+.about-pad{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.about-pad button{
+  min-height:44px;border:1px solid rgba(255,190,140,.25);border-radius:8px;color:var(--ink);
+}
+@media(prefers-reduced-motion:reduce){
+  html[data-journey="2"] #stage::after{opacity:1}
+}
