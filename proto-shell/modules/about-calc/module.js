@@ -156,7 +156,8 @@ function drawGlitch3(t){
     if(s.k==='l')x2.drawImage(c,0,0,2,bh,0,0,sc.width,sc.height);
     else if(s.k==='r')x2.drawImage(c,bw-2,0,2,bh,0,0,sc.width,sc.height);
     else if(s.k==='t')x2.drawImage(c,0,0,bw,2,0,0,sc.width,sc.height);
-    else x2.drawImage(c,0,bh-2,bw,2,0,0,sc.width,sc.height)});
+    else if(s.k==='b')x2.drawImage(c,0,bh-2,bw,2,0,0,sc.width,sc.height);
+    else{var hh=O.ch*k/2,cx=s.k.charAt(1)==='l'?hh:bw-hh,cy=s.k.charAt(0)==='t'?hh:bh-hh;x2.drawImage(c,Math.max(0,cx-1),Math.max(0,cy-1),2,2,0,0,sc.width,sc.height)}});
   g.clearRect(fx,fy,fw,fh);
 }
 /* the 3D face crop: the whole calculator band of the clip, without the clip's black top (0-13%) or the phone-camera zoom pills (from 80%).
@@ -170,7 +171,11 @@ function wellLayout(){
   var y0=(vh*0.40-c.sy)/c.sh,y1=(vh*0.565-c.sy)/c.sh,x0=Math.max(0.05,(vw*0.06-c.sx)/c.sw),x1=Math.min(0.95,(vw*0.99-c.sx)/c.sw);
   O.well={x:x0*O.w,y:y0*O.h,w:(x1-x0)*O.w,h:(y1-y0)*O.h};
   var s=O.el.style;s.setProperty('--dx',O.well.x+'px');s.setProperty('--dy',O.well.y+'px');s.setProperty('--dw',O.well.w+'px');s.setProperty('--dh',O.well.h+'px');
-  s.setProperty('--wf',clamp(O.well.h/4.2,9,24).toFixed(1)+'px');
+  /* layer 1's words sit left of the photo's own green digits (measured: they start at 0.497 of the clip width), never over them:
+     the words get the part of the display left of that, and the type is sized so the longest line ('I am an artist') fits in it */
+  var dg=(vw*0.477-c.sx)/c.sw,fr=clamp((dg-x0)/(x1-x0),0.3,1),room=O.well.w*fr-16;
+  s.setProperty('--ww',(fr*100).toFixed(1)+'%');
+  s.setProperty('--wf',Math.min(clamp(O.well.h/4.2,9,24),Math.max(8,room/7.6)).toFixed(1)+'px');
   /* four boxes: 2 x 2 under the display, to 95% */
   var top=(y1+0.035),gap=0.03,bxw=(0.88-gap)/2,byh=(0.95-top-gap)/2;
   O.boxes.forEach(function(b,i){var cx=i%2,cy=(i/2)|0;b.style.setProperty('--bx',(6+cx*(bxw+gap)*100)+'%');b.style.setProperty('--by',((top+cy*(byh+gap))*100)+'%');
@@ -290,7 +295,7 @@ function build3(){
   var w=document.createElement('div');w.className='ac3';w.setAttribute('aria-hidden','false');
   w.innerHTML='<div class="ac3-obj" role="img" aria-label="the calculator">'+
     '<div class="ac3-back"></div>'+
-    ['l','r','t','b'].map(function(k){return '<div class="ac3-side '+k+'"><canvas width="'+(k==='l'||k==='r'?8:96)+'" height="'+(k==='l'||k==='r'?96:8)+'"></canvas><i></i></div>'}).join('')+
+    ['l','r','t','b','tl','tr','br','bl'].map(function(k){var v=k==='l'||k==='r'||k.length===2;return '<div class="ac3-side '+k+'"><canvas width="'+(v?8:96)+'" height="'+(v?96:8)+'"></canvas><i></i></div>'}).join('')+
     '<div class="ac3-face"><canvas></canvas></div><div class="ac3-bevel"></div>'+
     '<div class="ac3-well"><div class="ac3-floor"><canvas></canvas></div><div class="ac3-wall t"></div><div class="ac3-wall b"></div><div class="ac3-wall l"></div><div class="ac3-wall r"></div><div class="ac3-words"></div></div>'+
     '<div class="ac3-box"></div><div class="ac3-box"></div><div class="ac3-box"></div><div class="ac3-box"></div>'+
@@ -310,13 +315,21 @@ function layout3(){
   var ar=aspect3(),avH=Math.max(200,bot-top),h=Math.min(avH*0.88,(W*0.80)/ar),w=Math.round(h*ar);h=Math.round(w/ar);
   O.w=w;O.h=h;var s=O.el.style;
   s.setProperty('--w',w+'px');s.setProperty('--h',h+'px');s.setProperty('--top',(top+avH/2)+'px');s.setProperty('--r',Math.round(w*0.03)+'px');
+  O.ch=Math.round(Math.min(w,h)*0.05);s.setProperty('--ch',O.ch+'px');cornerPlanes();
   O.crop=null;wellLayout();applyTune();
+}
+/* the four corner planes close the body behind each chamfer: each stands on the cut's diagonal, facing out at 45 degrees */
+function cornerPlanes(){
+  var w=O.w,h=O.h,c=O.ch,d=val('depth'),R=[['tl',-45,-w/2+c/2,-h/2+c/2],['tr',45,w/2-c/2,-h/2+c/2],['br',135,w/2-c/2,h/2-c/2],['bl',-135,-w/2+c/2,h/2-c/2]];
+  O.sides.forEach(function(sd){var r=R.filter(function(q){return q[0]===sd.k})[0];if(!r)return;
+    var t=r[1]*Math.PI/180,nx=Math.sin(t),ny=-Math.cos(t),L=nx*r[2]+ny*r[3],fx=r[2]-L*nx,fy=r[3]-L*ny,sx=fx*Math.cos(t)+fy*Math.sin(t);
+    sd.el.style.transform='rotateZ('+r[1]+'deg) rotateX(90deg) translate3d('+sx.toFixed(2)+'px,0,'+L.toFixed(2)+'px)'});
 }
 function applyTune(){
   if(!O.el)return;var s=O.el.style,d=val('depth'),L=val('light')*Math.PI/180;
   s.setProperty('--d',d+'px');s.setProperty('--rd',Math.max(2,Math.round(d*0.28))+'px');
   s.setProperty('--la',(val('light')+180)+'deg');
-  var lx=Math.sin(L),ly=-Math.cos(L),N={l:[-1,0],r:[1,0],t:[0,-1],b:[0,1]};
+  var lx=Math.sin(L),ly=-Math.cos(L),N={l:[-1,0],r:[1,0],t:[0,-1],b:[0,1],tl:[-.707,-.707],tr:[.707,-.707],br:[.707,.707],bl:[-.707,.707]};
   O.sides.forEach(function(sd){var n=N[sd.k],lit=n[0]*lx+n[1]*ly;sd.i.style.opacity=clamp(0.55-0.4*lit,0.12,0.92).toFixed(2)});
   O.boxes.forEach(function(b,i){b.style.setProperty('--bz',((2+i*1.5)*d/22).toFixed(1)+'px')});
   rest();

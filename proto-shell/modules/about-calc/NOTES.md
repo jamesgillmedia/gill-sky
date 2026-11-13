@@ -1,4 +1,4 @@
-# about-calc · the About / bio calculator, 2D or 3D (proto-shell module, local only, nothing pushed)
+# about-calc · the About / bio calculator, 2D or 3D (proto-shell module)
 
     python3 -m http.server 8811 --bind 127.0.0.1 --directory /workspace/proto-shell-1112
     http://127.0.0.1:8811/?m=about-calc&at=about/board&v=A    2D, the m4 flat calculator as it is
@@ -35,15 +35,19 @@ under "about · board here". The 2D / 3D toggle is injected into that section by
 toggle spec. It drives the lab pills, so ?v= stays in sync. Glitch speed scales the glitch clock in both A and B. At 100 the
 behaviour is m4.
 
-## Core changes needed (not made; another worker owns core)
-1. tune.js rowFromSpec: support a segmented toggle spec, e.g. {k:'view', seg:[['A','2D'],['B','3D']], set(v)}, so the MutationObserver injection can go.
-2. A module back hook (M.back() → consumed) checked by ladder.out, settle (pinch-out) and popstate. The module currently wraps
-   sh.ladder.out at runtime, so pinch-out and browser Back skip the layer-by-layer steps and the moon exit.
-3. A module "in" hook (M.inAt) so a pinch-in or wheel-in at a stop with no deeper level steps a layer, like the m4 depth pinch.
-   Today only a tap steps deeper.
-4. lab.js claims ← / →, so m4's arrow-key layer stepping is not ported.
-5. Tune context header reads "about · board". levelName 'bio' isn't used by tune.js ctx().
-6. README module list: add `?m=about-calc`.
+## Core hooks (built into the core; the module's workarounds are gone)
+1. Tune menu toggle spec: `{type:'toggle', k, label, options:[['A','2D · flat'],['B','3D · object']], get(), set(v)}`. The 2D / 3D toggle is the first row of 'bio here'.
+2. `M.back()`: ‹, Esc, double tap, pinch-out and browser Back all ask it first (ladder.out, the pinch-out settle, popstate). A consumed Back puts the history step back.
+3. `M.inAt()`: a pinch-in past the deepest stop (ratio 1.18, as m4's depth pinch), a wheel-in and Enter / + step a layer; the camera glides back to its stop.
+4. `M.arrow(dir)`: Left / Right step layers while the calculator is up. Shift + Left / Right (and the A / B keys and pills) still switch A / B.
+5. `M.tuneTitle(st)`: the tune header reads 'bio'.
+6. README lists ?m=about-calc.
+Red mode: the core theme maps this module's CSS (text, panels, rail) to red; the calculator's photo face, its sides, the display wall and the moon grid keep their real colour.
+
+## Polish done
+- Layer 1's words sit to the left of the photo's green digits (measured at 0.497 of the clip width) and are sized to fit there.
+- The edge is cut: the face, bevel and back are chamfered octagons and four corner planes close the body behind the cuts.
+- The closed boxes' 7.5 px text is left as texture on purpose until a box opens.
 
 ## Weight
 module.js 26 KB, calc.css 10 KB, layers.js 5 KB: 41 KB raw, 14.6 KB gzip, no library. Media is 1.07 MB, the same two clips m4 ships.
