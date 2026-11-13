@@ -22,6 +22,9 @@
  transition:transform .56s cubic-bezier(.22,.7,.2,1) calc(var(--i,0) * 38ms),opacity .3s linear calc(var(--i,0) * 38ms)}
 #markmenu.mm-in .mm-3d>nav,#markmenu.mm-in .mm-plate>*{transform:translateZ(var(--z,0px));opacity:1}
 #markmenu.mm-folding .mm-3d>nav,#markmenu.mm-folding .mm-plate>*{transition:transform .38s cubic-bezier(.5,0,.75,.3) calc((var(--n,8) - var(--i,0)) * 22ms),opacity .26s linear calc((var(--n,8) - var(--i,0)) * 22ms)}
+/* the + beside the mark opens the drawer. 44px so a thumb hits it without covering the mark. */
+#marktune,.mm-tune-btn{box-sizing:border-box;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;padding:0;border:0;background:transparent;color:#e8e4dc;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;font:400 22px/44px "Julius Sans One",Poppins,sans-serif;letter-spacing:0;line-height:1;-webkit-tap-highlight-color:transparent}
+#crumb{display:flex;align-items:center;justify-content:center}
 /* the mark itself turns in 3D as the drawer comes out of it, and turns back as it folds in */
 #crumb .sig,#omark,.lab-top .sig,[data-tn-mark]{display:inline-block;transform-origin:50% 60%;transition:transform .56s cubic-bezier(.22,.7,.2,1),text-shadow .56s linear}
 html.mm-open #crumb .sig,html.mm-open #omark,html.mm-open .lab-top .sig,html.mm-open [data-tn-mark]{transform:perspective(160px) rotateY(-34deg) rotateX(18deg) translateZ(6px);text-shadow:0 0 10px rgba(232,228,220,.55)}

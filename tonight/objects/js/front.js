@@ -159,7 +159,7 @@
     if (o && o.S && o.S.lv !== 'board') { o.toBoard(); setTimeout(function () { boardEl.scrollTo({ top: 0 }) }, 700); return } boardEl.scrollTo({ top: 0, behavior: 'smooth' }) }
   $('omark').addEventListener('click', function (e) {
     e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-    if (window.GJ_MARKMENU) { GJ_MARKMENU.toggle(); return }
+    if (window.GJ_MARKMENU && GJ_MARKMENU.open) { GJ_MARKMENU.show(false); return }
     if (atFront()) toSky(); else toFront();
   }, true);
   /* Esc at the front, with nothing open: out to the star you came from (one level out). Inside, Esc still rises one layer. */

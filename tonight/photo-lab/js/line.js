@@ -98,6 +98,7 @@ window.__line={get prints(){return PR.map(function(q){var r=q.el.getBoundingClie
 (function(){var m=document.querySelector('.lab-top .sig');if(!m)return;
   function sky(){if(window.TN_HANDOFF)TN_HANDOFF.out();location.href='../constellation-blend/#back'}
   m.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+    if(window.GJ_MARKMENU&&GJ_MARKMENU.open){GJ_MARKMENU.show(false);return}
     var t=LAB.layer.top();
     /* the contact sheet is the root (no layer). One step to the line, never straight to the sky. */
     if(!t){if(LAB.rooms)LAB.rooms.enter(null);return}

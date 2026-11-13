@@ -52,11 +52,11 @@
       if (b.dataset.th && w.GJ_THEME) w.GJ_THEME.set(b.dataset.th); if (b.dataset.v) w.GJ_VARIANT.set(b.dataset.v); paint() });
     document.addEventListener('pointerdown', function (e) { if (open && !e.target.closest('#sptune')) setOpen(false) }, true);
     addEventListener('keydown', function (e) { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopImmediatePropagation(); setOpen(false); tuneBtn.focus() } }, true);
-    /* inside the gallery the mark closes the viewer; otherwise it opens the tune drawer */
+    /* inside the gallery the mark closes the viewer (one level up). Otherwise the tap leaves, the same as every other room. The + beside the mark opens the drawer. */
     sig.addEventListener('click', function (e) {
-      if (w.__gal && w.__gal.isOpen) { var b = document.getElementById('gback'); if (b) b.click(); return }
-      e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-      if (w.GJ_MARKMENU) w.GJ_MARKMENU.toggle();
+      if (e.target.closest && e.target.closest('#marktune,.mm-tune-btn')) return;
+      if (w.__gal && w.__gal.isOpen) { var b = document.getElementById('gback'); if (b) { b.click(); e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); return } }
+      if (w.GJ_MARKMENU && w.GJ_MARKMENU.open) { w.GJ_MARKMENU.show(false); e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation(); return }
     }, true);
     bindMenu();
     strip.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || !w.__se) return; var S = w.__se.SEC, i = S.STOPS.findIndex(function (s) { return s.k === b.dataset.k }); if (i >= 0) S.go(i, true) });

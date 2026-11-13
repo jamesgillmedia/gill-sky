@@ -178,7 +178,7 @@ function safelight(){
   var on=G&&+G.get('safelight')===1,k=G?Math.max(0,Math.min(100,+G.get('safeK')))/100:0.6;
   el.hidden=!on;el.style.setProperty('--safe',on?String(k):'0');
 }
-function outside(e){return !e.target.closest('#markmenu,'+MARK)}
+function outside(e){return !e.target.closest('#markmenu,'+MARK+',#marktune,.mm-tune-btn')}
 function build(){
   menu=document.createElement('div');menu.id='markmenu';menu.hidden=true;menu.setAttribute('role','dialog');menu.setAttribute('aria-label','the mark menu');
   menu.className='dv-'+DV;
@@ -362,7 +362,8 @@ function reset(){
 function show(on){
   if(!menu)build();
   var was=open;open=!!on;
-  var s=markEl();if(s)s.setAttribute('aria-expanded',open?'true':'false');
+  [].forEach.call(document.querySelectorAll('#marktune,.mm-tune-btn'),function(b){b.setAttribute('aria-expanded',open?'true':'false')});
+  var s=markEl();if(s&&s.hasAttribute('aria-expanded'))s.setAttribute('aria-expanded',open?'true':'false');
   document.documentElement.classList.toggle('mm-open',open);
   clearTimeout(foldT);
   if(open){
@@ -398,6 +399,28 @@ function addVariant(room,row){
 }
 var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();hookLadder();return}if(++tries<40)setTimeout(wait,50);else{restore();hookLadder()}})();
 if(window.GJ_THEME)GJ_THEME.on(function(w){if(w!=='adj'&&open&&tuneOn)paint()});
+/* The + beside the mark opens the drawer. Rooms that already have #marktune keep it.
+   The mark itself is one step up; this control is the only thing that opens the drawer. */
+function armTune(){
+  [].forEach.call(document.querySelectorAll(MARK),function(m){
+    if(!m.parentNode)return;
+    if(m.parentNode.querySelector('#marktune,.mm-tune-btn'))return;
+    var b=document.createElement('button');
+    b.type='button';b.className='mm-tune-btn';
+    if(!document.getElementById('marktune'))b.id='marktune';
+    b.setAttribute('aria-label','drawer');
+    b.setAttribute('aria-haspopup','dialog');
+    b.setAttribute('aria-expanded','false');
+    b.textContent='+';
+    b.addEventListener('click',function(e){
+      e.preventDefault();e.stopPropagation();
+      if(e.stopImmediatePropagation)e.stopImmediatePropagation();
+      show(!open);
+    },true);
+    m.insertAdjacentElement('afterend',b);
+  });
+}
+var tuneN=0;(function tuneWait(){armTune();if(++tuneN<40)setTimeout(tuneWait,100)})();
 window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},
   variant:addVariant,
   context:function(){return ctx()},
