@@ -7,15 +7,22 @@
    lit panes. The waveform rail is drawn at full brightness, always. Nothing advances on its own: a track stops at its end. */
 (function(w){'use strict';
 var d=document,D=w.LC,au=new Audio();au.preload='metadata';au.crossOrigin='anonymous';
-var T=null,N=1,AC=null,AN=null,GN=null,FD=null,TD=null,SP=1,FAR=64,K=26,listeners=[];
+var T=null,N=1,AC=null,AN=null,GN=null,TG=null,MN=null,MD=null,FD=null,TD=null,SP=1,FAR=64,K=26,listeners=[];
+var TV={};
 function lsr(k,v){try{var x=parseFloat(localStorage.getItem(k));return isFinite(x)?Math.max(0,Math.min(1,x)):v}catch(e){return v}}
 var VOL=lsr('gj.vol',1),FL=lsr('gj.flash',.6),DIM=.35+.65*FL;
 var L={rms:0,low:0,mid:0,high:0,beat:0,avgLow:.2,lastBeat:0};
+function trackVol(id){return id in TV?TV[id]:1}
 function initAudio(){if(AC)return;var C=w.AudioContext||w.webkitAudioContext;if(!C)return;AC=new C();var src=AC.createMediaElementSource(au);
-  AN=AC.createAnalyser();AN.fftSize=512;AN.smoothingTimeConstant=.72;GN=AC.createGain();GN.gain.value=VOL;src.connect(AN);AN.connect(GN);GN.connect(AC.destination);
+  AN=AC.createAnalyser();AN.fftSize=512;AN.smoothingTimeConstant=.72;TG=AC.createGain();TG.gain.value=T?trackVol(T.id):1;GN=AC.createGain();GN.gain.value=VOL;
+  src.connect(AN);AN.connect(TG);TG.connect(GN);GN.connect(AC.destination);
+  MN=AC.createAnalyser();MN.fftSize=512;GN.connect(MN);MD=new Uint8Array(MN.fftSize);
   FD=new Uint8Array(AN.frequencyBinCount);TD=new Uint8Array(AN.fftSize)}
+function arm(){initAudio();if(AC&&AC.state==='suspended')return AC.resume()}
 function setFlash(v){FL=v;DIM=.35+.65*v;try{localStorage.setItem('gj.flash',v)}catch(e){}}
-function setVol(v){VOL=v;if(GN)GN.gain.setTargetAtTime(v,AC.currentTime,.05);else au.volume=v;try{localStorage.setItem('gj.vol',v)}catch(e){}}
+function setVol(v){VOL=Math.max(0,Math.min(1,+v));if(GN)GN.gain.setTargetAtTime(VOL,AC.currentTime,.05);else au.volume=VOL;try{localStorage.setItem('gj.vol',VOL)}catch(e){}}
+function setTrackVol(id,v){v=Math.max(0,Math.min(1,+v));TV[id]=v;if(T&&T.id===id&&TG)TG.gain.setTargetAtTime(v,AC.currentTime,.03)}
+function postRms(){if(!MN)return 0;MN.getByteTimeDomainData(MD);var s=0,i;for(i=0;i<MD.length;i++){var v=(MD[i]-128)/128;s+=v*v}return Math.sqrt(s/MD.length)}
 var ripples=[];
 function listen(now){if(!AN||au.paused){L.rms*=.94;L.low*=.94;L.mid*=.94;L.high*=.94;L.beat*=.9;return}AN.getByteFrequencyData(FD);AN.getByteTimeDomainData(TD);post(now,AC.sampleRate)}
 function post(now,sr){var s=0;for(var i=0;i<TD.length;i++){var v=(TD[i]-128)/128;s+=v*v}
@@ -37,13 +44,13 @@ var IMG={};function imgs(t){if(IMG[t.id])return IMG[t.id];var a=[t.cover].concat
 /* ---------- tracks + transport ---------- */
 var camZ=0,tz=0,tw=0,PUSH=0,dragging=false;
 function load(id){var t=null;D.tracks.forEach(function(x){if(x.id===id)t=x});if(!t||t===T)return T;T=t;N=t.pk6.length;TINT=t.tint;imgs(t);
-  au.pause();au.src=t.src;au.load();camZ=tz=0;ripples.length=0;fire('track');return T}
+  au.pause();au.src=t.src;au.load();camZ=tz=0;ripples.length=0;if(TG&&AC)TG.gain.setTargetAtTime(trackVol(t.id),AC.currentTime,.03);fire('track');return T}
 function play(){if(!T)return;initAudio();if(AC&&AC.state==='suspended')AC.resume();au.play().catch(function(){});}
 function pause(){au.pause()}
 function toggle(){au.paused?play():pause()}
 function seek(t){t=Math.max(0,Math.min(dur()-.05,t));try{au.currentTime=t}catch(e){}tz=ringAt(t);fire('seek')}
 ['play','pause','ended','loadedmetadata'].forEach(function(e){au.addEventListener(e,function(){fire(e)})});
-function on(f){listeners.push(f)}function fire(e){listeners.forEach(function(f){f(e)})}
+function on(f){listeners.push(f)}function fire(e){listeners.forEach(function(f){f(e)});if(e==='track'&&w.GJ_DIAL&&GJ_DIAL.relayout)GJ_DIAL.relayout()}
 /* ---------- stages: any canvas can host the tunnel ---------- */
 var stages=[],rails=[];
 function stage(cv,opt){var s={cv:cv,g:cv.getContext('2d'),o:opt||{},prev:null,W:0,H:0,DPR:1,alpha:1};
@@ -108,10 +115,10 @@ function tune(parent,cls){var t=d.createElement('div');t.className='lv-tune '+(c
   t.innerHTML='<label><span>vol</span><input type="range" min="0" max="1" step="0.01" value="'+VOL+'" data-k="vol" aria-label="volume"></label><label><span>flash</span><input type="range" min="0" max="1" step="0.01" value="'+FL+'" data-k="flash" aria-label="flash"></label>';
   parent.appendChild(t);
   t.querySelectorAll('input').forEach(function(inp){var k=inp.dataset.k,last={x:0,y:0};
-    inp.addEventListener('pointerdown',function(e){last={x:e.clientX,y:e.clientY};ghost(inp,k)});
+    inp.addEventListener('pointerdown',function(e){last={x:e.clientX,y:e.clientY};arm();ghost(inp,k)});
     inp.addEventListener('pointermove',function(e){if(e.buttons)last={x:e.clientX,y:e.clientY}});
     inp.addEventListener('input',function(){var v=+inp.value;if(k==='vol')setVol(v);else setFlash(v);ghost(inp,k)});
-    function ghost(i,k){if(w.GJ_DIAL)GJ_DIAL.update({name:k,min:0,max:1,def:k==='vol'?1:.6,value:+i.value,x:last.x,y:last.y})}
+    function ghost(i,k){if(w.GJ_DIAL)GJ_DIAL.update({name:k,min:0,max:1,def:k==='vol'?1:.6,value:+i.value,x:last.x,y:last.y,el:i})}
     function letGo(){if(w.GJ_DIAL)GJ_DIAL.release()}
     inp.addEventListener('pointerup',letGo);inp.addEventListener('pointercancel',letGo);inp.addEventListener('change',letGo)});
   return t}
@@ -126,6 +133,6 @@ function frame(now){requestAnimationFrame(frame);var dt=Math.min(.05,(now-last)/
 requestAnimationFrame(frame);
 addEventListener('resize',function(){stages.forEach(function(s){s.resize()})});
 function mmss(s){s=Math.max(0,s|0);return(s/60|0)+':'+('0'+s%60).slice(-2)}
-w.LV={au:au,load:load,play:play,pause:pause,toggle:toggle,seek:seek,dur:dur,stage:stage,rail:rail,tune:tune,on:on,L:L,cur:function(){return T},mmss:mmss,
+w.LV={au:au,load:load,play:play,pause:pause,toggle:toggle,seek:seek,dur:dur,stage:stage,rail:rail,tune:tune,on:on,L:L,cur:function(){return T},mmss:mmss,arm:arm,setVol:setVol,setTrackVol:setTrackVol,trackVol:trackVol,postRms:postRms,vol:function(){return VOL},
   unstage:function(s){var i=stages.indexOf(s);if(i>=0)stages.splice(i,1)},unrail:function(r){var i=rails.indexOf(r);if(i>=0)rails.splice(i,1)}};
 })(window);

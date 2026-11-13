@@ -52,7 +52,7 @@ d.addEventListener('keydown',function(e){if(e.key==='Escape'){if(R.escHook&&R.es
 /* ---------- swipe ---------- */
 function swipe(target,cb,opt){opt=opt||{};var s=null,multi=false;
   /* a gesture that ever had two fingers is a pinch, never a swipe */
-  target.addEventListener('touchstart',function(e){if(e.touches.length!==1){multi=true;s=null;return}if(multi)return;var t=e.touches[0];s={x:t.clientX,y:t.clientY,t:performance.now()}},{passive:true});
+  target.addEventListener('touchstart',function(e){if(e.touches.length!==1){multi=true;s=null;return}if(multi)return;var n=e.target;if(n&&n.closest&&n.closest('input,.b-fader,.lv-tune'))return;var t=e.touches[0];s={x:t.clientX,y:t.clientY,t:performance.now()}},{passive:true});
   target.addEventListener('touchmove',function(e){if(e.touches.length>1){multi=true;s=null}},{passive:true});
   target.addEventListener('touchcancel',function(e){s=null;if(!e.touches.length)multi=false},{passive:true});
   target.addEventListener('touchend',function(e){if(multi){s=null;if(!e.touches.length)multi=false;return}if(!s)return;var t=e.changedTouches[0],dx=t.clientX-s.x,dy=t.clientY-s.y,dt=performance.now()-s.t,ax=Math.abs(dx),ay=Math.abs(dy);var st=s;s=null;

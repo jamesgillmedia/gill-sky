@@ -52,11 +52,19 @@
   var root = null, svg = null, G = {};
   var target = null, shownV = 0, velV = 0, hasVal = false, holding = false;
   var hideT = 0, fadeT = 0, raf = 0, lastT = 0;
+  var coverOn = false, pend = null, pendAt = 0;
+  var PAD_ON = 4, PAD_OFF = 8, HYST = 150;
   var RMQ = null;
   try { RMQ = matchMedia('(prefers-reduced-motion: reduce)'); } catch (e) {}
 
-  /* LOCAL PATCH (fresh-sites-1113): Gill's rule is that Reduce Motion gives identical output, so the module never takes its snap path here. */
-  function rm() { return false; }
+  /* Reduce Motion: the same covered / clear states, with no fade. */
+  function rm() {
+    var on = false;
+    try { on = !!(RMQ && RMQ.matches); } catch (e) {}
+    try { if (/[?&]rm=1(?:&|$)/.test(location.search)) on = true; } catch (e2) {}
+    document.documentElement.classList.toggle('rm', on);
+    return on;
+  }
   function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
   function u01(info, v) { return clamp((v - info.min) / ((info.max - info.min) || 1), 0, 1); }
   function el(n, a, p) {
@@ -165,6 +173,80 @@
     return true;
   }
 
+  function sliderBox(pad) {
+    var el = target && target.el;
+    if (!el || !el.getBoundingClientRect || !el.isConnected) return null;
+    var b = el.getBoundingClientRect();
+    if (b.width < 1 || b.height < 1) return null;
+    return [b.left - pad, b.top - pad, b.right + pad, b.bottom + pad];
+  }
+  function shownBox(el) {
+    if (!el || !el.getBoundingClientRect) return null;
+    if (el.classList && (el.classList.contains('lv-stage') || el.classList.contains('b-hit'))) return null;
+    var b = el.getBoundingClientRect();
+    if (b.width < 2 || b.height < 2) return null;
+    var n = el, s;
+    while (n && n !== document.documentElement) {
+      try { s = getComputedStyle(n); } catch (e) { return null; }
+      if (s.display === 'none' || s.visibility === 'hidden' || parseFloat(s.opacity) === 0) return null;
+      n = n.parentElement;
+    }
+    return [b.left, b.top, b.right, b.bottom];
+  }
+  /* Title, text, waveform, artwork, other controls, and the focused element.
+     The slider's own drawer is not "content under it". */
+  function contentRects(slider) {
+    var drawer = slider && slider.closest ? slider.closest('[data-gjdial-drawer],.lv-tune,.b-fader') : null;
+    var sel = 'h1,h2,h3,p,button,a,canvas,img,input,label,.b-nm,.b-ln,.b-st,.b-sn,.b-so,.b-time,.b-no,.b-cov,.b-scr,.b-pls,.b-rail,.b-path';
+    var list = document.querySelectorAll(sel), out = [], i, el, box;
+    for (i = 0; i < list.length; i++) {
+      el = list[i];
+      if (el === slider) continue;
+      if (drawer && drawer.contains(el)) continue;
+      if (el.closest && el.closest('#gjdial,#dev,.b-hit')) continue;
+      if (el.classList && el.classList.contains('b-hit')) continue;
+      box = shownBox(el);
+      if (box) out.push(box);
+    }
+    el = document.activeElement;
+    if (el && el !== document.body && el !== slider && !(drawer && drawer.contains(el)) && !(el.closest && el.closest('#gjdial'))) {
+      box = shownBox(el);
+      if (box) out.push(box);
+    }
+    return out;
+  }
+  function overlaps(pad) {
+    var box = sliderBox(pad);
+    if (!box || !target || !target.el) return false;
+    return hits(box, contentRects(target.el));
+  }
+  function applyCover(on) {
+    pend = null;
+    if (on) {
+      var ok = paintNow();
+      if (!ok) { coverOn = false; if (svg) svg.classList.remove('on', 'out'); showDrawer(); return; }
+      coverOn = true;
+      svg.classList.remove('out');
+      svg.classList.add('on');
+      hideDrawer();
+    } else {
+      coverOn = false;
+      if (svg) svg.classList.remove('on', 'out');
+      showDrawer();
+    }
+  }
+  /* 4px to hide, 8px of clearance to come back, held for ~150ms so the edge doesn't flicker.
+     Reduce Motion snaps to that same state. */
+  function syncCover(now) {
+    if (!holding || !target || !target.el) return;
+    now = now || performance.now();
+    var hit = overlaps(coverOn ? PAD_OFF : PAD_ON);
+    if (hit === coverOn) { pend = null; return; }
+    if (rm()) { applyCover(hit); return; }
+    if (pend !== hit) { pend = hit; pendAt = now; return; }
+    if (now - pendAt >= HYST) applyCover(hit);
+  }
+
   function isVisible() {
     return !!(svg && (svg.classList.contains('on') || svg.classList.contains('out')));
   }
@@ -172,7 +254,7 @@
     if (!target) return null;
     return {
       name: target.name, min: target.min, max: target.max, def: target.def,
-      value: shownV, x: target.x, y: target.y
+      value: shownV, x: target.x, y: target.y, el: target.el
     };
   }
   function paintNow() {
@@ -195,8 +277,9 @@
       }
     }
     var settling = !reduced && target && (Math.abs(shownV - target.value) > 0.04 || Math.abs(velV) > 0.04);
+    if (holding) syncCover(now || performance.now());
     if (isVisible()) paintNow();
-    if (isVisible() || settling) raf = requestAnimationFrame(tick);
+    if (isVisible() || settling || holding) raf = requestAnimationFrame(tick);
   }
   function kick() {
     if (raf) return;
@@ -210,23 +293,15 @@
     var first = !hasVal;
     target = {
       name: info.name, min: info.min, max: info.max, def: info.def,
-      value: info.value, x: info.x, y: info.y
+      value: info.value, x: info.x, y: info.y, el: info.el || null
     };
     if (first || rm()) { shownV = info.value; velV = 0; }
     hasVal = true;
     holding = true;
     clearTimeout(hideT); clearTimeout(fadeT);
-    var ok = paintNow();
-    if (ok) {
-      svg.classList.remove('out');
-      svg.classList.add('on');
-      hideDrawer();
-    } else {
-      svg.classList.remove('on', 'out');
-      showDrawer();
-    }
+    syncCover(performance.now());
     kick();
-    return ok;
+    return true;
   }
   function hideNow() {
     clearTimeout(hideT); clearTimeout(fadeT);
@@ -234,18 +309,29 @@
   }
   function release() {
     holding = false;
+    pend = null;
     kick(); /* settle at w = 9 */
-    if (!svg || !isVisible()) { showDrawer(); return; }
+    if (!coverOn || !svg || !isVisible()) { coverOn = false; hideNow(); showDrawer(); return; }
     clearTimeout(hideT); clearTimeout(fadeT);
-    if (rm()) {
-      hideT = setTimeout(function () { hideNow(); showDrawer(); }, LINGER + FADE_OUT);
-      return;
-    }
+    if (rm()) { coverOn = false; hideNow(); showDrawer(); return; }
     hideT = setTimeout(function () {
       svg.classList.add('out');
-      fadeT = setTimeout(function () { hideNow(); showDrawer(); }, FADE_OUT);
+      fadeT = setTimeout(function () { coverOn = false; hideNow(); showDrawer(); }, FADE_OUT);
     }, LINGER);
   }
+  function relayout() { if (holding) syncCover(performance.now()); }
+  function watchLayout() {
+    addEventListener('scroll', function () { if (holding) syncCover(performance.now()); }, true);
+    addEventListener('resize', relayout);
+    if (w.ResizeObserver) {
+      try {
+        var ro = new ResizeObserver(function () { relayout(); });
+        ro.observe(document.documentElement);
+      } catch (e) {}
+    }
+  }
+  if (document.body) watchLayout();
+  else document.addEventListener('DOMContentLoaded', watchLayout);
 
   if (document.body) build();
   else document.addEventListener('DOMContentLoaded', build);
@@ -264,7 +350,8 @@
   var api = {
     update: update,
     release: release,
-    hide: function () { hideNow(); showDrawer(); holding = false; },
+    hide: function () { hideNow(); showDrawer(); holding = false; coverOn = false; pend = null; },
+    relayout: relayout,
     avoid: function (fn) { avoidFns.push(fn); },
     get shown() { return isVisible(); },
     /* leftover from the five-style review; always 1 (ghost arc) */

@@ -10,8 +10,12 @@ html[data-v=B] body{font-family:'Space Mono',monospace;background:#050505}
 .b-ch::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(232,228,220,.035),transparent 30%,transparent 70%,rgba(0,0,0,.35));pointer-events:none}
 .b-ch:hover .b-face{opacity:.3}
 .b-hit{position:absolute;inset:0;z-index:0}
-.b-ch>*:not(.b-face):not(.b-hit){position:relative;z-index:1;pointer-events:none}
-.b-ch .b-path{pointer-events:auto}
+.b-ch>*:not(.b-face):not(.b-hit){position:relative;z-index:1}
+/* The full-strip hit button sits underneath. Interactive pieces opt back in.
+   The old pointer-events:none on every child beat the master and path rules
+   (higher specificity), so a phone touch never reached a fader. */
+.b-ch>*:not(.b-face):not(.b-hit):not(.b-path):not(.b-fader):not(.b-mt):not(.b-links):not(.b-mm){pointer-events:none}
+.b-ch .b-path,.b-ch .b-path *,.b-ch .b-fader,.b-ch .b-fader *,.b-master .b-mt,.b-master .b-mt *,.b-master .b-links,.b-master .b-links *,.b-master .b-mm,.b-master .b-mm *{pointer-events:auto}
 .b-scr{width:min(100%,92px);aspect-ratio:1;background:#111;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.6)}
 .b-scr img{width:100%;height:100%;object-fit:cover}
 .b-no{margin-top:10px;font:400 9px/1 'Space Mono',monospace;letter-spacing:.2em;color:rgba(232,228,220,.62)}
@@ -20,6 +24,13 @@ html[data-v=B] body{font-family:'Space Mono',monospace;background:#050505}
 .b-led{position:absolute;right:-8px;top:0;bottom:0;width:3px;background:linear-gradient(0deg,#e8e4dc 0,#e8e4dc 70%,#e8c48a 100%);transform-origin:50% 100%;transform:scaleY(0)}
 .b-nm{font:800 clamp(18px,2vw,30px)/1 'Big Shoulders Display',sans-serif;letter-spacing:.01em;text-transform:uppercase;text-align:center;white-space:nowrap}
 .b-ln{margin-top:6px;font:400 10px/1 'Space Mono',monospace;color:rgba(232,228,220,.72)}
+.b-fader{position:relative;z-index:5;width:44px;min-width:44px;height:132px;min-height:44px;margin-top:8px;display:flex;align-items:center;justify-content:center;touch-action:none;pointer-events:auto}
+.b-fader input{-webkit-appearance:none;appearance:none;writing-mode:vertical-lr;direction:rtl;width:44px;min-width:44px;height:120px;min-height:44px;margin:0;background:transparent;cursor:pointer;touch-action:none;pointer-events:auto}
+.b-fader input::-webkit-slider-runnable-track{width:1px;background:rgba(232,228,220,.45)}
+.b-fader input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#e8e4dc}
+.b-fader input::-moz-range-track{width:1px;background:rgba(232,228,220,.45);border:0}
+.b-fader input::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:#e8e4dc}
+.b-master .lv-tune input{min-width:44px;min-height:44px;height:44px}
 .b-so{margin-top:10px;font:400 8.5px/1 'Space Mono',monospace;letter-spacing:.24em;text-transform:uppercase;padding:6px 10px;border:1px solid rgba(232,228,220,.4);border-radius:2px}
 .b-ch.live .b-so{background:#e8e4dc;color:#050505;border-color:#e8e4dc}
 .b-master{flex:0 0 clamp(150px,13vw,190px);cursor:default;justify-content:flex-start;gap:16px;padding:14px 14px}

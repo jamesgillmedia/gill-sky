@@ -11,11 +11,18 @@ var win=el('div','b-win',null,app),cv=el('canvas','lv-stage',null,win),S=LV.stag
 var solo=el('section','b-solo',null,app);
 var strips=O.map(function(t,i){var s=el('div','b-ch',null,desk);s.dataset.id=t.id;
   s.innerHTML='<div class="b-face"></div><button class="b-hit" type="button" aria-label="solo '+esc(t.t)+'"></button><div class="b-scr"></div><div class="b-no">CH '+('0'+(i+1)).slice(-2)+'</div>'+
-    '<div class="b-path"><canvas></canvas><i class="b-led"></i></div><div class="b-nm">'+esc(t.t)+'</div><div class="b-ln">'+esc(G.len(t))+'</div><div class="b-so">solo</div>';
+    '<div class="b-path"><canvas></canvas><i class="b-led"></i></div><label class="b-fader"><input type="range" min="0" max="1" step="0.01" value="1" aria-label="'+esc(t.t)+' level" aria-orientation="vertical" data-id="'+t.id+'"></label><div class="b-nm">'+esc(t.t)+'</div><div class="b-ln">'+esc(G.len(t))+'</div><div class="b-so">solo</div>';
   img(t.plates[0].src,'',' ',s.querySelector('.b-face'));img(t.coverS,'',t.t+' cover',s.querySelector('.b-scr'));
   t.rail=LV.rail(s.querySelector('.b-path canvas'),{track:t,vertical:true,step:3,amp:.4,bw:1.2,onPick:function(){pickT(t)}});t.strip=s;return s});
 var master=el('div','b-ch b-master',null,desk);master.innerHTML='<div class="b-no">MASTER</div><div class="b-mt"></div><div class="b-links lv-links"><a href="'+D.links.spotify+'" target="_blank" rel="noopener">Spotify</a><a href="'+D.links.apple+'" target="_blank" rel="noopener">Apple</a></div><p class="b-mm">also: <a href="'+D.links.mm+'" target="_blank" rel="noopener">Mothers Moniker ↗</a></p>';
 LV.tune(master.querySelector('.b-mt'),'vert');
+strips.forEach(function(s){var inp=s.querySelector('.b-fader input');if(!inp)return;
+  function apply(){LV.setTrackVol(inp.dataset.id,+inp.value)}
+  function fromY(e){var b=inp.getBoundingClientRect(),v=Math.max(0,Math.min(1,(b.bottom-e.clientY)/Math.max(1,b.height)));inp.value=v.toFixed(2);apply()}
+  inp.addEventListener('pointerdown',function(e){e.preventDefault();e.stopPropagation();try{inp.setPointerCapture(e.pointerId)}catch(err){}inp.focus();if(LV.arm)LV.arm();fromY(e)});
+  inp.addEventListener('input',apply);
+  inp.addEventListener('pointermove',function(e){try{if(!inp.hasPointerCapture(e.pointerId))return}catch(err){return}fromY(e)});
+  inp.addEventListener('keydown',function(e){var d=e.key==='ArrowUp'||e.key==='ArrowRight'?0.05:e.key==='ArrowDown'||e.key==='ArrowLeft'?-0.05:0;if(!d)return;e.preventDefault();e.stopPropagation();var v=Math.max(0,Math.min(1,+inp.value+d));inp.value=v.toFixed(2);apply()})});
 var openT=null,soloRail=null;
 /* preload every cover + plate so a solo never opens onto an empty stage */
 var PRE=[];O.forEach(function(t){[t.cover].concat(t.plates.map(function(p){return p.src})).forEach(function(s){var i=new Image();i.decoding='async';i.src=s;if(i.decode)i.decode().catch(function(){});PRE.push(i)})});
@@ -34,7 +41,7 @@ function open(t,how){var first=!openT;openT=t;LV.load(t.id);fillSolo(t);app.clas
 function close(){if(!openT)return;openT=null;app.classList.remove('solo');strips.forEach(function(s){s.classList.remove('on')})}
 R.on(function(route,prev,how){var m=route.match(/^t\/(.+)$/),t=m&&G.track(m[1]);if(m&&!t){R.go('',{replace:true});return}if(t)open(t,how);else close()});
 function pickT(t){if(openT===t)return;R.go('t/'+t.id,{replace:!!openT})}
-desk.addEventListener('click',function(e){var s=e.target.closest('.b-ch');if(!s||s===master||e.target.closest('canvas'))return;pickT(G.track(s.dataset.id))});
+desk.addEventListener('click',function(e){if(e.target.closest('.b-fader,input,a,canvas'))return;var s=e.target.closest('.b-ch');if(!s||s===master)return;pickT(G.track(s.dataset.id))});
 solo.addEventListener('click',function(e){if(e.target.closest('.b-back'))R.up();if(e.target.closest('.b-pp'))LV.toggle()});
 hd.querySelector('.b-wm').addEventListener('click',function(){R.home()});
 function stepT(k){var i=O.indexOf(openT);R.go('t/'+O[(i+k+O.length)%O.length].id,{replace:true})}
