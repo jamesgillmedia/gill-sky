@@ -1,0 +1,36 @@
+/* lifted verbatim from tonight/fable-m4/css/sky.css (local preview-film-snap) */
+/* preview-film-snap: the mark menu (list · contact · tune), hairline, under the mark. */
+#markmenu{position:fixed;z-index:60;left:calc(10px + env(safe-area-inset-left,0px));top:calc(54px + env(safe-area-inset-top,0px));width:min(360px,calc(100vw - 20px));max-height:calc(100vh - 80px);overflow:auto;
+  background:rgba(6,10,16,.84);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(207,216,230,.22);border-radius:14px;padding:10px 16px 12px;
+  font:300 11px Poppins,sans-serif;color:#e4ebf5;letter-spacing:.04em}
+#markmenu[hidden]{display:none}
+#markmenu nav{display:flex;gap:18px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid rgba(207,216,230,.14)}
+#markmenu nav a,#markmenu nav button,#markmenu nav .mm-off{font:400 12px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e4ebf5;background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:none;min-height:32px}
+#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{font-size:10px;color:rgba(228,235,245,.7)}
+#markmenu .mm-tune.on{color:#d9b98a}
+#markmenu .mm-room{padding:6px 0 4px}
+#markmenu h3{margin:8px 0 2px;font:400 10px "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:rgba(228,235,245,.55)}
+#markmenu h3 span{color:#d9b98a;letter-spacing:.1em}
+#markmenu h3 em{font:300 9px Poppins,sans-serif;font-style:normal;letter-spacing:.02em;text-transform:none;color:rgba(228,235,245,.4)}
+#markmenu label{display:grid;grid-template-columns:96px 1fr 30px;align-items:center;gap:8px;min-height:30px;text-transform:uppercase;font-size:10px;letter-spacing:.12em}
+#markmenu input[type=range]{width:100%;accent-color:#d9b98a;height:22px}
+#markmenu output{text-align:right;font-size:10px;color:rgba(228,235,245,.8)}
+#markmenu .mm-foot{display:flex;justify-content:space-between;gap:10px;align-items:center;margin:8px 0 0;font-size:9px;color:rgba(228,235,245,.4)}
+#markmenu .mm-reset{font:400 11px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;background:none;border:0;color:#e4ebf5;padding:6px 0;cursor:pointer}
+#markmenu .mm-dec{padding:4px 0 8px;border-bottom:1px solid rgba(207,216,230,.14)}
+#markmenu .mm-seg{margin:6px 0 4px}
+#markmenu .mm-seg b{display:block;font:400 10px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e4ebf5;margin-bottom:3px}
+#markmenu .mm-seg span{display:flex;flex-wrap:wrap;gap:4px 6px}
+#markmenu .mm-seg button{font:300 10px Poppins,sans-serif;letter-spacing:.03em;color:rgba(228,235,245,.7);background:none;border:1px solid rgba(207,216,230,.22);border-radius:999px;padding:5px 10px;min-height:28px;cursor:pointer}
+#markmenu .mm-seg button[aria-checked=true]{color:#04070b;background:#e8e4dc;border-color:transparent}
+
+#markmenu .mm-rooms .mm-off,#markmenu .mm-rooms [aria-disabled=true]{opacity:.4;cursor:default;pointer-events:none;text-decoration:none}
+#markmenu .mm-ctx{padding:6px 0 8px;border-bottom:1px solid rgba(207,216,230,.14)}
+#markmenu .mm-all{display:block;width:100%;text-align:left;font:400 10px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e8e4dc;background:none;border:0;border-bottom:1px solid rgba(207,216,230,.14);padding:10px 0;min-height:36px;cursor:pointer}
+#markmenu .mm-all[aria-expanded=true]{color:#d9b98a}
+#markmenu .mm-more{padding:4px 0 8px}
+#markmenu .mm-globals{padding:8px 0 4px;border-top:1px solid rgba(207,216,230,.14);margin-top:4px}
+#markmenu .mm-foot{flex-wrap:wrap}
+#markmenu .mm-resets{display:flex;gap:16px;align-items:center}
+
+#markmenu .mm-rooms [data-go].on{color:#d9b98a}
