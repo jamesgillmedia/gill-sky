@@ -8,12 +8,19 @@
  Nothing here moves on its own; Reduce Motion changes nothing. */
 (function (w) {
   'use strict';
-  var SHOW_VARIANTS = true;
+  /* the A/B/C pill stays off. The mark's tune drawer (dev rows) is the switch. Launch is A unless ?dev=1. */
+  var SHOW_VARIANTS = false;
   var KEY = 'gj.v.spaces', NOTE = { A: 'fog banks · breathing shafts', B: 'low ground mist', C: 'red plans as ink wash' };
   function lsGet(k) { try { return localStorage.getItem(k) } catch (e) { return null } }
   function lsSet(k, v) { try { localStorage.setItem(k, v) } catch (e) {} }
-  var q = /(?:^|[?&])v=([abcABC])(?:&|$)/.exec(location.search), v = (q ? q[1] : lsGet(KEY) || 'A').toUpperCase();
-  if (!/^[ABC]$/.test(v) || !SHOW_VARIANTS) v = 'A'; if (q && SHOW_VARIANTS) lsSet(KEY, v);
+  function devOn() {
+    var d = /(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);
+    if (d) { lsSet('gj.dev', d[1]); return d[1] === '1' }
+    return lsGet('gj.dev') === '1'
+  }
+  var q = /(?:^|[?&])v=([abcABC])(?:&|$)/.exec(location.search), v = 'A';
+  if (devOn()) { var raw = (q ? q[1] : lsGet(KEY) || 'A').toUpperCase(); if (/^[ABC]$/.test(raw)) v = raw }
+  else if (q) { try { var u0 = new URL(location.href); u0.searchParams.delete('v'); history.replaceState(history.state, '', u0.pathname + (u0.search || '') + u0.hash) } catch (e) {} }
   var hooks = [];
   w.GJ_VARIANT = { get v() { return v }, list: ['A', 'B', 'C'], note: NOTE, shown: SHOW_VARIANTS,
     set: function (n) { n = String(n || 'A').toUpperCase(); if (!/^[ABC]$/.test(n) || n === v) return; v = n; lsSet(KEY, v);
@@ -29,6 +36,8 @@
       '<span class="vtag" aria-hidden="true"></span>' +
       '<nav class="strip" aria-label="the light journey">' + JOURNEY.map(function (j, i) { return (i ? '<i aria-hidden="true">·</i>' : '') + '<button type="button" data-k="' + j[0] + '">' + esc(j[1]) + '</button>' }).join('') + '</nav>';
     document.body.appendChild(head); strip = head.querySelector('.strip'); vtag = head.querySelector('.vtag');
+    document.documentElement.setAttribute('data-tn-room', 'spaces');
+    var sig = head.querySelector('.sig'); sig.setAttribute('data-tn-mark', '');
     var tw = document.createElement('div'); tw.id = 'sptune';
     tw.innerHTML = '<button type="button" class="tg" aria-expanded="false" aria-controls="sptune-p">tune</button>' +
       '<div class="p" id="sptune-p" role="group" aria-label="tune" hidden>' +
@@ -43,8 +52,13 @@
       if (b.dataset.th && w.GJ_THEME) w.GJ_THEME.set(b.dataset.th); if (b.dataset.v) w.GJ_VARIANT.set(b.dataset.v); paint() });
     document.addEventListener('pointerdown', function (e) { if (open && !e.target.closest('#sptune')) setOpen(false) }, true);
     addEventListener('keydown', function (e) { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopImmediatePropagation(); setOpen(false); tuneBtn.focus() } }, true);
-    /* the mark: back.js handles the top level; inside the gallery viewer the mark closes it first */
-    head.querySelector('.sig').addEventListener('click', function () { if (w.__gal && w.__gal.isOpen) { var b = document.getElementById('gback'); if (b) b.click() } });
+    /* inside the gallery the mark closes the viewer; otherwise it opens the tune drawer */
+    sig.addEventListener('click', function (e) {
+      if (w.__gal && w.__gal.isOpen) { var b = document.getElementById('gback'); if (b) b.click(); return }
+      e.preventDefault(); e.stopPropagation(); if (e.stopImmediatePropagation) e.stopImmediatePropagation();
+      if (w.GJ_MARKMENU) w.GJ_MARKMENU.toggle();
+    }, true);
+    bindMenu();
     strip.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || !w.__se) return; var S = w.__se.SEC, i = S.STOPS.findIndex(function (s) { return s.k === b.dataset.k }); if (i >= 0) S.go(i, true) });
     if (w.GJ_THEME) w.GJ_THEME.on(paint);
     paint(); setInterval(follow, 200) }
@@ -57,5 +71,17 @@
     [].forEach.call(menu.querySelectorAll('[data-v]'), function (b) { b.setAttribute('aria-checked', String(b.dataset.v === v)) });
     var n = menu.querySelector('.vnote'); if (n) n.textContent = v + ' · ' + NOTE[v];
     vtag.textContent = SHOW_VARIANTS ? v : ''; vtag.hidden = !SHOW_VARIANTS }
+  function bindMenu() {
+    if (!w.GJ_MARKMENU || bindMenu.done) return !!bindMenu.done;
+    bindMenu.done = true;
+    w.GJ_MARKMENU.variant('spaces', {
+      k: 'gj.v.spaces', label: 'layout', dev: 1, def: 'A',
+      seg: [['A', 'A · fog banks'], ['B', 'B · low ground mist'], ['C', 'C · red ink wash']],
+      get: function () { return w.GJ_VARIANT.v },
+      apply: function (n) { w.GJ_VARIANT.set(n) }
+    });
+    return true;
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+  var tries = 0; (function waitMenu() { if (bindMenu() || ++tries > 40) return; setTimeout(waitMenu, 50) })();
 })(window);
