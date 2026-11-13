@@ -278,6 +278,11 @@ function soundStep(api){
   else api.backHist();
 }
 function openFilm(api,work,shot){
+  if(window.GJ_FP&&GJ_FP.from&&work&&work.stills&&work.stills.length&&api.tileBox){
+    var b=api.tileBox(work);
+    if(b&&b.w)GJ_FP.from({x:b.l+b.w/2,y:b.t+b.h/2,w:b.w,h:b.h});
+  }
+  hush();
   filmWork=work;filmLv=1;filmAt=(shot&&shot.t)||0;filmScale=1;still=null;piece=null;
   api.setCur({lv:2,k:work.chapter||'film',id:work.id});
   api.arrive();
@@ -459,6 +464,14 @@ function zoomSound(){
   }catch(e){}
 }
 function quiet(fn){fn.quiet=1;return fn}
+function filmStill(it){
+  var w=it&&(it._work||it);
+  return !!(w&&w.stills&&w.stills.length&&(w.chapter==='film'||w.kind==='film'));
+}
+function openTileAct(api,it){
+  var fn=function(){openTile(api,it)};
+  return filmStill(it)?quiet(fn):fn;
+}
 function planIn(x,y,api){
   var cur=api.cur();
   if(soundOn)return function(){zoomSound()};
@@ -509,11 +522,11 @@ function planIn(x,y,api){
     var it=api.tileAt(x,y);
     if(!it&&cur.lv>=2){
       var w=api.byId(cur.id);
-      if(w)return function(){openTile(api,w)};
+      if(w)return openTileAct(api,w);
       return null;
     }
     if(!it)return null;
-    return function(){openTile(api,it)};
+    return openTileAct(api,it);
   }
   if(cur.lv>=2){
     var w2=api.byId(cur.id);

@@ -33,7 +33,7 @@ var SNDHINT={A:'A · low-pass pull, linear camera sweep (main)',B:'B · band-pas
 function soundRows(){
   var red=window.GJ_THEME&&GJ_THEME.eff==='red';
   var rows=[
-    {k:'gj.sound.var',label:'dev · A B C',toggle:true,options:['A','B','C'],get:sndVar,apply:function(){},hint:function(){return SNDHINT[sndVar()]||''}},
+    {k:'gj.sound.var',label:'dev · A B C',dev:true,toggle:true,options:['A','B','C'],get:sndVar,apply:function(){},hint:function(){return SNDHINT[sndVar()]||''}},
     lsRow('gj.vol','volume',0,100,100,100,poke),
     lsRow('gj.flash','flash',0,100,60,100,setFlash),
     lsRow('gj.sound.sweep','camera sweep speed',0,200,50,1),

@@ -3108,8 +3108,9 @@ function armToGo(){
   window.__gjTg=1;
   var peaks=[0.413,0.602,0.426,0.446,0.753,0.682,0.753,0.928,0.841,1,0.92,0.898,0.997,0.89,0.929,0.994,0.908,0.843];
   bar.addEventListener('pointerdown',function(e){
-    if(cur.k==='film')return;
-    if(!document.documentElement.classList.contains('gj-bar'))return;
+    /* The sky grows the To Go player from the touch. Film grows its own player.
+       Sound is already that player. Every other room keeps the bar and does not invent one. */
+    if(cur.k)return;
     e.preventDefault();e.stopPropagation();
     openToGo(e.clientX,e.clientY);
   });
@@ -3125,10 +3126,10 @@ function armToGo(){
     play.addEventListener('click',function(ev){ev.stopPropagation();if(audio.paused){var p=audio.play();if(p&&p.catch)p.catch(function(){});play.textContent='pause'}else{audio.pause();play.textContent='play'}});
     sheet.appendChild(c);sheet.appendChild(b);sheet.appendChild(play);sheet.appendChild(audio);
     var sx=Math.max(0.08,72/Math.max(1,innerWidth)),sy=Math.max(0.06,28/Math.max(1,innerHeight));
-    sheet.style.setProperty('--tg-sx',sx.toFixed(3));sheet.style.setProperty('--tg-sy',sy.toFixed(3));
     sheet.style.transformOrigin=x+'px '+y+'px';
     sheet.classList.add('tg-from');
     document.body.appendChild(sheet);TG=sheet;
+    if(sheet.animate)sheet.animate([{transform:'scale('+sx.toFixed(3)+','+sy.toFixed(3)+')'},{transform:'scale(1,1)'}],{duration:600,easing:'cubic-bezier(.22,.7,.2,1)',fill:'both'});
     var y0=0,y1=0,pid=0,drag=false;
     function endDrag(ev){if(!drag||ev.pointerId!==pid)return;drag=false;if((ev.type==='pointercancel'?y1:ev.clientY)-y0>64)shrinkToGo()}
     sheet.addEventListener('pointerdown',function(ev){if(ev.target.closest('button'))return;y0=y1=ev.clientY;pid=ev.pointerId;drag=true;try{sheet.setPointerCapture(ev.pointerId)}catch(err){}});
@@ -3137,6 +3138,9 @@ function armToGo(){
   }
   function shrinkToGo(){
     if(!TG)return;var sheet=TG;TG=null;sheet.classList.remove('tg-from');sheet.classList.add('tg-shrink');
+    sheet.style.transformOrigin='72px '+(innerHeight-18)+'px';
+    if(sheet.getAnimations)sheet.getAnimations().forEach(function(a){a.cancel()});
+    if(sheet.animate)sheet.animate([{transform:'scale(1,1)'},{transform:'scale(.08,.06)'}],{duration:420,easing:'cubic-bezier(.4,0,.2,1)',fill:'both'});
     var a=sheet.querySelector('audio');if(a){try{a.pause()}catch(e){}}
     setTimeout(function(){if(sheet.parentNode)sheet.parentNode.removeChild(sheet)},420);
   }
