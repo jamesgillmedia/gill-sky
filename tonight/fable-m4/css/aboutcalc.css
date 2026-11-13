@@ -5,7 +5,7 @@
 #layers[data-v=B] .ac3,#layers[data-v=C] .ac3{display:block;position:absolute;inset:0;z-index:2;perspective:1300px;perspective-origin:50% 44%}
 #layers.exit .ac3{opacity:0;transition:opacity .75s ease}
 /* the room: a dark floor of light under the object, never a box; the desktop stays dark */
-#layers[data-v=B],#layers[data-v=C]{background:radial-gradient(ellipse 60% 48% at 50% var(--top,50%),#0b1016 0%,#05080c 58%,#04070b 100%)}
+#layers[data-v=B],#layers[data-v=C]{background-color:#04070b;background-image:radial-gradient(ellipse 60% 48% at 50% var(--top,50%),#0b1016 0%,#05080c 58%,#04070b 100%)}
 #layers .ac3-shadow{position:absolute;left:50%;top:var(--top,50%);width:var(--w);height:calc(var(--h) * .9);margin-left:calc(var(--w) / -2);margin-top:calc(var(--h) * -.42);
  transform:translate(calc(var(--sx,0px) + var(--tx,0px)),calc(var(--sy,0px) + var(--ty,0px) + 22px));border-radius:24px;background:rgba(0,0,0,.72);filter:blur(28px);opacity:.55;pointer-events:none}
 #layers[data-v=C] .ac3-shadow{opacity:.9;filter:blur(36px)}

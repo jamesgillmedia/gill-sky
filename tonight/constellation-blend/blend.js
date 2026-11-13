@@ -148,7 +148,8 @@ function tap(x,y,touch){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,
   var room=roomOf(named)||starRoom||((fig&&!starBig)?fig:null);
   if(CHIP.k){
     var same=(named&&named.k===CHIP.k)||(fig&&fig.k===CHIP.k)||(starRoom&&starRoom.k===CHIP.k)||(room&&room.k===CHIP.k);
-    var again=Math.hypot(x-(CHIP.x||x),y-(CHIP.y||y))<96;
+    var other=(named&&named.k!==CHIP.k)||(fig&&fig.k!==CHIP.k)||(room&&room.k!==CHIP.k);
+    var again=!other&&Math.hypot(x-(CHIP.x||x),y-(CHIP.y||y))<96;
     if(same||again){if(filmStar&&CHIP.k==='film'){openBoard(best,true);return}goChip(CHIP.k);return}
     chipOff();if(!dbl)return}
   if(dbl){stepOut();lastTap.t=0;return}

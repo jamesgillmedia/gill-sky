@@ -39,7 +39,7 @@ html[data-theme=red] #gjdial{--gd-ink:255,68,87}
   pointer-events:none!important;
   -webkit-backdrop-filter:none!important;
   backdrop-filter:none!important;
-  transition:opacity .22s ease;
+  transition:none;
 }
 @media (prefers-reduced-motion:reduce){
   #gjdial-ghost.on,#gjdial-ghost.out,
