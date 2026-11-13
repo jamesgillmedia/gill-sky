@@ -2288,17 +2288,20 @@ function fsnScrub(v,x,y){
 }
 function fsnLetGo(){
   if(!FSCRUB)return;
-  var from=FSCRUB.from,v=fsnS.t,x=FSCRUB.x,y=FSCRUB.y;FSCRUB=null;FCAM=null;FLOCK=now()+600;armSwallow();clearTimeout(WHT);
+  var from=FSCRUB.from,v=fsnS.t;FSCRUB=null;FCAM=null;clearTimeout(WHT);
+  var at=clamp(dec('snapAt')/100,.1,.9),committed=false;
   if(from===0){
-    var at=clamp(dec('snapAt')/100,.1,.9);
-    if(v>at&&filmMid()){sel=null;openBoardAt();return} /* the contents page opens at its top, counts in view */
-    arriveAt(cur,false);
+    if(v>at&&filmMid()){committed=true;sel=null;openBoardAt()} /* the contents page opens at its top, counts in view */
+    else{arriveAt(cur,false);FSNHOLD=v;clearTimeout(FSNHOLDT);FSNHOLDT=setTimeout(function(){if(FSNHOLD===v)FSNHOLD=0},700)}
   }else{
-    if(v<1-clamp(dec('snapAt')/100,.1,.9)&&filmBoard()){back();return}
-    arriveAt(cur,false);
+    if(v<1-at&&filmBoard()){committed=true;back()}
+    else{arriveAt(cur,false);FSNHOLD=v;clearTimeout(FSNHOLDT);FSNHOLDT=setTimeout(function(){if(FSNHOLD===v)FSNHOLD=0},700)}
   }
+  /* the 600 ms wheel-tail lock applies only when a settle committed a level, so a notch that
+     fell short leaves the wheel live. Reduce Motion snaps to that same state, with no glide. */
+  if(committed){FLOCK=now()+600;armSwallow();FSNHOLD=0;clearTimeout(FSNHOLDT)}
 }
-var WHT=0,FLOCK=0,SWALLOW=0;
+var WHT=0,FLOCK=0,SWALLOW=0,FSNHOLD=0,FSNHOLDT=0;
 /* a tap that lands while the snap is moving is dropped, and so is the click the browser fires a moment later */
 function armSwallow(){SWALLOW=Math.max(SWALLOW,now()+800)}
 function onWheel(e){
@@ -2318,13 +2321,13 @@ function onWheel(e){
     if(dy<0)return;
   }
   if(filmMid()&&!FSCRUB&&dy>0){back();return} /* wheel down steps back out of the map to the sky */
-  var base=FSCRUB?fsnS.t:fsn; /* picks up from wherever a settle has got to, so a slow wheel never restarts */
+  var base=FSCRUB?fsnS.t:(fsn>0.02?fsn:FSNHOLD); /* picks up from wherever a settle has got to, so a slow wheel never restarts. Reduce Motion holds the uncommitted amount: the camera does not move until the switch */
   fsnScrub(base-dy/SPAN,e.clientX,e.clientY);
   clearTimeout(WHT);
   var v=fsnS.t;
   if(v>=1&&FSCRUB&&FSCRUB.from===0){fsnLetGo();return}
   if(v<=0&&FSCRUB&&FSCRUB.from===1){fsnLetGo();return}
-  WHT=setTimeout(fsnLetGo,RM?60:240);
+  WHT=setTimeout(fsnLetGo,240); /* same pause with Reduce Motion: notches in one gesture add up, then the view snaps */
 }
 function deeper(x,y){
   if(phase!=='sky')return;
