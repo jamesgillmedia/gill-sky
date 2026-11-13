@@ -38,6 +38,8 @@ Layer 1 words sit on a `#04070b` plate. Leaving the moon pauses the tiles, hides
 
 Drawer A is the default: no scrim, a hairline off the mark, and the room stays visible. B and C are dev toggles (`?dev=1`). B is typewritten labels on one hairline, with no panel behind the room. C is the current room's labels only; a label opens its slider, and sky labels that would sit under the drawer are not drawn. Slider tracks are 55% of the row. Dev defaults off.
 
+Constellation (A) is the public drawer in every room. A page with no query string opens A, and a public `?v=B`, `?v=C`, or `?drawer=` stays on A. B and C are archived behind `?dev=1`: the dev toggle, or `?drawer=` / `?v=` on that same load.
+
 The mark, the name, and the chapter labels are `#e8e4dc`. The To Go bar stays at full opacity. The sky grows its player from the touch, and a swipe shrinks it back to the bar. Film grows its own from the tile once the first still is in, and a swipe returns it to the bar. Sound is already that player. Every other room keeps the bar. Reduce Motion keeps the drawer's end pose and drops the transition. Touch glow is skipped on the film board and when bloom is high, and it draws over the scene instead of adding light onto the photographs. The safelight layer is `z-index: 55`. The calibre star layer stays deferred.
 
 ## Night chrome

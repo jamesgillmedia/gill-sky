@@ -134,6 +134,10 @@ body #markmenu.dv-C input[type=range]::-moz-range-thumb{width:5px;height:5px}
 button[data-tn-mark]{position:fixed;z-index:70;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
  background:none;border:0;border-radius:0;padding:8px;min-height:0;min-width:0;color:#e8e4dc;letter-spacing:0;cursor:pointer;
  font:18px/1 "Noto Sans Canadian Aboriginal","Noto Sans SE",sans-serif}
+/* the fixed mark sits out of flow. The + beside it has to clear that box or the mark takes the tap. */
+button[data-tn-mark]+#marktune,button[data-tn-mark]+.mm-tune-btn{position:relative;z-index:71;margin-left:44px}
+/* late planes sit at a negative --z, behind the plate, so a click never reaches the archived toggle */
+#markmenu.mm-in .mm-plate>.mm-devsec{transform:translateZ(12px)!important}
 #markmenu label input[type=range]{width:55%;max-width:55%;justify-self:start}
 #markmenu .mm-clab{display:block;width:100%;text-align:left;background:none;border:0;padding:5px 0;color:#e8e4dc;font:300 13px Poppins,sans-serif;letter-spacing:.08em;cursor:pointer}
 #crumb .sig,#where,#wcrumb,#wcrumb b,#wcrumb button,#wcrumb span{color:#e8e4dc}

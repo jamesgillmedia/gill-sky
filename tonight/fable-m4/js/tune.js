@@ -147,14 +147,22 @@ function ghost(r,info){
   if(!HOLD){clearTimeout(kbT);kbT=setTimeout(function(){d.release()},400)}
 }
 var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
-/* Three looks on a dev switch: A constellation, B contact-sheet strip, C ghost.
-   ?drawer=A|B|C, localStorage gj.drawer. Default A. Dev rows hide when gj.dev is 0 (?dev=0). */
-var DV=(function(){var q=/(?:^|[?&])drawer=([ABC])(?:&|$)/.exec(location.search);if(q){wr('gj.drawer',q[1]);return q[1]}
-  try{var v=localStorage.getItem('gj.drawer');if(v==='A'||v==='B'||v==='C')return v}catch(e){}return 'A'})();
+/* Public launch is A, constellation, in every room. B (contact strip) and C (ghost) stay in
+   this file, archived. A public ?v= or ?drawer=, and a stored gj.drawer, never leave A.
+   B and C apply only on a load that has ?dev=1: the dev toggle, or ?drawer= / ?v= on that load.
+   Dev rows elsewhere still hide when gj.dev is 0 (?dev=0). */
+function devDrawer(){return /(?:^|[?&])dev=1(?:&|$)/.test(location.search)}
+function qDrawer(){var q=/(?:^|[?&])(?:drawer|v)=([ABCabc])(?:&|$)/.exec(location.search);return q?q[1].toUpperCase():''}
+var DV=(function(){
+  if(!devDrawer())return 'A';
+  var q=qDrawer();
+  if(q==='A'||q==='B'||q==='C'){wr('gj.drawer',q);return q}
+  try{var v=localStorage.getItem('gj.drawer');if(v==='A'||v==='B'||v==='C')return v}catch(e){}
+  return 'A'})();
 function devOn(){var q=/(?:^|[?&])dev=([01])(?:&|$)/.exec(location.search);if(q)wr('gj.dev',q[1]);return rd('gj.dev',0)!==0}
 var RMQ=window.matchMedia?matchMedia('(prefers-reduced-motion: reduce)'):null;function rmOn(){return !!(RMQ&&RMQ.matches)}
 var foldT=0;
-function setDrawer(v){DV=v==='B'||v==='C'?v:'A';wr('gj.drawer',DV);if(menu){menu.classList.remove('dv-A','dv-B','dv-C');menu.classList.add('dv-'+DV)}}
+function setDrawer(v){if(!devDrawer())v='A';DV=v==='B'||v==='C'?v:'A';if(devDrawer())wr('gj.drawer',DV);if(menu){menu.classList.remove('dv-A','dv-B','dv-C');menu.classList.add('dv-'+DV)}}
 function planes(){if(!menu)return;var i=0,list=[].slice.call(menu.querySelectorAll('.mm-3d>nav,.mm-plate>*'));
   list.forEach(function(el){el.style.setProperty('--i',String(i));el.style.setProperty('--z',(Math.max(0,3-i)*7-6)+'px');i++});menu.style.setProperty('--n',String(i))}
 function origin(){if(!menu)return;var m=markEl(),r=m&&m.getBoundingClientRect(),b=menu.getBoundingClientRect();
@@ -335,7 +343,7 @@ function paint(){
   }
   var G=D2();
   var mot=G?G.get('motion'):100,snap=G?G.get('snapAt'):34,sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60,rv=G?+G.get('ripples'):1;
-  if(devOn()){h+='<section class="mm-devsec"><h3>dev</h3><p class="mm-devnote">hidden at launch · drawer '+DV+'</p><div class="mm-seg"><b>drawer</b><span role="radiogroup" aria-label="drawer">';
+  if(devDrawer()){h+='<section class="mm-devsec"><h3>dev</h3><p class="mm-devnote">archived · drawer '+DV+' · public stays A</p><div class="mm-seg"><b>drawer</b><span role="radiogroup" aria-label="drawer">';
     [['A','A · constellation'],['B','B · contact strip'],['C','C · ghost']].forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(DV===o[0])+'" data-drawer="'+o[0]+'">'+o[1]+'</button>'});h+='</span></div></section>'}
   h+='<section class="mm-globals"><h3>globals</h3>';
   var TH=window.GJ_THEME,tp=TH?TH.pref:'night';
