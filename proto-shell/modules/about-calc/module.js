@@ -18,10 +18,9 @@ function $(id){return document.getElementById(id)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function rd(k,d){try{var v=localStorage.getItem('gj.acalc.'+k);if(v==null||v==='')return d;v=+v;return isFinite(v)?v:d}catch(e){return d}}
-/* tune: the core tune menu (core/vendor/tune.js, context-aware build) reads module.tune as slider specs {k:'gj.*', label, min, max, def, after}.
-   It has no segmented-toggle spec yet, so the 2D / 3D toggle (VIEW) is injected by this module into the menu's context section. */
-var VIEW={k:'view',label:'calculator',seg:[['A','2D · flat'],['B','3D · object']]};
+/* tune: slider specs {k:'gj.*', label, min, max, def, after} and a toggle spec {type:'toggle', k, options, get, set}; the core tune menu renders both. */
 var TUNE=[
+  {type:'toggle',k:'gj.acalc.view',label:'calculator',options:[['A','2D · flat'],['B','3D · object']],get:function(){return V},set:function(v){if(SH)SH.setVariant(v)}},
   {k:'gj.acalc.tilt',label:'tilt amount',min:0,max:40,def:16,after:function(){applyTune()}},
   {k:'gj.acalc.depth',label:'depth',min:4,max:60,def:22,after:function(){applyTune()}},
   {k:'gj.acalc.light',label:'light angle',min:0,max:359,def:330,after:function(){applyTune()}},
@@ -34,9 +33,10 @@ function loadCss(h){return new Promise(function(ok){var l=document.createElement
 function loadJs(s){return new Promise(function(ok,no){var e=document.createElement('script');e.src=s;e.onload=ok;e.onerror=function(){no(new Error(s))};document.head.appendChild(e)})}
 M.ready=Promise.all([loadCss(BASE+'calc.css'),loadJs(BASE+'layers.js')]);
 function val(k){var t=TUNE.filter(function(r){return r.k==='gj.acalc.'+k})[0];return rd(k,t.def)}
+var V='A';
 
 /* ---------- m4 state (sky.js 1948) ---------- */
-var bioOn=0,bioLv=1,bioExit=0,bioMoon=0,grainOn=0,SH=null,V='A',root=null;
+var bioOn=0,bioLv=1,bioExit=0,bioMoon=0,grainOn=0,SH=null,root=null;
 function isBio(){var c=SH&&SH.ladder.cur;return !!c&&c.lv===2&&c.k==='about'}
 function paintGrain(){
   var c=$('grain');if(!c||grainOn)return;
@@ -269,7 +269,7 @@ function startMoonExit(){
   setTimeout(function(){
     bioExit=0;bioOn=0;bioLv=1;bioMoon=0;
     el.hidden=true;el.classList.remove('on','exit','moonfade');
-    OUT0(); /* m4: cur = {lv:1, k:'about'}; here the ladder steps out one level, through history like every other out */
+    OUT0(); /* m4: cur = {lv:1, k:'about'}; here the ladder steps out one level, through history like every other out (bioOn is 0 now, so the back hook lets it through) */
   },760+1200);
 }
 function bioBack(){
@@ -369,30 +369,18 @@ function drag3(){
   O.wrap.addEventListener('click',function(e){var b=e.target.closest('.ac3-box.on');if(!b)return;if(DRAGGED){DRAGGED=false;e.stopPropagation();return}var s=window.getSelection&&window.getSelection();if(s&&String(s).length)return;e.stopPropagation();bioDeeper()});
 }
 
-/* ---------- the 2D / 3D toggle in the tune menu (module-owned until the core reads a toggle spec; see NOTES.md) ---------- */
-function segHtml(){var h='<div class="mm-seg" role="radiogroup" aria-label="'+VIEW.label+'" data-tune-mod="about-calc"><b>'+VIEW.label+'</b><span>';
-  VIEW.seg.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(V===o[0])+'" data-acalc-v="'+o[0]+'">'+o[1]+'</button>'});return h+'</span></div>'}
-function hookMenu(){
-  var mo=new MutationObserver(function(){
-    var pl=document.querySelector('#markmenu .mm-plate');if(!pl||pl.hidden||pl.querySelector('[data-acalc-v]'))return;
-    var c=window.GJ_MARKMENU&&GJ_MARKMENU.context?GJ_MARKMENU.context():null,here=c?c.room==='about':(SH&&SH.ladder.cur.k==='about');
-    var ctx=pl.querySelector('.mm-ctx');var tmp=document.createElement('div');
-    if(here&&ctx){tmp.innerHTML=segHtml();var h3=ctx.querySelector('h3');ctx.insertBefore(tmp.firstChild,h3?h3.nextSibling:ctx.firstChild)}
-    else{tmp.innerHTML='<section class="mm-room"><h3>about · calculator</h3>'+segHtml()+'</section>';var all=pl.querySelector('.mm-all');pl.insertBefore(tmp.firstChild,all?all.nextSibling:pl.firstChild)}
-  });
-  mo.observe(document.body,{childList:true,subtree:true});
-  document.addEventListener('click',function(e){
-    var b=e.target.closest&&e.target.closest('[data-acalc-v]');if(!b)return;e.stopPropagation();
-    var lb=document.querySelector('#labvars button[data-v="'+b.getAttribute('data-acalc-v')+'"]');if(lb)lb.click();
-  },true);
-}
-
 /* ---------- shell hooks ---------- */
 M.stop=function(st,W,H,sh){if(st.k!=='about'||st.lv<2)return undefined;if(st.lv>2)return null;
   var T=GJ_TUNE.values(),f=sh.sky.chFit('about',W,H);return {x:f.x,y:f.y,s:f.s*1.45*1.3*(T.board||1)}};
 M.levelName=function(lv){return lv===2?'bio':'work'};
+M.tuneTitle=function(st){return st.lv===2?'bio':null};
+/* core hooks: out (‹, Esc, double tap, pinch-out, browser Back) steps a layer back and runs the moon exit; in (pinch-in, wheel-in, Enter / +) steps a layer deeper;
+   Left / Right step layers while the calculator is up (Shift + Left / Right still switches A / B / C) */
+M.back=function(){return bioBack()};
+M.inAt=function(){if(!isBio())return false;bioDeeper();return true};
+M.arrow=function(d){if(!isBio())return false;if(d>0)bioDeeper();else bioBack();return true};
 M.variant=function(v){V=v==='B'?'B':'A';if(root){root.setAttribute('data-v',V);if(bioOn){paintBio(false);layout3()}}
-  [].forEach.call(document.querySelectorAll('[data-acalc-v]'),function(x){x.setAttribute('aria-checked',x.getAttribute('data-acalc-v')===V?'true':'false')})};
+};
 M.layout=function(){if(root&&!root.hidden){layoutCalc();layout3()}};
 M.level=function(){syncBio()};
 M.tap=function(){if(!isBio())return false;if(bioMoon)return true;bioDeeper();return true};
@@ -412,9 +400,7 @@ M.init=function(sh){
     var s=window.getSelection&&window.getSelection();if(s&&String(s).length)return;
     bioDeeper();
   });
-  /* out = one layer back while the calculator is up (m4 bioBack). Wraps the ladder's out from the module, no core edit. */
-  OUT0=sh.ladder.out;sh.ladder.out=function(){if(bioBack())return;OUT0()};
-  hookMenu();
+  OUT0=function(){sh.ladder.out()};
   M.variant(sh.variant||V);
   syncBio();
 };

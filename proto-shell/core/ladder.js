@@ -29,12 +29,13 @@ function Ladder(cam,world,o){
     }
     var prev=L.cur;set(st);arrive(st,ms==null?msFor(st,prev):ms);
   };
-  L.out=function(){if(L.cur.lv===0){arrive(L.cur,D('rubberBandBelowField',500));return}PEND={st:null,ms:D('doubleTapStepOut',800)};
+  /* module hooks (world.back, world.inAt): a module that has layers inside a level (about-calc) gets first call at every way out and in */
+  L.out=function(){if(world.back&&world.back())return;if(L.cur.lv===0){arrive(L.cur,D('rubberBandBelowField',500));return}PEND={st:null,ms:D('doubleTapStepOut',800)};
     if(history.state&&history.state.sh&&L.n>0){history.back();return}
     PEND=null;var st=L.cur.lv===1?{lv:0}:{lv:L.cur.lv-1,k:L.cur.k};set(st);arrive(st,D('doubleTapStepOut',800))};
   L.far=function(){var ms=D('glideHomeChapterWork',1000);if(L.cur.lv===0){arrive(L.cur,ms);return}if(L.n>0){PEND={st:{lv:0},ms:ms};history.go(-L.n);return}set({lv:0});arrive({lv:0},ms)};
   L.inAt=function(x,y){var k=L.cur.k||world.chapterNear(cam.toWorld(x,y));if(L.cur.lv===0){L.go({lv:1,k:k});return}
-    var nx=L.stops(k).filter(function(s){return s.lv===L.cur.lv+1})[0];if(nx)L.go(nx)};
+    var nx=L.stops(k).filter(function(s){return s.lv===L.cur.lv+1})[0];if(nx)L.go(nx);else if(world.inAt)world.inAt(x,y)};
   /* the soft settle after a continuous zoom */
   /* a settle glide is marked `lock`: a touch that lands or taps during it does not cancel it and opens nothing (camera.js); the tail of a wheel flick is ignored for 600 ms */
   var LOCK=null;
@@ -51,6 +52,9 @@ function Ladder(cam,world,o){
     /* R4: one gesture moves at most one level, in or out */
     var ci=-1;S.forEach(function(x,i){if(x.lv===L.cur.lv&&(x.k||null)===(L.cur.k||null))ci=i});if(ci<0)ci=0;t=clamp(t,ci-1,ci+1);
     var st=S[t];
+    /* pinch-in or wheel-in past the deepest stop (m4's depth pinch, ratio 1.18) steps a module layer; pinch-out to a shallower level asks the module first */
+    if(world.inAt&&L.cur.lv>=1&&t===ci&&s/sc[ci]>1.18&&world.inAt(cam.W/2,cam.H/2)){arrive(L.cur,D('rubberBandBelowField',500));return}
+    if(world.back&&t<ci&&world.back()){arrive(L.cur,D('rubberBandBelowField',500));return}
     if(st.lv===L.cur.lv&&st.k===L.cur.k){arrive(st,D('rubberBandBelowField',500));return}
     if(st.lv<L.cur.lv||(st.lv>0&&L.cur.lv>0&&st.k!==L.cur.k&&st.lv<=L.cur.lv)){
       if(st.k!==L.cur.k&&st.lv>0){PEND={st:st,ms:null,then:true};history.go(-Math.min(L.n,L.cur.lv));return}
@@ -58,7 +62,12 @@ function Ladder(cam,world,o){
     L.go(st);
   }
   var PEND=null;
-  addEventListener('popstate',function(e){var s=e.state;var st=s&&s.sh?s.st:{lv:0};L.n=s&&s.sh?s.n:0;
+  /* browser Back: a module with layers gets it first (m4 bioBack). Consumed = the history step is put back and nothing else moves. */
+  var IGN=false;
+  addEventListener('popstate',function(e){var s=e.state;var st=s&&s.sh?s.st:{lv:0},prevN=L.n;
+    if(IGN){IGN=false;L.n=s&&s.sh?s.n:0;return}
+    if(!PEND&&st.lv<L.cur.lv&&world.back&&world.back()){var fwd=prevN-(s&&s.sh?s.n:0);if(fwd>0){IGN=true;history.go(fwd)}return}
+    L.n=s&&s.sh?s.n:0;
     if(PEND&&PEND.then&&PEND.st&&PEND.st.lv>st.lv){var p=PEND;PEND=null;set(st);L.go(p.st,p.ms);if(LOCK){mark(LOCK);LOCK=null}return}
     var prev=L.cur,ms=PEND&&PEND.ms!=null?PEND.ms:msFor(st,prev);PEND=null;set(st);arrive(st,ms);if(LOCK){mark(LOCK);LOCK=null}});
   function hashOf(s){return '#'+(s.lv?[s.k,['','mid','board','work'][s.lv],s.id||''].filter(Boolean).join('/'):'')}

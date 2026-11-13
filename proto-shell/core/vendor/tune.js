@@ -72,7 +72,13 @@ var DECS=[
   {k:'photo',n:'4 · photo',o:[['B','B · dark, night sky'],['A','A · silver shelf']]}
 ];
 function D2(){return window.GJ_DEC||null}
+/* a toggle spec: {type:'toggle', k, label, options:[[value,'label'],...], get(), set(value)}. A segmented control in the menu (a module's
+   2D / 3D, on / off, ...). The module owns the state; the menu only asks get() and calls set(). Nothing is stored here. */
+function toggleRow(s){
+  return {k:s.k,label:s.label,toggle:true,options:s.options||s.seg||[],get:function(){return s.get?s.get():null},set:function(v){if(s.set)s.set(v)},apply:function(){}};
+}
 function rowFromSpec(s){
+  if(s&&(s.type==='toggle'||s.options&&!s.min&&!s.max))return toggleRow(s);
   if(s&&s.get&&s.apply)return s;
   if(!s)return null;
   if(s.ls)return lsRow(s.ls,s.label,s.min,s.max,s.def,s.scale||1,s.after);
@@ -131,6 +137,8 @@ function build(){
     if(e.target.closest('.mm-all')){allOn=!allOn;paint();return}
     if(e.target.closest('.mm-reset-room')){resetRoom();return}
     if(e.target.closest('.mm-reset')){reset();return}
+    var tg=e.target.closest('[data-tog]');
+    if(tg){var trow=findRow(tg.getAttribute('data-tog'));if(trow&&trow.set){trow.set(tg.getAttribute('data-v'));paint()}return}
     var tb2=e.target.closest('[data-theme-set]');
     if(tb2&&window.GJ_THEME){GJ_THEME.set(tb2.getAttribute('data-theme-set'));paint();return}
     var db=e.target.closest('[data-dec]');
@@ -158,8 +166,13 @@ function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.l
   return null}
 function roomOfRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].id;
   var m=(window.__shell&&__shell.mod)||null;return m&&m.chapter||null}
+function toggleHtml(r){
+  var v=r.get(),h='<div class="mm-seg mm-toggle" role="radiogroup" aria-label="'+r.label+'"><b>'+r.label+'</b><span>';
+  r.options.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(v===o[0])+'" data-tog="'+r.k+'" data-v="'+o[0]+'">'+o[1]+'</button>'});
+  return h+'</span></div>';
+}
 function rowsHtml(rows){
-  var h='';rows.forEach(function(r){var v=r.get();
+  var h='';rows.forEach(function(r){if(r.toggle){h+=toggleHtml(r);return}var v=r.get();
     h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+r.label+'"><output>'+v+'</output></label>'});
   return h;
 }
@@ -170,6 +183,7 @@ function paint(){
   pl.hidden=!tuneOn;if(!tuneOn)return;
   var c=ctx(),here=c.room,level=c.levelName;
   var title=here+(level&&level!==here?' · '+level:'');
+  if(c.mod&&c.mod.chapter===here&&c.mod.tuneTitle){var tt=c.mod.tuneTitle(c.st);if(tt)title=tt}
   var offHere=isOff(here)&&!(c.mod&&c.mod.chapter===here&&c.mod.tune);
   var h='<section class="mm-ctx'+(offHere?' mm-off-room':'')+'"><h3>'+title+' <span>here</span>'+(offHere?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
   h+=rowsHtml(contextRows(c));
@@ -183,6 +197,8 @@ function paint(){
       h+=rowsHtml(R.rows);
       h+='</section>';
     });
+    var am=c.mod&&c.mod.chapter!==here&&!roomById(c.mod.chapter)?moduleRows(c.mod):null;
+    if(am)h+='<section class="mm-room"><h3>'+c.mod.chapter+'</h3>'+rowsHtml(am)+'</section>';
     h+='<section class="mm-dec"><h3>decisions <em>the hero opener keeps the full mark in every mode; the Sound waveform player is in every combination</em></h3>';
     var G=D2();
     DECS.forEach(function(d){
@@ -213,7 +229,7 @@ function resetRoom(){
   var c=ctx(),R=roomById(c.room);
   var all=(c.mod&&c.mod.chapter===c.room&&moduleRows(c.mod))||(R?R.rows:contextRows(c));
   all.forEach(function(r){rm(r.k)});
-  all.forEach(function(r){r.apply(r.get(),true)});
+  all.forEach(function(r){if(!r.toggle)r.apply(r.get(),true)});
   poke('gj.vol');poke('gj.sound.invert');setFlash();
   paint();
 }
@@ -251,6 +267,7 @@ function restore(){
 }
 var tries=0;(function wait(){if(window.__u1&&__u1.ready&&window.__shell&&__shell.ladder){restore();hookLadder();return}if(++tries<200)setTimeout(wait,50)})();
 if(window.GJ_THEME)GJ_THEME.on(function(w){if(w!=='adj'&&open&&tuneOn)paint()});
+document.addEventListener('lab-variant',function(){if(open&&tuneOn)paint()});
 window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},
   context:function(){return ctx()},
   rooms:function(){return ROOMS.map(function(R){return {id:R.id,rows:R.rows.map(function(r){return r.label})}})}};

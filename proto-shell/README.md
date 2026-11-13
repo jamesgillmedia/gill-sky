@@ -7,6 +7,7 @@ gestures, waveform and mark. Built to `/workspace/share/proto-standards-1112/STA
     python3 -m http.server 8777 --bind 127.0.0.1 --directory /workspace/proto-shell-1112
     http://127.0.0.1:8777/            film-snap module, variant A
     ?m=blank                          the core alone
+    ?m=about-calc&at=about/board      the About / bio calculator: ?v=A 2D (m4, exact) · ?v=B 3D object (modules/about-calc/NOTES.md)
     ?v=A|B|C                          proposal (pills, arrow keys, A/B/C keys; lab.js verbatim)
     ?at=film | film/board | film/work/4 | sound     start at a level (stills)
     ?mid=1                            freeze the module's mid-state (film-snap: fsn 0.5)
@@ -29,6 +30,7 @@ gestures, waveform and mark. Built to `/workspace/share/proto-standards-1112/STA
       css/shell.css      4:31 colour + type tokens; css/markmenu.css (verbatim from preview-film-snap sky.css)
       shell.js           boot, world stops, taps, frame loop, module loader, __shell (state, check, go)
     modules/
+      about-calc/           the About / bio calculator, 2D or 3D (module.js, calc.css, layers.js, media/, NOTES.md)
       film-snap/module.js   decision 1: m4 loose map ⇄ 4:31 film board with counts; decision 3: board tile → work slot
       blank/module.js       copy this to start a module
     data/   sky.json (SH/ANG/ANGP + sky item counts), film.json (38 film cards), tracks.json (6 songs)
@@ -41,6 +43,14 @@ gestures, waveform and mark. Built to `/workspace/share/proto-standards-1112/STA
       layout(W,H,sh), stop(st,W,H,sh) -> {x,y,s} | null | undefined, box(sh),
       draw(g,cam,t,sh,T), hide(k,sh), tap(x,y,sh) -> consumed, variant(v,sh), mid(sh),
       levelName(lv,st,sh), workId(id), state(sh), isNew:[...] })
+
+## Module hooks the core gives every module (all optional)
+    tune:[...]            slider specs {k:'gj.*', label, min, max, def, after} and toggle specs {type:'toggle', k, label, options:[[v,'label']], get(), set(v)}
+    tuneTitle(st)         the tune menu's header for the module's room (about-calc: 'bio')
+    back(sh)              -> true if the module consumed a step out: ‹, Esc, double tap, pinch-out, browser Back all ask first
+    inAt(x,y,sh)          -> true if the module consumed a step in: pinch-in past the deepest stop, wheel-in, Enter / +
+    arrow(dir,sh)         -> true if Left (-1) / Right (+1) is the module's (layer stepping); Shift+Left/Right always switches A/B/C
+    SH.setVariant('B')    switch the proposal from code (the same as its pill)
 
 ## Known gaps (TBD in the standard, not invented here)
 - WORK has no single m4 scale; the film-snap slot uses the blend deepS 0.82 rule. The film player itself is not wired in.

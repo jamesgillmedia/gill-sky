@@ -25,6 +25,8 @@ function boot(skyD,tracks,shape){
   /* the world: FAR fits every constellation, MID fits one figure; a module may add BOARD (2) and WORK (3) for its chapter */
   var world={
     chapterNear:function(p){return sky.near(p)},
+    back:function(){return M.back?!!M.back(SH):false},
+    inAt:function(x,y){return M.inAt?!!M.inAt(x,y,SH):false},
     stop:function(st){var W=cam.W,H=cam.H;
       if(M.stop){var m=M.stop(st,W,H,SH);if(m!==undefined)return m}
       /* the m4 ladder (STANDARDS §2): FAR = the fitted sky * tk('far'); MID = fitBox(chapter, 36, 28).s * 1.45 * tk('mid');
@@ -62,7 +64,7 @@ function boot(skyD,tracks,shape){
     cam.W=W;cam.H=H;sky.layout(W,H,T);if(M.layout)M.layout(W,H,SH);
     /* blend clamps (STANDARDS §2): live zoom from S0*0.7 to the deepest stop * 1.15; S0 = FAR */
     cam.S0=sky.FAR.s;cam.SMIN=cam.S0*.7;var mx=cam.S0;sky.CH.forEach(function(c){[1,2].forEach(function(lv){var q=world.stop({lv:lv,k:c.k});if(q)mx=Math.max(mx,q.s)})});
-    if(M.chapter){var q3=world.stop({lv:3,k:M.chapter,id:'0'});if(q3)mx=Math.max(mx,q3.s)}cam.SMAX=mx*1.15;
+    if(M.chapter){var q3=world.stop({lv:3,k:M.chapter,id:'0'});if(q3)mx=Math.max(mx,q3.s)}cam.SMAX=mx*(M.inAt?1.4:1.15);
     var b=sky.box();if(M.box){var mb=M.box(SH);if(mb)b=[Math.min(b[0],mb[0]),Math.min(b[1],mb[1]),Math.max(b[2],mb[2]),Math.max(b[3],mb[3])]}cam.clampBox=b;
     if(SH.ready)ladder.arrive(ladder.cur,keep===true?400:0)}
   if(M.chapter&&M.isNew)sky.isNew[M.chapter]=M.isNew;
@@ -116,6 +118,10 @@ function boot(skyD,tracks,shape){
   SH.state=function(){return {module:mid,variant:SH.variant,level:ladder.cur,cam:{x:+cam.x.toFixed(1),y:+cam.y.toFixed(1),s:+cam.s.toFixed(4),zf:+cam.zf().toFixed(3)},histN:ladder.n,mod:M.state?M.state(SH):null}};
   SH.check=function(){var wv=wave.check();return {ok:wv.dock&&wv.visible&&wv.playButton&&wv.rail&&!!document.querySelector('#crumb .sig'),wave:wv,mark:!!document.querySelector('#crumb .sig'),markMenu:!!w.GJ_MARKMENU,level:ladder.cur}};
   SH.go=function(st){ladder.go(st)};
+  SH.setVariant=function(v){var b=document.querySelector('#labvars button[data-v="'+v+'"]');if(b)b.click()};
+  /* Left / Right belong to the A/B/C switcher (lab.js) unless the module is stepping layers (M.arrow(dir) consumed); Shift+arrow always switches */
+  addEventListener('keydown',function(e){if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;if(e.shiftKey||e.altKey||e.ctrlKey||e.metaKey||(e.target&&/input|textarea|select/i.test(e.target.tagName)))return;
+    if(M.arrow&&M.arrow(e.key==='ArrowRight'?1:-1,SH)){e.preventDefault();e.stopImmediatePropagation()}},true);
   w.__shell=SH;
 }
 })(window);
