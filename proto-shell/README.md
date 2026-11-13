@@ -47,3 +47,13 @@ gestures, waveform and mark. Built to `/workspace/share/proto-standards-1112/STA
 - `?decisions=1-4` parser, `#debug` panel, `?stress=1` walker: not built.
 - tune.js room links `../objects/`, `../spaces/forest-garden/` point outside the shell; `list/` and `contact/` are stubs.
 - Desktop board on a 1440 screen follows m4 (max 680 px wide, 3 columns), so it looks small; that is the 4:31 value.
+
+## Theme layer (night / red)
+    core/css/theme.css   every colour token, two sets: night (default, the look the shell always had) and html[data-theme=red]
+    core/theme.js        GJ_THEME: the per-device choice (localStorage gj.theme, or ?theme=night|red), data-theme on <html>,
+                         GJ_THEME.pal (the same tokens for canvas code, rebuilt on every change), the quiet button by the A/B/C pills
+    tune menu            globals > colour mode: night | red (reset does not touch it)
+Modules paint with GJ_THEME.pal (or the CSS variables), never their own hex; GJ_THEME.on(fn) says when it changed.
+Red = bright red on black, thin lines, a dotted floor; the room or part being adjusted in the tune menu lights up gold for a moment.
+Never themed: photographs, film frames and video; the mint "new" marker; the safelight; the Photo room (it keeps its own look, so
+red steps aside while you are inside it). No transitions and no motion differences between themes, Reduce Motion included.
