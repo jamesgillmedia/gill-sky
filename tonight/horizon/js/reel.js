@@ -104,9 +104,24 @@ function relayout(){
 }
 
 /* ---------- picture ---------- */
+/* tonight/media/film/, from this file (../../media/film/). The horizon page sees ../media/film/. */
+var FILM=(function(){
+  function rel(fromHref,toHref){
+    var from=new URL(fromHref),to=new URL(toHref);
+    if(from.origin!==to.origin)return to.href;
+    var a=from.pathname.split('/').filter(Boolean),b=to.pathname.split('/').filter(Boolean),i=0,up=[];
+    while(i<a.length&&i<b.length&&a[i]===b[i])i++;
+    for(var n=i;n<a.length;n++)up.push('..');
+    return (up.concat(b.slice(i)).join('/')||'.')+'/';
+  }
+  var el=document.currentScript,src=el&&el.src;
+  if(!src)return '../media/film/';
+  try{return rel(new URL('.',location.href).href,new URL('../../media/film/',src).href)}
+  catch(e){return '../media/film/'}
+})();
 function horizonBase(it){
   var id=it&&it.id||'';
-  return /^r\d+$/.test(id)?'/media/film/horizon-'+id+'/':'';
+  return /^r\d+$/.test(id)?FILM+'horizon-'+id+'/':'';
 }
 function horizonPoster(it){
   var base=horizonBase(it);
