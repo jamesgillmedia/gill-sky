@@ -88,11 +88,20 @@ M.draw=function(g,cam,t,sh){
   g.restore();g.globalAlpha=1;
 };
 function cut(g,s,max){s=String(s||'');if(g.measureText(s).width<=max)return s;while(s.length>1&&g.measureText(s+'…').width>max)s=s.slice(0,-1);return s+'…'}
+/* LOCKED: the board is committed and the camera is resting on its stop. A tap opens a tile only then. Mid-snap (the map turning into the board,
+   the glide still running, a pinch or wheel still live) a tap is swallowed: it opens nothing and shows nothing. Port of preview-film-snap:
+   tiles answer only once the board has fully bloomed, and a tap that lands during a settle never goes through. */
+function locked(sh){var cam=sh.cam;if(cam.glide||cam.busy)return false;var B=boardS(sh,cam.W,cam.H);return Math.abs(Math.log(cam.s/B.s))<.03}
 M.tap=function(x,y,sh){var st=sh.ladder.cur;if(st.k!=='film'||st.lv<1)return false;
   if(st.lv===3)return true;
-  for(var i=0;i<M.items.length;i++){var r=M.items[i]._r;if(!r)continue;
-    if(M.fsn>.9){if(x>=r[0]&&x<=r[0]+r[2]&&y>=r[1]&&y<=r[1]+r[3]+28){sh.ladder.go({lv:3,k:'film',id:String(i)});return true}}
-    else if(Math.hypot(r[0]+r[2]/2-x,r[1]+r[3]/2-y)<18){sh.chipTitle(M.items[i].title,x,y);return true}}
+  var f=M.fsn;
+  if(f>.02&&f<.985)return true;
+  if(f>=.985){if(!locked(sh))return true;
+    for(var i=0;i<M.items.length;i++){var r=M.items[i]._r;if(!r)continue;
+      if(x>=r[0]&&x<=r[0]+r[2]&&y>=r[1]&&y<=r[1]+r[3]+28){sh.ladder.go({lv:3,k:'film',id:String(i)});return true}}
+    return false}
+  for(var j=0;j<M.items.length;j++){var q=M.items[j]._r;if(!q)continue;
+    if(Math.hypot(q[0]+q[2]/2-x,q[1]+q[3]/2-y)<18){sh.chipTitle(M.items[j].title,x,y);return true}}
   return false};
 M.tune=[
   {key:'fdens',label:'snap density',min:60,max:140},

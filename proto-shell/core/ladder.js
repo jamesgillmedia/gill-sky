@@ -36,7 +36,11 @@ function Ladder(cam,world,o){
   L.inAt=function(x,y){var k=L.cur.k||world.chapterNear(cam.toWorld(x,y));if(L.cur.lv===0){L.go({lv:1,k:k});return}
     var nx=L.stops(k).filter(function(s){return s.lv===L.cur.lv+1})[0];if(nx)L.go(nx)};
   /* the soft settle after a continuous zoom */
-  L.settle=function(src){
+  /* a settle glide is marked `lock`: a touch that lands or taps during it does not cancel it and opens nothing (camera.js); the tail of a wheel flick is ignored for 600 ms */
+  var LOCK=null;
+  function mark(src){if(cam.glide){cam.glide.lock=1;if(src&&src.kind!=='resume')cam.wheelLock=performance.now()+600}}
+  L.settle=function(src){LOCK=src||{};_settle(src);mark(src);if(!PEND)LOCK=null};
+  function _settle(src){
     var k=L.cur.lv>=1?L.cur.k:world.chapterNear([cam.x,cam.y]);
     if(L.cur.lv===3){var ws=world.stop(L.cur);if(ws&&cam.s<ws.s*.8){L.go({lv:2,k:L.cur.k});return}arrive(L.cur,D('rubberBandBelowField',500));return}
     if(L.cur.lv>=1&&world.chapterNear([cam.x,cam.y])!==k&&cam.s<world.stop({lv:1,k:k}).s*.7)k=world.chapterNear([cam.x,cam.y]);
@@ -52,11 +56,11 @@ function Ladder(cam,world,o){
       if(st.k!==L.cur.k&&st.lv>0){PEND={st:st,ms:null,then:true};history.go(-Math.min(L.n,L.cur.lv));return}
       L.go(st);return}
     L.go(st);
-  };
+  }
   var PEND=null;
   addEventListener('popstate',function(e){var s=e.state;var st=s&&s.sh?s.st:{lv:0};L.n=s&&s.sh?s.n:0;
-    if(PEND&&PEND.then&&PEND.st&&PEND.st.lv>st.lv){var p=PEND;PEND=null;set(st);L.go(p.st,p.ms);return}
-    var prev=L.cur,ms=PEND&&PEND.ms!=null?PEND.ms:msFor(st,prev);PEND=null;set(st);arrive(st,ms)});
+    if(PEND&&PEND.then&&PEND.st&&PEND.st.lv>st.lv){var p=PEND;PEND=null;set(st);L.go(p.st,p.ms);if(LOCK){mark(LOCK);LOCK=null}return}
+    var prev=L.cur,ms=PEND&&PEND.ms!=null?PEND.ms:msFor(st,prev);PEND=null;set(st);arrive(st,ms);if(LOCK){mark(LOCK);LOCK=null}});
   function hashOf(s){return '#'+(s.lv?[s.k,['','mid','board','work'][s.lv],s.id||''].filter(Boolean).join('/'):'')}
   L.boot=function(){history.replaceState({sh:1,st:{lv:0},n:0},'',location.pathname+location.search);L.n=0;set({lv:0});var c=world.stop({lv:0});cam.x=c.x;cam.y=c.y;cam.s=c.s};
   L.arrive=arrive;
