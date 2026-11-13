@@ -104,7 +104,8 @@ function up(e){var p=PT.get(e.pointerId);if(!p)return;PT.delete(e.pointerId);
   if(pinch){if(pinch.ids.indexOf(e.pointerId)>=0){pinch=null;settleZoom()}drag=null;return}
   if(gLock){drag=null;return}
   if(drag&&drag.id===e.pointerId){var dur=now()-p.t0;
-    if(drag.moved<10&&dur<350)tap(e.clientX,e.clientY);
+    var touch=e.pointerType==='touch'||e.pointerType==='pen';
+    if(drag.moved<(touch?24:10)&&dur<(touch?520:350))tap(e.clientX,e.clientY,touch);
     else if(zf()>1.12){fling(drag.vx*sstep(1.12,1.8,zf()),drag.vy*sstep(1.12,1.8,zf()))}
     drag=null;if(!tiltOn){T.tx=0;T.ty=0}}}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
@@ -123,13 +124,22 @@ addEventListener('keydown',function(e){var k=e.key;lastIn=now();firstTouch();
   else if(k.indexOf('Arrow')===0){chipOff();e.preventDefault();var d=80/cam.s;glideTo(cam.x+(k==='ArrowRight'?d:k==='ArrowLeft'?-d:0),cam.y+(k==='ArrowDown'?d:k==='ArrowUp'?-d:0),cam.s,300)}});
 /* tap: a work glides in until it resolves (and again for more), a chapter fits its figure, the mark goes home */
 function cardPx(w){return Math.max(w.cw,w.chh)*cam.s}
-function tap(x,y){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,y-lastTap.y)<30;lastTap={t:t,x:x,y:y};
-  if(CHIP.k){chipOff();if(!dbl)return}
-  if(dbl){stepOut();lastTap.t=0;return}
-  var nc=nameAt(x,y);if(nc){chipOn(nc,null,x,y);return}
+function chapterAt(x,y){var wp=toWorld(x,y),hit=null;
+  for(var i=0;i<CH.length;i++){var C=CH[i];if(Math.abs(wp[0]-C.cx)<FIG_W*.7&&Math.abs(wp[1]-C.cy)<FIG_H*.9)hit=C}return hit}
+function roomOf(c){return c&&(c.k==='objects'||c.k==='photo')?c:null}
+function tap(x,y,touch){var t=now(),dbl=t-lastTap.t<320&&Math.hypot(x-lastTap.x,y-lastTap.y)<30;lastTap={t:t,x:x,y:y};
   var o=[0,0,0],best=null,bd=1e9;
   WORKS.forEach(function(w){proj(w.x,w.y,zE(w.z),o);var px=cardPx(w),hw=Math.max(22,w.cw*cam.s/2+6),hh=Math.max(22,w.chh*cam.s/2+6);
     if(Math.abs(o[0]-x)<=hw&&Math.abs(o[1]-y)<=hh){var d=Math.hypot(o[0]-x,o[1]-y);if(d<bd){bd=d;best=w}}});
+  var named=nameAt(x,y);
+  /* a finger on the Objects or Photo figure (while the stars are still stars, not a big picture) shows open › */
+  var room=roomOf(named)||((touch&&(!best||cardPx(best)<48))?roomOf(chapterAt(x,y)):null);
+  if(CHIP.k){
+    if(room&&room.k===CHIP.k){enterRoom(room.k==='photo'?'../photo-lab/':'../objects/');return}
+    chipOff();if(!dbl)return}
+  if(dbl){stepOut();lastTap.t=0;return}
+  if(named){chipOn(named,null,x,y);return}
+  if(room){chipOn(room,null,x,y);var fsR=Math.min(W*.92/FIG_W,(H-120)*.9/FIG_H);if(cam.s<fsR*.9)glideTo(room.cx,room.cy,fsR,1000);return}
   var z=zf();
   if(best&&(z>1.8||bd<14)&&best.c.k==='film'&&cardPx(best)<110){openBoard(best,true);return}   /* film: dot -> its board first */
   if(best&&(z>1.8||bd<14)){var px=cardPx(best),steps=[deepS(best,.22),deepS(best,.5),deepS(best,.82)];steps[1]=Math.max(steps[1],steps[0]);steps[2]=Math.max(steps[2],steps[1]);var ts=steps[2];

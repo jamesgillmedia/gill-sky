@@ -59,6 +59,6 @@ html,body{margin:0;height:100%;background:#04060c;color:#e6edf0;overflow:hidden;
 .chip{position:fixed;left:0;top:0;z-index:4;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;max-width:min(320px,86vw);padding:6px 2px 4px;border-top:1px solid rgba(200,225,255,.28);opacity:0;transition:opacity .25s;font:400 11px "Julius Sans One",sans-serif;letter-spacing:.14em;text-transform:lowercase;text-shadow:0 0 8px #04060c,0 0 3px #04060c;pointer-events:auto}
 .chip.on{opacity:1}.chip[hidden]{display:none}
 .chip .nm{font-size:12px;letter-spacing:.16em;text-transform:uppercase}
-.chip a{color:#e6edf0;text-decoration:none;display:inline-block;min-height:32px;line-height:32px}
+.chip a{color:#e6edf0;text-decoration:none;display:inline-flex;align-items:center;min-height:44px;padding:0 4px;line-height:1}
 .chip a:focus-visible{outline:2px solid #e8e4dc;outline-offset:2px}
 #bar button:focus-visible,#board .bn button:focus-visible{outline-color:#e8e4dc}
