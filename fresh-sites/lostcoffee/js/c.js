@@ -12,7 +12,7 @@ board.innerHTML='<p class="c-bh"><span>the counter</span><span>len</span></p>'+O
   '<p class="c-foot lv-links"><a href="'+D.links.spotify+'" target="_blank" rel="noopener">Spotify</a><a href="'+D.links.apple+'" target="_blank" rel="noopener">Apple Music</a></p>'+
   '<p class="c-mm">also: <a href="'+D.links.mm+'" target="_blank" rel="noopener">Mothers Moniker ↗</a></p>';
 board.querySelectorAll('.c-row').forEach(function(b){var t=G.track(b.dataset.id);img(t.coverS,'',t.t+' cover',b.querySelector('.th'));LV.rail(b.querySelector('.ld'),{track:t,seek:false,step:2,amp:.5,bw:1})});
-var tuneW=el('div','c-tune',null,app);LV.tune(tuneW);
+var tuneW=el('div','c-tune',null,app);LV.tune(tuneW,'','vol');
 var slot=el('div','c-slot',null,app);var tk=el('article','c-ticket',null,slot);tk.setAttribute('aria-label','ticket');
 var rail=null,openId=null,printing=null;
 function ticketHTML(t){var no=('0'+(O.indexOf(t)+1)).slice(-2);
@@ -29,7 +29,7 @@ function ticketHTML(t){var no=('0'+(O.indexOf(t)+1)).slice(-2);
   '</div><div class="c-perf bot"></div>'}
 function fill(t){tk.innerHTML=ticketHTML(t);img(t.cover,'',t.t+' — cover artwork',tk.querySelector('.c-tcov'));
   var pl=tk.querySelector('.c-plates');t.plates.forEach(function(p,i){var f=el('figure','c-plate',null,pl);f.style.setProperty('--r',((i-1)*2.2+(i===2?1:0))+'deg');img(p.src,'','',f)});
-  LV.tune(tk.querySelector('.c-ttune'));if(rail)LV.unrail(rail);rail=LV.rail(tk.querySelector('.c-wave canvas'),{step:3,amp:.46,bw:1.4});sync()}
+  LV.tune(tk.querySelector('.c-ttune'),'','vol');if(rail)LV.unrail(rail);rail=LV.rail(tk.querySelector('.c-wave canvas'),{step:3,amp:.46,bw:1.4});sync()}
 function sync(){var pp=tk.querySelector('.c-pp');if(pp){var on=!LV.au.paused;pp.classList.toggle('on',on);pp.setAttribute('aria-label',on?'pause':'play')}
   var cur=LV.cur();board.querySelectorAll('.c-row').forEach(function(b){b.classList.toggle('now',!!cur&&b.dataset.id===cur.id&&!LV.au.paused)})}
 LV.on(sync);
@@ -51,6 +51,6 @@ function step(k){var i=O.findIndex(function(t){return t.id===openId});R.go('t/'+
 d.addEventListener('keydown',function(e){if(!openId)return;if(e.key==='ArrowRight')step(1);if(e.key==='ArrowLeft')step(-1);if(e.key===' '&&!e.target.closest('input,button')){e.preventDefault();LV.toggle()}});
 G.swipe(tk,function(dir){if(dir==='down'||dir==='up')R.up();else step(dir==='left'?1:-1)});
 G.swipe(veil,function(dir){R.up()});
-hd.querySelector('.c-wm').addEventListener('click',function(){R.home()});
+GJ_THEME.bind(hd.querySelector('.c-wm'),{tune:true,home:function(){R.home()}});
 LV.load('lost-in-time');G.devToggle();R.start();
 })();

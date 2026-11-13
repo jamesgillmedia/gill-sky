@@ -46,4 +46,16 @@ html[data-v=B] #app,html[data-v=B] .b-lift{touch-action:pan-y}
   .c-back,.c-next,.c-index a,.c-index button{min-height:44px;min-width:44px;display:inline-flex;align-items:center}
   .c-sign{min-height:44px;min-width:44px}
   .b-band{height:44px;line-height:44px}
+  .wm-mark{min-height:44px;min-width:44px;display:inline-flex;align-items:center}
+  .wm-mode button,.wm-home{min-height:44px}
 }
+/* wordmark drawer: Night/Red. The mark itself stays bare. */
+.wm-drawer{position:fixed;z-index:90;min-width:200px;max-width:min(280px,calc(100vw - 24px));padding:12px 14px 10px;background:rgba(11,10,9,.94);border:1px solid rgba(232,228,220,.28);box-shadow:0 18px 40px rgba(0,0,0,.5)}
+.wm-drawer[hidden]{display:none!important}
+.wm-flash:empty{display:none}
+.wm-mode{display:flex;align-items:center;gap:8px}
+.wm-mode span,.wm-home,.wm-mode button{font:400 10px/1 'IBM Plex Mono',monospace;letter-spacing:.14em;text-transform:uppercase}
+.wm-mode span{color:rgba(232,228,220,.62)}
+.wm-mode button{min-height:32px;padding:0 12px;border:1px solid rgba(232,228,220,.4)}
+.wm-mode button.on{background:#e8e4dc;color:#0b0a09;border-color:#e8e4dc}
+.wm-home{display:flex;align-items:center;margin-top:8px;min-height:32px;color:rgba(232,228,220,.78)}

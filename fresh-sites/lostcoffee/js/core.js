@@ -9,7 +9,7 @@ try{localStorage.setItem(LSV,V)}catch(e){}
 H.dataset.v=V;
 function devToggle(){var b=d.createElement('div');b.id='dev';b.setAttribute('aria-label','prototype direction (dev)');
   b.innerHTML='<span>dir</span>'+['A','B','C'].map(function(x){return '<a href="?v='+x+'" data-v="'+x+'"'+(x===V?' class="on" aria-current="true"':'')+'>'+x+'</a>'}).join('');
-  b.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;e.preventDefault();try{localStorage.setItem(LSV,a.dataset.v)}catch(x){}location.href='?v='+a.dataset.v});
+  b.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;e.preventDefault();try{localStorage.setItem(LSV,a.dataset.v)}catch(x){}var q=new URLSearchParams(location.search);q.set('v',a.dataset.v);location.href='?'+q.toString()});
   d.body.appendChild(b)}
 function el(tag,cls,html,parent){var e=d.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e}
 function img(src,cls,alt,parent){var i=d.createElement('img');i.className='fi '+(cls||'');i.decoding='async';i.alt=alt||'';i.draggable=false;
@@ -52,7 +52,7 @@ d.addEventListener('keydown',function(e){if(e.key==='Escape'){if(R.escHook&&R.es
 /* ---------- swipe ---------- */
 function swipe(target,cb,opt){opt=opt||{};var s=null,multi=false;
   /* a gesture that ever had two fingers is a pinch, never a swipe */
-  target.addEventListener('touchstart',function(e){if(e.touches.length!==1){multi=true;s=null;return}if(multi)return;var n=e.target;if(n&&n.closest&&n.closest('input,.b-fader,.lv-tune'))return;var t=e.touches[0];s={x:t.clientX,y:t.clientY,t:performance.now()}},{passive:true});
+  target.addEventListener('touchstart',function(e){if(e.touches.length!==1){multi=true;s=null;return}if(multi)return;var n=e.target;if(n&&n.closest&&n.closest('input,.b-fader,.lv-tune,#wmDrawer'))return;var t=e.touches[0];s={x:t.clientX,y:t.clientY,t:performance.now()}},{passive:true});
   target.addEventListener('touchmove',function(e){if(e.touches.length>1){multi=true;s=null}},{passive:true});
   target.addEventListener('touchcancel',function(e){s=null;if(!e.touches.length)multi=false},{passive:true});
   target.addEventListener('touchend',function(e){if(multi){s=null;if(!e.touches.length)multi=false;return}if(!s)return;var t=e.changedTouches[0],dx=t.clientX-s.x,dy=t.clientY-s.y,dt=performance.now()-s.t,ax=Math.abs(dx),ay=Math.abs(dy);var st=s;s=null;

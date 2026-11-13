@@ -19,8 +19,9 @@ function initAudio(){if(AC)return;var C=w.AudioContext||w.webkitAudioContext;if(
   MN=AC.createAnalyser();MN.fftSize=512;GN.connect(MN);MD=new Uint8Array(MN.fftSize);
   FD=new Uint8Array(AN.frequencyBinCount);TD=new Uint8Array(AN.fftSize)}
 function arm(){initAudio();if(AC&&AC.state==='suspended')return AC.resume()}
-function setFlash(v){FL=v;DIM=.35+.65*v;try{localStorage.setItem('gj.flash',v)}catch(e){}}
-function setVol(v){VOL=Math.max(0,Math.min(1,+v));if(GN)GN.gain.setTargetAtTime(VOL,AC.currentTime,.05);else au.volume=VOL;try{localStorage.setItem('gj.vol',VOL)}catch(e){}}
+function paintInputs(){var list=d.querySelectorAll('input[data-k]'),i,inp;for(i=0;i<list.length;i++){inp=list[i];if(inp===d.activeElement)continue;inp.value=inp.dataset.k==='vol'?VOL:FL}}
+function setFlash(v){FL=Math.max(0,Math.min(1,+v));DIM=.35+.65*FL;try{localStorage.setItem('gj.flash',FL)}catch(e){}paintInputs()}
+function setVol(v){VOL=Math.max(0,Math.min(1,+v));if(GN)GN.gain.setTargetAtTime(VOL,AC.currentTime,.05);else au.volume=VOL;try{localStorage.setItem('gj.vol',VOL)}catch(e){}paintInputs()}
 function setTrackVol(id,v){v=Math.max(0,Math.min(1,+v));TV[id]=v;if(T&&T.id===id&&TG)TG.gain.setTargetAtTime(v,AC.currentTime,.03)}
 function postRms(){if(!MN)return 0;MN.getByteTimeDomainData(MD);var s=0,i;for(i=0;i<MD.length;i++){var v=(MD[i]-128)/128;s+=v*v}return Math.sqrt(s/MD.length)}
 var ripples=[];
@@ -110,9 +111,11 @@ function rail(cv,opt){opt=opt||{};var r={cv:cv,o:opt,t:opt.track||null};
     cv.addEventListener('pointerup',function(e){if(id!==e.pointerId)return;id=null;dragging=false;if(au.paused)play()});
     cv.addEventListener('pointercancel',function(){id=null;dragging=false});cv.style.touchAction='none'}
   rails.push(r);return r}
-/* ---------- the tune drawer: Gill's two controls, driven through the ghost-arc dial ---------- */
-function tune(parent,cls){var t=d.createElement('div');t.className='lv-tune '+(cls||'');t.setAttribute('data-gjdial-drawer','');
-  t.innerHTML='<label><span>vol</span><input type="range" min="0" max="1" step="0.01" value="'+VOL+'" data-k="vol" aria-label="volume"></label><label><span>flash</span><input type="range" min="0" max="1" step="0.01" value="'+FL+'" data-k="flash" aria-label="flash"></label>';
+/* ---------- tune sliders, driven through the ghost-arc dial. only: 'vol' | 'flash' | omitted (both) ---------- */
+function tune(parent,cls,only){var keys=only?String(only).split(/[\s,]+/):['vol','flash'],html='';
+  if(keys.indexOf('vol')>=0)html+='<label><span>vol</span><input type="range" min="0" max="1" step="0.01" value="'+VOL+'" data-k="vol" aria-label="volume"></label>';
+  if(keys.indexOf('flash')>=0)html+='<label><span>flash</span><input type="range" min="0" max="1" step="0.01" value="'+FL+'" data-k="flash" aria-label="flash"></label>';
+  var t=d.createElement('div');t.className='lv-tune '+(cls||'');t.setAttribute('data-gjdial-drawer','');t.innerHTML=html;
   parent.appendChild(t);
   t.querySelectorAll('input').forEach(function(inp){var k=inp.dataset.k,last={x:0,y:0};
     inp.addEventListener('pointerdown',function(e){last={x:e.clientX,y:e.clientY};arm();ghost(inp,k)});

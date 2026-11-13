@@ -40,7 +40,7 @@ G.ROOMS.forEach(function(r,i){var dr=el('div','b-dr',null,drawers);dr.dataset.k=
 el('p','b-foot','Vancouver',chest);
 /* ---------- open-drawer layers ---------- */
 var bands=el('nav','b-bands',null,app);bands.setAttribute('aria-label','other drawers');
-var bwm=el('a','b-bwm','Gill James',bands);bwm.href='#/';bwm.addEventListener('click',function(e){e.preventDefault();R.home()});
+var bwm=el('a','b-bwm','Gill James',bands);bwm.href='#/';
 G.ROOMS.forEach(function(r){var b=el('button','b-band',r.n,bands);b.type='button';b.dataset.k=r.k});
 var panel=el('section','b-panel',null,app);panel.setAttribute('aria-label','open drawer');
 var felt=el('div','b-felt',null,panel);var push=el('button','b-push',null,panel);push.type='button';
@@ -123,12 +123,15 @@ R.on(function(route,prev,how){var inst=how==='load';
 chest.addEventListener('click',function(e){var f=e.target.closest('.b-front');if(f){R.go(f.dataset.k);return}
   var l=e.target.closest('.b-lead');if(l){e.preventDefault();R.mark(l.dataset.r.split('/')[0]);R.go(l.dataset.r);return}
   if(e.target.closest('.b-idx')){R.go('index');return}
-  if(e.target.closest('.b-wm')){e.preventDefault();R.home()}});
+  if(e.target.closest('.b-wm'))e.preventDefault()});
 bands.addEventListener('click',function(e){var b=e.target.closest('.b-band');if(b)R.go(b.dataset.k,{replace:true})});
 felt.addEventListener('click',function(e){var p=e.target.closest('.b-print');if(p&&openK)R.go(openK+'/'+p.dataset.id)});
 push.addEventListener('click',function(){R.up()});
 /* the band wordmark stays live above a lifted print: the lift carries its own copy in the same spot */
-var lwm=el('a','b-bwm b-lwm','Gill James',lift);lwm.href='#/';lwm.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();R.home()});
+var lwm=el('a','b-bwm b-lwm','Gill James',lift);lwm.href='#/';
+GJ_THEME.bind(chest.querySelector('.b-wm'),{home:function(){R.home()}});
+GJ_THEME.bind(bwm,{home:function(){R.home()}});
+GJ_THEME.bind(lwm,{home:function(){R.home()}});
 function placeLwm(){var r=bwm.getBoundingClientRect();lwm.style.left=r.left+'px';lwm.style.top=r.top+'px';lwm.style.right='auto';lwm.style.visibility=r.width?'visible':'hidden'}
 new MutationObserver(function(){if(lift.classList.contains('on'))placeLwm()}).observe(lift,{attributes:true,attributeFilter:['class']});addEventListener('resize',placeLwm);
 lift.addEventListener('click',function(){R.up()});

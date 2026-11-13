@@ -45,7 +45,7 @@
   var W_DRAG = 10;    /* STANDARDS §3 m4 scroll spring — while held */
   var W_SETTLE = 9;   /* STANDARDS §3 4:45 tilt — settle in ~0.6 s */
   var SPAN = 110;
-  var RARC = 44;      /* options sheet radius; placement stays at the edge */
+  var RARC = 60;      /* a step up from 44 so the arc reads without crowding the edge */
   var LINGER = 280;   /* ms before the fade-out starts */
   var FADE_OUT = 720; /* ms; LINGER + FADE_OUT ≈ 1 s, then the drawer returns */
   var avoidFns = [];
@@ -82,19 +82,47 @@
     for (i = 0; i < list.length; i++) if (out.indexOf(list[i]) < 0) out.push(list[i]);
     return out;
   }
+  /* Ancestor drawers of the held slider only. A Vol strip does not fade
+     because Flash, in another drawer, is the one covering content. */
+  function ownerDrawers(el) {
+    var out = [], n = el && el.parentElement;
+    while (n && n !== document.body) {
+      if ((n.hasAttribute && n.hasAttribute('data-gjdial-drawer')) || n.id === 'markmenu') out.push(n);
+      n = n.parentElement;
+    }
+    return out;
+  }
   function hideDrawer() {
-    drawers().forEach(function (d) { d.classList.add('gd-away'); });
+    ownerDrawers(target && target.el).forEach(function (d) { d.classList.add('gd-away'); });
   }
   function showDrawer() {
     drawers().forEach(function (d) { d.classList.remove('gd-away'); });
   }
 
-  /* so a hidden (pointer-events: none) row still receives the drag */
+  /* The active range keeps pointer capture, so the drag survives .gd-away.
+     .gd-active marks the input and its label / drawer ancestors. The drawer
+     container itself is never opacity 0 — that would multiply the thumb away. */
+  function markActive(r) {
+    var old = document.querySelectorAll('.gd-active'), i;
+    for (i = 0; i < old.length; i++) old[i].classList.remove('gd-active');
+    if (!r) return;
+    r.classList.add('gd-active');
+    var n = r.parentElement;
+    /* every ancestor stays opaque so the .18 thumb is not multiplied away;
+       the label text is a sibling span, so it still drops to 0 */
+    while (n && n !== document.body) {
+      n.classList.add('gd-active');
+      n = n.parentElement;
+    }
+  }
   document.addEventListener('pointerdown', function (e) {
     var r = e.target && e.target.closest && e.target.closest('input[type=range]');
     if (!r || e.pointerId == null) return;
     try { r.setPointerCapture(e.pointerId); } catch (err) {}
+    markActive(r);
   }, true);
+  document.addEventListener('pointerup', function () { if (!holding) markActive(null); }, true);
+  document.addEventListener('pointercancel', function () { markActive(null); }, true);
 
   function hits(r, list) {
     return list.some(function (q) { return r[0] < q[2] && r[2] > q[0] && r[1] < q[3] && r[3] > q[1]; });
@@ -137,13 +165,14 @@
 
   /* free screen edge, away from the thumb — not around the thumb */
   function placeGhost(px, py) {
-    var W = innerWidth, H = innerHeight, right = Math.max(10, px) < W / 2;
-    var cy = [H * .42, H * .30, H * .55], avoid = rects();
+    var W = innerWidth, H = innerHeight, right = Math.max(12, px) < W / 2;
+    var clear = 55; /* scaled with the arc; was 40 at r 44 */
+    var cy = [H * .42, H * .30, H * .55, H * .68], avoid = rects();
     var cands = [];
     [right, !right].forEach(function (r) { cy.forEach(function (y) { cands.push({ r: r, y: y }); }); });
     for (var i = 0; i < cands.length; i++) {
-      var c = cands[i], box = c.r ? [W - RARC * .6, c.y - RARC, W, c.y + RARC] : [0, c.y - RARC, RARC * .6, c.y + RARC];
-      if (!hits(box, avoid) && Math.abs((c.r ? W : 0) - px) > 40) return c;
+      var c = cands[i], box = c.r ? [W - RARC * .85, c.y - RARC, W, c.y + RARC] : [0, c.y - RARC, RARC * .85, c.y + RARC];
+      if (!hits(box, avoid) && Math.abs((c.r ? W : 0) - px) > clear) return c;
     }
     return null;
   }
@@ -151,24 +180,24 @@
   function paint(info) {
     var c = placeGhost(info.x == null ? innerWidth / 2 : info.x, info.y == null ? innerHeight / 2 : info.y);
     if (!c) return false;
-    var W = innerWidth, cx = c.r ? W - 8 + RARC * .62 : 8 - RARC * .62, cy = c.y;
+    var W = innerWidth, cx = c.r ? W - 11 + RARC * .62 : 11 - RARC * .62, cy = c.y;
     var mid = c.r ? 180 : 0, a0 = mid - SPAN / 2, a1 = mid + SPAN / 2;
     var ang = function (v) { return a0 + SPAN * u01(info, v); };
     var P = function (v, r) { return pt(cx, cy, r, ang(v)); };
     G.arc.setAttribute('d', 'M' + f(pt(cx, cy, RARC, a0)) + ' A' + RARC + ' ' + RARC + ' 0 0 1 ' + f(pt(cx, cy, RARC, a1)));
-    G.e0.setAttribute('d', 'M' + f(pt(cx, cy, RARC - 5, a0)) + 'L' + f(pt(cx, cy, RARC + 5, a0)));
-    G.e1.setAttribute('d', 'M' + f(pt(cx, cy, RARC - 5, a1)) + 'L' + f(pt(cx, cy, RARC + 5, a1)));
+    G.e0.setAttribute('d', 'M' + f(pt(cx, cy, RARC - 6, a0)) + 'L' + f(pt(cx, cy, RARC + 6, a0)));
+    G.e1.setAttribute('d', 'M' + f(pt(cx, cy, RARC - 6, a1)) + 'L' + f(pt(cx, cy, RARC + 6, a1)));
     var dv = info.def != null ? info.def : info.min;
-    G.def.setAttribute('d', 'M' + f(P(dv, RARC - 3)) + 'L' + f(P(dv, RARC + 3)));
-    G.cur.setAttribute('d', 'M' + f(P(info.value, RARC - 9)) + 'L' + f(P(info.value, RARC + 8)));
-    var np = pt(cx, cy, RARC - 16, mid);
+    G.def.setAttribute('d', 'M' + f(P(dv, RARC - 4)) + 'L' + f(P(dv, RARC + 4)));
+    G.cur.setAttribute('d', 'M' + f(P(info.value, RARC - 11)) + 'L' + f(P(info.value, RARC + 10)));
+    var np = pt(cx, cy, RARC - 22, mid);
     G.name.textContent = String(info.name || '').toUpperCase();
     G.name.setAttribute('x', np[0].toFixed(1));
-    G.name.setAttribute('y', (cy - 2).toFixed(1));
+    G.name.setAttribute('y', (cy - 4).toFixed(1));
     G.name.setAttribute('text-anchor', c.r ? 'end' : 'start');
     G.val.textContent = String(Math.round(info.value));
     G.val.setAttribute('x', np[0].toFixed(1));
-    G.val.setAttribute('y', (cy + 11).toFixed(1));
+    G.val.setAttribute('y', (cy + 14).toFixed(1));
     G.val.setAttribute('text-anchor', c.r ? 'end' : 'start');
     return true;
   }
@@ -196,20 +225,21 @@
   /* Title, text, waveform, artwork, other controls, and the focused element.
      The slider's own drawer is not "content under it". */
   function contentRects(slider) {
-    var drawer = slider && slider.closest ? slider.closest('[data-gjdial-drawer],.lv-tune,.b-fader') : null;
+    var owners = ownerDrawers(slider);
+    function inOwner(el) { for (var k = 0; k < owners.length; k++) if (owners[k].contains(el)) return true; return false; }
     var sel = 'h1,h2,h3,p,button,a,canvas,img,input,label,.b-nm,.b-ln,.b-st,.b-sn,.b-so,.b-time,.b-no,.b-cov,.b-scr,.b-pls,.b-rail,.b-path';
     var list = document.querySelectorAll(sel), out = [], i, el, box;
     for (i = 0; i < list.length; i++) {
       el = list[i];
       if (el === slider) continue;
-      if (drawer && drawer.contains(el)) continue;
+      if (inOwner(el)) continue;
       if (el.closest && el.closest('#gjdial,#dev,.b-hit')) continue;
       if (el.classList && el.classList.contains('b-hit')) continue;
       box = shownBox(el);
       if (box) out.push(box);
     }
     el = document.activeElement;
-    if (el && el !== document.body && el !== slider && !(drawer && drawer.contains(el)) && !(el.closest && el.closest('#gjdial'))) {
+    if (el && el !== document.body && el !== slider && !inOwner(el) && !(el.closest && el.closest('#gjdial'))) {
       box = shownBox(el);
       if (box) out.push(box);
     }
@@ -310,6 +340,7 @@
   function release() {
     holding = false;
     pend = null;
+    markActive(null);
     kick(); /* settle at w = 9 */
     if (!coverOn || !svg || !isVisible()) { coverOn = false; hideNow(); showDrawer(); return; }
     clearTimeout(hideT); clearTimeout(fadeT);

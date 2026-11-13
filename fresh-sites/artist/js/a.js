@@ -142,7 +142,7 @@ crumb.addEventListener('click',function(e){var a=e.target.closest('a[data-r]');i
   if(R.cur.indexOf(r)===0&&(r===''||R.cur.charAt(r.length)==='/'))R.up();else R.go(r,{replace:true})});
 outB.addEventListener('click',function(){if(R.cur)R.up();else fly(fieldCam(),null,800)});
 hud.querySelector('.a-idx').addEventListener('click',function(){R.go('index')});
-hud.querySelector('.a-wm').addEventListener('click',function(e){e.preventDefault();resetField()});
+GJ_THEME.bind(hud.querySelector('.a-wm'),{home:function(){resetField()}});
 ['pointerdown','pointerup','touchstart','touchend'].forEach(function(t){mini.addEventListener(t,function(e){e.stopPropagation()},{passive:true})});
 mini.addEventListener('click',function(e){var r=mini.getBoundingClientRect(),w={x:(e.clientX-r.left)/r.width*WW,y:(e.clientY-r.top)/r.height*WH},k=roomAt(w);if(k&&k!==R.cur)R.go(k,{replace:!!R.cur})});
 G.swipe(idx,function(dir){if(dir==='down'||dir==='right')R.up()});

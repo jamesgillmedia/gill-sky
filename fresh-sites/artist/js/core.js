@@ -10,7 +10,7 @@ try{localStorage.setItem(LSV,V)}catch(e){}
 H.dataset.v=V;
 function devToggle(){var b=d.createElement('div');b.id='dev';b.setAttribute('aria-label','prototype direction (dev)');
   b.innerHTML='<span>dir</span>'+['A','B','C'].map(function(x){return '<a href="?v='+x+'" data-v="'+x+'"'+(x===V?' class="on" aria-current="true"':'')+'>'+x+'</a>'}).join('');
-  b.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;e.preventDefault();try{localStorage.setItem(LSV,a.dataset.v)}catch(x){}location.href='?v='+a.dataset.v});
+  b.addEventListener('click',function(e){var a=e.target.closest('a');if(!a)return;e.preventDefault();try{localStorage.setItem(LSV,a.dataset.v)}catch(x){}var q=new URLSearchParams(location.search);q.set('v',a.dataset.v);location.href='?'+q.toString()});
   d.body.appendChild(b)}
 /* ---------- helpers ---------- */
 function el(tag,cls,html,parent){var e=d.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e}

@@ -11,7 +11,7 @@ var plw=el('div','a-plw',null,app);var gv=el('canvas','a-groove',null,app);gv.se
 var info=el('section','a-info',null,app);
 var back=el('button','a-back','‹ the record',app);back.type='button';
 var foot=el('footer','a-foot','<span class="lv-links"><a href="'+D.links.spotify+'" target="_blank" rel="noopener">Spotify</a><a href="'+D.links.apple+'" target="_blank" rel="noopener">Apple Music</a></span><span class="a-mm">also: <a href="'+D.links.mm+'" target="_blank" rel="noopener">Mothers Moniker ↗</a></span>',app);
-var tw=el('div','a-tune',null,app);LV.tune(tw);
+var tw=el('div','a-tune',null,app);LV.tune(tw,'','vol');
 /* the release laid end to end, each track's share = its preview length */
 var tot=0;O.forEach(function(t){t.a0=tot;tot+=t.pv;t.a1=tot});O.forEach(function(t){t.a0/=tot;t.a1/=tot});
 var GAP=.006,pk=[];O.forEach(function(t){t.p2k.forEach(function(v,i){pk.push({v:v,t:t,f:t.a0+(t.a1-t.a0)*i/t.p2k.length})})});
@@ -64,7 +64,7 @@ G.swipe(app,function(dir,st){if(!openT)return;if(st.y>cur.y*innerHeight-cur.h*in
 function stepT(k){var i=O.indexOf(openT);R.go('t/'+O[(i+k+O.length)%O.length].id,{replace:true})}
 info.addEventListener('click',function(e){if(e.target.closest('.a-pp'))LV.toggle();if(e.target.closest('.a-next'))stepT(1);if(e.target.closest('.a-prev'))stepT(-1)});
 back.addEventListener('click',function(){R.up()});
-hd.querySelector('.a-wm').addEventListener('click',function(){R.home()});
+GJ_THEME.bind(hd.querySelector('.a-wm'),{tune:true,home:function(){R.home()}});
 d.addEventListener('keydown',function(e){if(e.target.closest&&e.target.closest('input'))return;if(openT){if(e.key==='ArrowRight')stepT(1);if(e.key==='ArrowLeft')stepT(-1);if(e.key===' '){e.preventDefault();LV.toggle()}}
   else if(e.key==='Enter'||e.key==='ArrowDown'){pick(O[0])}});
 addEventListener('resize',function(){var to=openT?trackV(openT):homeV();cur.v0=to.v0;cur.v1=to.v1;cur.y=to.y;cur.h=to.h});
