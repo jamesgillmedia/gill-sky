@@ -45,3 +45,11 @@ The mark, the name, and the chapter labels are `#e8e4dc`. The To Go bar stays at
 The sky bar mark is `#e8e4dc` with a dark shadow, so the cyan fringe is not part of the chrome. Sound's mark, crumb, and now-playing title use the same warm white. The To Go bar stays at opacity 1, including while it is shown over a room. The bar `_tn/togo.js` injects uses `#e8e4dc` as well. `proto-shell/_qa/chrome-accent.js` samples the sky, Film, Sound, Objects, Photo, About, and Spaces, on phone and desktop, and fails if a nav, mark, active label, toggle dot, or dial dot pixel is mint or teal. It does not sample the canvas or the photographs.
 
 A pointer on the film player sheet does not also step the sky. The swipe that shrinks the player listens in the capture phase and stops there.
+
+## Fable 3D pass
+
+Red mode stays selectively true to colour. The environment and the menus go red on black. Photos, film frames, video, track artwork, and anything else that needs its real colour stay true. The incoming environment has to make that contrast fire, not wash it out.
+
+The Tesla Roadster UI is a mood, not a copy. 3D wireframe, floating text with depth, and the fighter-jet cool factor grow out of his own constellation and sky work.
+
+The About calibre layer stays deferred to that pass.
