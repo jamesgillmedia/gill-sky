@@ -1751,7 +1751,7 @@ function onUp(e){
     lxS.t=0;lyS.t=0;lxS.w=W_LOOK;lyS.w=W_LOOK;
     return;
   }
-  if(filmSnapBusy()){LASTTAP={t:0,x:0,y:0,hit:null};sel=null;return} /* magic-base 1112: no tap, double-tap or selection while the film snap moves */
+  if(filmSnapBusy()||now()<SWALLOW){LASTTAP={t:0,x:0,y:0,hit:null};sel=null;armSwallow();return} /* magic-base 1112: no tap, double-tap or selection while the film snap moves, and no late click after it */
   var tn=now(),dbl=tn-LASTTAP.t<360&&Math.hypot(e.clientX-LASTTAP.x,e.clientY-LASTTAP.y)<40;
   LASTTAP={t:tn,x:e.clientX,y:e.clientY,hit:LASTTAP.hit};
   if(dbl&&!LASTTAP.hit&&cur.lv>=1&&phase==='sky'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())&&!isBio()){LASTTAP={t:0,x:0,y:0,hit:null};back();return}
@@ -1761,7 +1761,7 @@ function onUp(e){
 /* A real click only ever follows a tap (never a scroll or a pinch), so the HTML sheets open their next level from it. */
 function layerTap(e){
   if(phase!=='sky'||!e.target||!e.target.closest)return;
-  if(filmSnapBusy())return;
+  if(filmSnapBusy()||now()<SWALLOW){armSwallow();return}
   if(e.target.closest('a,button,input,label,video[controls],[data-open],.rail,.snd,.rl'))return;
   var im=e.target.closest('.contact img,.framewall img[data-hi="1"],.series img,.heroframe,.cutgrid img,.cutgrid video,.graincrops img');
   if(!im)return;
@@ -1784,6 +1784,7 @@ function songTapOpens(im){
 }
 function onPtrDown(e){
   if(e.target&&e.target.closest&&e.target.closest('#gjdbg'))return;
+  if(filmSnapBusy())armSwallow();
   if(e.pointerType==='mouse'&&!e.buttons)return;
   PT[e.pointerId]={x:e.clientX,y:e.clientY};
   var ids=Object.keys(PT);
@@ -1805,6 +1806,9 @@ function onPtrMove(e){
   if(OP.on){opMove(d,pinch.x,pinch.y);return}
   if(cardsBoardOn()){if(r<.84){pinch.done=1;back()}return}
   if(snapOn()&&(filmMid()||(filmBoard()&&r<1)||(FSCRUB&&pinch.fs))){
+    /* a pinch that closes on the film map steps back to the sky. The first move of that pinch
+       also starts a scrub, so this has to win over it; a pinch that has already opened toward the board is left to settle. */
+    if(filmMid()&&r<.84&&(!FSCRUB||(FSCRUB.from===0&&fsnS.t<=0.04))){pinch.done=1;FSCRUB=null;FCAM=null;pinchBack(0);return}
     /* preview-film-snap: the pinch drives the snap itself; past the span it commits, short of it letting go settles back. */
     var PS=Math.log(1.9),fv=(FSCRUB?FSCRUB.from:(filmBoard()?1:0))+Math.log(r)/PS;
     pinch.fs=1;fsnScrub(fv,pinch.x,pinch.y);
@@ -2272,7 +2276,7 @@ var FCAM=null;
  any selection is dropped, so a tap made mid-scrub can never become the first half of a filmMid "second tap" reveal. */
 function filmSnapBusy(){
   if(phase!=='sky'||cur.k!=='film'||cur.lv!==1||cur.cards)return false;
-  return !!FSCRUB||!!(pinch&&pinch.fs)||Object.keys(PT).length>=2||now()<FLOCK||Math.abs(fsnS.x-fsnS.t)>.01||(fsn>.01&&fsn<.99)||(filmBoard()&&bloom<.97)||!!REVEAL}
+  return !!FSCRUB||!!(pinch&&pinch.fs)||Object.keys(PT).length>=2||now()<FLOCK||now()<SWALLOW||Math.abs(fsnS.x-fsnS.t)>.01||(fsn>.01&&fsn<.99)||(filmBoard()&&bloom<.97)||!!REVEAL}
 /* from Cursor's unpushed mid-snap fix (8126b8e): a reveal still running when a scrub starts is cancelled, never left to finish */
 function cancelReveal(){if(!REVEAL)return;clearTimeout(REVEAL.t);if(REVEAL.el&&REVEAL.el.parentNode)REVEAL.el.parentNode.removeChild(REVEAL.el);REVEAL=null}
 function fsnScrub(v,x,y){
@@ -2284,7 +2288,7 @@ function fsnScrub(v,x,y){
 }
 function fsnLetGo(){
   if(!FSCRUB)return;
-  var from=FSCRUB.from,v=fsnS.t,x=FSCRUB.x,y=FSCRUB.y;FSCRUB=null;FCAM=null;FLOCK=now()+600;clearTimeout(WHT);
+  var from=FSCRUB.from,v=fsnS.t,x=FSCRUB.x,y=FSCRUB.y;FSCRUB=null;FCAM=null;FLOCK=now()+600;armSwallow();clearTimeout(WHT);
   if(from===0){
     var at=clamp(dec('snapAt')/100,.1,.9);
     if(v>at&&filmMid()){sel=null;openBoardAt();return} /* the contents page opens at its top, counts in view */
@@ -2294,7 +2298,9 @@ function fsnLetGo(){
     arriveAt(cur,false);
   }
 }
-var WHT=0,FLOCK=0;
+var WHT=0,FLOCK=0,SWALLOW=0;
+/* a tap that lands while the snap is moving is dropped, and so is the click the browser fires a moment later */
+function armSwallow(){SWALLOW=Math.max(SWALLOW,now()+800)}
 function onWheel(e){
   if(!snapOn())return;
   if(!filmMid()&&!filmBoard())return;
@@ -2311,7 +2317,7 @@ function onWheel(e){
     if(dy>0&&scr.t>1){aim(scr,clamp(scr.t-dy,0,spec.maxSc),RM);return}
     if(dy<0)return;
   }
-  if(filmMid()&&!FSCRUB&&dy>0)return; /* stepping back from the map is the pinch out or the double-click */
+  if(filmMid()&&!FSCRUB&&dy>0){back();return} /* wheel down steps back out of the map to the sky */
   var base=FSCRUB?fsnS.t:fsn; /* picks up from wherever a settle has got to, so a slow wheel never restarts */
   fsnScrub(base-dy/SPAN,e.clientX,e.clientY);
   clearTimeout(WHT);
