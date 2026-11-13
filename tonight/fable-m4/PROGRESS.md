@@ -8,7 +8,7 @@ The full-length player files need real hosting, not YouTube and not Vimeo: Weird
 
 ## Film room package
 
-Featured order is One With the Devil, Weird Kid, Back to the Start, Backward Fall, BMW Legends. A board three or more columns wide gives One With the Devil a 2×2 lead tile. Featured films open in the stills player (`js/filmplayer.js`): local stills dissolve, then role, awards, and the other featured cards. The board and any work without stills keep the muted codec ladder (AV1, then VP9, then H.264). One With the Devil does not use its AAC clip as the hero. Weird Kid stays featured second; its 6.51s 1366×720 muted loop remains the board stand-in.
+Featured order is One With the Devil, Weird Kid, Back to the Start, Backward Fall, BMW Legends. A board three or more columns wide gives One With the Devil a 2×2 lead tile when that lead and one more row fit in the window. A short landscape phone keeps it a single cell, so the sixth film stays on screen. Featured films open in the stills player (`js/filmplayer.js`): local stills dissolve, then role, awards, and the other featured cards. The board and any work without stills keep the muted codec ladder (AV1, then VP9, then H.264). One With the Devil does not use its AAC clip as the hero. Weird Kid stays featured second; its 6.51s 1366×720 muted loop remains the board stand-in.
 
 ## Sketch nav and motion
 

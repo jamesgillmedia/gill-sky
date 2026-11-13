@@ -989,9 +989,10 @@ function boardSpec(key,items){
     rects.forEach(function(r){bottom=Math.max(bottom,r.y+r.h)});
   }else if(key==='film'){
     /* Straight rows: every tile in a row shares one top, one title line and one role line under it, so a row is as tall as a tile plus its caption.
-       Film room pass: the lead film (feat 1) opens the board as a 2×2 tile when the board is 3 or more columns wide. The rest flow around it. On a narrower board it stays the first tile. */
+       Film room pass: the lead film (feat 1) opens the board as a 2×2 tile when the board is 3 or more columns wide and the lead plus one more row fit in the window. The rest flow around it. On a narrower board, or a short landscape phone, it stays the first tile. */
     var chh=11+11+3,rowF=th+chh+Math.max(6,gap);
-    var taken={},lead=cols>=3&&items[0]&&items[0].feat===1;
+    var avail=Math.min(room.bottom-room.top,H*0.86);
+    var taken={},lead=cols>=3&&items[0]&&items[0].feat===1&&(head+(th+rowF)+rowF+10)<=avail;
     function fr(r,c,cs,rs){for(var a=0;a<rs;a++)for(var q=0;q<cs;q++)if(c+q>=cols||taken[(r+a)+':'+(c+q)])return false;return true}
     items.forEach(function(it,j){
       var cs=(lead&&j===0)?2:1,rs=cs,r=0,c=0;
