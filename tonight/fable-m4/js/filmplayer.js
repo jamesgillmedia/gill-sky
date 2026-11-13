@@ -101,10 +101,11 @@ function paint(el,work,under){
   function onMove(e){if(drag&&e.pointerId===pid)y1=e.clientY}
   function endDrag(e){
     if(!drag||e.pointerId!==pid)return;drag=false;
-    window.removeEventListener('pointermove',onMove);
-    window.removeEventListener('pointerup',endDrag);
-    window.removeEventListener('pointercancel',endDrag);
-    window.removeEventListener('mouseup',endMouse);
+    window.removeEventListener('pointermove',onMove,true);
+    window.removeEventListener('pointerup',endDrag,true);
+    window.removeEventListener('pointercancel',endDrag,true);
+    window.removeEventListener('mouseup',endMouse,true);
+    if(e.stopPropagation)e.stopPropagation();
     var y=e.type==='pointercancel'?y1:e.clientY;
     if(y-y0>64)shrink();
   }
@@ -115,12 +116,13 @@ function paint(el,work,under){
   FP.root.addEventListener('pointerdown',function(e){
     if(e.target.closest('a,button,input'))return;
     if(e.cancelable)e.preventDefault();
+    e.stopPropagation();
     y0=y1=e.clientY;pid=e.pointerId;drag=true;
-    window.addEventListener('pointermove',onMove);
-    window.addEventListener('pointerup',endDrag);
-    window.addEventListener('pointercancel',endDrag);
-    window.addEventListener('mouseup',endMouse);
-  });
+    window.addEventListener('pointermove',onMove,true);
+    window.addEventListener('pointerup',endDrag,true);
+    window.addEventListener('pointercancel',endDrag,true);
+    window.addEventListener('mouseup',endMouse,true);
+  },true);
   [].forEach.call(el.querySelectorAll('.fp-strip button'),function(b,i){
     b.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();show(i);run()});
   });

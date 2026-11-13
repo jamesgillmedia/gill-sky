@@ -1831,6 +1831,7 @@ function onUp(e){
 /* A real click only ever follows a tap (never a scroll or a pinch), so the HTML sheets open their next level from it. */
 function layerTap(e){
   if(phase!=='sky'||!e.target||!e.target.closest)return;
+  if(e.target.closest('.sheet.fp'))return;
   if(filmSnapBusy()||now()<SWALLOW){armSwallow();return}
   if(e.target.closest('a,button,input,label,video[controls],[data-open],.rail,.snd,.rl'))return;
   var im=e.target.closest('.contact img,.framewall img[data-hi="1"],.series img,.heroframe,.cutgrid img,.cutgrid video,.graincrops img');
