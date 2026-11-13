@@ -60,7 +60,7 @@ var ROOMS=[
 var CTX_FOCUS={
   sky:['gj.tune.mood','gj.tune.map','gj.tune.starG'],
   film:['gj.tune.fdens','gj.tune.fgap'],
-  sound:['gj.vol','gj.flash','gj.sound.invert'],
+  sound:null,
   objects:['gj.amb.objects.glow','gj.amb.objects.haze','gj.amb.objects.stars','gj.amb.objects.lamp'],
   spaces:['gj.amb.garden.day','gj.amb.garden.haze','gj.amb.garden.glow'],
   photo:['gj.photo.room','gj.photo.lamp']
@@ -95,12 +95,15 @@ function ctx(){
   var st=(window.__u1&&__u1.cur)||{lv:0,k:null,id:null};
   var room=(st.lv>0&&st.k)?String(st.k):'sky';
   var lv=st.lv||0;
-  var levelName=lv===0?'sky':lv===1?'mid':lv===2?'board':lv===3?'work':'';
+  var levelName=lv===0?'sky':lv===1?'mid':lv===2?(room==='sound'?'dive':'board'):lv===3?'work':'';
   var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
   return {room:room,lv:lv,levelName:levelName,mod:mod,st:st};
 }
 function roomById(id){for(var i=0;i<ROOMS.length;i++)if(ROOMS[i].id===id)return ROOMS[i];return null}
-function contextRows(c){
+/* the Sound room's own sliders (core/sound.js): the menu shows only these (with volume, flash, invert) while you are in Sound */
+var SBASE=null;
+function refreshSound(){var R=roomById('sound');if(!R)return;if(!SBASE)SBASE=R.rows.slice();R.rows=SBASE.concat(window.GJ_SOUND?GJ_SOUND.rows():[])}
+function contextRows(c){refreshSound();
   var R=roomById(c.room);
   var rows=null;
   if(c.mod&&c.mod.chapter===c.room)rows=moduleRows(c.mod);
@@ -169,7 +172,7 @@ function build(){
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
   document.addEventListener('pointerdown',function(e){if(open&&!e.target.closest('#markmenu,#crumb .sig'))show(false)},true);
 }
-function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].rows[j];
+function findRow(k){refreshSound();for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].rows[j];
   var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
   var extra=moduleRows(mod);if(extra)for(var i=0;i<extra.length;i++)if(extra[i].k===k)return extra[i];
   return null}
@@ -178,7 +181,7 @@ function roomOfRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows
 function toggleHtml(r){
   var v=r.get(),h='<div class="mm-seg mm-toggle" role="radiogroup" aria-label="'+r.label+'"><b>'+r.label+'</b><span>';
   r.options.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(v===o[0])+'" data-tog="'+r.k+'" data-v="'+o[0]+'">'+o[1]+'</button>'});
-  return h+'</span></div>';
+  return h+'</span>'+(r.hint?'<em class="mm-hint">'+r.hint()+'</em>':'')+'</div>';
 }
 function rowsHtml(rows){
   var h='';rows.forEach(function(r){if(r.toggle){h+=toggleHtml(r);return}var v=r.get();
@@ -235,20 +238,22 @@ function paint(){
   menu.querySelectorAll('.mm-rooms [data-go]').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-go')===here)});
 }
 function resetRoom(){
+  refreshSound();
   var c=ctx(),R=roomById(c.room);
   var all=(c.mod&&c.mod.chapter===c.room&&moduleRows(c.mod))||(R?R.rows:contextRows(c));
   all.forEach(function(r){rm(r.k)});
   all.forEach(function(r){if(!r.toggle)r.apply(r.get(),true)});
-  poke('gj.vol');poke('gj.sound.invert');setFlash();
+  poke('gj.vol');poke('gj.sound.invert');setFlash();if(window.GJ_SOUND)GJ_SOUND.reload();
   paint();
 }
 function reset(){
+  refreshSound();
   ROOMS.forEach(function(R){R.rows.forEach(function(r){rm(r.k)})});
   var extra=moduleRows((window.__shell&&__shell.mod)||(window.Shell&&Shell.mod));
   if(extra)extra.forEach(function(r){rm(r.k)});
   if(T())T().reset();
   if(D2())D2().reset();
-  poke('gj.vol');poke('gj.sound.invert');setFlash();safelight();
+  poke('gj.vol');poke('gj.sound.invert');setFlash();safelight();if(window.GJ_SOUND)GJ_SOUND.reload();
   paint();
 }
 function show(on){

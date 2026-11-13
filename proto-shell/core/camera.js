@@ -19,7 +19,8 @@ function spr(T,a,dt){var w=((TK().motion||{}).springs||{}).tiltBlend?TK().motion
 function Camera(el,o){
   var C={x:0,y:0,s:1,S0:1,SMIN:.5,SMAX:40,W:1,H:1,glide:null,moving:0,tilt:{x:0,y:0,tx:0,ty:0,vx:0,vy:0},
     onTap:o.onTap||function(){},onTouch:o.onTouch||function(){},onDouble:o.onDouble||function(){},onSettle:o.onSettle||function(){},onKey:o.onKey||function(){},
-    clampBox:null,busy:false,wheelLock:0};
+    clampBox:null,busy:false,wheelLock:0,onGrab:o.onGrab||null,grab:null};
+  C.release=function(){if(C.grab){var gh=C.grab.h;C.grab=null;gh.up(0,0,true)}};
   C.toWorld=function(px,py){return [C.x+(px-C.W/2)/C.s,C.y+(py-C.H/2)/C.s]};
   C.toScreen=function(x,y){return [(x-C.x)*C.s+C.W/2,(y-C.y)*C.s+C.H/2]};
   C.zf=function(){return C.s/C.S0};
@@ -38,13 +39,16 @@ function Camera(el,o){
   };
   var tt=0,PT=new Map(),drag=null,pinch=null,lastTap={t:0,x:0,y:0},gLock=false,FL=null,wt=0;
   function settle(src){C.busy=false;C.onSettle(src)}
+  /* a module may claim a pointer (M.grab -> {move(x,y), up(x,y,cancelled)}): the camera then ignores that pointer completely (no pan, tap or ripple) */
   el.addEventListener('pointerdown',function(e){try{el.setPointerCapture(e.pointerId)}catch(x){}
+    if(C.onGrab&&!C.grab&&!PT.size){var gr=C.onGrab(e.clientX,e.clientY,e);if(gr){C.grab={id:e.pointerId,h:gr};C.glide=C.glide&&C.glide.lock?C.glide:null;return}}
+    if(C.grab)return;
     var locked=!!(C.glide&&C.glide.lock),stray=locked||(C.busy&&!PT.size);
     PT.set(e.pointerId,{x:e.clientX,y:e.clientY,t0:now(),stray:stray});if(!locked)C.glide=null;FL=null;
     if(PT.size===1&&!gLock&&!pinch){drag={id:e.pointerId,moved:0,vx:0,vy:0,lt:now(),resume:locked}}
     else if(!pinch&&PT.size>=2){C.glide=null;drag=null;gLock=true;C.tilt.tx=C.tilt.ty=0;var ids=Array.from(PT.keys()).slice(0,2),a=ids.map(function(i){return PT.get(i)});
       pinch={ids:ids,d0:Math.max(10,Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)),s0:C.s,m:[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2]};C.busy=true}});
-  el.addEventListener('pointermove',function(e){var p=PT.get(e.pointerId);
+  el.addEventListener('pointermove',function(e){if(C.grab&&C.grab.id===e.pointerId){C.grab.h.move(e.clientX,e.clientY);return}var p=PT.get(e.pointerId);
     if(!p){if(e.pointerType==='mouse'){C.tilt.tx=(e.clientX-C.W/2)*.035;C.tilt.ty=(e.clientY-C.H/2)*.035}return}
     var dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
     if(pinch){if(pinch.ids.indexOf(e.pointerId)<0)return;var a=pinch.ids.map(function(i){return PT.get(i)}),d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y),m=[(a[0].x+a[1].x)/2,(a[0].y+a[1].y)/2];
@@ -54,7 +58,7 @@ function Camera(el,o){
       var t=now(),dt=Math.max(8,t-drag.lt);drag.lt=t;drag.vx=lerp(drag.vx,dx/dt,.4);drag.vy=lerp(drag.vy,dy/dt,.4);
       var pan=sstep(1.12,1.8,C.zf());C.x-=dx*pan/C.s;C.y-=dy*pan/C.s;C.clampPan();
       C.tilt.tx=clamp(C.tilt.tx+dx*.5,-70,70);C.tilt.ty=clamp(C.tilt.ty+dy*.5,-70,70);C.moving=1}});
-  function up(e){var p=PT.get(e.pointerId);if(!p)return;PT.delete(e.pointerId);
+  function up(e){if(C.grab&&C.grab.id===e.pointerId){var gh=C.grab.h;C.grab=null;gh.up(e.clientX,e.clientY,e.type==='pointercancel');return}var p=PT.get(e.pointerId);if(!p)return;PT.delete(e.pointerId);
     if(!PT.size)gLock=false;
     if(pinch){if(pinch.ids.indexOf(e.pointerId)>=0){var r=C.s/pinch.s0;pinch=null;settle({kind:'pinch',ratio:r})}drag=null;return}
     if(gLock){drag=null;return}

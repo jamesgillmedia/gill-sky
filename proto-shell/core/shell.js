@@ -13,22 +13,23 @@ function $(id){return document.getElementById(id)}
 function J(u){return fetch(u).then(function(r){if(!r.ok)throw new Error(u+' '+r.status);return r.json()})}
 var mid=(Q.get('m')||'film-snap').replace(/[^a-z0-9-]/g,'');
 function loadScript(src){return new Promise(function(ok,no){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=function(){no(new Error(src))};document.head.appendChild(s)})}
-Promise.all([J('core/tokens.json').then(function(t){w.TK=t;return t}),J('data/sky.json'),J('data/tracks.json'),J('media/sound-shape.json'),loadScript('modules/'+mid+'/module.js').then(function(){return MODS[mid]&&MODS[mid].ready})]).then(function(r){boot(r[1],r[2].tracks,r[3])})
+Promise.all([J('core/tokens.json').then(function(t){w.TK=t;return t}),J('data/sky.json'),J('data/tracks.json'),J('media/sound-shape.json'),J('data/peaks.json').catch(function(){return null}),loadScript('modules/'+mid+'/module.js').then(function(){return MODS[mid]&&MODS[mid].ready})]).then(function(r){boot(r[1],r[2].tracks,r[3],r[4])})
   .catch(function(e){$('where0').textContent='could not load: '+e.message;console.error(e)});
 
-function boot(skyD,tracks,shape){
+function boot(skyD,tracks,shape,peaks){
   if(w.GJ_THEME&&GJ_THEME.refresh)GJ_THEME.refresh();
   var PAL=w.GJ_THEME.pal;
   var cv=$('cv'),g=cv.getContext('2d'),M=MODS[mid]||{id:mid,variants:{A:'A'}};SH.mod=M;
   var sky=ShellSky(skyD);SH.sky=sky;
-  var cam=ShellCamera(cv,{onTap:tap,onTouch:function(x,y){ShellRipple(x,y)},onDouble:function(){clearTimeout(chipT);hideChip();ladder.out()},onSettle:function(src){ladder.settle(src)},onKey:key});SH.cam=cam;
+  var cam=ShellCamera(cv,{onGrab:function(x,y,e){return (SH.sound&&SH.sound.grab(x,y,e))||(M.grab?M.grab(x,y,e,SH):null)},onTap:tap,onTouch:function(x,y){ShellRipple(x,y)},onDouble:function(){clearTimeout(chipT);hideChip();ladder.out()},onSettle:function(src){ladder.settle(src)},onKey:key});SH.cam=cam;
   var g0=cam.glideTo;cam.glideTo=function(x,y,s,ms){var m=GJ_DEC.get('motion'),k=isFinite(m)?Math.max(0,m)/100:1;if(k<=.01){cam.x=x;cam.y=y;cam.s=s;cam.glide=null;return}g0(x,y,s,(ms||950)/Math.max(.35,k))};
   /* the world: FAR fits every constellation, MID fits one figure; a module may add BOARD (2) and WORK (3) for its chapter */
   var world={
     chapterNear:function(p){return sky.near(p)},
-    back:function(){return M.back?!!M.back(SH):false},
+    back:function(){if(SH.sound)SH.sound.back();return M.back?!!M.back(SH):false},
     inAt:function(x,y){return M.inAt?!!M.inAt(x,y,SH):false},
     stop:function(st){var W=cam.W,H=cam.H;
+      var rs=snd.stop(st,W,H);if(rs!==undefined)return rs;
       if(M.stop){var m=M.stop(st,W,H,SH);if(m!==undefined)return m}
       /* the m4 ladder (STANDARDS §2): FAR = the fitted sky * tk('far'); MID = fitBox(chapter, 36, 28).s * 1.45 * tk('mid');
          BOARD (fit * 1.45 * 1.3 * tk('board')) and WORK only where a module owns them */
@@ -37,7 +38,8 @@ function boot(skyD,tracks,shape){
       if(!sky.chapter(st.k))return null;if(st.lv===1){var f=sky.chFit(st.k,W,H);return {x:f.x,y:f.y,s:f.s*1.45*(T.mid||1)}}
       return null}};
   var ladder=ShellLadder(cam,world,{snapAt:function(){return GJ_DEC.get('snapAt')/100},onChange:crumb});SH.ladder=ladder;SH.world=world;
-  var wave=ShellWave(shape,tracks);SH.wave=wave;
+  var wave=ShellWave(shape,tracks,peaks);SH.wave=wave;
+  var snd=ShellSound(SH);SH.sound=snd;
   GJ_THEME.on(function(){sky.retheme()});sky.retheme();
   /* red: floating callout for the part being adjusted + the zoom-level scale (both hidden by CSS in night) */
   var co=ShellCallout(SH);SH.callout=co;
@@ -86,6 +88,7 @@ function boot(skyD,tracks,shape){
   SH.chipTitle=function(t,x,y){chipK=null;chip.textContent=t;chip.style.left=x+'px';chip.style.top=y+'px';chip.hidden=false};
   function hideChip(){clearTimeout(chipT);chip.hidden=true;chipK=null}
   function tap(x,y){hideChip();
+    if(SH.sound&&SH.sound.tap(x,y))return;
     if(M.tap&&M.tap(x,y,SH))return;
     var k=sky.nameAt(x,y,cam);if(k&&!(ladder.cur.lv>=1&&ladder.cur.k===k)){clearTimeout(chipT);chipK=k;chip.innerHTML=sky.chapter(k).name+'<b>open ›</b>';chip.style.left=x+'px';chip.style.top=y+'px';chip.hidden=false;return}
     var si=songStarAt(x,y);if(si>=0)wave.pick(si,false)}
@@ -94,22 +97,23 @@ function boot(skyD,tracks,shape){
   function key(e){var k=e.key;if(k==='Escape'||k==='-'||k==='_'||k==='Backspace'){e.preventDefault();ladder.out()}
     else if(k==='+'||k==='='||k==='Enter'){ladder.inAt(cam.W/2,cam.H/2)}}
   function crumb(st){var c=document.querySelector('#crumb .where');if(!c)return;var p=[];
-    if(st.lv>=1)p.push(sky.chapter(st.k).name);if(st.lv>=2)p.push((M.levelName&&M.levelName(2,st))||'board');if(st.lv>=3)p.push((M.levelName&&M.levelName(3,st,SH))||'work');
-    c.textContent=p.join(' › ');if(w.GJ_THEME)GJ_THEME.setRoom(st.lv>=1?st.k:null);var o=document.querySelector('#crumb .out');if(o)o.hidden=!st.lv;if(M.level)M.level(st,SH)}
+    if(st.lv>=1)p.push(sky.chapter(st.k).name);if(st.lv>=2)p.push((SH.sound&&SH.sound.levelName(2,st))||(M.levelName&&M.levelName(2,st))||'board');if(st.lv>=3)p.push((M.levelName&&M.levelName(3,st,SH))||'work');
+    c.textContent=p.join(' › ');if(SH.sound)SH.sound.level(st);if(w.GJ_THEME)GJ_THEME.setRoom(st.lv>=1?st.k:null);var o=document.querySelector('#crumb .out');if(o)o.hidden=!st.lv;if(M.level)M.level(st,SH)}
   /* the frame */
   var last=performance.now();
   function frame(t){requestAnimationFrame(frame);var dt=Math.min(.05,(t-last)/1000);last=t;cam.step(t,dt);
     var W=cam.W,H=cam.H;g.clearRect(0,0,W,H);
     g.fillStyle=PAL.bg;g.fillRect(0,0,W,H); /* --bg, from the theme layer */
     sky.drawWash(g,cam,T);
-    sky.draw(g,cam,t,T,ladder.cur,M.hide?function(k){return M.hide(k,SH)}:null);
+    sky.draw(g,cam,t,T,ladder.cur,function(k){return snd.hide(k)||(M.hide?!!M.hide(k,SH):false)});
+    snd.draw(g,cam,t);
     soundLayer(t);
     if(M.draw)M.draw(g,cam,t,SH,T);
     if(PAL.name!=='red')sky.drawDust(g,cam); /* red has no haze: nothing but the elements themselves gives light */
     if(PAL.name==='red'){lvlStep();co.step(cam)}
   }
   /* the Sound constellation is the waveform: the six song stars glow, the playing one breathes with the playhead */
-  function soundLayer(t){var c=sky.chapter('sound');if(!c)return;var o=[0,0,0],here=ladder.cur.lv>=1&&ladder.cur.k==='sound',z=Math.sqrt(cam.zf());
+  function soundLayer(t){var c=sky.chapter('sound');if(!c||snd.owns())return;var o=[0,0,0],here=ladder.cur.lv>=1&&ladder.cur.k==='sound',z=Math.sqrt(cam.zf());
     g.font='300 11px Poppins,sans-serif';g.textAlign='center';
     for(var i=0;i<tracks.length;i++){var s=c.stars[wave.starOf(i)];if(!s)continue;sky.proj(cam,s.x,s.y,1,o);var on=i===wave.sel,pl=on&&!wave.au.paused;
       var r=(on?3.4:2.2)*Math.min(2.4,z)+(pl?Math.sin(t/260)*1.2:0);g.globalAlpha=on?1:.7;g.fillStyle=PAL.adj==='sound'?'#e8c48a':on?PAL.sndOn:PAL.sndOff;g.beginPath();g.arc(o[0],o[1],r,0,6.283);g.fill();

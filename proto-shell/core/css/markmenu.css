@@ -48,3 +48,8 @@
 
 /* the waveform player is never covered: the menu stops above the Sound dock and scrolls inside itself */
 #markmenu{max-height:calc(100vh - 54px - 112px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+
+/* sliders on a phone: large hit areas; dragging a slider never scrolls the menu or the page and never starts a pinch */
+#markmenu input[type=range]{touch-action:none}
+@media (pointer:coarse){#markmenu input[type=range]{height:38px}#markmenu label{min-height:42px}}
+#markmenu .mm-hint{display:block;margin-top:3px;font:300 8.5px Poppins,sans-serif;font-style:normal;letter-spacing:.04em;text-transform:none;color:rgba(var(--mm-ink-rgb),.62)}
