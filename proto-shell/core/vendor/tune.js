@@ -115,6 +115,11 @@ function contextRows(c){
 /* rooms whose sliders are only saved here: nothing in this shell reads them yet */
 var OFF_NOTE='not active here · saved only';
 function isOff(id){var R=roomById(id);return !!(R&&R.off)}
+var PTR=null,HOLD=false,kbT=0;
+function ghost(r,info){
+  if(!window.GJ_GHOST||!menu)return;var b=r.getBoundingClientRect(),p=HOLD&&PTR?PTR:{x:b.left+b.width/2,y:b.top+b.height/2};info.x=p.x;info.y=p.y;
+  var placed=GJ_GHOST.update(info);menu.classList.toggle('mm-peek',!!placed&&HOLD);if(placed&&window.__shell&&__shell.callout)__shell.callout.hide(); /* one quiet feedback at a time: the ghost dial replaces the Red callout box */
+  if(!HOLD){clearTimeout(kbT);kbT=setTimeout(function(){GJ_GHOST.release()},400)}}
 var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
 function safelight(){
   var G=D2(),el=document.getElementById('safelight');
@@ -146,17 +151,21 @@ function build(){
   });
   menu.addEventListener('input',function(e){
     var dr=e.target.closest('input[data-dec-r]');
-    if(dr&&D2()){var dk=dr.getAttribute('data-dec-r');D2().set(dk,+dr.value);var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dk==='safeK'?(dr.value/100).toFixed(2):dr.value;if(dk==='safeK')safelight();return}
+    if(dr&&D2()){var dk=dr.getAttribute('data-dec-r');D2().set(dk,+dr.value);var dd=(D2().defaults()||{})[dk];ghost(dr,{name:dr.getAttribute('aria-label').replace(/,.*$/,''),min:+dr.min,max:+dr.max,def:dd,value:+dr.value});var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dk==='safeK'?(dr.value/100).toFixed(2):dr.value;if(dk==='safeK')safelight();return}
     var r=e.target.closest('input[data-k]');if(!r)return;
     var row=findRow(r.getAttribute('data-k'));if(!row)return;
     if(window.GJ_THEME)GJ_THEME.adjust(roomOfRow(row.k),{label:row.label,value:+r.value});
+    ghost(r,{name:row.label,min:row.min,max:row.max,def:row.def,value:+r.value});
     var v=+r.value;
     if(row.k.indexOf('gj.tune.')===0)wr(row.k,v);
     row.apply(v,true);
     var o=r.parentNode.querySelector('output');if(o)o.textContent=v;
   });
-  menu.addEventListener('pointerdown',function(e){if(e.target.closest('input[type=range]'))menu.classList.add('mm-peek')});
-  ['pointerup','pointercancel','touchend','touchcancel','blur'].forEach(function(n){addEventListener(n,function(){menu.classList.remove('mm-peek')},true)});
+  /* every slider's default feedback: while it is held the menu steps aside and the ghost dial (core/ghostdial.js) shows the value at a free screen edge */
+  menu.addEventListener('pointerdown',function(e){PTR={x:e.clientX,y:e.clientY};if(e.target.closest('input[type=range]'))HOLD=true},true);
+  menu.addEventListener('pointermove',function(e){if(HOLD)PTR={x:e.clientX,y:e.clientY}},true);
+  function letGo(){HOLD=false;menu.classList.remove('mm-peek');if(window.GJ_GHOST)GJ_GHOST.release()}
+  ['pointerup','pointercancel','touchend','touchcancel'].forEach(function(n){addEventListener(n,letGo,true)});addEventListener('blur',letGo);
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
   document.addEventListener('pointerdown',function(e){if(open&&!e.target.closest('#markmenu,#crumb .sig'))show(false)},true);
 }

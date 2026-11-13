@@ -103,6 +103,7 @@ M.tap=function(x,y,sh){var st=sh.ladder.cur;if(st.k!=='film'||st.lv<1)return fal
   for(var j=0;j<M.items.length;j++){var q=M.items[j]._r;if(!q)continue;
     if(Math.hypot(q[0]+q[2]/2-x,q[1]+q[3]/2-y)<18){sh.chipTitle(M.items[j].title,x,y);return true}}
   return false};
+if(window.GJ_GHOST)GJ_GHOST.avoid(function(){var sh=window.__shell;if(!sh||!sh.cam)return null;var st=sh.ladder.cur;if(st.k!=='film'||st.lv<1)return null;if(M.fsn<.2&&st.lv===1&&!M.frozen)return null;return [[0,0,sh.cam.W,sh.cam.H]]});
 M.tune=[
   {key:'fdens',label:'snap density',min:60,max:140},
   {key:'fgap',label:'frame gap',min:25,max:300}

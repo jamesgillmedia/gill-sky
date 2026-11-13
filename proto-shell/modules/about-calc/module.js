@@ -391,6 +391,7 @@ M.tuneTitle=function(st){return st.lv===2?'bio':null};
    Left / Right step layers while the calculator is up (Shift + Left / Right still switches A / B / C) */
 M.back=function(){return bioBack()};
 M.inAt=function(){if(!isBio())return false;bioDeeper();return true};
+if(window.GJ_GHOST)GJ_GHOST.avoid(function(){if(!bioOn)return null;if(V==='A')return [[0,0,innerWidth,innerHeight]];var r=O.el&&O.el.getBoundingClientRect();return r?[[r.left-4,r.top-4,r.right+4,r.bottom+4]]:null});
 M.arrow=function(d){if(!isBio())return false;if(d>0)bioDeeper();else bioBack();return true};
 M.variant=function(v){V=v==='B'?'B':'A';if(root){root.setAttribute('data-v',V);if(bioOn){paintBio(false);layout3()}}
 };
