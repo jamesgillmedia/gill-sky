@@ -35,3 +35,15 @@ body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:80;bac
 .gindex li a:hover{border-color:rgba(232,228,220,.5)}
 .gindex small{font:400 10px 'IBM Plex Mono',monospace;letter-spacing:.1em;color:rgba(232,228,220,.55);margin-left:6px}
 .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+/* no browser page zoom: the site owns pinch */
+html,body{touch-action:pan-x pan-y}
+html[data-v=B] #app,html[data-v=B] .b-lift{touch-action:pan-y}
+/* phone: every tap target at least 44px */
+@media (hover:none),(max-width:720px){
+  #dev a{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .c-wm,.c-map,.a-wm,.b-bwm{min-height:44px;display:inline-flex;align-items:center}
+  .c-back,.c-next,.c-index a,.c-index button{min-height:44px;min-width:44px;display:inline-flex;align-items:center}
+  .c-sign{min-height:44px;min-width:44px}
+  .b-band{height:44px;line-height:44px}
+}

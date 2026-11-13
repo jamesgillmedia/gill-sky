@@ -81,3 +81,30 @@ body.c-open .c-sub,body.c-open .c-map{display:none}
 .c-where{top:calc(80px + env(safe-area-inset-top))}
 .c-walk{touch-action:pan-x pan-y}
 @media (max-aspect-ratio:1/1.05){.c-hero{margin-top:112px}}
+
+/* ---- bands + no-overlap stop layout (collision gate) ---- */
+.c-walk.port{top:var(--tb,96px);bottom:var(--bb,110px)}
+body.c-open .c-top{background:#0b0c0b}
+.c-page{top:var(--tb,70px);bottom:var(--bb,56px)}
+.c-page::before{top:var(--tb,70px)}
+.c-back{position:absolute;left:28px;top:6px}
+.c-where{position:absolute;left:130px;top:22px}
+.c-hero{top:var(--tb,70px);bottom:var(--bb,56px)}
+.c-hero img{top:58px;bottom:2vh;height:auto;inset:58px 3vw 2vh 3vw}
+.c-info{margin-top:70px}
+.c-side{padding-bottom:28px}
+.c-next{position:relative;right:auto;bottom:auto;margin:10px 0 40px 68vw;display:inline-flex;align-items:center;min-height:44px;background:none}
+@media (max-aspect-ratio:1/1.05){
+  .c-back{left:18px;top:4px}.c-where{left:110px;top:20px}
+  .c-hero{position:relative;top:auto;bottom:auto;margin-top:56px}
+  .c-hero img{inset:0 14px;height:100%}
+  .c-info{margin-top:18px}
+  .c-side{padding:0 0 20px}
+  .c-next{margin:6px 18px 30px;background:none;padding:0 8px}
+}
+@media (max-height:520px) and (min-aspect-ratio:1/1.05){
+  .c-aboutlead .q{font-size:22px;margin-bottom:12px}.c-aboutlead .b{font-size:13px}
+  .c-info .ct{font-size:26px}
+  .c-about{padding-top:60px}
+}
+body.c-open .c-prof{display:none}

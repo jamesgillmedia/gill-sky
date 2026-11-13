@@ -98,3 +98,5 @@ html[data-v=B] body{background:#0b0a09}
 .b-lf,.b-print{background:transparent}
 .b-lf:not(:has(img.in)),.b-print:not(:has(img.in)){box-shadow:none}
 .b-bwm{position:absolute;right:22px;top:calc(env(safe-area-inset-top) + 0px);z-index:2;height:30px;line-height:30px;font:400 italic 16px 'Fraunces',serif;color:#e8e4dc;padding:0 4px}
+
+.b-lwm{position:fixed;z-index:3;cursor:pointer}

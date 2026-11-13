@@ -26,3 +26,18 @@ img{display:block}
 .lv-links a{border-bottom:1px solid rgba(232,228,220,.35);padding-bottom:1px}
 .lv-links a+a{margin-left:16px}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+/* no browser page zoom: the site owns pinch. Pan stays native where something scrolls. */
+html,body{touch-action:pan-x pan-y}
+html[data-v=A] #app,html[data-v=B] #app{touch-action:none}
+html[data-v=C] #app{touch-action:pan-y}
+html[data-v=C] .c-board,html[data-v=C] .c-veil{touch-action:none}
+html[data-v=C] .c-tin{touch-action:pan-y}
+/* phone: every tap target at least 44px */
+@media (hover:none),(max-width:720px){
+  #dev a{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+  .lv-links a{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+  .lv-tune input{height:44px}
+  .a-wm,.b-wm,.c-wm{min-height:44px;display:inline-flex;align-items:center}
+  .a-back,.b-back,.c-tear,.c-nav button,.c-mm a,.b-mm a{min-height:44px;min-width:44px;display:inline-flex;align-items:center}
+  .b-pp{width:44px;height:44px}
+}

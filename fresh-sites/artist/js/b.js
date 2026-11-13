@@ -127,6 +127,10 @@ chest.addEventListener('click',function(e){var f=e.target.closest('.b-front');if
 bands.addEventListener('click',function(e){var b=e.target.closest('.b-band');if(b)R.go(b.dataset.k,{replace:true})});
 felt.addEventListener('click',function(e){var p=e.target.closest('.b-print');if(p&&openK)R.go(openK+'/'+p.dataset.id)});
 push.addEventListener('click',function(){R.up()});
+/* the band wordmark stays live above a lifted print: the lift carries its own copy in the same spot */
+var lwm=el('a','b-bwm b-lwm','Gill James',lift);lwm.href='#/';lwm.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();R.home()});
+function placeLwm(){var r=bwm.getBoundingClientRect();lwm.style.left=r.left+'px';lwm.style.top=r.top+'px';lwm.style.right='auto';lwm.style.visibility=r.width?'visible':'hidden'}
+new MutationObserver(function(){if(lift.classList.contains('on'))placeLwm()}).observe(lift,{attributes:true,attributeFilter:['class']});addEventListener('resize',placeLwm);
 lift.addEventListener('click',function(){R.up()});
 /* hover a front: it eases out and the gap widens (peek) */
 chest.addEventListener('pointerover',function(e){var f=e.target.closest('.b-dr');[].forEach.call(drawers.children,function(x){x.classList.toggle('peek',x===f)})});

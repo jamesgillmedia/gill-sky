@@ -57,3 +57,9 @@ html[data-v=A] body{-webkit-user-select:none;user-select:none}
 .a-back{min-height:44px;min-width:44px;display:inline-flex;align-items:center;padding:0 12px 0 0;top:calc(clamp(20px,3.6vh,40px) + 52px + env(safe-area-inset-top))}
 /* the room arrives only after the zoom has carried through to its framing */
 #app.in .a-info{transition:opacity .7s ease .9s}
+@media (hover:none),(max-width:720px){
+  html .a-pp{width:44px;height:44px}
+  .a-side{min-height:44px;display:inline-flex;align-items:center}
+  .a-lab{min-width:44px}
+  .a-foot a{min-height:44px;display:inline-flex;align-items:center}
+}

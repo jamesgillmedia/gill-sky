@@ -17,6 +17,8 @@ var strips=O.map(function(t,i){var s=el('div','b-ch',null,desk);s.dataset.id=t.i
 var master=el('div','b-ch b-master',null,desk);master.innerHTML='<div class="b-no">MASTER</div><div class="b-mt"></div><div class="b-links lv-links"><a href="'+D.links.spotify+'" target="_blank" rel="noopener">Spotify</a><a href="'+D.links.apple+'" target="_blank" rel="noopener">Apple</a></div><p class="b-mm">also: <a href="'+D.links.mm+'" target="_blank" rel="noopener">Mothers Moniker ↗</a></p>';
 LV.tune(master.querySelector('.b-mt'),'vert');
 var openT=null,soloRail=null;
+/* preload every cover + plate so a solo never opens onto an empty stage */
+var PRE=[];O.forEach(function(t){[t.cover].concat(t.plates.map(function(p){return p.src})).forEach(function(s){var i=new Image();i.decoding='async';i.src=s;if(i.decode)i.decode().catch(function(){});PRE.push(i)})});
 function soloHTML(t){var i=O.indexOf(t);return '<button class="b-back" type="button">‹ desk</button><p class="b-sn">CH '+('0'+(i+1)).slice(-2)+' · SOLO · '+(t.year||'TBD')+' · '+esc(G.len(t))+'</p><h2 class="b-st">'+esc(t.t)+'</h2>'+
   '<div class="b-cov"></div><div class="b-pls"></div><div class="b-tr"><button class="b-pp" type="button" aria-label="play"><i></i></button><span class="b-time">0:00</span><span class="lv-links">'+G.links(t)+'</span><span class="b-stune"></span></div><div class="b-rail"><canvas aria-label="waveform — drag to move through the track"></canvas></div>'}
 function fillSolo(t){solo.innerHTML=soloHTML(t);img(t.cover,'',t.t+' — cover artwork',solo.querySelector('.b-cov'));var pl=solo.querySelector('.b-pls');t.plates.slice(1).forEach(function(p){var f=el('figure','',null,pl);img(p.src,'','',f)});
@@ -28,7 +30,7 @@ LV.on(sync);
   var ti=solo.querySelector('.b-time');if(ti&&c)ti.textContent=LV.mmss(LV.au.currentTime)})();
 function layoutWin(){if(!openT)return;var r=openT.strip.getBoundingClientRect();}
 function open(t,how){var first=!openT;openT=t;LV.load(t.id);fillSolo(t);app.classList.add('solo');strips.forEach(function(s){s.classList.toggle('on',s===t.strip)});
-  if(how!=='load')LV.play();setTimeout(function(){S.resize()},40);if(!first){solo.animate([{opacity:0},{opacity:1}],{duration:600})}}
+  if(how!=='load')LV.play();setTimeout(function(){S.resize()},40);if(!first){var h=solo.querySelector('.b-st');if(h)h.animate([{transform:'translateX(28px)'},{transform:'none'}],{duration:420,easing:'cubic-bezier(.2,.7,.2,1)'})}}
 function close(){if(!openT)return;openT=null;app.classList.remove('solo');strips.forEach(function(s){s.classList.remove('on')})}
 R.on(function(route,prev,how){var m=route.match(/^t\/(.+)$/),t=m&&G.track(m[1]);if(m&&!t){R.go('',{replace:true});return}if(t)open(t,how);else close()});
 function pickT(t){if(openT===t)return;R.go('t/'+t.id,{replace:!!openT})}

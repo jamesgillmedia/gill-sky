@@ -1,10 +1,10 @@
 /* Lost Coffee · shared core: version switch, router (Back / Esc / swipe), image fade-ins.
    Reduce Motion: identical output by design (Gill's rule) — no motion branches anywhere. */
 (function(w){'use strict';
-var d=document,H=d.documentElement,LSV='gj.fresh.lostcoffee.v';
+var d=document,H=d.documentElement,LSV='gj.fresh.lostcoffee.v2';
 var q=new URLSearchParams(location.search),V=(q.get('v')||'').toUpperCase();
 if(!/^[ABC]$/.test(V)){try{V=(localStorage.getItem(LSV)||'').toUpperCase()}catch(e){}}
-if(!/^[ABC]$/.test(V))V='C';
+if(!/^[ABC]$/.test(V))V='B'; /* Gill's pick: B · Channel Strips */
 try{localStorage.setItem(LSV,V)}catch(e){}
 H.dataset.v=V;
 function devToggle(){var b=d.createElement('div');b.id='dev';b.setAttribute('aria-label','prototype direction (dev)');
@@ -34,13 +34,17 @@ R.up=function(){if(R.cur===''||R.cur==null)return false;if(depth()>0){history.ba
   var p=R.parent(R.cur),prev=R.cur;history.replaceState({d:0},'','#/'+p);R.cur=p;fire(p,prev,'out');return true};
 function fire(r,p,how){R.handlers.forEach(function(f){f(r,p,how)})}
 R.on=function(f){R.handlers.push(f)};
-w.addEventListener('popstate',function(){var r=parse(),p=R.cur;if(r===p)return;R.cur=r;
+var goingHome=false;
+w.addEventListener('popstate',function(){var r=parse(),p=R.cur;
+  /* wordmark rewound to the entry route (deep-link entry): land home in place, no extra entry */
+  if(goingHome){goingHome=false;if(r!==''){history.replaceState({d:0},'','#/');r=''}}
+  if(r===p)return;R.cur=r;
   var a=lvl(r),b=lvl(p),how=a<b?'out':a>b?'in':'swap';fire(r,p,how)});
 function lvl(r){return !r?0:r.split('/').length}
 /* wordmark → home: rewind to the entry we came in on (no duplicate #/ entry), so the next Back always does something visible */
 /* a silent history step (used so Back from a print lands on its drawer) */
 R.mark=function(route){history.pushState({d:depth()+1},'','#/'+route);R.cur=route};
-R.home=function(){if(R.cur===''||R.cur==null)return false;var dd=depth();if(dd>0){history.go(-dd);return true}
+R.home=function(){if(R.cur===''||R.cur==null)return false;var dd=depth();if(dd>0){goingHome=true;history.go(-dd);return true}
   var prev=R.cur;history.replaceState({d:0},'','#/');R.cur='';fire('',prev,'out');return true};
 R.start=function(){if(!history.state)history.replaceState({d:0},'',location.hash||'#/');R.cur=parse();fire(R.cur,null,'load')};
 /* Esc = one level out, everywhere */

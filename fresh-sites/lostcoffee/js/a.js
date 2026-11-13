@@ -54,12 +54,12 @@ gv.addEventListener('pointermove',function(e){if(pd&&pd.seek&&pd.id===e.pointerI
 gv.addEventListener('pointerup',function(e){if(!pd)return;var p=pd;pd=null;if(p.seek){if(LV.au.paused)LV.play();return}if(Math.hypot(e.clientX-p.x,e.clientY-p.y)>10)return;if(!openT)pick(hit(e.clientX,e.clientY))});
 function seekAt(e){var t=openT,f=F(e.clientX),loc=(f-t.a0)/(t.a1-t.a0);LV.seek(Math.max(0,Math.min(1,loc))*LV.dur())}
 labs.addEventListener('click',function(e){var b=e.target.closest('.a-lab');if(b)pick(G.track(b.dataset.id))});
-var wacc=0,wt=0;addEventListener('wheel',function(e){if(e.target.closest('.a-info'))return;wacc+=e.deltaY;clearTimeout(wt);wt=setTimeout(function(){wacc=0},260);
+var wacc=0,wt=0;addEventListener('wheel',function(e){if(e.target.closest('input,.lv-tune'))return;wacc+=e.deltaY;clearTimeout(wt);wt=setTimeout(function(){wacc=0},260);
   if(wacc<-60&&!openT){wacc=0;pick(hit(e.clientX,innerHeight*cur.y)||O[0])}else if(wacc>60&&openT){wacc=0;R.up()}},{passive:true});
 /* pinch / spread */
 var tch={};app.addEventListener('touchstart',function(e){if(e.touches.length===2){var a=e.touches[0],b=e.touches[1];tch={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x:(a.clientX+b.clientX)/2}}},{passive:true});
 app.addEventListener('touchmove',function(e){if(e.touches.length===2&&tch.d){var a=e.touches[0],b=e.touches[1],dd=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
-  if(dd>tch.d*1.35&&!openT){tch={};pick(hit(tch.x||innerWidth/2,innerHeight*cur.y)||O[0])}else if(dd<tch.d*.72&&openT){tch={};R.up()}}},{passive:true});
+  if(dd>tch.d*1.35&&!openT){var fx=tch.x||innerWidth/2;tch={};pick(hit(fx,innerHeight*cur.y)||O[0])}else if(dd<tch.d*.72&&openT){tch={};R.up()}}},{passive:true});
 G.swipe(app,function(dir,st){if(!openT)return;if(st.y>cur.y*innerHeight-cur.h*innerHeight-30)return;if(dir==='down')R.up();else if(dir==='left'||dir==='right')stepT(dir==='left'?1:-1)});
 function stepT(k){var i=O.indexOf(openT);R.go('t/'+O[(i+k+O.length)%O.length].id,{replace:true})}
 info.addEventListener('click',function(e){if(e.target.closest('.a-pp'))LV.toggle();if(e.target.closest('.a-next'))stepT(1);if(e.target.closest('.a-prev'))stepT(-1)});

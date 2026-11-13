@@ -76,3 +76,8 @@ html[data-v=B] body{font-family:'Space Mono',monospace;background:#050505}
 }
 .b-stune{margin-left:18px}
 @media (max-width:720px){.b-tr{flex-wrap:wrap;gap:12px;right:0}.b-stune{margin-left:0;flex-basis:100%}.b-stune input{width:80px}.b-tr{bottom:80px}}
+/* solo opens straight away from the strip: no empty beat */
+.b-win{transition:opacity .45s}
+.b-solo{transition:opacity .35s}
+.b-solo img.fi{transition:opacity .25s}
+@media (hover:none),(max-width:720px){html .b-pp{width:44px;height:44px}}

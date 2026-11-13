@@ -82,3 +82,4 @@ html[data-v=C] #app.ticket .c-veil{pointer-events:auto}
   .c-plate{aspect-ratio:4/3}
 }
 @media (max-width:720px){#app.ticket .c-sub{opacity:0;transition:opacity .3s}}
+@media (hover:none),(max-width:720px){html .c-pp{width:44px;height:44px}}
