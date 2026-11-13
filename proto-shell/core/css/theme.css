@@ -1,0 +1,43 @@
+/* proto-shell · THE THEME LAYER. Every colour in the shell comes from the variables below; nothing else decides night or red.
+   html[data-theme] is "night" (the default, the look the shell has always had) or "red" (Gill's red mode). core/theme.js sets it
+   and reads these same variables for the canvas, so one table drives CSS, the sky, the film labels and the waveform.
+   Night values here are the values that used to be written in shell.css / markmenu.css / the canvas code, unchanged.
+   A module paints with GJ_THEME.pal (or these variables), never with its own hex, and inherits red for free.
+   Never themed: photographs, film frames, video (drawn untouched), the mint "new" marker, the safelight, the Photo room's own look. */
+:root{
+  --bg:#04070b;--bg-rgb:4,7,11;--ink:#eef3f5;--dim:#c9d3d6;--meta:#93a1a6;--mint:#55DAA1;--line:rgba(255,255,255,.16);
+  --panel-rgb:6,10,16;--note-rgb:200,207,214;--rip-rgb:255,255,255;
+  --ctl-rgb:230,230,236;--ctl-ink:#e8eef4;--tc:#d8dee6;--pill-on:rgba(196,150,96,.8);--toggle-dot:#ff4d41;
+  --mm-bg:rgba(6,10,16,.84);--mm-ink:#e4ebf5;--mm-ink-rgb:228,235,245;--mm-line-rgb:207,216,230;--mm-accent:#d9b98a;
+  --mm-on-bg:#e8e4dc;--mm-on-ink:#04070b;--mm-on-text:#e8e4dc;
+  /* canvas (read by theme.js): rgb triplets, or a full colour where noted */
+  --c-field:223,231,242;--c-field-cool:150,175,215;--c-field-warm:244,230,208;--c-wash:19,32,46;--c-glow:205,225,255;--c-core:#fff;
+  --c-chapter:none;--c-active:none;--c-grid:none;
+  --c-label:#e6edf0;--c-slot:rgba(201,211,214,.5);
+  --c-snd-on:#eef3f5;--c-snd-off:rgb(255,214,206);--c-snd-lbl-on:#eef3f5;--c-snd-lbl:rgba(201,211,214,.85);
+  --c-rail-line:rgba(230,214,200,.38);--c-rail-on:rgba(238,243,245,.95);--c-rail-off:rgba(201,211,214,.4);
+  --c-rail-star-on:#eef3f5;--c-rail-star-off:rgba(201,211,214,.7);--c-rail-head:#fff}
+/* RED: bright red on black, thin line work, a dotted floor. The room or part you are adjusting lights up gold (--c-active). */
+html[data-theme=red]{
+  color-scheme:dark;
+  --bg:#000;--bg-rgb:0,0,0;--ink:#ff5a4d;--dim:#ee4a40;--meta:#e63d33;--line:rgba(255,72,60,.34);
+  --panel-rgb:14,0,0;--note-rgb:255,90,77;--rip-rgb:255,72,60;
+  --ctl-rgb:255,72,60;--ctl-ink:#ff5a4d;--tc:#ff6a5d;--pill-on:rgba(232,196,138,.85);--toggle-dot:#eef3f5;
+  --mm-bg:rgba(14,0,0,.9);--mm-ink:#ff5a4d;--mm-ink-rgb:255,90,77;--mm-line-rgb:255,72,60;--mm-accent:#e8c48a;
+  --mm-on-bg:#ff3b30;--mm-on-ink:#000;--mm-on-text:#ff5a4d;
+  --c-field:255,86,72;--c-field-cool:150,26,22;--c-field-warm:255,190,120;--c-wash:70,0,0;--c-glow:255,50,40;--c-core:#ff6a5a;
+  --c-chapter:255,48,48;--c-active:232,196,138;--c-grid:255,48,48;
+  --c-label:#ff5a4d;--c-slot:rgba(255,90,77,.55);
+  --c-snd-on:#e8c48a;--c-snd-off:rgb(255,60,50);--c-snd-lbl-on:#e8c48a;--c-snd-lbl:rgba(255,90,77,.92);
+  --c-rail-line:rgba(255,72,60,.5);--c-rail-on:rgba(255,100,88,.98);--c-rail-off:rgba(255,72,60,.58);
+  --c-rail-star-on:#ff6a5a;--c-rail-star-off:rgba(255,72,60,.85);--c-rail-head:#e8c48a}
+/* the quiet colour-mode control (top right, left of the A/B/C pills): a ring with a dot in the colour you would switch to */
+#themeBtn{width:28px;height:28px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;flex:0 0 auto;margin-right:2px}
+#themeBtn i{display:block;width:8px;height:8px;border-radius:50%;background:var(--toggle-dot)}
+#themeBtn:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
+/* red: native range tracks stay readable (thin red line, gold thumb) */
+html[data-theme=red] #markmenu input[type=range]{-webkit-appearance:none;appearance:none;background:none;height:22px}
+html[data-theme=red] #markmenu input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(var(--mm-ink-rgb),.45);border-radius:1px}
+html[data-theme=red] #markmenu input[type=range]::-moz-range-track{height:2px;background:rgba(var(--mm-ink-rgb),.45);border-radius:1px}
+html[data-theme=red] #markmenu input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:var(--mm-accent);border:0}
+html[data-theme=red] #markmenu input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--mm-accent);border:0}

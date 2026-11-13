@@ -79,7 +79,7 @@ function boot(skyD,tracks,shape){
     else if(k==='+'||k==='='||k==='Enter'){ladder.inAt(cam.W/2,cam.H/2)}}
   function crumb(st){var c=document.querySelector('#crumb .where');if(!c)return;var p=[];
     if(st.lv>=1)p.push(sky.chapter(st.k).name);if(st.lv>=2)p.push((M.levelName&&M.levelName(2,st))||'board');if(st.lv>=3)p.push((M.levelName&&M.levelName(3,st,SH))||'work');
-    c.textContent=p.join(' › ');var o=document.querySelector('#crumb .out');if(o)o.hidden=!st.lv;if(M.level)M.level(st,SH)}
+    c.textContent=p.join(' › ');if(w.GJ_THEME)GJ_THEME.setRoom(st.lv>=1?st.k:null);var o=document.querySelector('#crumb .out');if(o)o.hidden=!st.lv;if(M.level)M.level(st,SH)}
   /* the frame */
   var last=performance.now();
   function frame(t){requestAnimationFrame(frame);var dt=Math.min(.05,(t-last)/1000);last=t;cam.step(t,dt);

@@ -131,6 +131,8 @@ function build(){
     if(e.target.closest('.mm-all')){allOn=!allOn;paint();return}
     if(e.target.closest('.mm-reset-room')){resetRoom();return}
     if(e.target.closest('.mm-reset')){reset();return}
+    var tb2=e.target.closest('[data-theme-set]');
+    if(tb2&&window.GJ_THEME){GJ_THEME.set(tb2.getAttribute('data-theme-set'));paint();return}
     var db=e.target.closest('[data-dec]');
     if(db&&D2()){D2().set(db.getAttribute('data-dec'),db.getAttribute('data-v'));safelight();paint();return}
   });
@@ -139,6 +141,7 @@ function build(){
     if(dr&&D2()){var dk=dr.getAttribute('data-dec-r');D2().set(dk,+dr.value);var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dk==='safeK'?(dr.value/100).toFixed(2):dr.value;if(dk==='safeK')safelight();return}
     var r=e.target.closest('input[data-k]');if(!r)return;
     var row=findRow(r.getAttribute('data-k'));if(!row)return;
+    if(window.GJ_THEME)GJ_THEME.adjust(roomOfRow(row.k));
     var v=+r.value;
     if(row.k.indexOf('gj.tune.')===0)wr(row.k,v);
     row.apply(v,true);
@@ -151,6 +154,8 @@ function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.l
   var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
   var extra=moduleRows(mod);if(extra)for(var i=0;i<extra.length;i++)if(extra[i].k===k)return extra[i];
   return null}
+function roomOfRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].id;
+  var m=(window.__shell&&__shell.mod)||null;return m&&m.chapter||null}
 function rowsHtml(rows){
   var h='';rows.forEach(function(r){var v=r.get();
     h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+r.label+'"><output>'+v+'</output></label>'});
@@ -189,6 +194,8 @@ function paint(){
   var G=D2();
   var mot=G?G.get('motion'):100,snap=G?G.get('snapAt'):34,sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60,rv=G?+G.get('ripples'):1;
   h+='<section class="mm-globals"><h3>globals</h3>';
+  var TH=window.GJ_THEME,tp=TH?TH.pref:'night';
+  if(TH)h+='<div class="mm-seg mm-theme"><b>colour mode'+(TH.exempt(here)?' <em>this room keeps its own look</em>':'')+'</b><span role="radiogroup" aria-label="colour mode"><button type="button" role="radio" aria-checked="'+(tp==='night')+'" data-theme-set="night">night</button><button type="button" role="radio" aria-checked="'+(tp==='red')+'" data-theme-set="red">red</button></span></div>';
   h+='<label><span>motion</span><input type="range" min="0" max="200" step="1" value="'+mot+'" data-dec-r="motion" aria-label="motion"><output>'+mot+'</output></label>';
   h+='<label><span>snap threshold</span><input type="range" min="15" max="70" step="1" value="'+snap+'" data-dec-r="snapAt" aria-label="snap threshold"><output>'+snap+'</output></label>';
   h+='<div class="mm-seg"><b>safelight (warm edge glow)</b><span><button type="button" role="radio" aria-checked="'+(sl===0)+'" data-dec="safelight" data-v="0">off</button><button type="button" role="radio" aria-checked="'+(sl===1)+'" data-dec="safelight" data-v="1">on</button></span></div>';
@@ -241,6 +248,7 @@ function restore(){
   safelight();
 }
 var tries=0;(function wait(){if(window.__u1&&__u1.ready&&window.__shell&&__shell.ladder){restore();hookLadder();return}if(++tries<200)setTimeout(wait,50)})();
+if(window.GJ_THEME)GJ_THEME.on(function(w){if(w!=='adj'&&open&&tuneOn)paint()});
 window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},
   context:function(){return ctx()},
   rooms:function(){return ROOMS.map(function(R){return {id:R.id,rows:R.rows.map(function(r){return r.label})}})}};
