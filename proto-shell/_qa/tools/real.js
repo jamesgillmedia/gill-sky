@@ -75,8 +75,22 @@ async function journey(R,out){
     if(R.theme==='red'){const n=s=>s.match(/[\d.]+/g).map(Number);if(!(lum(n(m.title))>lum(n(crumb))))return 'player title not brighter than UI ink '+m.title+' vs '+crumb;if(m.mx<.35)return 'waveform dim '+m.mx.toFixed(2)}
     await fr.click('#pp')});
   await R.step('photo colour sample (board tile)',async()=>{await p.evaluate(()=>{__depth.goTo('film')});await sleep(1500);await p.evaluate(()=>{__u1.scrub(1);__u1.letGo()});await sleep(3200);
-    const t=await p.evaluate(()=>__u1.tiles[3]);const buf=await p.screenshot({scale:'css'});
-    const col=await p.evaluate(async([b64,x,y])=>{const im=new Image();im.src='data:image/png;base64,'+b64;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const q=c.getContext('2d');q.drawImage(im,0,0);const d=q.getImageData(Math.max(0,x-10),Math.max(0,y-8),20,12).data;let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}return [r/n,g/n,b/n]},[buf.toString('base64'),t.x,t.y]);
+    const buf=await p.screenshot({scale:'css'});
+    /* The still is drawn on the canvas and is the same in Night and Red. A screenshot can land in the clear between frames, on the ground, which Red maps to its ink. Read the bitmap, and skip a read that caught only that ground. */
+    const col=await p.evaluate(async()=>{
+      const read=()=>{
+        const t=__u1.tiles[3];if(!t)return null;
+        const cv=document.getElementById('cv');if(!cv)return null;
+        const dpr=cv.width/innerWidth;
+        const x=Math.max(0,Math.round(t.x*dpr-10)),y=Math.max(0,Math.round(t.y*dpr-8));
+        const d=cv.getContext('2d').getImageData(x,y,20,12).data;
+        let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}
+        return [r/n,g/n,b/n];
+      };
+      let c=read();
+      for(let i=0;i<8&&c&&(c[0]+c[1]+c[2])/3<18;i++){await new Promise(r=>requestAnimationFrame(r));c=read()}
+      return c;
+    });
     R.log.push(['tile',col]);
     const tiles=await p.evaluate(()=>{const R=__u1.rects||{},rs=R.rects||[],win=R.win||[0,0,innerWidth,innerHeight];return (__u1.tiles||[]).map((t,i)=>{const rc=rs[i]||{};const w=rc.w||0,h=rc.h||0;return {t:t.t,x:t.x,y:t.y,w,h,in:t.x-w/2>=win[0]+2&&t.x+w/2<=win[0]+win[2]-2&&t.y-h/2>=win[1]+2&&t.y+h/2<=win[1]+win[3]-2}}).filter(t=>t.in)});
     const flags=await p.evaluate(async([b64,tiles])=>{const im=new Image();im.src='data:image/png;base64,'+b64;await im.decode();const c=document.createElement('canvas');c.width=im.width;c.height=im.height;const q=c.getContext('2d');q.drawImage(im,0,0);const bad=[];
