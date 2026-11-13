@@ -1,5 +1,6 @@
 /* se3 standalone: v2's sky (starfield shader, FogExp2, PerspectiveCamera) around the Spirit Eye only. No chapter clusters, no orbit. */
 import * as SE from './spirit-eye.js';
+import * as ATMOS from './atmos.js';
 const html = document.documentElement, $ = s => document.querySelector(s);
 /* ---------- end gallery (parts/gallery/gallery.js behaviour: tap opens large; Back, Esc, browser Back return to the grid) ---------- */
 (function gallery() {
@@ -60,9 +61,7 @@ function start() {
       fragmentShader: `varying float vA;varying vec3 vC;void main(){float r=length(gl_PointCoord-.5);float a=smoothstep(.5,.0,r);a*=a;gl_FragColor=vec4(vC*a*vA,1.);}` });
     return new THREE.Points(g, m) }
   const stars = starField(innerWidth < 700 ? 2600 : 4200); scene.add(stars);
-  function glowTex() { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
+  function glowTex() { return ATMOS.glowTex(THREE) }
   const GT = glowTex();
   const nebulas = [];
   [[-90, 40, -260, 0x152030, 220], [120, 30, 160, 0x181420, 260], [10, 50, -120, 0x101820, 160]].forEach(n => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GT, color: n[3], transparent: true, opacity: .035, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
@@ -80,11 +79,7 @@ function start() {
       col=mix(col,dayc,smoothstep(.42,.95,uDay));
       gl_FragColor=vec4(col,1.);}` }));
   sky.renderOrder = -2; scene.add(sky);
-  function cloudTex() {
-    const c = document.createElement('canvas'); c.width = 256; c.height = 128; const x = c.getContext('2d');
-    for (let i = 0; i < 7; i++) { const cx = 40 + Math.random() * 176, cy = 40 + Math.random() * 48, r = 28 + Math.random() * 36;
-      const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 256, 128) }
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
+  function cloudTex() { return ATMOS.cloudTex(THREE) }
   const CT = cloudTex();
   const clouds = [];
   const nCloud = innerWidth < 700 ? 6 : 8;
@@ -105,8 +100,12 @@ function start() {
     /* at night the sky dome stays off, so the scene matches today's look exactly */
     sky.visible = day > .02;
   }
-  const SEC = SE.mount(THREE, scene, { glowTex: GT, tell: $('#setell'), call: $('#secall'), lines: $('#selines'), gal: $('#segal'), dial: $('#sedial'), pg: $('#sepg'), dayNight: () => dayN, ...(window.__SEX || {}) });
+  const SEC = SE.mount(THREE, scene, { glowTex: GT, poolTex: () => ATMOS.poolTex(THREE), tell: $('#setell'), call: $('#secall'), lines: $('#selines'), gal: $('#segal'), dial: $('#sedial'), pg: $('#sepg'), dayNight: () => dayN, ...(window.__SEX || {}) });
   if (window.__SEX && window.__SEX.mounted) window.__SEX.mounted(SEC, cam, R);
+  /* spaces-1113: fog + breathing shafts through the fibre column, and Red (plan drawings and fibre ends glow; photos keep true colour) */
+  const ATM = ATMOS.mountAtmos(THREE, scene, SEC.group, { renderer: R, repaint: () => { if (typeof paintSky === 'function') paintSky(dayN); else { R.setClearColor(0x04060c, 1); scene.fog.color.set(0x04060c) } } });
+  { const T = window.GJ_THEME, VV = window.GJ_VARIANT; ATM.setVariant(VV ? VV.v : 'A'); if (VV) VV.on(v => ATM.setVariant(v));
+    ATM.setRed(!!(T && T.eff === 'red')); if (T) T.on(() => ATM.setRed(T.eff === 'red')) }
   function layout() { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); U.uPx.value = R.getPixelRatio() * h / 780; SEC.resize(w / h) }
   const cv = $('#c');
   cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId) } catch (x) {} SEC.down(e) });
@@ -140,11 +139,11 @@ function start() {
   /* ambience: glow scales every additive light (sun, halo, light front, pool, motes) at draw time only; stars and haze are their own */
   let glowMats = null;
   function collectGlow() { glowMats = []; scene.traverse(o => { const m = o.material; if (!m || m === stars.material || m.isShaderMaterial) return; (Array.isArray(m) ? m : [m]).forEach(x => { if (x.blending === THREE.AdditiveBlending && glowMats.indexOf(x) < 0) glowMats.push(x) }) }) }
-  function frame(now) { requestAnimationFrame(frame); U.uT.value = now / 1000; SEC.update(now, cam);
+  function frame(now) { requestAnimationFrame(frame); U.uT.value = now / 1000; SEC.update(now, cam); ATM.update(now, cam, SEC.st().F);
     U.uStar.value = AMB.star; scene.fog.density = .0042 * AMB.haze;
     if (!glowMats || (now | 0) % 60 === 0) collectGlow();
     const k = AMB.glow, keep = k !== 1 ? glowMats.map(m => m.opacity) : null; if (keep) glowMats.forEach(m => { m.opacity *= k });
     R.render(scene, cam); if (keep) glowMats.forEach((m, j) => { m.opacity = keep[j] }) }
   document.fonts.ready.then(() => { requestAnimationFrame(frame); html.classList.add('ready') });
-  window.__se = { st: SEC.st, go: SEC.go, jump: SEC.jump, log: SEC.log, SEC, setDay(v, save) { applyDay(v, save !== false) }, get day() { return dayN } };
+  window.__se = { atmos: ATM, st: SEC.st, go: SEC.go, jump: SEC.jump, log: SEC.log, SEC, setDay(v, save) { applyDay(v, save !== false) }, get day() { return dayN } };
 }

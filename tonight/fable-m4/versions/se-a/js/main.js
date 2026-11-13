@@ -1,5 +1,6 @@
 /* se3 standalone: v2's sky (starfield shader, FogExp2, PerspectiveCamera) around the Spirit Eye only. No chapter clusters, no orbit. */
 import * as SE from './spirit-eye.js';
+import * as ATMOS from '../../../../spaces/forest-garden/js/atmos.js';
 const html = document.documentElement, $ = s => document.querySelector(s);
 /* ---------- end gallery (parts/gallery/gallery.js behaviour: tap opens large; Back, Esc, browser Back return to the grid) ---------- */
 (function gallery() {
@@ -41,14 +42,16 @@ function start() {
         gl_PointSize=clamp(aSz*uPx*tw*170./d,1.2,30.);vA=1.7*exp(-d*.0042)*smoothstep(.5,6.,d)*(.7+.3*tw);vC=aCol;gl_Position=projectionMatrix*mv;}`,
       fragmentShader: `varying float vA;varying vec3 vC;void main(){float r=length(gl_PointCoord-.5);float a=smoothstep(.5,.0,r);a*=a;gl_FragColor=vec4(vC*a*vA,1.);}` });
     return new THREE.Points(g, m) }
-  function glowTex() { const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64);
-    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.25, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = g; x.fillRect(0, 0, 128, 128);
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
+  function glowTex() { return ATMOS.glowTex(THREE) }
   const GT = glowTex();
   [].forEach(n => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GT, color: n[3], transparent: true, opacity: .2, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
     s.position.set(n[0], n[1], n[2]); s.scale.set(n[4], n[4], 1); scene.add(s) });
-  const SEC = SE.mount(THREE, scene, { glowTex: GT, tell: $('#setell'), call: $('#secall'), lines: $('#selines'), gal: $('#segal'), dial: $('#sedial'), pg: $('#sepg'), ...(window.__SEX || {}) });
+  const SEC = SE.mount(THREE, scene, { glowTex: GT, poolTex: () => ATMOS.poolTex(THREE), tell: $('#setell'), call: $('#secall'), lines: $('#selines'), gal: $('#segal'), dial: $('#sedial'), pg: $('#sepg'), ...(window.__SEX || {}) });
   if (window.__SEX && window.__SEX.mounted) window.__SEX.mounted(SEC, cam, R);
+  /* spaces-1113: fog + breathing shafts through the fibre column, and Red (plan drawings and fibre ends glow; photos keep true colour) */
+  const ATM = ATMOS.mountAtmos(THREE, scene, SEC.group, { renderer: R, repaint: () => { R.setClearColor(0x04060c, 1); scene.fog.color.set(0x04060c) } });
+  { const T = window.GJ_THEME, VV = window.GJ_VARIANT; ATM.setVariant(VV ? VV.v : 'A'); if (VV) VV.on(v => ATM.setVariant(v));
+    ATM.setRed(!!(T && T.eff === 'red')); if (T) T.on(() => ATM.setRed(T.eff === 'red')) }
   function layout() { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); U.uPx.value = R.getPixelRatio() * h / 780; SEC.resize(w / h) }
   const cv = $('#c');
   cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId) } catch (x) {} SEC.down(e) });
@@ -61,7 +64,7 @@ function start() {
   const m = location.hash.match(/^#s(\d+)$/); if (m) SEC.jump(Math.min(SEC.NS - 1, +m[1]));
   else if (/^#p(2[6-9]|3[0-2])$/.test(location.hash)) SEC.jump(SEC.NS - 1);
   let last = performance.now();
-  function frame(now) { requestAnimationFrame(frame); U.uT.value = now / 1000; SEC.update(now, cam); R.render(scene, cam) }
+  function frame(now) { requestAnimationFrame(frame); U.uT.value = now / 1000; SEC.update(now, cam); ATM.update(now, cam, SEC.st().F); R.render(scene, cam) }
   document.fonts.ready.then(() => { requestAnimationFrame(frame); html.classList.add('ready') });
-  window.__se = { st: SEC.st, go: SEC.go, jump: SEC.jump, log: SEC.log, SEC };
+  window.__se = { atmos: ATM, st: SEC.st, go: SEC.go, jump: SEC.jump, log: SEC.log, SEC };
 }

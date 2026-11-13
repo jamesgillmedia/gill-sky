@@ -130,14 +130,14 @@ export function mount(THREE, scene, ctx) {
   const caveM = new THREE.ShaderMaterial({ uniforms: { uL: { value: 0 } }, side: THREE.BackSide, vertexShader: 'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader: 'uniform float uL;varying vec3 vP;void main(){float y=(vP.y+22.)/44.;vec3 top=vec3(.035,.04,.045),bot=vec3(.05,.045,.03);vec3 c=mix(bot,top,y);float band=.012*step(.5,fract(y*9.));c+=band;c+=uL*vec3(.10,.085,.05)*smoothstep(.55,0.,y);gl_FragColor=vec4(c,1.);}' });
   const cave = new THREE.Mesh(new THREE.CylinderGeometry(26, 26, 44, 64, 1, true), caveM); cave.position.y = -22; under.add(cave);
-  const floorM = new THREE.MeshBasicMaterial({ color: 0x0b0d09 }); const floor = new THREE.Mesh(new THREE.CircleGeometry(26, 64), floorM); floor.rotation.x = -Math.PI / 2; floor.position.y = FLOOR; under.add(floor);
+  const floorM = new THREE.MeshBasicMaterial({ color: 0x0b0d09 }); const floor = new THREE.Mesh(new THREE.CircleGeometry(26, 64), floorM); floor.userData.keepTrue = 1; floor.rotation.x = -Math.PI / 2; floor.position.y = FLOOR; under.add(floor);
   const ceil = new THREE.Mesh(new THREE.RingGeometry(2.7, 26, 64), new THREE.MeshBasicMaterial({ color: 0x0a1418, side: THREE.DoubleSide })); ceil.rotation.x = -Math.PI / 2; ceil.position.y = -.05; under.add(ceil);
   /* the mound (PDF p.17 side view): the garden rises toward the column */
   const moundG = new THREE.SphereGeometry(1, 64, 16, 0, 6.283, 0, Math.PI / 2); const moundM = new THREE.MeshBasicMaterial({ color: 0x2a1f15 });
-  const mound = new THREE.Mesh(moundG, moundM); mound.scale.set(MOUND_R, MOUND_H, MOUND_R); mound.position.y = FLOOR; under.add(mound);
+  const mound = new THREE.Mesh(moundG, moundM); mound.userData.keepTrue = 1; mound.scale.set(MOUND_R, MOUND_H, MOUND_R); mound.position.y = FLOOR; under.add(mound);
   const pathM = new THREE.MeshBasicMaterial({ color: 0x8b8a80, transparent: true, opacity: .5, depthWrite: false });
   { const pts = []; for (let j = 0; j <= 40; j++) { const r = 4.6 + j / 40 * 13, a = .6 + j / 40 * .5; pts.push(V(Math.cos(a) * r, moundY(r) + .04, Math.sin(a) * r)) }
-    const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, .55, 4, false), pathM); under.add(tube) }
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, .55, 4, false), pathM); tube.userData.keepTrue = 1; under.add(tube) }
   const colM = new THREE.MeshBasicMaterial({ color: 0x9fb4bd, transparent: true, opacity: .1, side: THREE.DoubleSide, depthWrite: false });
   const column = new THREE.Mesh(new THREE.CylinderGeometry(2.6, 2.6, -FBOT, 40, 1, true), colM); column.position.y = FBOT / 2; g.add(column);
   const hoops = []; for (let y = -3; y > FBOT; y -= 4) { const pts = []; for (let j = 0; j <= 64; j++) { const a = j / 64 * 6.283; pts.push(V(Math.cos(a) * 2.6, y, Math.sin(a) * 2.6)) } hoops.push(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xa8bcc4, transparent: true, opacity: .25, depthWrite: false }))) }
@@ -210,10 +210,8 @@ export function mount(THREE, scene, ctx) {
     fragmentShader: 'uniform float uI,uF;varying float vY;varying vec3 vN;varying vec3 vV;void main(){float d=1.-vY;float lit=1.-smoothstep(uF-.01,uF+.01,d);float f=abs(dot(vN,vV));float core=pow(f,1.6);float a=uI*lit*core*(.35+.65*d);gl_FragColor=vec4(vec3(1.,.95,.82)*a,1.);}' }));
   beam.position.y = (FTOP + FBOT) / 2; beam.renderOrder = 8; g.add(beam);
   /* the landing: a pool of light on the inner wetland at the top of the mound */
-  const poolTex = (() => { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d'), gr = x.createRadialGradient(128, 128, 0, 128, 128, 128);
-    gr.addColorStop(0, 'rgba(255,248,226,1)'); gr.addColorStop(.18, 'rgba(255,236,190,.85)'); gr.addColorStop(.45, 'rgba(255,214,150,.28)'); gr.addColorStop(1, 'rgba(255,214,150,0)'); x.fillStyle = gr; x.fillRect(0, 0, 256, 256);
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t })();
-  const wet = new THREE.Mesh(new THREE.CircleGeometry(4.2, 64), new THREE.MeshBasicMaterial({ color: 0x123038 })); wet.rotation.x = -Math.PI / 2; wet.position.y = moundY(0) + .02; under.add(wet);
+  const poolTex = ctx.poolTex ? ctx.poolTex() : null;
+  const wet = new THREE.Mesh(new THREE.CircleGeometry(4.2, 64), new THREE.MeshBasicMaterial({ color: 0x123038 })); wet.userData.keepTrue = 1; wet.rotation.x = -Math.PI / 2; wet.position.y = moundY(0) + .02; under.add(wet);
   const pool = new THREE.Mesh(new THREE.CircleGeometry(9, 64), new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
   pool.rotation.x = -Math.PI / 2; pool.position.y = moundY(0) + .06; pool.renderOrder = 9; g.add(pool);
   const ripples = []; for (const r of [1.6, 2.6, 3.6]) { const pts = []; for (let j = 0; j <= 80; j++) { const a = j / 80 * 6.283; pts.push(V(Math.cos(a) * r, moundY(0) + .08, Math.sin(a) * r)) } const l = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xbfe8e0, transparent: true, opacity: 0, depthWrite: false })); under.add(l); ripples.push(l) }

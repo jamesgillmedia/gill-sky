@@ -1,0 +1,61 @@
+/* Spaces · room chrome (spaces-1113), shared by spaces/forest-garden and fable-m4/versions/se-a.
+ - The ᑕᐣᓯ mark + "spaces" crumb (top left). _tn/back.js wires the mark: at the room's top level it goes back to the star you
+   came from in the sky; inside the gallery viewer it first closes the viewer. Esc and the browser's Back do the same.
+ - The light-journey strip (light in · in · under · into the garden): the current stop is underlined; a tap glides there.
+ - The tune menu (top right): Night | Red, and the dev-only A B C variant switch.
+ GJ_VARIANT: v ('A'|'B'|'C'), set(v), on(fn). Stored in localStorage gj.v.spaces; ?v=A|B|C wins and is stored.
+ Switching is instant and keeps the camera where it is. SHOW_VARIANTS=false hides the switch and its label for launch (A stays).
+ Nothing here moves on its own; Reduce Motion changes nothing. */
+(function (w) {
+  'use strict';
+  var SHOW_VARIANTS = true;
+  var KEY = 'gj.v.spaces', NOTE = { A: 'fog banks · breathing shafts', B: 'low ground mist', C: 'red plans as ink wash' };
+  function lsGet(k) { try { return localStorage.getItem(k) } catch (e) { return null } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v) } catch (e) {} }
+  var q = /(?:^|[?&])v=([abcABC])(?:&|$)/.exec(location.search), v = (q ? q[1] : lsGet(KEY) || 'A').toUpperCase();
+  if (!/^[ABC]$/.test(v) || !SHOW_VARIANTS) v = 'A'; if (q && SHOW_VARIANTS) lsSet(KEY, v);
+  var hooks = [];
+  w.GJ_VARIANT = { get v() { return v }, list: ['A', 'B', 'C'], note: NOTE, shown: SHOW_VARIANTS,
+    set: function (n) { n = String(n || 'A').toUpperCase(); if (!/^[ABC]$/.test(n) || n === v) return; v = n; lsSet(KEY, v);
+      try { var u = new URL(location.href); if (u.searchParams.has('v')) { u.searchParams.set('v', v); history.replaceState(history.state, '', u.pathname + u.search + u.hash) } } catch (e) {}
+      hooks.forEach(function (f) { try { f(v) } catch (e) {} }); paint() },
+    on: function (f) { hooks.push(f) } };
+  var JOURNEY = [['lens', 'light in'], ['in', 'in'], ['under', 'under'], ['garden', 'into the garden']];
+  var head, strip, menu, tuneBtn, vtag, open = false;
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] }) }
+  function build() {
+    head = document.createElement('header'); head.id = 'sphead';
+    head.innerHTML = '<button type="button" class="sig" lang="cr" aria-label="back to the sky">ᑕᐣᓯ</button><span class="crumb">spaces</span>' +
+      '<span class="vtag" aria-hidden="true"></span>' +
+      '<nav class="strip" aria-label="the light journey">' + JOURNEY.map(function (j, i) { return (i ? '<i aria-hidden="true">·</i>' : '') + '<button type="button" data-k="' + j[0] + '">' + esc(j[1]) + '</button>' }).join('') + '</nav>';
+    document.body.appendChild(head); strip = head.querySelector('.strip'); vtag = head.querySelector('.vtag');
+    var tw = document.createElement('div'); tw.id = 'sptune';
+    tw.innerHTML = '<button type="button" class="tg" aria-expanded="false" aria-controls="sptune-p">tune</button>' +
+      '<div class="p" id="sptune-p" role="group" aria-label="tune" hidden>' +
+      '<div class="row"><span>colour</span><div class="seg" role="radiogroup" aria-label="colour mode"><button type="button" role="radio" data-th="night">night</button><button type="button" role="radio" data-th="red">red</button></div></div>' +
+      (SHOW_VARIANTS ? '<div class="row dev"><span>variant <em>dev</em></span><div class="seg" role="radiogroup" aria-label="variant (development)"><button type="button" role="radio" data-v="A">A</button><button type="button" role="radio" data-v="B">B</button><button type="button" role="radio" data-v="C">C</button></div></div><p class="vnote"></p>' : '') +
+      '</div>';
+    document.body.appendChild(tw); tuneBtn = tw.querySelector('.tg'); menu = tw.querySelector('.p');
+    var stop = function (e) { e.stopPropagation() };
+    [head, tw].forEach(function (el) { ['pointerdown', 'pointerup', 'touchstart', 'mousedown', 'wheel'].forEach(function (t) { el.addEventListener(t, stop, { passive: true }) }) });
+    tuneBtn.addEventListener('click', function (e) { e.stopPropagation(); setOpen(!open) });
+    menu.addEventListener('click', function (e) { e.stopPropagation(); var b = e.target.closest('button'); if (!b) return;
+      if (b.dataset.th && w.GJ_THEME) w.GJ_THEME.set(b.dataset.th); if (b.dataset.v) w.GJ_VARIANT.set(b.dataset.v); paint() });
+    document.addEventListener('pointerdown', function (e) { if (open && !e.target.closest('#sptune')) setOpen(false) }, true);
+    addEventListener('keydown', function (e) { if (e.key === 'Escape' && open) { e.preventDefault(); e.stopImmediatePropagation(); setOpen(false); tuneBtn.focus() } }, true);
+    /* the mark: back.js handles the top level; inside the gallery viewer the mark closes it first */
+    head.querySelector('.sig').addEventListener('click', function () { if (w.__gal && w.__gal.isOpen) { var b = document.getElementById('gback'); if (b) b.click() } });
+    strip.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || !w.__se) return; var S = w.__se.SEC, i = S.STOPS.findIndex(function (s) { return s.k === b.dataset.k }); if (i >= 0) S.go(i, true) });
+    if (w.GJ_THEME) w.GJ_THEME.on(paint);
+    paint(); setInterval(follow, 200) }
+  function setOpen(o) { open = o; menu.hidden = !o; tuneBtn.setAttribute('aria-expanded', String(o)); document.documentElement.classList.toggle('sptune-open', o) }
+  var lastK = null;
+  function follow() { if (!w.__se) return; var st = w.__se.st(), k = st.k; if (k === lastK) return; lastK = k;
+    [].forEach.call(strip.querySelectorAll('button'), function (b) { var on = b.dataset.k === k; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current') }) }
+  function paint() { if (!menu) return; var th = w.GJ_THEME ? w.GJ_THEME.pref : 'night';
+    [].forEach.call(menu.querySelectorAll('[data-th]'), function (b) { b.setAttribute('aria-checked', String(b.dataset.th === th)) });
+    [].forEach.call(menu.querySelectorAll('[data-v]'), function (b) { b.setAttribute('aria-checked', String(b.dataset.v === v)) });
+    var n = menu.querySelector('.vnote'); if (n) n.textContent = v + ' · ' + NOTE[v];
+    vtag.textContent = SHOW_VARIANTS ? v : ''; vtag.hidden = !SHOW_VARIANTS }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', build); else build();
+})(window);
