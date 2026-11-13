@@ -191,13 +191,13 @@ document.addEventListener('keydown',function(e){var top=LAB.layer.top();if(top==
     else if(e.key==='m'||e.key==='M')setMarking(!marking);
     return}
   if(e.key==='ArrowRight'){go(Math.round(target)+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(Math.round(target)-1);e.preventDefault()}
-  else if(e.key==='Enter'||e.key==='+'||e.key==='='){openDay(L[Math.round(pos)])}else if(e.key==='Escape'){if(LAB.layer.top()==='horizon'){if(window.TN_HANDOFF)TN_HANDOFF.out();location.href='../constellation-blend/#back'}else leaveHorizon()}});
+  else if(e.key==='Enter'||e.key==='+'||e.key==='='){openDay(L[Math.round(pos)])}else if(e.key==='Escape'){if(LAB.layer.top()==='horizon'){if(window.TN_HANDOFF)TN_HANDOFF.out();if(history.length>1)history.back();else location.href='../fable-m4/#/'}else leaveHorizon()}});
 
 function syncHearts(){els.forEach(function(f,i){var h=f.querySelector('.h'),on=LAB.hearts.has(L[i].id);if(on&&!h)f.appendChild(LAB.el('span','h','♥'));else if(!on&&h)h.remove()});paintSheetMarks()}
 document.addEventListener('lab:hearts',syncHearts);
 $('back').addEventListener('click',function(){var t=LAB.layer.top();
   if(t==='day'||t==='camera back'||t==='wall'){LAB.layer.back();return}
-  if(t==='horizon'||!t){if(window.TN_HANDOFF)TN_HANDOFF.out();location.href='../constellation-blend/#back';return}
+  if(t==='horizon'||!t){if(window.TN_HANDOFF)TN_HANDOFF.out();if(history.length>1)history.back();else location.href='../fable-m4/#/';return}
   if(LAB.layer.depth())LAB.layer.back()});
 addEventListener('resize',size);
 

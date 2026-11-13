@@ -152,8 +152,7 @@
   addEventListener('resize', function () { layout(true) });
 
   /* ---------- the mark: one tap to this room's FAR (the front stage); tapped there, back to the star in the sky ---------- */
-  function fromSky() { try { var r = document.referrer && new URL(document.referrer); return !!(r && r.origin === location.origin && /\/constellation-blend\//.test(r.pathname)) } catch (e) { return false } }
-  function toSky() { if (window.TN_HANDOFF) TN_HANDOFF.out(); if (fromSky() && history.length > 1) { history.go(-(history.state && history.state.d || 0) - 1); return } location.href = new URL('../constellation-blend/', location.href).pathname + '#back' }
+  function toSky() { if (window.TN_HANDOFF) TN_HANDOFF.out(); if (history.length > 1) { history.back(); return } location.href = new URL('../fable-m4/', location.href).pathname + '#/' }
   function atFront() { return document.body.classList.contains('at-board') && !document.body.classList.contains('at-detail') && boardEl.scrollTop < 40 }
   function toFront() { var o = window.__objc; if (document.body.classList.contains('at-detail')) { history.back(); return }
     if (o && o.S && o.S.lv !== 'board') { o.toBoard(); setTimeout(function () { boardEl.scrollTo({ top: 0 }) }, 700); return } boardEl.scrollTo({ top: 0, behavior: 'smooth' }) }

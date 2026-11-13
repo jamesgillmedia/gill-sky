@@ -9,11 +9,11 @@
   try{if(window.self!==window.top)return}catch(e){return}
   if(s&&s.getAttribute('data-tn-mode')==='own')return;
   var MARK=/^\s*ᑕᐣᓯ\s*$/;
-  function fromSky(){try{var r=document.referrer&&new URL(document.referrer);return !!(r&&r.origin===location.origin&&/\/constellation-blend\//.test(r.pathname))}catch(e){return false}}
+  function fromSky(){return history.length>1}
   function toSky(){
-    var u=new URL(root+'constellation-blend/',location.href);
-    if(fromSky()&&history.length>1){history.back();return}
-    location.href=u.pathname+'#back'}
+    if(history.length>1){history.back();return}
+    var u=new URL(root+'fable-m4/',location.href);
+    location.href=u.pathname+'#/'}
   function atTop(){var h=document.documentElement;return !h.classList.contains('deep')&&(!location.hash||location.hash==='#')&&!document.querySelector('[role=dialog]:not([hidden])')}
   function findMark(){
     var sel='a.sig,button.sig,.sig,[data-mark],#mark,a[lang="cr"],button[lang="cr"]';
