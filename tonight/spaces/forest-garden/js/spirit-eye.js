@@ -96,7 +96,8 @@ export function mount(THREE, scene, ctx) {
   function poseAt(s, pos, look) { const u = pathU(s), i = Math.floor(u), t = u - i, n = P.length, q = j => P[mod(j, n)];
     cr(q(i - 1).p, q(i).p, q(i + 1).p, q(i + 2).p, t, pos); cr(q(i - 1).l, q(i).l, q(i + 1).l, q(i + 2).l, t, look) }
   /* ---------- above: water, whorl, sun (v2) ---------- */
-  const water = new THREE.Mesh(new THREE.RingGeometry(6.68, 70, 96, 1), new THREE.MeshBasicMaterial({ color: 0x0b1d28, transparent: true, opacity: .9, side: THREE.DoubleSide, depthWrite: true }));
+  const water = new THREE.Mesh(new THREE.RingGeometry(6.68, 70, 96, 1), new THREE.MeshBasicMaterial({ color: 0x0a1218, transparent: true, opacity: .9, side: THREE.DoubleSide, depthWrite: true }));
+  const waterNight = new THREE.Color(0x0a1218), waterDay = new THREE.Color(0x396481);
   water.rotation.x = -Math.PI / 2; water.renderOrder = 1; g.add(water);
   for (let r = 9; r < 46; r += 5.5) { const pts = []; for (let j = 0; j <= 120; j++) { const a = j / 120 * 6.283; pts.push(V(Math.cos(a) * r, .02, Math.sin(a) * r)) }
     g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0x6fa5b8, transparent: true, opacity: .12 * (1 - r / 52), depthWrite: false }))) }
@@ -114,7 +115,7 @@ export function mount(THREE, scene, ctx) {
   const glowS = (c, o, sc) => { const m = new THREE.Sprite(new THREE.SpriteMaterial({ map: ctx.glowTex, color: c, transparent: true, opacity: o, depthWrite: false, blending: THREE.AdditiveBlending, fog: false })); m.scale.set(sc, sc, 1); return m };
   const sun = glowS(0xffd58a, 1, 2.6); sun.renderOrder = 6; whorl.add(sun);
   const sunCore = glowS(0xffffff, 1, .8); sunCore.renderOrder = 7; whorl.add(sunCore);
-  const halo = glowS(0x5fd9c0, .22, 26); halo.position.y = .2; whorl.add(halo);
+  const halo = glowS(0x5fd9c0, .08, 26); halo.position.y = .2; whorl.add(halo);
   /* the sky sun and its ray down to the lens (new): the ray grows with the drag, KR */
   const skySun = glowS(0xfff0c8, 1, 9); skySun.renderOrder = 6; g.add(skySun);
   const skyCore = glowS(0xffffff, 1, 2.4); g.add(skyCore);
@@ -349,7 +350,7 @@ export function mount(THREE, scene, ctx) {
     const day = ctx.dayNight ? ctx.dayNight() : 0, dayGlow = 1 - .72 * day;
     skySun.scale.setScalar(9 * (1 + 1.15 * day)); skyCore.scale.setScalar(2.4 * (1 + 1.5 * day));
     skySun.material.color.setRGB(1, 1 - .08 * day, .78 - .28 * day);
-    water.material.color.setRGB(.043 + .18 * day, .114 + .28 * day, .157 + .35 * day);
+    water.material.color.copy(waterNight).lerp(waterDay, day);
     FU.uF.value = F; FU.uDay.value = day; UB.uF.value = F; const dxz = Math.hypot(cam.position.x, cam.position.z); UB.uI.value = (.1 + .38 * F) * Math.min(1, Math.max(.12, (dxz - 2.4) / 7)) * dayGlow;
     head.position.set(0, FTOP + (FBOT - FTOP) * F, 0); head.material.opacity = (F > .01 && F < .995 ? .9 : 0) * dayGlow;
     placeTips(F); tips.material.opacity = (F > .01 && F < .995 ? .9 : 0) * dayGlow; tips.material.size = .22 + .12 * (1 - day);
@@ -368,7 +369,7 @@ export function mount(THREE, scene, ctx) {
       m.visible = m.material.opacity > .01 });
     if (coShown >= 0 && CALL.classList.contains('on')) placeCallouts(cam); else LINES.style.opacity = 0;
     
-    const dl = cam.position.distanceTo(lensGlow.position); halo.material.opacity = .22 * Math.max(0, Math.min(1, (dl - 4) / 8)) * dayGlow; faceM.opacity *= dl < 5 ? .5 : 1;
+    const dl = cam.position.distanceTo(lensGlow.position); halo.material.opacity = .08 * Math.max(0, Math.min(1, (dl - 4) / 8)) * dayGlow; faceM.opacity *= dl < 5 ? .5 : 1;
     lensGlow.material.opacity *= dayGlow;
     stateF = F; stateR = R; stateDay = day; stateCard = STOPS[shown] && STOPS[shown].gal && GAL.classList.contains('open') ? 'gal' : (pageOpen() ? 'open' : (shown >= 0 ? 'off' : null));
     if (ctx.onFrame) ctx.onFrame(cam, sm, i);

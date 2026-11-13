@@ -30,6 +30,19 @@ var cxS=S(0,W_GLIDE),cyS=S(0,W_GLIDE),csS=S(.3,W_GLIDE);
 var bxS=S(0,W_GLIDE),pxS=S(0,W_GLIDE),lxS=S(0,W_LOOK),lyS=S(0,W_LOOK),scr=S(0,10);
 var rest={x:0,y:0,s:.3},look={x:0,y:0},FAR={x:0,y:0,s:.3};
 var bloom=0,bloomK=null,pbloom=0,scrK=null;
+/* preview-film-snap: fsn is the film snap, 0 = the loose map on the sky (m4), 1 = the catalogue board with counts (site-3d).
+ A wheel or a pinch at the map scrubs it; letting go settles softly to the nearer side. Reduce Motion switches instantly. */
+var fsnS=S(0,W_GLIDE),fsn=0,FSCRUB=null;
+var RM=false;try{RM=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+/* preview-film-snap: Gill's decisions as toggles (the mark menu's tune plate writes them; kept on this device).
+ film: snap (map, then the board, default) | map (the m4 map only) | board (the site-3d board only)
+ mark: fusion (default) | full | partial
+ open: mixed (board straight to the page, map with the tile reveal; default) | player (always straight) | reveal (always the reveal) | old (tap to pick, tap again)
+ photo: B (dark, on the night sky; default) | A (the silver shelf: Photo's board is the photo lab Horizon)
+ motion: glide strength in % (0 = instant) · snapAt: how far a scrub must go before it commits, in % · ripples: 1 | 0 */
+var DECDEF={film:'snap',mark:'fusion',open:'mixed',photo:'B',motion:100,snapAt:34,ripples:1,safelight:0,safeK:60},DECV={};
+function dec(k){if(!(k in DECV)){var v=null;try{v=localStorage.getItem('gj.dec.'+k)}catch(e){}DECV[k]=v==null?DECDEF[k]:(typeof DECDEF[k]==='number'?+v:v)}return DECV[k]}
+function motionK(){var m=dec('motion');return isFinite(m)?Math.max(0,m)/100:1}
 var cur={lv:0,k:null,id:null},sel=null,phase='boot';
 var cardsStar=null;
 var flyU=1,flyT=0,markPts=[],markTo=[];
@@ -46,9 +59,11 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
-var TUNE={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6};
+var TDEF={mood:1,map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1};
+var TUNE={mood:1,map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
+/* sky mood (gj.tune.mood, 0-200, 100 = the sky as written): -1 hushed .. +1 lit; every factor is exactly 1 at 100 */
+function moodK(){return clamp(tk('mood')-1,-1,1)}
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
 function ease(u){u=clamp(u,0,1);return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2}
@@ -131,8 +146,9 @@ function mergeCredits(){
   });
 }
 function buildGlow(){
+  var gk=window.GJ_THEME&&GJ_THEME.eff==='red'?.6:1; /* Red: a quiet, thin glow (60%); Night is as written */
   function glow(rgb){var c=document.createElement('canvas');c.width=c.height=128;var q=c.getContext('2d'),gr=q.createRadialGradient(64,64,0,64,64,64);
-    gr.addColorStop(0,'rgba('+rgb+',.95)');gr.addColorStop(.18,'rgba('+rgb+',.4)');gr.addColorStop(.55,'rgba('+rgb+',.08)');gr.addColorStop(1,'rgba('+rgb+',0)');
+    gr.addColorStop(0,'rgba('+rgb+','+(.95*gk)+')');gr.addColorStop(.18,'rgba('+rgb+','+(.4*gk)+')');gr.addColorStop(.55,'rgba('+rgb+','+(.08*gk)+')');gr.addColorStop(1,'rgba('+rgb+',0)');
     q.fillStyle=gr;q.fillRect(0,0,128,128);return c}
   GLOW.w=glow('205,225,255');GLOW.m=glow(MINT);GLOW.c=glow('160,190,240');
   ORDER.forEach(function(k){CH[k].glow=glow(CH[k].tint)});
@@ -197,7 +213,7 @@ function drawField(fa){
   var cap=m*DZ.streak,streak=HOP>.04,spr=softDot();FN++;
   FIELD.forEach(function(L){
     var lv=layerView(L),M=lv.M,TW=W+2*M,TH=H+2*M;
-    var base=L.a*(.35+.65*Math.min(1,fa+.4))*lv.alpha;
+    var base=L.a*(.35+.65*Math.min(1,fa+.4))*lv.alpha*(1+moodK()*.6);
     if(L.near&&!mask)mask=fieldMask();
     L.pts.forEach(function(p){
       var rx=p.u*TW+lv.ox,ry=p.v*TH+lv.oy,wi=Math.floor(rx/TW)*7919+Math.floor(ry/TH);
@@ -390,7 +406,7 @@ function camFor(st){
   }
   return FAR;
 }
-function aim(s,t,instant){s.t=t;s.w=instant?40:W_GLIDE;if(instant){s.x=t;s.v=0}}
+function aim(s,t,instant){var mk=motionK();if(mk<=0.01)instant=true;s.t=t;s.w=instant?40:W_GLIDE/Math.max(.35,mk);if(instant){s.x=t;s.v=0}}
 
 function cam(){return {x:rest.x+look.x,y:rest.y+look.y,s:rest.s}}
 function sp(x,y){var c=cam();return [(x-c.x)*c.s+W/2,(y-c.y)*c.s+H/2]}
@@ -399,6 +415,7 @@ function wp(x,y){var c=cam();return [(x-W/2)/c.s+c.x,(y-H/2)/c.s+c.y]}
 function stepSprings(dt){
   if(!drag){sstep(lxS,dt);sstep(lyS,dt)}
   sstep(cxS,dt);sstep(cyS,dt);sstep(csS,dt);sstep(bxS,dt);sstep(pxS,dt);
+  if(!FSCRUB)sstep(fsnS,dt);fsn=clamp(fsnS.x,0,1);
   if(!drag||cur.lv<1)sstep(scr,dt);
   rest.x=cxS.x;rest.y=cyS.x;rest.s=Math.max(.02,csS.x);
   look.x=lxS.x;look.y=lyS.x;
@@ -406,7 +423,12 @@ function stepSprings(dt){
   if(bxS.t===0&&bloom<.02&&pxS.t===0&&pbloom<.02)bloomK=null;
 }
 function arriveAt(st,instant){
+  if(RM)instant=true;
+  if(st&&st.k==='film'&&st.lv===1&&!st.b&&!st.cards&&dec('film')==='board'){st.b=1;if(st!==cur&&cur.k==='film'&&cur.lv===1)cur.b=1}
+  if(st&&st.k==='photo'&&st.lv===1&&st.b&&dec('photo')==='A'){location.href='../photo-lab/';return}
   var to=camFor(st);
+  var fb=(st.k==='film'&&((st.lv===1&&st.b)||st.lv>=2))?1:0;
+  if(!FSCRUB)aim(fsnS,fb,instant);
   var player=st.lv===2&&st.id&&byId[st.id]&&byId[st.id].kind==='player';
   var b1=(st.lv>=1&&st.k&&st.k!=='progress'&&!player)?1:0;
   var p1=(st.k==='progress')?1:0;
@@ -573,6 +595,7 @@ function drawGlow(){
 
 function drawChapter(k,t,fa){
   var c=CH[k],focus=(cur.lv===0||cur.k===k||cur.k==='progress')?1:.28;
+  if(k==='film'&&cur.k==='film'&&cur.lv===1&&!cur.cards)focus*=1-ease(clamp(fsn*1.25,0,1));
   var bl=(bloomK===k)?bloom:0;
   var cp=sp(c.x,c.y),R=Math.max(c.bw,c.bh)*.6*rest.s;
   if(cp[0]<-R-240||cp[0]>W+R+240||cp[1]<-R-240||cp[1]>H+R+240)return;
@@ -592,7 +615,7 @@ function drawChapter(k,t,fa){
   if(nr>8){var gr=g.createRadialGradient(cp[0],cp[1],0,cp[0],cp[1],nr);
     gr.addColorStop(0,'rgba('+c.tint+','+(0.06*focus)+')');gr.addColorStop(1,'rgba('+c.tint+',0)');
     g.fillStyle=gr;g.fillRect(cp[0]-nr,cp[1]-nr,nr*2,nr*2)}
-  var la=((isMid()&&cur.k===k)?.3:focus*(1-bl)*.55*Math.max(fa,.35))*tk('lineA');
+  var la=((isMid()&&cur.k===k)?.3:focus*(1-bl)*.55*Math.max(fa,.35))*tk('lineA')*(1+moodK()*.45);
   if(la>1)la=1;
   if(la>.02){g.strokeStyle='rgba('+c.tint+','+la+')';g.lineWidth=tk('lineW');g.beginPath();
     c.sky.forEach(function(L){var pa=nodePos(L[0]),pb=nodePos(L[1]),a=sp(pa[0],pa[1]),b=sp(pb[0],pb[1]);g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1])});g.stroke()}
@@ -702,7 +725,7 @@ function star(q,b,c,mint,a,t){
   if(a<.02||q[0]<-20||q[0]>W+20||q[1]<-20||q[1]>H+20)return;
   var pulse=t?(1+.07*Math.sin(t/900+(q[0]+q[1])*.01)):1;
   var ss=tk('starS'),sg=tk('starG');
-  var gs=(5+16*b)*pulse*(mint?1.3:1)*sg;g.globalAlpha=a*(.45+.5*b);
+  var gs=(5+16*b)*pulse*(mint?1.3:1)*sg*(1+moodK()*.5);g.globalAlpha=a*(.45+.5*b);
   g.drawImage(mint?GLOW.m:c.glow,q[0]-gs,q[1]-gs,gs*2,gs*2);
   g.globalAlpha=a;g.fillStyle=mint?'rgb('+MINT+')':'#fff';
   g.beginPath();g.arc(q[0],q[1],Math.max(1.1,(1+b*1.6)*ss),0,7);g.fill();g.globalAlpha=1;
@@ -888,16 +911,20 @@ function gridSpec(key){
 /* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
 var BSPEC=null;
 function boardSpec(key,items){
-  var room=boardRoom(),n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'');
+  var room=boardRoom(),n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'')+'|'+tk('fdens')+'|'+tk('fgap');
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
   var maxW=Math.min(W-28,680,room.w),pad=10,gap=8,head=44,AW=maxW+28;
   if(key==='film'||key==='objects'){pad=8;gap=6}
-  if(key==='film')gap=14;
-  var cols=key==='about'?(AW<520?1:2):key==='film'?(AW<520?2:3):(AW<520?3:AW<860?4:6);
+  if(key==='film'){
+    /* preview-film-snap: the site-3d catalogue. A wide, dense contents page: 3 across on a phone, 4 on a tablet, 6 on a desktop. */
+    maxW=Math.min(W-20,1120,room.w);pad=10;head=PORT||W<520?64:78;
+    gap=Math.round(clamp(8*tk('fgap'),2,28));
+  }
+  var cols=key==='about'?(AW<520?1:2):key==='film'?Math.max(2,Math.round((W<600?3:W<1100?4:6)*tk('fdens'))):(AW<520?3:AW<860?4:6);
   if(key==='photo')gap=14;
   var tw=(maxW-pad*2-gap*(cols-1))/cols;
   var cap=(key==='film'||key==='objects'||key==='sound')?26:0;
-  var th=key==='about'?46:(key==='objects'||key==='sound')?tw:key==='film'?tw/2.39:tw*9/16;
+  var th=key==='about'?46:(key==='objects'||key==='sound')?tw:key==='film'?tw*9/16:tw*9/16;
   var rects=[],bottom=0,i;
   if(key==='photo'){
     var colH=[];for(i=0;i<cols;i++)colH.push(0);
@@ -921,7 +948,7 @@ function boardSpec(key,items){
     rects.forEach(function(r){bottom=Math.max(bottom,r.y+r.h)});
   }else if(key==='film'){
     /* Straight rows: every tile in a row shares one top, one title line and one role line under it, so a row is as tall as a tile plus its caption. */
-    var chh=12+12+6,rowF=th+chh+FILM_ROWGAP;
+    var chh=11+11+3,rowF=th+chh+Math.max(6,gap);
     items.forEach(function(it,j){
       var r=Math.floor(j/cols),c=j%cols,cl=capLines(it,tw),y=r*rowF;
       rects.push({x:c*(tw+gap),y:y,w:tw,h:th,cl:cl,ch:chh});
@@ -947,6 +974,26 @@ function boardSpec(key,items){
   var y0=Math.min(Math.max(room.top,(H-winH)/2),floor-winH);
   BSPEC={sig:sig,key:key,cols:cols,gap:gap,pad:pad,head:head,tw:tw,th:th,cap:cap,pitch:th+cap+gap,contentH:contentH,winH:winH,x0:Math.max(14,Math.min(W-14-maxW,room.x+(room.w-maxW)/2)),y0:y0,w:maxW,maxSc:Math.max(0,contentH-winH),n:n,rects:rects,board:1};
   return BSPEC;
+}
+/* preview-film-snap: the header counts, computed from the film cards in data.json (never typed in).
+ A film is a card of kind film; its type is the first part of its meta line. Reels and shorts share one count. */
+var FCOUNT=null;
+function filmCounts(){
+  if(FCOUNT)return FCOUNT;
+  var c={commercial:0,'music video':0,'brand film':0,rs:0,other:0},n=0;
+  ((CH.film&&CH.film.items)||[]).forEach(function(it){
+    if(it.kind!=='film'||it._nov9)return;n++;
+    var t=String(it.meta||'').split(' · ')[0].trim().toLowerCase();
+    if(t==='reel'||t==='short')c.rs++;else if(c[t]!=null)c[t]++;else c.other++;
+  });
+  var parts=[n+' films'];
+  if(c.commercial)parts.push(c.commercial+' commercial');
+  if(c['music video'])parts.push(c['music video']+' music video');
+  if(c['brand film'])parts.push(c['brand film']+' brand film');
+  if(c.rs)parts.push(c.rs+' reels + shorts');
+  if(c.other)parts.push(c.other+' other');
+  FCOUNT={n:n,parts:parts,text:parts.join(' · ')};
+  return FCOUNT;
 }
 function boardCount(key,items){
   var n=0;
@@ -1036,7 +1083,9 @@ function drawWindow(){
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())return;
   if(isBio())return;
   var b=cur.k==='progress'?pbloom:bloom;
-  if(cur.lv!==1||!onBoard()||b<.02||!boardKey()||(cur.k!=='progress'&&!CH[cur.k]))return;
+  var FS=cur.k==='film'&&cur.lv===1&&!cur.cards;
+  if(FS){b=ease(fsn);if(b<.01)return}
+  else if(cur.lv!==1||!onBoard()||b<.02||!boardKey()||(cur.k!=='progress'&&!CH[cur.k]))return;
   var spec=gridSpec(boardKey()),items=boardItems();
   var db=window.GJ_DEPTH&&GJ_DEPTH.board();
   var title=db&&db.title?db.title:(cur.k==='progress'?'IN PROGRESS':String(cur.k).toUpperCase());
@@ -1047,13 +1096,28 @@ function drawWindow(){
   g.shadowBlur=0;g.shadowColor='transparent';
   if(!air){g.strokeStyle='rgba(207,216,230,.32)';g.lineWidth=1;g.strokeRect(spec.x0+.5,spec.y0+.5,spec.w-1,spec.winH-1)}
   g.globalAlpha=b;g.textAlign='center';g.textBaseline='middle';
+  if(FS){
+    /* site-3d header: the word, wide apart, then the counts. */
+    var big=spec.head>70?30:24;
+    g.font='400 '+big+'px "Julius Sans One",sans-serif';g.fillStyle='#e4ebf5';g.letterSpacing=(big>26?14:10)+'px';
+    g.fillText('FILM',spec.x0+spec.w/2+(big>26?7:5),spec.y0+big*.95);
+    g.letterSpacing='0px';
+    var fc=filmCounts();
+    g.font='300 '+(spec.w<420?9.5:11)+'px Poppins,sans-serif';g.fillStyle='rgba(228,235,245,.72)';
+    var ln=fc.text;if(g.measureText(ln).width>spec.w-16){
+      var a=fc.parts.slice(0,3).join(' · '),bb=fc.parts.slice(3).join(' · ');
+      g.fillText(a,spec.x0+spec.w/2,spec.head-22+spec.y0);g.fillText(bb,spec.x0+spec.w/2,spec.head-9+spec.y0);
+    }else g.fillText(ln,spec.x0+spec.w/2,spec.y0+spec.head-14);
+    title='';
+  }
   g.font='400 15px "Julius Sans One",sans-serif';g.fillStyle='#e4ebf5';g.letterSpacing='6px';
   if(title.length>16)g.letterSpacing='1px';
-  g.fillText(cut(title,spec.w-24),spec.x0+spec.w/2,spec.y0+22);
+  if(title)g.fillText(cut(title,spec.w-24),spec.x0+spec.w/2,spec.y0+22);
   g.letterSpacing='0px';
   var sl=sel&&sel.id&&byId[sel.id];
   var name=sl?realTitle(sl):'';
-  if(sl&&(name||sl.role)&&b>.55){
+  if(FS){}
+  else if(sl&&(name||sl.role)&&b>.55){
     var line=name+(sl.role?(name?' — ':'')+sl.role:'');
     g.font='300 11px Poppins,sans-serif';g.fillStyle=sl.role?'rgb('+MINT+')':'rgba(233,239,248,.8)';
     g.fillText(cut(line,spec.w-28),spec.x0+spec.w/2,spec.y0+40);
@@ -1063,7 +1127,7 @@ function drawWindow(){
   }
   g.save();
   g.beginPath();g.rect(spec.x0+1,spec.y0+(spec.head-6),spec.w-2,spec.winH-(spec.head-6));g.clip();
-  if(spec.board&&spec.key==='film'&&items.length>1){
+  if(spec.board&&spec.key==='film'&&items.length>1&&!FS){
     /* Straight rows: a short thread across the gutter joins each tile to its partner, clear of the titles. */
     g.globalAlpha=.2*b;g.strokeStyle='rgba(207,216,230,1)';g.lineWidth=1;g.beginPath();
     for(var fi=0;fi<items.length;fi++){
@@ -1157,12 +1221,12 @@ function drawWindow(){
     var rr=spec.rects&&spec.rects[i];
     if(b>.72&&spec.board&&spec.key==='film'&&rr&&rr.cl){
       g.globalAlpha=b;g.textAlign='left';g.textBaseline='top';
-      g.font='300 10.5px Poppins,sans-serif';g.fillStyle='#e4ddd2';
-      rr.cl.t.forEach(function(L,li){g.fillText(L,x,y+h+3+li*12)});
+      g.font='300 '+(FS?9.5:10.5)+'px Poppins,sans-serif';g.fillStyle='#e4ddd2';
+      rr.cl.t.forEach(function(L,li){g.fillText(FS?cut(L,w-2):L,x,y+h+3+li*12)});
       if(rr.cl.m){
-        g.font='300 9px Poppins,sans-serif';
+        g.font='300 '+(FS?8.5:9)+'px Poppins,sans-serif';
         g.fillStyle=it.role?'rgba('+MINT+',.85)':'rgba(228,221,210,.6)';
-        g.fillText(cut(rr.cl.m,w),x,y+h+3+13);
+        g.fillText(cut(rr.cl.m,w),x,y+h+3+(FS?12:13));
       }
     }else if(b>.72&&spec.board&&spec.cap>=20&&capText){
       g.globalAlpha=b;g.textAlign='left';g.textBaseline='top';
@@ -1294,7 +1358,10 @@ function drawMark(u){
   var sc=MG.sc,ox=MG.ox,oy=MG.oy,P=u>0?{d:1,a:.35}:markProg(),al=lerp(P.a,1,u);
   if(u<=0&&P.d<=0)return;
   if(!MS||MS.n!==markPts.length){MS=markArc();MS.n=markPts.length}
-  g.lineWidth=1;g.strokeStyle='rgba(200,220,240,'+(0.28*(1-u)*al)+')';g.beginPath();
+  /* preview-film-snap: the mark in the journey is the fusion of the full mark and option 1 (fewer stars). The corners and ends of
+   each stroke are whole stars; the stars between them are only suggested, small and faint, so the shape still reads. Same every load. */
+  var KEYN=0;STROKES.forEach(function(st){KEYN+=st.length});
+  g.lineWidth=1;g.strokeStyle='rgba(200,220,240,'+(0.2*(1-u)*al)+')';g.beginPath();
   var left=P.d*MS.tot;
   STROKES.forEach(function(st,i){
     var c=MS.lens[i];
@@ -1316,9 +1383,13 @@ function drawMark(u){
     var tr=u<=0?0:u<.4?0:(u-.4)/.6;tr=tr*tr*(3-2*tr);
     var fade=u>0?1-u:1;
     var q=[lerp(a[0],b[0],tr),lerp(a[1],b[1],tr)];
-    var gs=10*fade;
-    if(gs>.4){g.globalAlpha=.8*gi*al*fade;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
-    g.globalAlpha=gi*al*fade;g.fillStyle='#fff';g.beginPath();g.arc(q[0],q[1],1.8*Math.max(.15,fade),0,7);g.fill();
+    var md=dec('mark'),key=md==='full'||i<KEYN,hint=key?1:(i%3===0?.42:.24);
+    if(md==='partial'&&!key)return;
+    var gs=(key?11:4)*fade;
+    if(gs>.4&&key){g.globalAlpha=.85*gi*al*fade;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
+    var alk=key?Math.max(al,.8):al; /* the whole stars stay lit when the mark dims behind the poem; the hints dim with it */
+    if(key&&gs>.4){g.globalAlpha=.5*gi*alk*fade;g.drawImage(GLOW.w,q[0]-gs,q[1]-gs,gs*2,gs*2)}
+    g.globalAlpha=gi*alk*fade*hint;g.fillStyle='#fff';g.beginPath();g.arc(q[0],q[1],(key?2.1:1.05)*Math.max(.15,fade),0,7);g.fill();
   });
   g.globalAlpha=1;
 }
@@ -1583,6 +1654,7 @@ function bind(){
     deeper(e.clientX,e.clientY);
   });
   stage.addEventListener('pointerdown',onDown);
+  stage.addEventListener('wheel',onWheel,{passive:false});
   stage.addEventListener('pointermove',onMove);
   stage.addEventListener('pointerup',onUp);
   stage.addEventListener('pointercancel',onUp);
@@ -1596,7 +1668,8 @@ function bind(){
   window.addEventListener('message',function(e){if(e.data==='sound-out')back()});
   $('dive').addEventListener('click',function(e){e.stopPropagation();skipToSky()});
   $('back').addEventListener('click',function(e){e.stopPropagation();back()});
-  $('crumb').querySelector('.sig').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();farHome()});
+  /* preview-film-snap: the mark opens its menu (list · contact · tune) from anywhere. The whole sky is still one move: the ‹ or a pinch out. */
+  $('crumb').querySelector('.sig').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(window.GJ_MARKMENU)GJ_MARKMENU.toggle();else farHome()});
   addEventListener('keydown',function(e){
     var c=$('hirecard');
     if(e.key==='Escape'&&c&&!c.hidden){e.preventDefault();e.stopPropagation();hireOpen(false);return}
@@ -1678,6 +1751,7 @@ function onUp(e){
     lxS.t=0;lyS.t=0;lxS.w=W_LOOK;lyS.w=W_LOOK;
     return;
   }
+  if(filmSnapBusy()){LASTTAP={t:0,x:0,y:0,hit:null};sel=null;return} /* magic-base 1112: no tap, double-tap or selection while the film snap moves */
   var tn=now(),dbl=tn-LASTTAP.t<360&&Math.hypot(e.clientX-LASTTAP.x,e.clientY-LASTTAP.y)<40;
   LASTTAP={t:tn,x:e.clientX,y:e.clientY,hit:LASTTAP.hit};
   if(dbl&&!LASTTAP.hit&&cur.lv>=1&&phase==='sky'&&!(window.GJ_DEPTH&&GJ_DEPTH.soundOn())&&!isBio()){LASTTAP={t:0,x:0,y:0,hit:null};back();return}
@@ -1687,6 +1761,7 @@ function onUp(e){
 /* A real click only ever follows a tap (never a scroll or a pinch), so the HTML sheets open their next level from it. */
 function layerTap(e){
   if(phase!=='sky'||!e.target||!e.target.closest)return;
+  if(filmSnapBusy())return;
   if(e.target.closest('a,button,input,label,video[controls],[data-open],.rail,.snd,.rl'))return;
   var im=e.target.closest('.contact img,.framewall img[data-hi="1"],.series img,.heroframe,.cutgrid img,.cutgrid video,.graincrops img');
   if(!im)return;
@@ -1729,6 +1804,14 @@ function onPtrMove(e){
   pinch.x=(a.x+b.x)/2;pinch.y=(a.y+b.y)/2;
   if(OP.on){opMove(d,pinch.x,pinch.y);return}
   if(cardsBoardOn()){if(r<.84){pinch.done=1;back()}return}
+  if(snapOn()&&(filmMid()||(filmBoard()&&r<1)||(FSCRUB&&pinch.fs))){
+    /* preview-film-snap: the pinch drives the snap itself; past the span it commits, short of it letting go settles back. */
+    var PS=Math.log(1.9),fv=(FSCRUB?FSCRUB.from:(filmBoard()?1:0))+Math.log(r)/PS;
+    pinch.fs=1;fsnScrub(fv,pinch.x,pinch.y);
+    if(fv>=1&&FSCRUB.from===0){pinch.done=1;fsnLetGo()}
+    else if(fv<=0&&FSCRUB.from===1){pinch.done=1;fsnLetGo()}
+    return;
+  }
   if(r>1.18){pinch.done=1;if(window.GJ_DEPTH)GJ_DEPTH.followEnd();deeper(pinch.x,pinch.y)}
   else if(r<.84){pinch.done=1;pinchBack(0)}
   else if(window.GJ_DEPTH)GJ_DEPTH.follow(Math.min(1,r));
@@ -1741,7 +1824,7 @@ function pinchBack(n){
   }
   back();
 }
-function pinchLetGo(){if(pinch&&!pinch.done&&window.GJ_DEPTH)GJ_DEPTH.followEnd()}
+function pinchLetGo(){if(pinch&&pinch.fs&&!pinch.done){pinch.done=1;fsnLetGo();return}if(pinch&&!pinch.done&&window.GJ_DEPTH)GJ_DEPTH.followEnd()}
 function onPtrUp(e){
   delete PT[e.pointerId];
   if(Object.keys(PT).length<2){if(OP.on)opRelease();pinchLetGo();pinch=null;OP.hold=0}
@@ -1838,8 +1921,18 @@ function tap(x,y){
     var chh=chimeAt(x,y);if(chh){chime(chh.f);chh.fl=1;chh.w+=.4;return}
     return;
   }
+  /* magic-base 1112: while the film snap moves, a tap is swallowed whole (see filmSnapBusy) */
+  if(filmSnapBusy()){sel=null;return}
   var h=hit(x,y);
   if(!h||h.type==='panel'){if(!h)sel=null;return}
+  /* snap lock (Gill, live test): a tap on a film tile does nothing until the board has locked: not while a pinch or wheel still drives it, not before the board has fully bloomed, not in the 600 ms after it snapped */
+  if(h.type==='work'&&filmBoard()&&byId[h.id]&&byId[h.id].chapter==='film'&&(FSCRUB||bloom<.97||now()<FLOCK))return;
+  /* preview-film-snap, opening one thing.
+ From the film board (the menu of films) one tap goes straight to that film's page: no reveal.
+ From the loose map (somewhere else in the sky) the second tap on a film plays the tile reveal (exploration), then the same page. */
+  var od=dec('open'),fw=h.type==='work'&&h.id!=='film/cards'&&byId[h.id]&&byId[h.id].chapter==='film';
+  if(od!=='old'&&filmBoard()&&fw){sel=h;if(od==='reveal')revealOpen(byId[h.id],x,y);else deeper(x,y);return}
+  if(od!=='old'&&filmMid()&&fw&&sel&&selKey(sel)===selKey(h)){if(od==='player')go({lv:2,k:'film',id:h.id});else revealOpen(byId[h.id],x,y);return}
   var again=!!sel&&selKey(sel)===selKey(h),star=soundBoardOn()&&h.type==='work'&&byId[h.id]&&byId[h.id].kind==='track'?byId[h.id]:null;
   sel=h;
   if(star){
@@ -1847,6 +1940,38 @@ function tap(x,y){
     ringStar(star,.9,0);
   }
   if(again)deeper(x,y);
+}
+/* The 4:23 tile reveal (exploration, not finished): the frame opens tile by tile, each tile with its own way in,
+ chosen from its index so it is the same every time. Then the film's page. Reduce Motion: the page, at once. */
+var REVEAL=null;
+function revealOpen(it,x,y){
+  if(REVEAL)return;
+  var to={lv:2,k:'film',id:it.id};
+  if(RM){go(to);return}
+  var src=(it.media&&(it.media.big||it.media.thumb))||'';
+  var el=document.createElement('div');el.id='reveal';el.setAttribute('aria-hidden','true');
+  var cols=PORT?3:4,rows=PORT?4:3,bw=Math.min(W-24,PORT?W-24:Math.min(1100,W*.78)),bh=PORT?Math.min(H*.62,bw*16/9*.75):bw*9/16;
+  var x0=(W-bw)/2,y0=Math.max(60,(H-bh)/2),tw=bw/cols,th=bh/rows,n=cols*rows,i;
+  el.style.cssText='position:fixed;inset:0;z-index:40;pointer-events:none';
+  var FX=['fade','scale','left','up','iris','wipe','right','down'];
+  for(i=0;i<n;i++){
+    var t=document.createElement('i'),r=Math.floor(i/cols),c=i%cols,fx=FX[(i*5+r*3)%FX.length];
+    var order=(i*7+3)%n,delay=Math.round(order*(1150/n));
+    t.className='rv rv-'+fx;
+    t.style.cssText='position:absolute;left:'+(x0+c*tw).toFixed(1)+'px;top:'+(y0+r*th).toFixed(1)+'px;width:'+(tw+.6).toFixed(1)+'px;height:'+(th+.6).toFixed(1)+'px;'+
+      'background-color:#0b1119;background-image:'+(src?'url("'+src.replace(/"/g,'%22')+'")':'none')+';background-size:'+bw.toFixed(1)+'px '+bh.toFixed(1)+'px;'+
+      'background-position:'+(-c*tw).toFixed(1)+'px '+(-r*th).toFixed(1)+'px;animation-delay:'+delay+'ms';
+    el.appendChild(t);
+  }
+  var cap=document.createElement('p');cap.className='rv-cap';cap.textContent=it.title||'';
+  cap.style.cssText='position:absolute;left:0;right:0;top:'+(y0+bh+14).toFixed(0)+'px;text-align:center';
+  el.appendChild(cap);
+  document.body.appendChild(el);
+  REVEAL={el:el,t:setTimeout(function(){
+    go(to);
+    el.classList.add('out');
+    setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);REVEAL=null},420);
+  },1750)};
 }
 function selKey(h){return h.type+':'+(h.id||h.k||'')}
 function tileAt(x,y){
@@ -2136,10 +2261,70 @@ function bioBack(){
   if(bioLv>1){bioLv--;paintBio(true);ui();return true}
   startMoonExit();return true;
 }
+/* preview-film-snap: the film snap scrub. One axis, "closer": the loose map, then the catalogue board, then down its rows.
+ Wheel up (or a trackpad pinch out) moves closer, wheel down steps back. A pause settles softly to the nearer level. */
+function filmMid(){return phase==='sky'&&cur.lv===1&&cur.k==='film'&&!cur.b&&!cur.cards&&!isBio()}
+function snapOn(){return dec('film')==='snap'}
+function filmBoard(){return phase==='sky'&&cur.lv===1&&cur.k==='film'&&!!cur.b&&!cur.cards}
+var FCAM=null;
+/* magic-base 1112: the film snap is "moving" while a pinch or wheel scrubs it, while it settles to either side, before the board
+ has fully bloomed, in the 600 ms after it snapped, and while a reveal plays. Taps in that time do nothing and are never queued:
+ any selection is dropped, so a tap made mid-scrub can never become the first half of a filmMid "second tap" reveal. */
+function filmSnapBusy(){
+  if(phase!=='sky'||cur.k!=='film'||cur.lv!==1||cur.cards)return false;
+  return !!FSCRUB||!!(pinch&&pinch.fs)||Object.keys(PT).length>=2||now()<FLOCK||Math.abs(fsnS.x-fsnS.t)>.01||(fsn>.01&&fsn<.99)||(filmBoard()&&bloom<.97)||!!REVEAL}
+/* from Cursor's unpushed mid-snap fix (8126b8e): a reveal still running when a scrub starts is cancelled, never left to finish */
+function cancelReveal(){if(!REVEAL)return;clearTimeout(REVEAL.t);if(REVEAL.el&&REVEAL.el.parentNode)REVEAL.el.parentNode.removeChild(REVEAL.el);REVEAL=null}
+function fsnScrub(v,x,y){
+  if(!FSCRUB){cancelReveal();sel=null;FSCRUB={x:x,y:y,from:filmBoard()?1:0};fsnS.v=0;var m=camFor({lv:1,k:'film',id:null}),bd=camFor({lv:1,k:'film',id:null,b:1});FCAM={m:m,b:bd}}
+  v=clamp(v,0,1);
+  if(RM){fsnS.t=v;return} /* Reduce Motion: nothing moves until the switch */
+  fsnS.x=fsnS.t=v;fsnS.v=0;
+  if(FCAM){var e=ease(v);aim(cxS,lerp(FCAM.m.x,FCAM.b.x,e),false);aim(cyS,lerp(FCAM.m.y,FCAM.b.y,e),false);aim(csS,lerp(FCAM.m.s,FCAM.b.s,e),false)}
+}
+function fsnLetGo(){
+  if(!FSCRUB)return;
+  var from=FSCRUB.from,v=fsnS.t,x=FSCRUB.x,y=FSCRUB.y;FSCRUB=null;FCAM=null;FLOCK=now()+600;clearTimeout(WHT);
+  if(from===0){
+    var at=clamp(dec('snapAt')/100,.1,.9);
+    if(v>at&&filmMid()){sel=null;openBoardAt();return} /* the contents page opens at its top, counts in view */
+    arriveAt(cur,false);
+  }else{
+    if(v<1-clamp(dec('snapAt')/100,.1,.9)&&filmBoard()){back();return}
+    arriveAt(cur,false);
+  }
+}
+var WHT=0,FLOCK=0;
+function onWheel(e){
+  if(!snapOn())return;
+  if(!filmMid()&&!filmBoard())return;
+  if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())return;
+  var dy=e.deltaMode===1?e.deltaY*32:e.deltaMode===2?e.deltaY*400:e.deltaY;
+  if(e.ctrlKey)dy*=4;
+  if(Math.abs(e.deltaX)>Math.abs(dy)*1.5)return;
+  e.preventDefault();
+  if(now()<FLOCK){FLOCK=Math.max(FLOCK,now()+260);return} /* the rest of a flick (and its momentum) that just snapped does not also scroll the board */
+  var SPAN=520;
+  if(filmBoard()&&!FSCRUB){
+    var spec=gridSpec(boardKey());
+    if(dy<0&&spec.maxSc>0){aim(scr,clamp(scr.t-dy,0,spec.maxSc),RM);return}
+    if(dy>0&&scr.t>1){aim(scr,clamp(scr.t-dy,0,spec.maxSc),RM);return}
+    if(dy<0)return;
+  }
+  if(filmMid()&&!FSCRUB&&dy>0)return; /* stepping back from the map is the pinch out or the double-click */
+  var base=FSCRUB?fsnS.t:fsn; /* picks up from wherever a settle has got to, so a slow wheel never restarts */
+  fsnScrub(base-dy/SPAN,e.clientX,e.clientY);
+  clearTimeout(WHT);
+  var v=fsnS.t;
+  if(v>=1&&FSCRUB&&FSCRUB.from===0){fsnLetGo();return}
+  if(v<=0&&FSCRUB&&FSCRUB.from===1){fsnLetGo();return}
+  WHT=setTimeout(fsnLetGo,RM?60:240);
+}
 function deeper(x,y){
   if(phase!=='sky')return;
   if(cur.lv===1&&!onBoard()&&CH[cur.k]){
     if(cur.cards)return;
+    if(cur.k==='film'&&dec('film')==='map'){var mh=typeof x==='number'?midHit(x,y):null;if(mh&&mh.id!=='film/cards'&&byId[mh.id]){go({lv:2,k:'film',id:mh.id})}return}
     if(isCardsHit(x,y)){sel=null;go({lv:1,k:'film',id:null,cards:1});return}
     openBoardAt(x,y);return
   }
@@ -2155,6 +2340,7 @@ function deeper(x,y){
 }
 function back(){
   if(phase==='land'){enterSky(false);return}
+  if(phase==='sky'&&cur.k==='film'&&cur.lv===1&&cur.b&&dec('film')==='board'){farHome();return}
   if(phase==='arrive'||phase==='fly'){dive();return}
   if(cur.lv===0&&!bioOn)return;
   if(history.state&&history.state.u1&&STEP>0){history.back();return}
@@ -2608,7 +2794,7 @@ function dive(){
   if(window.GJ_DEPTH)GJ_DEPTH.burst();
 }
 function rippleAt(x,y){
-  var w=$('water');if(!w)return;
+  var w=$('water');if(!w||!+dec('ripples'))return;
   var s=document.createElement('i');s.className='rip';
   s.style.left=x+'px';s.style.top=y+'px';
   w.appendChild(s);
@@ -2689,6 +2875,12 @@ function applyDelay(){
   }
 }
 /* The debug panel is the only caller. A multiplier left at 1 is the sky as written. Flash defaults to the player's 0.6. */
+window.GJ_DEC={
+  defaults:function(){return JSON.parse(JSON.stringify(DECDEF))},
+  get:function(k){return dec(k)},
+  set:function(k,v){if(!(k in DECDEF))return;DECV[k]=typeof DECDEF[k]==='number'?+v:String(v);try{localStorage.setItem('gj.dec.'+k,String(v))}catch(e){}if(ready){FCOUNT=null;arriveAt(cur,true)}},
+  reset:function(){Object.keys(DECDEF).forEach(function(k){try{localStorage.removeItem('gj.dec.'+k)}catch(e){}});DECV={};if(ready)arriveAt(cur,true)}
+};
 window.GJ_TUNE={
   get:function(k){return k==='flash'?GFL:tk(k)},
   values:function(){var o={};Object.keys(TDEF).forEach(function(k){o[k]=k==='flash'?GFL:TUNE[k]});return o},
@@ -2718,6 +2910,8 @@ window.__u1={
   get phase(){return phase},get cur(){return snap(cur)},get step(){return STEP},
   get sel(){return sel},get ready(){return ready},
   get bloom(){return bloom},
+  get fsn(){return {fsn:+fsn.toFixed(3),scr:+scr.x.toFixed(1),scrT:+scr.t.toFixed(1)}},
+  scrub:function(v){if(filmMid()||filmBoard()||FSCRUB)fsnScrub(v,W/2,H/2)},letGo:function(){fsnLetGo()},
   get bst(){return JSON.parse(JSON.stringify(BST))},
   get zoom(){return window.GJ_DEPTH?GJ_DEPTH.state():(window.GJ_INNER?GJ_INNER.state():{step:0})},
   pinchIn:function(x,y){deeper(x,y)},
@@ -2754,6 +2948,8 @@ window.__depth={
   }
 };
 
+/* Red: cached glow sprites are redrawn through the mapped colours when the colour mode changes */
+if(window.GJ_THEME)GJ_THEME.on(function(w){if(w==='theme'){try{if(ready)buildGlow()}catch(e){}SOFT=null}});
 fetch('data.json').then(function(r){return r.json()}).then(boot).catch(function(err){
   var w=$('where');if(w)w.textContent='could not read the works';
   console.error(err);

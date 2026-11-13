@@ -541,8 +541,9 @@ function paintDial() {
   });
 })();
 function leave(href) { $('veil').classList.remove('off'); setTimeout(() => { location.href = href }, 900) }
-$('m4').onclick = e => { e.preventDefault(); leave(M4) };
-if (FROM_M4) $('m4').textContent = '‹ board';
+/* preview-film-snap: guarded, so a missing board link can never abort init and leave the veil up (the black Objects page on preview-restore). */
+const m4link = $('m4');
+if (m4link) { m4link.onclick = e => { e.preventDefault(); leave(M4) }; if (FROM_M4) m4link.textContent = '‹ board'; }
 addEventListener('pageshow', () => $('veil').classList.add('off'));
 
 /* ---------- frame loop: render only while something moves ---------- */

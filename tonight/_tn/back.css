@@ -1,10 +1,5 @@
-/* tonight · the way home is the ᑕᐣᓯ mark in each piece's own bar (spec K12); no floating pill */
-.tn-back{display:none!important}
-.tn-mark{position:fixed;z-index:2147483600;left:calc(12px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));
-  font:700 18px/1 "Noto Sans Canadian Aboriginal",Syl,system-ui,sans-serif;color:#eef3f5;text-decoration:none;opacity:.8;
-  padding:10px 6px;min-width:44px;min-height:44px;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-.tn-mark:hover,.tn-mark:focus-visible{opacity:1}
-@media print{.tn-mark{display:none}}
+/* tonight · the way back is the ᑕᐣᓯ mark in each piece's own bar (spec K12): no floating pill, no added mark */
+.tn-back,.tn-mark{display:none!important}
 /* one position marker: crumb + depth rail; the cards' bottom dot-pager is dropped */
 #opc .oc-dots{display:none!important}
 .rooms[hidden]{display:none!important}

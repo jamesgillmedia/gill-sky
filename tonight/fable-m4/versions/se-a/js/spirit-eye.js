@@ -96,7 +96,7 @@ export function mount(THREE, scene, ctx) {
   function poseAt(s, pos, look) { const u = pathU(s), i = Math.floor(u), t = u - i, n = P.length, q = j => P[mod(j, n)];
     cr(q(i - 1).p, q(i).p, q(i + 1).p, q(i + 2).p, t, pos); cr(q(i - 1).l, q(i).l, q(i + 1).l, q(i + 2).l, t, look) }
   /* ---------- above: water, whorl, sun (v2) ---------- */
-  const water = new THREE.Mesh(new THREE.RingGeometry(6.68, 70, 96, 1), new THREE.MeshBasicMaterial({ color: 0x0b1d28, transparent: true, opacity: .9, side: THREE.DoubleSide, depthWrite: true }));
+  const water = new THREE.Mesh(new THREE.RingGeometry(6.68, 70, 96, 1), new THREE.MeshBasicMaterial({ color: 0x0a1218, transparent: true, opacity: .9, side: THREE.DoubleSide, depthWrite: true }));
   water.rotation.x = -Math.PI / 2; water.renderOrder = 1; g.add(water);
   const whorl = new THREE.Group(); g.add(whorl);
   const housing = new THREE.Mesh(new THREE.RingGeometry(5.35, 6.7, 96), new THREE.MeshBasicMaterial({ color: 0xa8bcc4, transparent: true, opacity: .92, side: THREE.DoubleSide, depthWrite: false }));

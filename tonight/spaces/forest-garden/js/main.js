@@ -40,7 +40,7 @@ else { try { THREE = await import('../vendor/three.module.min.js'); start() } ca
 function start() {
   let R; try { R = new THREE.WebGLRenderer({ canvas: $('#c'), antialias: true, powerPreference: 'high-performance' }) } catch (e) { fallback(); return }
   R.setPixelRatio(Math.min(devicePixelRatio || 1, 2)); R.setClearColor(0x04060c, 1);
-  const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x04060c, .0042);
+  const scene = new THREE.Scene(); scene.background = new THREE.Color(0x04060c); scene.fog = new THREE.FogExp2(0x04060c, .0042);
   const cam = new THREE.PerspectiveCamera(60, 1, .1, 1200);
   const U = { uT: { value: 0 }, uPx: { value: 1 }, uDay: { value: dayN }, uStar: { value: 1 } };
   const AMB = window.__seAmb = window.__seAmb || { glow: 1, star: 1, haze: 1 };
@@ -65,7 +65,7 @@ function start() {
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t }
   const GT = glowTex();
   const nebulas = [];
-  [[-90, 40, -260, 0x27407a, 220], [120, 30, 160, 0x4a2a6a, 260], [10, 50, -120, 0x173c4a, 160]].forEach(n => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GT, color: n[3], transparent: true, opacity: .2, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+  [[-90, 40, -260, 0x152030, 220], [120, 30, 160, 0x181420, 260], [10, 50, -120, 0x101820, 160]].forEach(n => { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: GT, color: n[3], transparent: true, opacity: .035, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
     s.position.set(n[0], n[1], n[2]); s.scale.set(n[4], n[4], 1); scene.add(s); nebulas.push(s) });
   const skyU = { uDay: { value: dayN } };
   const sky = new THREE.Mesh(new THREE.SphereGeometry(520, 32, 20), new THREE.ShaderMaterial({ uniforms: skyU, side: THREE.BackSide, depthWrite: false, fog: false,
@@ -98,7 +98,7 @@ function start() {
     const u = day;
     if (u < .45) fogC.copy(fogNight).lerp(fogDusk, u / .45); else fogC.copy(fogDusk).lerp(fogDay, (u - .45) / .55);
     R.setClearColor(fogC, 1); scene.fog.color.copy(fogC);
-    nebulas.forEach(s => { s.material.opacity = .2 * (1 - Math.min(1, day / .45)) });
+    nebulas.forEach(s => { s.material.opacity = .035 * (1 - Math.min(1, day / .45)) });
     const cA = Math.max(0, Math.sin(Math.min(1, day) * Math.PI)) * (day < .95 ? .42 : .12);
     clouds.forEach((s, i) => { s.material.opacity = cA * (.55 + .45 * ((i % 3) / 2)); s.visible = cA > .02 });
     stars.visible = day < .5;

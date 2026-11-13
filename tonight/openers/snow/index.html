@@ -89,7 +89,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 #gjinv{position:absolute;inset:0;pointer-events:none;z-index:20;mix-blend-mode:difference;background:#000;display:none;transition:background-color .2s ease-out}
 #gjgrain{position:fixed;left:0;top:0;width:calc(100vw + 256px);height:calc(100vh + 256px);pointer-events:none;z-index:50;display:none;mix-blend-mode:overlay;background-repeat:repeat;background-size:128px 128px;will-change:transform}
 </style>
-<link rel="stylesheet" href="../../_tn/back.css"><link rel="stylesheet" href="../../_tn/sky-nav.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
+<link rel="stylesheet" href="../../_tn/back.css"><link rel="stylesheet" href="../../_tn/sky-in.css"><script src="../../_tn/back.js" data-tn-root="../../" defer></script></head>
 <body>
 <div id="gjview">
 <div id="stage" aria-label="Opening: pinch in, or tap, to go through the sky">
@@ -102,7 +102,7 @@ html,body{height:100%;background:#04070b;color:#e9eef5;font:300 calc(13px*var(--
 </div>
 <header id="hud">
 <button type="button" id="back" hidden aria-label="back one stage">&#8249;</button>
-<a class="sig" href="../../hub/" target="_top" lang="cr" aria-label="home · the constellation">ᑕᐣᓯ</a>
+<a class="sig" href="./" lang="cr" aria-label="the whole sky">ᑕᐣᓯ</a>
 </header>
 <p id="foot"><b id="hint">pinch in, or tap</b></p>
 <aside id="ambui" class="ambui">
@@ -611,7 +611,7 @@ function drawRefl(x,y,p,layerAl,useTint){
       g.beginPath();g.moveTo(a1.px,a1.py);g.lineTo(b1.px,b1.py);g.stroke();
     }
     g.globalAlpha=conB*.72;g.font='300 '+(11*(window.GJFX&&GJFX.val('txt')||100)/100).toFixed(1)+'px "Julius Sans One",Poppins,sans-serif';g.textAlign='center';g.textBaseline='middle';
-    for(var c=0;c<CLU.length;c++){g.fillStyle='rgba('+CLU[c].tint+',1)';window.TN_NAV||g.fillText(CLU[c].k,CLU[c].x,CLU[c].y)}
+    for(var c=0;c<CLU.length;c++){g.fillStyle='rgba('+CLU[c].tint+',1)';g.fillText(CLU[c].k,CLU[c].x,CLU[c].y)}
   }
   if(lineB>.01){
     g.globalAlpha=lineB*.62;g.fillStyle='#f4f7fb';g.font=LINE.font;g.textAlign='center';g.textBaseline='middle';
@@ -727,10 +727,10 @@ function init(){
   bindAmbUI();
   requestAnimationFrame(frame);
 }
-window.GJ_OPENER={get P(){return P},get T(){return T},go:function(v){T=clamp(v,0,1);rate=14;firstTouch()},set:function(v){T=P=Pprev=clamp(v,0,1);firstTouch();if(P>=.03)$('foot').classList.add('gone')},get pts(){return PTS},get snow(){return {pinch:pinchAct,touch:touchAct}},get arrive(){return arriveMs/1000},get snowIn(){return snowIn()},get merge(){return flakeMerge()},get amb(){return {sn:AMB.sn,hz:AMB.hz,rf:AMB.rf,mg:AMB.mg}},get ambOpen(){var u=document.getElementById('ambui');return !!(u&&u.classList.contains('open'))},setAmb:setAmb,resetAmb:resetAmb,openAmb:function(){setAmbOpen(true)},closeAmb:function(){setAmbOpen(false)}};
+window.GJ_OPENER={get P(){return P},get clu(){return CLU},get T(){return T},go:function(v){T=clamp(v,0,1);rate=14;firstTouch()},set:function(v){T=P=Pprev=clamp(v,0,1);firstTouch();if(P>=.03)$('foot').classList.add('gone')},get pts(){return PTS},get snow(){return {pinch:pinchAct,touch:touchAct}},get arrive(){return arriveMs/1000},get snowIn(){return snowIn()},get merge(){return flakeMerge()},get amb(){return {sn:AMB.sn,hz:AMB.hz,rf:AMB.rf,mg:AMB.mg}},get ambOpen(){var u=document.getElementById('ambui');return !!(u&&u.classList.contains('open'))},setAmb:setAmb,resetAmb:resetAmb,openAmb:function(){setAmbOpen(true)},closeAmb:function(){setAmbOpen(false)}};
 (function(){var done=false;function go(){if(!done){done=true;init()}}if(document.fonts&&document.fonts.load){Promise.all([document.fonts.load('300 40px Poppins'),document.fonts.load('300 12px "Julius Sans One"')]).then(function(){if(done){if(P<.3)layout()}else go()},go);setTimeout(go,400)}else go()})();
 })();
 </script>
-<script src="../../_tn/sky-nav.js" data-tn-root="../../"></script>
+<script src="../../_tn/sky-in.js" data-tn-root="../../"></script>
 </body>
 </html>

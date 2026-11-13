@@ -54,7 +54,8 @@ function paint(){if(!els.length)return;
     f.style.zIndex=r.style.zIndex=100-Math.round(a*10);
     f.style.filter=a>.5?'brightness('+(1-Math.min(.45,(a-.5)*.12)).toFixed(2)+')':'';f.classList.toggle('cur',i===cur)}
   var i0=Math.max(0,Math.floor(pos)),i1=Math.min(L.length-1,i0+1),t=pos-i0,a0=L[i0],a1=L[i1];
-  var top=mix(dark(a0.top,.5),dark(a1.top,.5),t),hor=mix(a0.bot,a1.bot,t),wat=mix(dark(a0.bot,.3),dark(a1.bot,.3),t);
+  /* magic-base 1112: the wall stays dark on every screen (Gill: dark background in every room); the tint still follows the photograph, the photograph itself is untouched */
+  var top=mix(dark(a0.top,.16),dark(a1.top,.16),t),hor=mix(dark(a0.bot,.42),dark(a1.bot,.42),t),wat=mix(dark(a0.bot,.14),dark(a1.bot,.14),t);
   sky.style.setProperty('--skyg','linear-gradient(180deg,'+top+' 0%,'+hor+' '+HY+'px,'+wat+' '+(HY+1)+'px,var(--bg) 100%)');sky.style.setProperty('--wc',wat);
   rt.style.transform='translateX('+(-(pos*6+2.5)).toFixed(1)+'px)';
   if(cur!==lastCur){lastCur=cur;var ch=rt.children;for(var k=0;k<ch.length;k++)ch[k].classList.toggle('on',k===cur);
