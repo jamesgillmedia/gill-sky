@@ -17,8 +17,9 @@ function roleLine(w){var b=[];if(w.role)b.push(w.role);if(w.year)b.push(String(w
 function filmOn(){var u=window.__u1;return !!(u&&u.cur&&u.cur.k==='film')}
 function halt(){if(FP.t){clearInterval(FP.t);FP.t=0}}
 function stop(){halt();if(FP.root){var v=FP.root.querySelector('video.fp-loop');if(v){try{v.pause()}catch(e){}}}}
-/* Weird Kid's hero is the 720p loop. Poster first, then webm, then mp4. It is not in the
-   board markup, so it stays unloaded until this player opens. Reduce Motion does not freeze it. */
+/* Weird Kid's player hero is the 720p loop: poster, then the webm, then the mp4.
+   It stays out of the board markup until this player opens. Reduce Motion does not freeze it.
+   The board's own ladder in playback.js is separate and still prefers AV1. */
 function loopHtml(work){
   if(!work||work.id!=='film/weird-kid')return '';
   return '<video class="fp-loop" muted playsinline webkit-playsinline loop preload="none" poster="media/films/weird-kid/loop-poster.jpg" aria-label="Weird Kid">'+
