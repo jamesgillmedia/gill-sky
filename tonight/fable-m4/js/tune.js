@@ -207,6 +207,8 @@ function build(){
     if(sb){var srow=findRow(sb.getAttribute('data-seg-k'));if(srow)srow.apply(sb.getAttribute('data-v'),true);paint();return}
     var dvb=e.target.closest('[data-drawer]');
     if(dvb){setDrawer(dvb.getAttribute('data-drawer'));paint();return}
+    var vb2=e.target.closest('[data-var]');
+    if(vb2&&window.GJ_VAR){GJ_VAR.set(vb2.getAttribute('data-var-room'),vb2.getAttribute('data-var'));paint();return}
     var db=e.target.closest('[data-dec]');
     if(db&&D2()){D2().set(db.getAttribute('data-dec'),db.getAttribute('data-v'));safelight();paint();return}
   });
@@ -293,6 +295,12 @@ function paint(){
   var offHere=isOff(here)&&!(c.mod&&c.mod.chapter===here&&c.mod.tune);
   var h='<section class="mm-ctx'+(offHere?' mm-off-room':'')+'"><h3>'+title+' <span>here</span>'+(offHere?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
   h+=rowsHtml(contextRows(c));
+  /* Film room pass: A/B/C variant toggle, only in a room that has variants (js/variants.js). */
+  var GV=window.GJ_VAR;
+  if(GV&&GV.has(here)){var av=GV.get(here),VR=GV.rooms[here];
+    h+='<div class="mm-seg mm-var" role="radiogroup" aria-label="variant (dev)"><b>variant <em>dev · '+av+': '+VR[av].split(' · ')[0]+'</em></b><span>';
+    ['A','B','C'].forEach(function(o){if(VR[o])h+='<button type="button" role="radio" aria-checked="'+(av===o)+'" data-var="'+o+'" data-var-room="'+here+'" title="'+VR[o]+'">'+o+'</button>'});
+    h+='</span></div>';}
   h+='</section>';
   h+='<button type="button" class="mm-all" aria-expanded="'+(allOn?'true':'false')+'">'+(allOn?'close rooms':'all rooms')+'</button>';
   if(allOn){

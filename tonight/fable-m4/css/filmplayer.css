@@ -1,0 +1,54 @@
+/* Film room pass (Nov 13): the featured player. Film-only; nothing here touches another room. */
+#layer .sheet.film.fp,html.wc #layer .sheet.film.fp{background:#020304;display:block;padding-top:calc(104px + var(--st));padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+.fp-stage{position:relative;margin:6px auto 0;width:min(100%,1180px)}
+.fp-spill{position:absolute;left:-8%;right:-8%;top:-14%;bottom:-10%;pointer-events:none;
+  background:radial-gradient(ellipse 60% 55% at 50% 46%,rgba(232,228,220,.055),rgba(232,228,220,.018) 55%,rgba(0,0,0,0) 78%)}
+#layer .sheet.film.fp .heroframe.fp-frame{position:relative;flex:none;min-height:0;height:auto;width:100%;aspect-ratio:2.2;margin:0;background:#000;
+  box-shadow:0 0 0 1px rgba(232,228,220,.06),0 18px 60px rgba(0,0,0,.9);cursor:zoom-in}
+.fp-stage{animation:fpIn .75s cubic-bezier(.22,.7,.2,1) both}
+@keyframes fpIn{from{opacity:0;transform:translateY(10px) scale(.94)}to{opacity:1;transform:none}}
+.fp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease;animation:none}
+.fp-frame img.on{opacity:1}
+.fp-bar{position:relative;height:2px;background:rgba(232,228,220,.12);margin:8px 0 0}
+.fp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:#e8e4dc;transition:width .6s ease}
+.fp-strip{display:flex;gap:3px;margin:6px 0 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.fp-strip::-webkit-scrollbar{display:none}
+.fp-strip button{flex:0 0 auto;width:clamp(44px,12vw,78px);aspect-ratio:2.2;padding:0;border:0;background:#000;opacity:.5;cursor:pointer;outline:1px solid transparent;outline-offset:-1px}
+.fp-strip button.on{opacity:1;outline-color:#e8e4dc}
+.fp-strip img{width:100%;height:100%;object-fit:cover;display:block}
+.fp-meta{width:min(100%,1180px);margin:14px auto 0;text-align:left}
+#layer .sheet.film.fp .fp-meta *{text-align:left}
+.fp-pre{display:block;font:300 11px Poppins,sans-serif;letter-spacing:.04em;color:rgba(232,228,220,.62);margin:0 0 2px}
+.fp-t{font:400 clamp(20px,5.4vw,30px) "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#e8e4dc;margin:0;line-height:1.15}
+.fp-r{font:300 12.5px Poppins,sans-serif;letter-spacing:.03em;color:rgba(232,228,220,.82);margin:6px 0 0}
+.fp-aw,.fp-cr{list-style:none;margin:8px 0 0;padding:0;font:300 11px/1.55 Poppins,sans-serif;color:rgba(232,228,220,.66)}
+.fp-aw li{color:#d9c27a}
+.fp-aw li::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#d9c27a;margin:0 7px 1px 0;vertical-align:middle}
+.fp-next{width:min(100%,1180px);margin:20px auto 0}
+.fp-lab{font:400 11px "Julius Sans One",sans-serif;letter-spacing:.24em;text-transform:uppercase;color:rgba(232,228,220,.55);margin:0 0 8px}
+.fp-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px 10px}
+.fp-card{display:block;color:#e8e4dc;text-decoration:none;min-width:0}
+.fp-cim{display:block;aspect-ratio:16/9;overflow:hidden;background:#000}
+.fp-cim img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease}
+.fp-card:hover .fp-cim img{transform:scale(1.03)}
+.fp-card b{display:block;font:400 11.5px "Julius Sans One",sans-serif;letter-spacing:.12em;text-transform:uppercase;margin:6px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-card small{display:block;font:300 10px Poppins,sans-serif;color:rgba(232,228,220,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-card em{display:block;font:300 10px/1.35 Poppins,sans-serif;font-style:normal;color:rgba(232,228,220,.8);margin-top:1px}
+#layer .sheet.film.fp .framewall.under{width:min(100%,1180px);margin:22px auto 0;padding:0 0 calc(132px + var(--sb))}
+#layer .sheet.film.fp .framewall.under img{opacity:.92}
+@media (min-width:1000px) and (orientation:landscape){
+  #layer .sheet.film.fp,html.wc #layer .sheet.film.fp{display:grid;grid-template-columns:minmax(0,1fr) 250px;column-gap:26px;align-content:start;align-items:start;padding-top:calc(70px + var(--st));padding-left:40px;padding-right:110px}
+  .fp-main{grid-column:1;grid-row:1;min-width:0}
+  .fp-stage{width:auto;margin:6px 0 0}
+  #layer .sheet.film.fp .heroframe.fp-frame{width:min(100%,calc((100vh - 290px)*2.2))}
+  .fp-meta{width:auto;margin:12px 0 0}
+  .fp-next{grid-column:2;grid-row:1;width:auto;margin:6px 0 0}
+  .fp-cards{grid-template-columns:1fr;gap:12px}
+  #layer .sheet.film.fp .framewall.under{grid-column:1 / span 2;grid-row:2;width:auto;margin-top:26px}
+}
+/* DEV variants (js/variants.js): B = dissolve-only entrance + slow dissolve, C = quick dissolve. A is the rules above. */
+html[data-var-film="B"] .fp-stage{animation-name:fpFade;animation-duration:1s}
+@keyframes fpFade{from{opacity:0}to{opacity:1}}
+html[data-var-film="B"] .fp-frame img{transition-duration:2.4s}
+html[data-var-film="C"] .fp-frame img{transition-duration:.5s}
+#markmenu .mm-var em{font-style:normal;opacity:.7}

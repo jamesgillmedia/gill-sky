@@ -6,6 +6,256 @@
    "tint": "150,220,255",
    "cards": [
     {
+     "id": "film/one-with-the-devil",
+     "chapter": "film",
+     "k": "owtd",
+     "slug": "one-with-the-devil",
+     "title": "One With the Devil",
+     "role": "Cinematographer",
+     "year": 2015,
+     "meta": "short · 2015",
+     "kind": "film",
+     "media": {
+      "thumb": "media/owtd/stills/09_landscape.jpg",
+      "big": "media/owtd/stills/09_landscape.jpg",
+      "clip": "media/owtd/one-with-the-devil-clip.mp4",
+      "pv": "media/owtd/one-with-the-devil-clip.mp4",
+      "frames": [
+       "media/owtd/stills/01_wood_chop.jpg",
+       "media/owtd/stills/02_dallas_snow.jpg",
+       "media/owtd/stills/03_colton_snow_trees.jpg",
+       "media/owtd/stills/04_table_twoshot.jpg",
+       "media/owtd/stills/05_lantern_portrait.jpg",
+       "media/owtd/stills/06_colton_cabin.jpg",
+       "media/owtd/stills/07_dallas_cu.jpg",
+       "media/owtd/stills/08_rose.jpg",
+       "media/owtd/stills/09_landscape.jpg",
+       "media/owtd/stills/10_rifle_doorway.jpg",
+       "media/owtd/stills/11_night_cabin.jpg",
+       "media/owtd/stills/12_candlelight.jpg"
+      ],
+      "url": "",
+      "embed": "",
+      "w": 1920,
+      "h": 1080
+     },
+     "credits": [
+      "dir. Drew Pollins"
+     ],
+     "related": [],
+     "also": [],
+     "in_progress": false,
+     "body": "",
+     "isNew": false,
+     "feat": 1,
+     "stills": [
+      "media/owtd/stills/09_landscape.jpg",
+      "media/films/one-with-the-devil/stills/01.webp",
+      "media/films/one-with-the-devil/stills/02.webp",
+      "media/films/one-with-the-devil/stills/03.webp",
+      "media/films/one-with-the-devil/stills/09.webp",
+      "media/films/one-with-the-devil/stills/10.webp",
+      "media/films/one-with-the-devil/stills/04.webp",
+      "media/films/one-with-the-devil/stills/05.webp",
+      "media/films/one-with-the-devil/stills/06.webp",
+      "media/films/one-with-the-devil/stills/07.webp",
+      "media/films/one-with-the-devil/stills/08.webp",
+      "media/films/one-with-the-devil/stills/11.webp",
+      "media/films/one-with-the-devil/stills/12.webp"
+     ],
+     "awards": [
+      "CSC Student Cinematography Award (Panavision Canada) 2015",
+      "Leo Award, Best Cinematography in a Short Drama 2015"
+     ]
+    },
+    {
+     "id": "film/weird-kid",
+     "chapter": "film",
+     "k": "w22",
+     "slug": "weird-kid",
+     "title": "Chris Malinchak and Kiesza · 'Weird Kid'",
+     "role": "Director · Director of Photography",
+     "year": null,
+     "meta": "music video · 03:44",
+     "kind": "film",
+     "media": {
+      "thumb": "media/pro2/frames/22/01.webp",
+      "big": "media/pro2/frames/22/01.webp",
+      "clip": "media/v3/media/sc/22.mp4",
+      "pv": "media/v3/media/pv/22.mp4",
+      "frames": [
+       "media/pro2/img/strip/02.webp",
+       "media/pro2/img/strip/05.webp",
+       "media/pro2/img/strip/08.webp",
+       "media/pro2/img/strip/49.webp"
+      ],
+      "url": "",
+      "embed": "",
+      "w": 0,
+      "h": 0
+     },
+     "credits": [
+      "dir. Gill James & Kiesza",
+      "Gill James (director of photography)",
+      "Chris Malinchak and Kiesza"
+     ],
+     "related": [],
+     "also": [],
+     "in_progress": false,
+     "body": "",
+     "isNew": false,
+     "feat": 2,
+     "stills": [
+      "media/films/weird-kid/stills/01.webp",
+      "media/films/weird-kid/stills/02.webp",
+      "media/films/weird-kid/stills/03.webp",
+      "media/films/weird-kid/stills/04.webp",
+      "media/films/weird-kid/stills/05.webp",
+      "media/films/weird-kid/stills/06.webp",
+      "media/films/weird-kid/stills/07.webp",
+      "media/films/weird-kid/stills/08.webp",
+      "media/films/weird-kid/stills/09.webp",
+      "media/films/weird-kid/stills/10.webp"
+     ]
+    },
+    {
+     "id": "film/back-to-the-start",
+     "chapter": "film",
+     "k": "w20",
+     "slug": "back-to-the-start",
+     "title": "Old Man Canyon · Back to the Start",
+     "role": "Co-director · Cinematographer · Producer",
+     "year": null,
+     "meta": "music video · 03:58",
+     "kind": "film",
+     "media": {
+      "thumb": "media/pro2/img/films/20-400.webp",
+      "big": "media/pro2/img/films/20-720.webp",
+      "clip": "media/v3/media/sc/20.mp4",
+      "pv": "",
+      "frames": [],
+      "url": "",
+      "embed": "",
+      "w": 0,
+      "h": 0
+     },
+     "credits": [
+      "Old Man Canyon",
+      "Gill James (co-director with Jet Pace, cinematographer, producer)"
+     ],
+     "related": [],
+     "also": [],
+     "in_progress": false,
+     "body": "",
+     "isNew": false,
+     "feat": 3,
+     "stills": [
+      "media/films/back-to-the-start/stills/02.webp",
+      "media/films/back-to-the-start/stills/03.webp",
+      "media/films/back-to-the-start/stills/04.webp",
+      "media/films/back-to-the-start/stills/06.webp",
+      "media/films/back-to-the-start/stills/08.webp",
+      "media/films/back-to-the-start/stills/10.webp",
+      "media/films/back-to-the-start/stills/01.webp",
+      "media/films/back-to-the-start/stills/05.webp",
+      "media/films/back-to-the-start/stills/07.webp",
+      "media/films/back-to-the-start/stills/09.webp"
+     ]
+    },
+    {
+     "id": "film/backward-fall",
+     "chapter": "film",
+     "k": "w18",
+     "slug": "backward-fall",
+     "title": "Backward Fall",
+     "role": "Producer · Cinematographer",
+     "year": 2014,
+     "meta": "short · 10:14",
+     "kind": "film",
+     "media": {
+      "thumb": "media/pro2/frames/18/01.webp",
+      "big": "media/pro2/frames/18/01.webp",
+      "clip": "media/v3/media/sc/18.mp4",
+      "pv": "media/v3/media/pv/18.mp4",
+      "frames": [
+       "media/pro2/img/strip/35.webp"
+      ],
+      "url": "",
+      "embed": "",
+      "w": 0,
+      "h": 0
+     },
+     "credits": [],
+     "related": [],
+     "also": [],
+     "in_progress": false,
+     "body": "",
+     "isNew": false,
+     "feat": 4,
+     "stills": [
+      "media/films/backward-fall/stills/01.webp",
+      "media/films/backward-fall/stills/02.webp",
+      "media/films/backward-fall/stills/03.webp",
+      "media/films/backward-fall/stills/05.webp",
+      "media/films/backward-fall/stills/06.webp",
+      "media/films/backward-fall/stills/07.webp",
+      "media/films/backward-fall/stills/08.webp",
+      "media/films/backward-fall/stills/09.webp",
+      "media/films/backward-fall/stills/10.webp",
+      "media/films/backward-fall/stills/04.webp"
+     ],
+     "awards": [
+      "Leo Award, Best Student Production 2014 (Producer)",
+      "Leo nomination, cinematography, 2014"
+     ]
+    },
+    {
+     "id": "film/legends",
+     "chapter": "film",
+     "k": "w4",
+     "slug": "legends",
+     "title": "BMW Legends",
+     "role": "Cinematographer",
+     "year": null,
+     "meta": "commercial · 00:33",
+     "kind": "film",
+     "media": {
+      "thumb": "media/pro2/img/films/04-400.webp",
+      "big": "media/pro2/img/films/04-720.webp",
+      "clip": "media/v3/media/sc/04.mp4",
+      "pv": "",
+      "frames": [],
+      "url": "",
+      "embed": "",
+      "w": 0,
+      "h": 0
+     },
+     "credits": [
+      "BMW"
+     ],
+     "related": [
+      "photo/photograph-23"
+     ],
+     "also": [
+      "film/drift"
+     ],
+     "in_progress": false,
+     "body": "",
+     "isNew": false,
+     "feat": 5,
+     "stills": [
+      "media/films/legends/stills/02.webp",
+      "media/films/legends/stills/03.webp",
+      "media/films/legends/stills/04.webp",
+      "media/films/legends/stills/05.webp",
+      "media/films/legends/stills/06.webp",
+      "media/films/legends/stills/08.webp",
+      "media/films/legends/stills/01.webp",
+      "media/films/legends/stills/07.webp",
+      "media/films/legends/stills/09.webp"
+     ]
+    },
+    {
      "id": "film/demo-reel",
      "chapter": "film",
      "k": "reel",
@@ -90,51 +340,6 @@
      "isNew": false
     },
     {
-     "id": "film/one-with-the-devil",
-     "chapter": "film",
-     "k": "owtd",
-     "slug": "one-with-the-devil",
-     "title": "One With the Devil",
-     "role": "Cinematographer",
-     "year": 2015,
-     "meta": "short · 2015",
-     "kind": "film",
-     "media": {
-      "thumb": "media/owtd/stills/09_landscape.jpg",
-      "big": "media/owtd/stills/09_landscape.jpg",
-      "clip": "media/owtd/one-with-the-devil-clip.mp4",
-      "pv": "media/owtd/one-with-the-devil-clip.mp4",
-      "frames": [
-       "media/owtd/stills/01_wood_chop.jpg",
-       "media/owtd/stills/02_dallas_snow.jpg",
-       "media/owtd/stills/03_colton_snow_trees.jpg",
-       "media/owtd/stills/04_table_twoshot.jpg",
-       "media/owtd/stills/05_lantern_portrait.jpg",
-       "media/owtd/stills/06_colton_cabin.jpg",
-       "media/owtd/stills/07_dallas_cu.jpg",
-       "media/owtd/stills/08_rose.jpg",
-       "media/owtd/stills/09_landscape.jpg",
-       "media/owtd/stills/10_rifle_doorway.jpg",
-       "media/owtd/stills/11_night_cabin.jpg",
-       "media/owtd/stills/12_candlelight.jpg"
-      ],
-      "url": "",
-      "embed": "",
-      "w": 1920,
-      "h": 1080
-     },
-     "credits": [
-      "dir. Drew Pollins",
-      "Leo Award, Best Cinematography in a Short Drama (2015)",
-      "Canadian Society of Cinematographers Award"
-     ],
-     "related": [],
-     "also": [],
-     "in_progress": false,
-     "body": "",
-     "isNew": false
-    },
-    {
      "id": "film/celebraciones",
      "chapter": "film",
      "k": "w2",
@@ -191,40 +396,6 @@
      "related": [],
      "also": [
       "film/golden-moment-directors-cut"
-     ],
-     "in_progress": false,
-     "body": "",
-     "isNew": false
-    },
-    {
-     "id": "film/legends",
-     "chapter": "film",
-     "k": "w4",
-     "slug": "legends",
-     "title": "BMW Legends",
-     "role": "Cinematographer",
-     "year": null,
-     "meta": "commercial · 00:33",
-     "kind": "film",
-     "media": {
-      "thumb": "media/pro2/img/films/04-400.webp",
-      "big": "media/pro2/img/films/04-720.webp",
-      "clip": "media/v3/media/sc/04.mp4",
-      "pv": "",
-      "frames": [],
-      "url": "",
-      "embed": "",
-      "w": 0,
-      "h": 0
-     },
-     "credits": [
-      "BMW"
-     ],
-     "related": [
-      "photo/photograph-23"
-     ],
-     "also": [
-      "film/drift"
      ],
      "in_progress": false,
      "body": "",
@@ -618,36 +789,6 @@
      "isNew": false
     },
     {
-     "id": "film/backward-fall",
-     "chapter": "film",
-     "k": "w18",
-     "slug": "backward-fall",
-     "title": "Backward Fall",
-     "role": "",
-     "year": null,
-     "meta": "short · 10:14",
-     "kind": "film",
-     "media": {
-      "thumb": "media/pro2/frames/18/01.webp",
-      "big": "media/pro2/frames/18/01.webp",
-      "clip": "media/v3/media/sc/18.mp4",
-      "pv": "media/v3/media/pv/18.mp4",
-      "frames": [
-       "media/pro2/img/strip/35.webp"
-      ],
-      "url": "",
-      "embed": "",
-      "w": 0,
-      "h": 0
-     },
-     "credits": [],
-     "related": [],
-     "also": [],
-     "in_progress": false,
-     "body": "",
-     "isNew": false
-    },
-    {
      "id": "film/s18",
      "chapter": "film",
      "k": "w19",
@@ -680,37 +821,6 @@
      "isNew": false
     },
     {
-     "id": "film/back-to-the-start",
-     "chapter": "film",
-     "k": "w20",
-     "slug": "back-to-the-start",
-     "title": "Old Man Canyon · Back to the Start",
-     "role": "",
-     "year": null,
-     "meta": "music video · 03:58",
-     "kind": "film",
-     "media": {
-      "thumb": "media/pro2/img/films/20-400.webp",
-      "big": "media/pro2/img/films/20-720.webp",
-      "clip": "media/v3/media/sc/20.mp4",
-      "pv": "",
-      "frames": [],
-      "url": "",
-      "embed": "",
-      "w": 0,
-      "h": 0
-     },
-     "credits": [
-      "Old Man Canyon",
-      "Gill James (co-director with Jet Pace, cinematographer, producer)"
-     ],
-     "related": [],
-     "also": [],
-     "in_progress": false,
-     "body": "",
-     "isNew": false
-    },
-    {
      "id": "film/lets-grow-good-together",
      "chapter": "film",
      "k": "w21",
@@ -732,43 +842,6 @@
       "h": 0
      },
      "credits": [],
-     "related": [],
-     "also": [],
-     "in_progress": false,
-     "body": "",
-     "isNew": false
-    },
-    {
-     "id": "film/weird-kid",
-     "chapter": "film",
-     "k": "w22",
-     "slug": "weird-kid",
-     "title": "Chris Malinchak and Kiesza · 'Weird Kid'",
-     "role": "Director · Director of Photography",
-     "year": null,
-     "meta": "music video · 03:44",
-     "kind": "film",
-     "media": {
-      "thumb": "media/pro2/frames/22/01.webp",
-      "big": "media/pro2/frames/22/01.webp",
-      "clip": "media/v3/media/sc/22.mp4",
-      "pv": "media/v3/media/pv/22.mp4",
-      "frames": [
-       "media/pro2/img/strip/02.webp",
-       "media/pro2/img/strip/05.webp",
-       "media/pro2/img/strip/08.webp",
-       "media/pro2/img/strip/49.webp"
-      ],
-      "url": "",
-      "embed": "",
-      "w": 0,
-      "h": 0
-     },
-     "credits": [
-      "dir. Gill James & Kiesza",
-      "Gill James (director of photography)",
-      "Chris Malinchak and Kiesza"
-     ],
      "related": [],
      "also": [],
      "in_progress": false,

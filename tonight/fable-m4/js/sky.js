@@ -922,7 +922,7 @@ function gridSpec(key){
 /* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
 var BSPEC=null;
 function boardSpec(key,items){
-  var room=boardRoom(),n=items.length||1,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'')+'|'+tk('fdens')+'|'+tk('fgap');
+  var room=boardRoom(),n=items.length||1,leadSig=(items[0]&&items[0].feat)||0,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'')+'|'+tk('fdens')+'|'+tk('fgap')+'|'+leadSig;
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
   var maxW=Math.min(W-28,680,room.w),pad=10,gap=8,head=44,AW=maxW+28;
   if(key==='film'||key==='objects'){pad=8;gap=6}
@@ -958,12 +958,18 @@ function boardSpec(key,items){
     });
     rects.forEach(function(r){bottom=Math.max(bottom,r.y+r.h)});
   }else if(key==='film'){
-    /* Straight rows: every tile in a row shares one top, one title line and one role line under it, so a row is as tall as a tile plus its caption. */
+    /* Straight rows: every tile in a row shares one top, one title line and one role line under it, so a row is as tall as a tile plus its caption.
+       Film room pass: the lead film (feat 1) opens the board as a 2×2 tile when the board is 3 or more columns wide. The rest flow around it. On a narrower board it stays the first tile. */
     var chh=11+11+3,rowF=th+chh+Math.max(6,gap);
+    var taken={},lead=cols>=3&&items[0]&&items[0].feat===1;
+    function fr(r,c,cs,rs){for(var a=0;a<rs;a++)for(var q=0;q<cs;q++)if(c+q>=cols||taken[(r+a)+':'+(c+q)])return false;return true}
     items.forEach(function(it,j){
-      var r=Math.floor(j/cols),c=j%cols,cl=capLines(it,tw),y=r*rowF;
-      rects.push({x:c*(tw+gap),y:y,w:tw,h:th,cl:cl,ch:chh});
-      bottom=Math.max(bottom,y+th+chh);
+      var cs=(lead&&j===0)?2:1,rs=cs,r=0,c=0;
+      for(;;r++){var ok=false;for(c=0;c<cols;c++)if(fr(r,c,cs,rs)){ok=true;break}if(ok)break}
+      for(var a=0;a<rs;a++)for(var q=0;q<cs;q++)taken[(r+a)+':'+(c+q)]=1;
+      var w=cs*tw+(cs-1)*gap,h=rs>1?th+rowF:th,cl=capLines(it,w),y=r*rowF;
+      rects.push({x:c*(tw+gap),y:y,w:w,h:h,cl:cl,ch:chh,lead:cs>1?1:0});
+      bottom=Math.max(bottom,y+h+chh);
     });
   }else{
     var taken={},rowH=th+cap+gap;
