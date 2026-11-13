@@ -59,9 +59,11 @@ var GLOW={};
 function rnd(i){var x=Math.sin(i*12.9898+78.233)*43758.5453;return x-Math.floor(x)}
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 /* Debug tune. Each default is the sky as written. Only the debug panel writes these. */
-var TDEF={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1};
-var TUNE={map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1};
+var TDEF={mood:1,map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1};
+var TUNE={mood:1,map:1.3,stars:1.2,lineA:1,lineW:1,starS:1,starG:1,pinch:1,far:1,mid:1,board:1,delay:1,open:1,fade:1,flash:.6,fdens:1,fgap:1};
 var SPATIAL={map:1,stars:1,far:1,mid:1,board:1};
+/* sky mood (gj.tune.mood, 0-200, 100 = the sky as written): -1 hushed .. +1 lit; every factor is exactly 1 at 100 */
+function moodK(){return clamp(tk('mood')-1,-1,1)}
 function tk(k){var v=TUNE[k];return (v==null||!isFinite(+v))?1:+v}
 function lerp(a,b,u){return a+(b-a)*u}
 function ease(u){u=clamp(u,0,1);return u<.5?4*u*u*u:1-Math.pow(-2*u+2,3)/2}
@@ -210,7 +212,7 @@ function drawField(fa){
   var cap=m*DZ.streak,streak=HOP>.04,spr=softDot();FN++;
   FIELD.forEach(function(L){
     var lv=layerView(L),M=lv.M,TW=W+2*M,TH=H+2*M;
-    var base=L.a*(.35+.65*Math.min(1,fa+.4))*lv.alpha;
+    var base=L.a*(.35+.65*Math.min(1,fa+.4))*lv.alpha*(1+moodK()*.6);
     if(L.near&&!mask)mask=fieldMask();
     L.pts.forEach(function(p){
       var rx=p.u*TW+lv.ox,ry=p.v*TH+lv.oy,wi=Math.floor(rx/TW)*7919+Math.floor(ry/TH);
@@ -612,7 +614,7 @@ function drawChapter(k,t,fa){
   if(nr>8){var gr=g.createRadialGradient(cp[0],cp[1],0,cp[0],cp[1],nr);
     gr.addColorStop(0,'rgba('+c.tint+','+(0.06*focus)+')');gr.addColorStop(1,'rgba('+c.tint+',0)');
     g.fillStyle=gr;g.fillRect(cp[0]-nr,cp[1]-nr,nr*2,nr*2)}
-  var la=((isMid()&&cur.k===k)?.3:focus*(1-bl)*.55*Math.max(fa,.35))*tk('lineA');
+  var la=((isMid()&&cur.k===k)?.3:focus*(1-bl)*.55*Math.max(fa,.35))*tk('lineA')*(1+moodK()*.45);
   if(la>1)la=1;
   if(la>.02){g.strokeStyle='rgba('+c.tint+','+la+')';g.lineWidth=tk('lineW');g.beginPath();
     c.sky.forEach(function(L){var pa=nodePos(L[0]),pb=nodePos(L[1]),a=sp(pa[0],pa[1]),b=sp(pb[0],pb[1]);g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1])});g.stroke()}
@@ -722,7 +724,7 @@ function star(q,b,c,mint,a,t){
   if(a<.02||q[0]<-20||q[0]>W+20||q[1]<-20||q[1]>H+20)return;
   var pulse=t?(1+.07*Math.sin(t/900+(q[0]+q[1])*.01)):1;
   var ss=tk('starS'),sg=tk('starG');
-  var gs=(5+16*b)*pulse*(mint?1.3:1)*sg;g.globalAlpha=a*(.45+.5*b);
+  var gs=(5+16*b)*pulse*(mint?1.3:1)*sg*(1+moodK()*.5);g.globalAlpha=a*(.45+.5*b);
   g.drawImage(mint?GLOW.m:c.glow,q[0]-gs,q[1]-gs,gs*2,gs*2);
   g.globalAlpha=a;g.fillStyle=mint?'rgb('+MINT+')':'#fff';
   g.beginPath();g.arc(q[0],q[1],Math.max(1.1,(1+b*1.6)*ss),0,7);g.fill();g.globalAlpha=1;

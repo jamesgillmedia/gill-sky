@@ -473,13 +473,14 @@ html:has(#layer.on) #mmap{display:none}
 @media (prefers-reduced-motion:reduce){#reveal{display:none}}
 
 /* preview-film-snap: the mark menu (list · contact · tune), hairline, under the mark. */
+/* the mark menu (context-aware: room sliders first, globals pinned, 'all rooms' one tap away), from preview-proto-shell */
 #markmenu{position:fixed;z-index:60;left:calc(10px + env(safe-area-inset-left,0px));top:calc(54px + env(safe-area-inset-top,0px));width:min(360px,calc(100vw - 20px));max-height:calc(100vh - 80px);overflow:auto;
   background:rgba(6,10,16,.84);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(207,216,230,.22);border-radius:14px;padding:10px 16px 12px;
   font:300 11px Poppins,sans-serif;color:#e4ebf5;letter-spacing:.04em}
 #markmenu[hidden]{display:none}
 #markmenu nav{display:flex;gap:18px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid rgba(207,216,230,.14)}
-#markmenu nav a,#markmenu nav button{font:400 12px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e4ebf5;background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:none;min-height:32px}
-#markmenu .mm-rooms a,#markmenu .mm-rooms button{font-size:10px;color:rgba(228,235,245,.7)}
+#markmenu nav a,#markmenu nav button,#markmenu nav .mm-off{font:400 12px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e4ebf5;background:none;border:0;padding:6px 0;cursor:pointer;text-decoration:none;min-height:32px}
+#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{font-size:10px;color:rgba(228,235,245,.7)}
 #markmenu .mm-tune.on{color:#d9b98a}
 #markmenu .mm-room{padding:6px 0 4px}
 #markmenu h3{margin:8px 0 2px;font:400 10px "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:rgba(228,235,245,.55)}
@@ -496,6 +497,28 @@ html:has(#layer.on) #mmap{display:none}
 #markmenu .mm-seg span{display:flex;flex-wrap:wrap;gap:4px 6px}
 #markmenu .mm-seg button{font:300 10px Poppins,sans-serif;letter-spacing:.03em;color:rgba(228,235,245,.7);background:none;border:1px solid rgba(207,216,230,.22);border-radius:999px;padding:5px 10px;min-height:28px;cursor:pointer}
 #markmenu .mm-seg button[aria-checked=true]{color:#04070b;background:#e8e4dc;border-color:transparent}
+
+#markmenu .mm-rooms .mm-off,#markmenu .mm-rooms [aria-disabled=true]{opacity:.4;cursor:default;pointer-events:none;text-decoration:none}
+#markmenu .mm-ctx{padding:6px 0 8px;border-bottom:1px solid rgba(207,216,230,.14)}
+#markmenu .mm-all{display:block;width:100%;text-align:left;font:400 10px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#e8e4dc;background:none;border:0;border-bottom:1px solid rgba(207,216,230,.14);padding:10px 0;min-height:36px;cursor:pointer}
+#markmenu .mm-all[aria-expanded=true]{color:#d9b98a}
+#markmenu .mm-more{padding:4px 0 8px}
+#markmenu .mm-globals{padding:8px 0 4px;border-top:1px solid rgba(207,216,230,.14);margin-top:4px}
+#markmenu .mm-foot{flex-wrap:wrap}
+#markmenu .mm-resets{display:flex;gap:16px;align-items:center}
+
+#markmenu .mm-rooms [data-go].on{color:#d9b98a}
+
+/* phone: the rooms row stays on one line (6 labels in 326px at 390). Even spacing, no wrapping; tracking eases off on narrower phones. */
+#markmenu .mm-rooms{flex-wrap:nowrap;justify-content:space-between;gap:6px}
+#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{flex:0 0 auto;white-space:nowrap;padding-left:2px;padding-right:2px}
+@media (max-width:359px){#markmenu .mm-rooms a,#markmenu .mm-rooms button,#markmenu .mm-rooms .mm-off{font-size:9px;letter-spacing:.08em}}
+#markmenu nav a,#markmenu nav button,#markmenu nav .mm-off{display:inline-flex;align-items:center}
+
+/* rooms that are saved-only in this shell: sliders stay usable but read as inactive, and say so */
+#markmenu .mm-off-room label{opacity:.5}
+#markmenu .mm-off-room h3 em{display:block;margin-top:2px;color:rgba(228,235,245,.62)}
+#markmenu .mm-theme b em{font:300 9px Poppins,sans-serif;font-style:normal;letter-spacing:.02em;text-transform:none;color:rgba(228,235,245,.62);margin-left:6px}
 /* Safelight: edges only, a 10px band; under #layers/#layer (z 5/6) so pages are never tinted, outside the boards (14px in). */
 #safelight{position:absolute;inset:0;z-index:4;pointer-events:none;--safe:0;
   background:linear-gradient(to right,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) left/10px 100% no-repeat,

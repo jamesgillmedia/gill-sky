@@ -1,12 +1,10 @@
-/* preview-film-snap · the mark menu: list · contact · tune (decisions 1-4 and switches first, then room sliders).
- Press the ᑕᐣᓯ mark (top left) and a hairline menu opens under it. "tune" shows sliders for the room you are in first,
- then the other rooms. Every slider drives a hook that already exists:
-   sky     GJ_TUNE map / stars / starS / starG / lineA (the sky as written = 100)
-   film    GJ_TUNE fdens / fgap (the film board's snap density and frame gap, added with the snap)
-   sound   gj.vol / gj.flash (the player's own volume and flash)
-   objects gj.amb.objects.glow / haze / stars / lamp (read by the Objects room's own GLOW plate when it opens)
-   spaces  gj.amb.garden.day / star / glow / haze (read by the Forest garden's own dial when it opens)
- Values are kept on this device (localStorage). Reset puts every one back. Nothing here grades a photograph or a film frame. */
+/* the mark menu: list · contact · tune (context-aware; ported from preview-proto-shell onto the real site).
+   Context-aware: reads the ladder room/level (and the active module's `tune` list) and shows that
+   context's sliders first. Motion, safelight and ripples stay pinned at the bottom. "all rooms"
+   is one tap away. Values are kept per room on this device. Reset this room / reset all.
+   The menu repaints live when the ladder changes while it is open.
+   Slider widgets and hooks are the same as preview-film-snap tune.js (GJ_TUNE, gj.vol / gj.flash,
+   gj.amb.*, GJ_DEC). Nothing here grades a photograph or a film frame. */
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)};
@@ -15,31 +13,34 @@ function wr(k,v){try{localStorage.setItem(k,String(v))}catch(e){}}
 function rm(k){try{localStorage.removeItem(k)}catch(e){}}
 function T(){return window.GJ_TUNE||null}
 function tuneRow(k,label,min,max,def,note){
-  /* shown as a percentage of the sky as written */
-  return {k:'gj.tune.'+k,label:label,min:min,max:max,def:100,note:note,
+  return {k:'gj.tune.'+k,label:label,min:min,max:max,def:100,note:note,hook:'tune',
     get:function(){return rd('gj.tune.'+k,100)},
     apply:function(v){var t=T();if(!t)return;var o={};o[k]=def*v/100;t.set(o)}};
 }
 function lsRow(key,label,min,max,def,scale,after){
-  return {k:key,label:label,min:min,max:max,def:def,
+  return {k:key,label:label,min:min,max:max,def:def,hook:'ls',
     get:function(){var v=rd(key,null);return v==null?def:Math.round(v*scale)},
     apply:function(v,save){if(save)wr(key,v/scale);if(after)after(key)}};
 }
 function poke(key){try{window.dispatchEvent(new StorageEvent('storage',{key:key}))}catch(e){}}
-var D=(window.GJ_TUNE&&GJ_TUNE.defaults&&GJ_TUNE.defaults())||{map:1.3,stars:1.2,lineA:1,starS:1,starG:1,fdens:1,fgap:1};
+function setFlash(key){var t=T();if(t)t.set({flash:rd('gj.flash',.6)});try{document.documentElement.style.setProperty('--flash',String(rd('gj.flash',.6)))}catch(e){}}
+var D=(window.GJ_TUNE&&GJ_TUNE.defaults&&GJ_TUNE.defaults())||{mood:1,map:1.3,stars:1.2,lineA:1,starS:1,starG:1,fdens:1,fgap:1};
+
+/* Built-in room sets. A module may replace its chapter's context set with module.tune. */
 var ROOMS=[
   {id:'sky',name:'sky',rows:[
+    tuneRow('mood','mood',0,200,D.mood),
     tuneRow('map','star spread',60,160,D.map),
+    tuneRow('starG','glow',0,200,D.starG),
     tuneRow('stars','stars',40,180,D.stars),
     tuneRow('starS','star size',50,200,D.starS),
-    tuneRow('starG','star glow',0,200,D.starG),
     tuneRow('lineA','lines',0,200,D.lineA)]},
   {id:'film',name:'film',rows:[
     tuneRow('fdens','snap density',60,140,D.fdens),
     tuneRow('fgap','frame gap',25,300,D.fgap)]},
   {id:'sound',name:'sound',rows:[
     lsRow('gj.vol','volume',0,100,100,100,poke),
-    lsRow('gj.flash','flash',0,100,60,100,function(){var t=T();if(t)t.set({flash:rd('gj.flash',.6)})})]},
+    lsRow('gj.flash','flash',0,100,60,100,setFlash)]},
   {id:'objects',name:'objects',door:'../objects/',rows:[
     lsRow('gj.amb.objects.glow','all rings',0,150,100,1),
     lsRow('gj.amb.objects.haze','haze',0,250,100,1),
@@ -51,49 +52,82 @@ var ROOMS=[
     lsRow('gj.amb.garden.glow','glow',0,150,100,1),
     lsRow('gj.amb.garden.haze','haze',0,300,100,1)]}
 ];
-/* tune-room rows that only take effect inside that room say so */
-/* Gill's four decisions, every option we considered, plus the other switches that have a hook. */
+/* focused context rows (subset shown first). "all rooms" reveals the rest. */
+var CTX_FOCUS={
+  sky:['gj.tune.mood','gj.tune.map','gj.tune.starG'],
+  film:['gj.tune.fdens','gj.tune.fgap'],
+  sound:['gj.vol','gj.flash'],
+  objects:['gj.amb.objects.glow','gj.amb.objects.haze','gj.amb.objects.stars','gj.amb.objects.lamp'],
+  spaces:['gj.amb.garden.day','gj.amb.garden.star','gj.amb.garden.glow','gj.amb.garden.haze']
+};
 var DECS=[
   {k:'film',n:'1 · film board',o:[['snap','both, snap'],['map','m4 map only'],['board','site-3d board only']]},
   {k:'mark',n:'2 · mark in the journey',o:[['fusion','fusion'],['full','full'],['partial','partial (fewer stars)']]},
   {k:'open',n:'3 · opening one film',o:[['mixed','board straight · map reveal'],['player','straight to the page'],['reveal','tile reveal always'],['old','old: tap, tap again']]},
   {k:'photo',n:'4 · photo',o:[['B','B · dark, night sky'],['A','A · silver shelf']]}
 ];
-var MORE=[
-  {k:'motion',label:'motion',min:0,max:200},
-  {k:'snapAt',label:'snap threshold',min:15,max:70},
-];
-/* Safelight: a warm edge glow from the Darkroom. It lives in a 10px band at the very edges of the screen, under every page
- layer and outside every board (boards start 14px in), so it never tints or grades a photograph or a film frame. */
-function safelight(){
-  var G=D2();if(!G)return;
-  var el=document.getElementById('safelight');
-  if(!el){el=document.createElement('div');el.id='safelight';el.setAttribute('aria-hidden','true');var st=document.getElementById('stage')||document.body;st.appendChild(el)}
-  var on=+G.get('safelight')===1,k=Math.max(0,Math.min(100,+G.get('safeK')))/100;
-  el.hidden=!on||k<=0;
-  el.style.setProperty('--safe',(on?k:0).toFixed(2));
-}
 function D2(){return window.GJ_DEC||null}
-var NEXT='next: moon glow, snow, mist, reflection, ripple, drift, film spill, film sound';
-function room(){
-  var c=window.__u1&&__u1.cur;var k=c&&c.k;
-  if(k==='film'||k==='sound'||k==='objects')return k;
-  return 'sky';
+function rowFromSpec(s){
+  if(s&&s.get&&s.apply)return s;
+  if(!s)return null;
+  if(s.ls)return lsRow(s.ls,s.label,s.min,s.max,s.def,s.scale||1,s.after);
+  if(s.key||s.k){var key=s.key||s.k;if(key.indexOf('gj.')===0)return lsRow(key,s.label,s.min,s.max,s.def!=null?s.def:100,s.scale||1,s.after);
+    return tuneRow(key,s.label,s.min,s.max,s.def!=null?s.def:(D[key]!=null?D[key]:1),s.note)}
+  return null;
 }
-var menu=null,open=false,tuneOn=false;
+function moduleRows(mod){
+  if(!mod||!mod.tune||!mod.tune.length)return null;
+  var out=[];mod.tune.forEach(function(s){var r=rowFromSpec(s);if(r)out.push(r)});
+  return out.length?out:null;
+}
+function ctx(){
+  var st=(window.__u1&&__u1.cur)||{lv:0,k:null,id:null};
+  var room=(st.lv>0&&st.k)?String(st.k):'sky';
+  var lv=st.lv||0;
+  var levelName=lv===0?'sky':lv===1?'mid':lv===2?'board':lv===3?'work':'';
+  var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
+  return {room:room,lv:lv,levelName:levelName,mod:mod,st:st};
+}
+function roomById(id){for(var i=0;i<ROOMS.length;i++)if(ROOMS[i].id===id)return ROOMS[i];return null}
+function contextRows(c){
+  var R=roomById(c.room);
+  var rows=null;
+  if(c.mod&&c.mod.chapter===c.room)rows=moduleRows(c.mod);
+  if(!rows&&R)rows=R.rows;
+  if(!rows)return [];
+  var focus=CTX_FOCUS[c.room];
+  if(!focus)return rows.slice();
+  /* if the module supplied rows, show those as the context set; otherwise the focused subset */
+  if(c.mod&&c.mod.chapter===c.room&&c.mod.tune)return rows.slice();
+  return rows.filter(function(r){return focus.indexOf(r.k)>=0});
+}
+/* rooms whose sliders are only saved here: nothing in this shell reads them yet */
+var OFF_NOTE='not active here · saved only';
+function isOff(id){var R=roomById(id);return !!(R&&R.off)}
+var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
+function safelight(){
+  var G=D2(),el=document.getElementById('safelight');
+  if(!el){el=document.createElement('div');el.id='safelight';el.setAttribute('aria-hidden','true');(document.getElementById('stage')||document.body).appendChild(el)}
+  var on=G&&+G.get('safelight')===1,k=G?Math.max(0,Math.min(100,+G.get('safeK')))/100:0.6;
+  el.hidden=!on;el.style.setProperty('--safe',on?String(k):'0');
+}
 function build(){
   menu=document.createElement('div');menu.id='markmenu';menu.hidden=true;menu.setAttribute('role','dialog');menu.setAttribute('aria-label','the mark menu');
   menu.innerHTML='<nav class="mm-top"><a href="list/">list</a><a href="contact/">contact</a><button type="button" class="mm-tune" aria-expanded="false">tune</button></nav>'+
-    '<nav class="mm-rooms" aria-label="rooms"><button type="button" data-go="film">film</button><button type="button" data-go="sound">sound</button><a href="../objects/">objects</a><a href="../spaces/forest-garden/">spaces</a><button type="button" data-go="photo">photo</button></nav>'+
+    '<nav class="mm-rooms" aria-label="rooms"><button type="button" data-go="sky">sky</button><button type="button" data-go="film">film</button><button type="button" data-go="sound">sound</button><a href="../objects/">objects</a><a href="../spaces/forest-garden/">spaces</a></nav>'+
     '<div class="mm-plate" hidden></div>';
   document.body.appendChild(menu);
   menu.addEventListener('pointerdown',function(e){e.stopPropagation()});
   menu.addEventListener('click',function(e){
     e.stopPropagation();
     var b=e.target.closest('[data-go]');
-    if(b){show(false);if(window.__depth)__depth.goTo(b.getAttribute('data-go'));return}
+    if(b){if(window.__depth)__depth.goTo(b.getAttribute('data-go'));return}
     if(e.target.closest('.mm-tune')){tuneOn=!tuneOn;paint();return}
+    if(e.target.closest('.mm-all')){allOn=!allOn;paint();return}
+    if(e.target.closest('.mm-reset-room')){resetRoom();return}
     if(e.target.closest('.mm-reset')){reset();return}
+    var tb2=e.target.closest('[data-theme-set]');
+    if(tb2&&window.GJ_THEME){GJ_THEME.set(tb2.getAttribute('data-theme-set'));paint();return}
     var db=e.target.closest('[data-dec]');
     if(db&&D2()){D2().set(db.getAttribute('data-dec'),db.getAttribute('data-v'));safelight();paint();return}
   });
@@ -102,52 +136,89 @@ function build(){
     if(dr&&D2()){var dk=dr.getAttribute('data-dec-r');D2().set(dk,+dr.value);var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dk==='safeK'?(dr.value/100).toFixed(2):dr.value;if(dk==='safeK')safelight();return}
     var r=e.target.closest('input[data-k]');if(!r)return;
     var row=findRow(r.getAttribute('data-k'));if(!row)return;
+    if(window.GJ_THEME)GJ_THEME.adjust(roomOfRow(row.k),{label:row.label,value:+r.value});
     var v=+r.value;
     if(row.k.indexOf('gj.tune.')===0)wr(row.k,v);
     row.apply(v,true);
     var o=r.parentNode.querySelector('output');if(o)o.textContent=v;
   });
+  menu.addEventListener('pointerdown',function(e){if(e.target.closest('input[type=range]'))menu.classList.add('mm-peek')});
+  ['pointerup','pointercancel','touchend','touchcancel','blur'].forEach(function(n){addEventListener(n,function(){menu.classList.remove('mm-peek')},true)});
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
   document.addEventListener('pointerdown',function(e){if(open&&!e.target.closest('#markmenu,#crumb .sig'))show(false)},true);
 }
-function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].rows[j];return null}
+function findRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].rows[j];
+  var mod=(window.__shell&&__shell.mod)||(window.Shell&&Shell.mod)||null;
+  var extra=moduleRows(mod);if(extra)for(var i=0;i<extra.length;i++)if(extra[i].k===k)return extra[i];
+  return null}
+function roomOfRow(k){for(var i=0;i<ROOMS.length;i++)for(var j=0;j<ROOMS[i].rows.length;j++)if(ROOMS[i].rows[j].k===k)return ROOMS[i].id;
+  var m=(window.__shell&&__shell.mod)||null;return m&&m.chapter||null}
+function rowsHtml(rows){
+  var h='';rows.forEach(function(r){var v=r.get();
+    h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+r.label+'"><output>'+v+'</output></label>'});
+  return h;
+}
 function paint(){
+  if(!menu)return;
   var pl=menu.querySelector('.mm-plate'),tb=menu.querySelector('.mm-tune');
   tb.setAttribute('aria-expanded',tuneOn?'true':'false');tb.classList.toggle('on',tuneOn);
   pl.hidden=!tuneOn;if(!tuneOn)return;
-  var here=room(),order=ROOMS.slice().sort(function(a,b){return (b.id===here)-(a.id===here)});
-  var h='<section class="mm-dec"><h3>decisions <em>the hero opener keeps the full mark in every mode; the Sound waveform player is in every combination</em></h3>';
+  var c=ctx(),here=c.room,level=c.levelName;
+  var title=here+(level&&level!==here?' · '+level:'');
+  var offHere=isOff(here)&&!(c.mod&&c.mod.chapter===here&&c.mod.tune);
+  var h='<section class="mm-ctx'+(offHere?' mm-off-room':'')+'"><h3>'+title+' <span>here</span>'+(offHere?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
+  h+=rowsHtml(contextRows(c));
+  h+='</section>';
+  h+='<button type="button" class="mm-all" aria-expanded="'+(allOn?'true':'false')+'">'+(allOn?'close rooms':'all rooms')+'</button>';
+  if(allOn){
+    h+='<div class="mm-more">';
+    ROOMS.forEach(function(R){
+      if(R.id===here)return;
+      h+='<section class="mm-room'+(R.off?' mm-off-room':'')+'"><h3>'+R.name+(R.off?' <em>'+OFF_NOTE+'</em>':'')+'</h3>';
+      h+=rowsHtml(R.rows);
+      h+='</section>';
+    });
+    h+='<section class="mm-dec"><h3>decisions <em>the hero opener keeps the full mark in every mode; the Sound waveform player is in every combination</em></h3>';
+    var G=D2();
+    DECS.forEach(function(d){
+      var v=G?G.get(d.k):'';
+      h+='<div class="mm-seg" role="radiogroup" aria-label="'+d.n+'"><b>'+d.n+'</b><span>';
+      d.o.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(v===o[0])+'" data-dec="'+d.k+'" data-v="'+o[0]+'">'+o[1]+'</button>'});
+      h+='</span></div>';
+    });
+    h+='</section></div>';
+  }
   var G=D2();
-  DECS.forEach(function(d){
-    var v=G?G.get(d.k):'';
-    h+='<div class="mm-seg" role="radiogroup" aria-label="'+d.n+'"><b>'+d.n+'</b><span>';
-    d.o.forEach(function(o){h+='<button type="button" role="radio" aria-checked="'+(v===o[0])+'" data-dec="'+d.k+'" data-v="'+o[0]+'">'+o[1]+'</button>'});
-    h+='</span></div>';
-  });
-  MORE.forEach(function(m){var v=G?G.get(m.k):0;h+='<label><span>'+m.label+'</span><input type="range" min="'+m.min+'" max="'+m.max+'" step="1" value="'+v+'" data-dec-r="'+m.k+'" aria-label="'+m.label+'"><output>'+v+'</output></label>'});
-  var sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60;
+  var mot=G?G.get('motion'):100,snap=G?G.get('snapAt'):34,sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60,rv=G?+G.get('ripples'):1;
+  h+='<section class="mm-globals"><h3>globals</h3>';
+  var TH=window.GJ_THEME,tp=TH?TH.pref:'night';
+  if(TH)h+='<div class="mm-seg mm-theme"><b>colour mode'+(TH.exempt(here)?' <em>this room keeps its own look</em>':'')+'</b><span role="radiogroup" aria-label="colour mode"><button type="button" role="radio" aria-checked="'+(tp==='night')+'" data-theme-set="night">night</button><button type="button" role="radio" aria-checked="'+(tp==='red')+'" data-theme-set="red">red</button></span></div>';
+  h+='<label><span>motion</span><input type="range" min="0" max="200" step="1" value="'+mot+'" data-dec-r="motion" aria-label="motion"><output>'+mot+'</output></label>';
+  h+='<label><span>snap threshold</span><input type="range" min="15" max="70" step="1" value="'+snap+'" data-dec-r="snapAt" aria-label="snap threshold"><output>'+snap+'</output></label>';
   h+='<div class="mm-seg"><b>safelight (warm edge glow)</b><span><button type="button" role="radio" aria-checked="'+(sl===0)+'" data-dec="safelight" data-v="0">off</button><button type="button" role="radio" aria-checked="'+(sl===1)+'" data-dec="safelight" data-v="1">on</button></span></div>';
   h+='<label><span>safelight strength</span><input type="range" min="0" max="100" step="1" value="'+sk+'" data-dec-r="safeK" aria-label="safelight strength, 0 to 1"><output>'+(sk/100).toFixed(2)+'</output></label>';
-  var rv=G?+G.get('ripples'):1;
   h+='<div class="mm-seg"><b>ripples (water)</b><span><button type="button" role="radio" aria-checked="'+(rv===1)+'" data-dec="ripples" data-v="1">on</button><button type="button" role="radio" aria-checked="'+(rv===0)+'" data-dec="ripples" data-v="0">off</button></span></div>';
   h+='</section>';
-  order.forEach(function(R){
-    h+='<section class="mm-room'+(R.id===here?' here':'')+'"><h3>'+R.name+(R.id===here?' <span>here</span>':'')+(R.door?' <em>applies in the room</em>':'')+'</h3>';
-    R.rows.forEach(function(r){
-      var v=r.get();
-      h+='<label><span>'+r.label+'</span><input type="range" min="'+r.min+'" max="'+r.max+'" step="1" value="'+v+'" data-k="'+r.k+'" aria-label="'+R.name+' '+r.label+'"><output>'+v+'</output></label>';
-    });
-    h+='</section>';
-  });
-  h+='<p class="mm-foot"><button type="button" class="mm-reset">reset all</button><span>'+NEXT+'</span></p>';
+  h+='<p class="mm-foot"><span class="mm-resets"><button type="button" class="mm-reset mm-reset-room">reset '+here+'</button><button type="button" class="mm-reset">reset all</button></span></p>';
   pl.innerHTML=h;
+  /* highlight the current room in the nav */
+  menu.querySelectorAll('.mm-rooms [data-go]').forEach(function(el){el.classList.toggle('on',el.getAttribute('data-go')===here)});
+}
+function resetRoom(){
+  var c=ctx(),R=roomById(c.room);
+  var all=(c.mod&&c.mod.chapter===c.room&&moduleRows(c.mod))||(R?R.rows:contextRows(c));
+  all.forEach(function(r){rm(r.k)});
+  all.forEach(function(r){r.apply(r.get(),true)});
+  poke('gj.vol');poke('gj.sound.invert');setFlash();
+  paint();
 }
 function reset(){
   ROOMS.forEach(function(R){R.rows.forEach(function(r){rm(r.k)})});
+  var extra=moduleRows((window.__shell&&__shell.mod)||(window.Shell&&Shell.mod));
+  if(extra)extra.forEach(function(r){rm(r.k)});
   if(T())T().reset();
   if(D2())D2().reset();
-  safelight();
-  poke('gj.vol');
+  poke('gj.vol');poke('gj.sound.invert');setFlash();safelight();
   paint();
 }
 function show(on){
@@ -156,12 +227,21 @@ function show(on){
   var s=document.querySelector('#crumb .sig');if(s)s.setAttribute('aria-expanded',open?'true':'false');
   if(open)paint();
 }
-/* saved sky + film values come back on load */
-function restore(){
-  var t=T();if(!t)return;var o={},any=false;
-  ['map','stars','starS','starG','lineA','fdens','fgap'].forEach(function(k){var v=rd('gj.tune.'+k,null);if(v!=null&&D[k]!=null){o[k]=D[k]*v/100;any=true}});
-  if(any)t.set(o);
+/* the real site has no ladder callback: while the tune plate is open, repaint when the room or level changes */
+function hookLadder(){
+  if(hooked)return;hooked=true;var last='';
+  setInterval(function(){if(!(open&&tuneOn))return;var s=window.__u1?JSON.stringify([__u1.cur.lv,__u1.cur.k,__u1.cur.b]):'';if(s!==last){last=s;paint()}},250);
 }
-var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();safelight();return}if(++tries<200)setTimeout(wait,50)})();
-window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},rooms:function(){return ROOMS.map(function(R){return {id:R.id,rows:R.rows.map(function(r){return r.label})}})}};
+function restore(){
+  var t=T();if(t){var o={},any=false;
+    ['mood','map','stars','starS','starG','lineA','fdens','fgap'].forEach(function(k){var v=rd('gj.tune.'+k,null);if(v!=null&&D[k]!=null){o[k]=D[k]*v/100;any=true}});
+    if(any)t.set(o)}
+  setFlash();
+  safelight();
+}
+var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();hookLadder();return}if(++tries<200)setTimeout(wait,50)})();
+if(window.GJ_THEME)GJ_THEME.on(function(w){if(w!=='adj'&&open&&tuneOn)paint()});
+window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},
+  context:function(){return ctx()},
+  rooms:function(){return ROOMS.map(function(R){return {id:R.id,rows:R.rows.map(function(r){return r.label})}})}};
 })();
