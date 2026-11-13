@@ -38,7 +38,7 @@ function ensure(){
   root.setAttribute('role','region');root.setAttribute('aria-label','film reel');
   root.innerHTML=
     '<div class="hr-st" tabindex="0" aria-label="the picture: tap to play or pause, drag sideways to scrub">'+
-      '<div class="hr-frame"><img class="hr-po" alt="" decoding="async"><video class="hr-v" muted playsinline loop preload="auto"></video><video class="hr-v" muted playsinline loop preload="auto"></video></div></div>'+
+      '<div class="hr-frame"><img class="hr-po" alt="" decoding="async"><video class="hr-v" muted playsinline loop preload="metadata"></video><video class="hr-v" muted playsinline loop preload="metadata"></video></div></div>'+
     '<div class="hr-fade hr-top"><button type="button" class="hr-x" aria-label="back to horizon">‹</button>'+
       '<button type="button" class="hr-q" aria-label="contact sheet for this film">contact sheet</button></div>'+
     '<p class="hr-fade hr-hint" aria-hidden="true"><span class="t-touch">drag the glass to scrub · tap the picture to pause</span><span class="t-desk">drag the glass or scroll to scrub · space pauses · 1–4 views</span></p>'+
@@ -104,9 +104,37 @@ function relayout(){
 }
 
 /* ---------- picture ---------- */
+function horizonBase(it){
+  var id=it&&it.id||'';
+  return /^r\d+$/.test(id)?'/media/film/horizon-'+id+'/':'';
+}
+function horizonPoster(it){
+  var base=horizonBase(it);
+  return base?base+'loop-480-poster.jpg':(it.poster||'');
+}
+/* AV1, then VP9, then H.264. Only the shot on screen and the next one are armed. */
+function armClip(v,i){
+  var it=ITEMS[i];if(!it||!v)return;
+  var base=horizonBase(it);
+  v.muted=true;v.defaultMuted=true;v.setAttribute('muted','');
+  v.playsInline=true;v.loop=true;v.preload='metadata';
+  v.removeAttribute('src');
+  while(v.firstChild)v.removeChild(v.firstChild);
+  if(!base){v.src=it.clip;return}
+  v.poster=base+'loop-480-poster.jpg';
+  [
+    [base+'loop-480.av1.webm','video/webm; codecs="av01.0.04M.08"'],
+    [base+'loop-480.webm','video/webm; codecs="vp9"'],
+    [base+'loop-480.mp4','video/mp4; codecs="avc1.64001E"']
+  ].forEach(function(s){
+    var el=document.createElement('source');
+    el.src=s[0];el.type=s[1];v.appendChild(el);
+  });
+  try{v.load()}catch(e){}
+}
 function setPicture(i){
   var it=ITEMS[i];
-  poster.src=it.poster;poster.alt=it.title+' · clip '+pad(i+1)+' of '+N;
+  poster.src=horizonPoster(it);poster.alt=it.title+' · clip '+pad(i+1)+' of '+N;
   root.classList.toggle('tall',it.h>it.w);
   vids.forEach(function(v){v.classList.remove('on')});
   lipT.textContent=it.title;lipN.textContent=pad(i+1)+' / '+pad(N);
@@ -119,16 +147,24 @@ function loadVideo(i,fromStart){
   var it=ITEMS[i];if(!it)return;
   var v=vids[vcur],o=vids[1-vcur];
   if(o.dataset.i===String(i)){vcur=1-vcur;var t=v;v=o;o=t}
-  else if(v.dataset.i!==String(i)){v.dataset.i=String(i);v.src=it.clip}
+  else if(v.dataset.i!==String(i)){v.dataset.i=String(i);armClip(v,i)}
   o.pause();o.classList.remove('on');
   v.playbackRate=tx==='ff'?rate:1;
   if(fromStart)try{v.currentTime=0}catch(e){}
-  if(tx==='play'||tx==='ff'){var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})}
+  if(tx==='play'||tx==='ff'){
+    var token=String(i);
+    function kick(){
+      if(v.dataset.i!==token||(tx!=='play'&&tx!=='ff'))return;
+      var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});
+    }
+    if(v.readyState>=2)kick();
+    else v.addEventListener('loadeddata',kick,{once:true});
+  }
   else{v.pause()} /* paused / stopped: the poster (the clip's first frame) stands in until it plays */
   if(v.readyState>=3&&!v.paused)v.classList.add('on');
   /* warm the next clip in the other element */
   var nx=wrap(i+1);
-  if(o.dataset.i!==String(nx)){o.dataset.i=String(nx);o.src=ITEMS[nx].clip;o.preload='auto';try{o.load()}catch(e){}}
+  if(o.dataset.i!==String(nx)){o.dataset.i=String(nx);o.preload='metadata';armClip(o,nx)}
 }
 function show(i,settle){
   if(i===cur)return;

@@ -1099,9 +1099,14 @@ function paintFilm(el,work){
   if(filmLv===1){
     var hero=wk?'media/pro2/frames/22/12.webp':work.id==='film/back-to-the-start'?'media/pro2/frames/20/56.webp':heroOf(work,poster);
     if(!wk&&/\/sc\//.test(clip))clip='';
-    var media=(!wk&&clip)
+    /* Playback pack: the hero is the muted loop (720p for the two featured films).
+       The full-length player file is not in this preview; this loop is the stand-in. */
+    var playTag=window.GJ_PLAY&&GJ_PLAY.filmTag(work);
+    var media=playTag
+      ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+playTag
+      : ((!wk&&clip)
       ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+'<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
-      : (hero?'<img src="'+esc(hero)+'" alt="">':'');
+      : (hero?'<img src="'+esc(hero)+'" alt="">':''));
     var role=work.role||'';
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
     var keep=filmKeep;filmKeep=-1;
@@ -1114,6 +1119,7 @@ function paintFilm(el,work){
     if(keep>0){var sh=el.querySelector('.sheet');if(sh)sh.scrollTop=keep}
     var v1=el.querySelector('video');
     if(v1){
+      v1.muted=true;v1.defaultMuted=true;v1.setAttribute('muted','');
       function showFrame(){if(v1.readyState>=2)v1.classList.add('live')}
       v1.addEventListener('loadeddata',showFrame);
       v1.addEventListener('playing',showFrame);
