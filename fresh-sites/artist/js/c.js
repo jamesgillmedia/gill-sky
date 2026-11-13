@@ -189,11 +189,6 @@ function ensureDial(){if(dialEl)return;dialEl=el('div','c-dial',null,d.body);dia
 function boxOf(node){if(!node||!node.getBoundingClientRect)return null;var b=node.getBoundingClientRect();if(b.width<2||b.height<2)return null;var n=node,s;while(n&&n!==d.documentElement){try{s=getComputedStyle(n)}catch(e){return null}if(s.display==='none'||s.visibility==='hidden'||parseFloat(s.opacity)===0)return null;n=n.parentElement}return b}
 function avoidRects(){var out=[];d.querySelectorAll('.c-lead img,.c-sec img,.c-hero img,#gplay,#dev,.c-wm,.c-map').forEach(function(node){var b=boxOf(node);if(b)out.push(b)});return out}
 function boxHits(box,list){for(var i=0;i<list.length;i++){var q=list[i];if(box.left<q.right&&box.right>q.left&&box.top<q.bottom&&box.bottom>q.top)return true}return false}
-function placeGhost(px,py){var W=innerWidth,H=innerHeight,right=px<W/2,ys=[H*.42,H*.30,H*.55],avoid=avoidRects(),cands=[],i;
-  [right,!right].forEach(function(r){ys.forEach(function(y){cands.push({r:r,y:y})})});
-  var reach=96; /* the arc plus the stop name, so the dial never sits on a picture */
-  for(i=0;i<cands.length;i++){var c=cands[i],box=c.r?{left:W-reach,top:c.y-RARC-10,right:W,bottom:c.y+RARC+14}:{left:0,top:c.y-RARC-10,right:reach,bottom:c.y+RARC+14};
-    if(!boxHits(box,avoid)&&Math.abs((c.r?W:0)-px)>40)return c}return null}
 function showDial(px,py){ensureDial();clearTimeout(dialHideT);clearTimeout(dialFadeT);dialOn=true;dialPx=px;dialPy=py;var placed=paintDial();
   dialEl.classList.toggle('tuck',!placed);if(placed){dialEl.classList.remove('out');dialEl.classList.add('on')}tuckCheck()}
 function drawDial(c){var W=innerWidth,svg=dialEl.querySelector('svg');svg.setAttribute('viewBox','0 0 '+W+' '+innerHeight);
