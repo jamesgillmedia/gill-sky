@@ -41,7 +41,7 @@ var ROOMS=[
   {id:'sound',name:'sound',rows:[
     lsRow('gj.vol','volume',0,100,100,100,poke),
     lsRow('gj.flash','flash',0,100,60,100,setFlash),
-    lsRow('gj.sound.invert','invert',0,100,0,1)]},
+    lsRow('gj.sound.invert','invert',0,100,0,1,poke)]},
   {id:'objects',name:'objects',door:'../objects/',rows:[
     lsRow('gj.amb.objects.glow','glow',0,150,100,1),
     lsRow('gj.amb.objects.haze','haze',0,250,100,1),
@@ -201,7 +201,7 @@ function resetRoom(){
   var all=(c.mod&&c.mod.chapter===c.room&&moduleRows(c.mod))||(R?R.rows:contextRows(c));
   all.forEach(function(r){rm(r.k)});
   all.forEach(function(r){r.apply(r.get(),true)});
-  poke('gj.vol');setFlash();
+  poke('gj.vol');poke('gj.sound.invert');setFlash();
   paint();
 }
 function reset(){
@@ -210,7 +210,7 @@ function reset(){
   if(extra)extra.forEach(function(r){rm(r.k)});
   if(T())T().reset();
   if(D2())D2().reset();
-  poke('gj.vol');setFlash();safelight();
+  poke('gj.vol');poke('gj.sound.invert');setFlash();safelight();
   paint();
 }
 function show(on){

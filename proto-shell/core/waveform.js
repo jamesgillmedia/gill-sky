@@ -12,7 +12,7 @@ function lsr(k,d){try{var v=parseFloat(localStorage.getItem(k));return isFinite(
 function Wave(shape,tracks){
   var V={shape:shape,tracks:tracks,sel:3,au:new Audio(),el:null};
   var au=V.au;au.preload='metadata';au.volume=lsr('gj.vol',1);
-  addEventListener('storage',function(e){if(e.key==='gj.vol')au.volume=lsr('gj.vol',1)});
+  addEventListener('storage',function(e){if(e.key==='gj.vol')au.volume=lsr('gj.vol',1);if(e.key==='gj.sound.invert')paint()});
   V.starOf=function(i){return STAR[tracks[i].k]};
   V.trackAtStar=function(si){for(var i=0;i<tracks.length;i++)if(STAR[tracks[i].k]===si)return i;return -1};
   function mount(){
@@ -35,12 +35,17 @@ function Wave(shape,tracks){
     if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
     var q=c.getContext('2d');q.setTransform(dpr,0,0,dpr,0,0);q.clearRect(0,0,w,h);
     var xs=shape.s.filter(function(p){return p[3]===0}),head=au.duration?au.currentTime/au.duration:0;
+    /* Sound invert (gj.sound.invert, 0-100, tune menu > sound): 0 = the chart as written, 100 = flipped top to bottom about its own middle;
+       in between the chart eases through flat. Only the rail is drawn from this; the song stars in the sky keep their places. */
+    var lo=1,hi=0;xs.forEach(function(p){lo=Math.min(lo,p[1]);hi=Math.max(hi,p[1])});
+    var iv=parseFloat(localStorage.getItem('gj.sound.invert'));iv=isFinite(iv)?Math.max(0,Math.min(100,iv))/100:0;
+    var mid=(lo+hi)/2,fl=1-2*iv;function Y(v){return h*.15+(mid+(v-mid)*fl)*h*.7}
     q.strokeStyle='rgba(230,214,200,.38)';q.lineWidth=1;q.beginPath();
-    xs.forEach(function(p,i){var x=p[0]*w,y=h*.15+p[1]*h*.7;if(i)q.lineTo(x,y);else q.moveTo(x,y)});q.stroke();
+    xs.forEach(function(p,i){var x=p[0]*w,y=Y(p[1]);if(i)q.lineTo(x,y);else q.moveTo(x,y)});q.stroke();
     /* the dotted waveform itself: a fine dot run between the stars, ink up to the head */
-    for(var i=0;i<xs.length-1;i++){var a=xs[i],b=xs[i+1],n=Math.max(2,Math.round(Math.hypot((b[0]-a[0])*w,(b[1]-a[1])*h*.7)/5));
-      for(var j=0;j<n;j++){var u=j/n,x=(a[0]+(b[0]-a[0])*u)*w,y=h*.15+(a[1]+(b[1]-a[1])*u)*h*.7;q.fillStyle=x/w<head?'rgba(238,243,245,.95)':'rgba(201,211,214,.4)';q.fillRect(x-.6,y-.6,1.2,1.2)}}
-    xs.forEach(function(p){var x=p[0]*w,y=h*.15+p[1]*h*.7;q.fillStyle=x/w<head?'#eef3f5':'rgba(201,211,214,.7)';q.beginPath();q.arc(x,y,1.7,0,6.283);q.fill()});
+    for(var i=0;i<xs.length-1;i++){var a=xs[i],b=xs[i+1],n=Math.max(2,Math.round(Math.hypot((b[0]-a[0])*w,(Y(b[1])-Y(a[1])))/5));
+      for(var j=0;j<n;j++){var u=j/n,x=(a[0]+(b[0]-a[0])*u)*w,y=Y(a[1]+(b[1]-a[1])*u);q.fillStyle=x/w<head?'rgba(238,243,245,.95)':'rgba(201,211,214,.4)';q.fillRect(x-.6,y-.6,1.2,1.2)}}
+    xs.forEach(function(p){var x=p[0]*w,y=Y(p[1]);q.fillStyle=x/w<head?'#eef3f5':'rgba(201,211,214,.7)';q.beginPath();q.arc(x,y,1.7,0,6.283);q.fill()});
     q.fillStyle='#fff';q.fillRect(head*w-.5,2,1,h-4);q.beginPath();q.arc(head*w,h/2,2.6,0,6.283);q.fill();
   }
   V.pick=function(i,play){if(i<0||i>=tracks.length)return;var was=!au.paused;V.sel=i;au.src=tracks[i].file;au.load();if(play||was)au.play().catch(function(){});show();paint()};
