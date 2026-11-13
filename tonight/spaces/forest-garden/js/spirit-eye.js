@@ -183,19 +183,19 @@ export function mount(THREE, scene, ctx) {
   fgeo.setAttribute('aId', new THREE.Float32BufferAttribute(fid, 1));
   fgeo.setAttribute('aL', new THREE.Float32BufferAttribute(flr, 1));
   fgeo.setAttribute('aG', new THREE.Float32BufferAttribute(fgn, 1));
-  const FU = { uF: { value: 0 }, uB: { value: .05 }, uDay: { value: 0 } };
+  const FU = { uF: { value: 0 }, uB: { value: .05 }, uDay: { value: 0 }, uRed: { value: 0 }, uInk: { value: new THREE.Vector3(1, 68 / 255, 87 / 255) } };
   const fibers = new THREE.LineSegments(fgeo, new THREE.ShaderMaterial({ uniforms: FU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: 'attribute float aT,aId,aL,aG;varying float vT,vId,vL,vG;void main(){vT=aT;vId=aId;vL=aL;vG=aG;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: 'uniform float uF,uB,uDay;varying float vT,vId,vL,vG;void main(){float lag=(fract(vId*13.7)-.5)*.036;float F=uF+lag;float lit=1.-smoothstep(F-.007,F+.007,vT);float head=exp(-abs(vT-F)*52.)*step(.01,F)*(1.-step(.999,F));float tr1=exp(-abs(vT-(F-.04))*70.)*step(.05,F);float tr2=exp(-abs(vT-(F-.085))*82.)*step(.1,F);float tex=.8+.2*sin(vT*42.+vId*6.1);float day=1.-.55*uDay;float a=(uB*.28+lit*(.08+.12*(1.-vT))*tex+head*.5+tr1*.28+tr2*.14)*vG*day;vec3 col=mix(vec3(.78,.97,1.),vec3(.95,.96,.84),vT);col=mix(col,vec3(.62,.93,.9),.2);gl_FragColor=vec4(col*a,1.);}' }));
-  fibers.renderOrder = 7; g.add(fibers);
+    fragmentShader: 'uniform float uF,uB,uDay,uRed;uniform vec3 uInk;varying float vT,vId,vL,vG;void main(){float lag=(fract(vId*13.7)-.5)*.036;float F=uF+lag;float lit=1.-smoothstep(F-.007,F+.007,vT);float head=exp(-abs(vT-F)*52.)*step(.01,F)*(1.-step(.999,F));float tr1=exp(-abs(vT-(F-.04))*70.)*step(.05,F);float tr2=exp(-abs(vT-(F-.085))*82.)*step(.1,F);float tex=.8+.2*sin(vT*42.+vId*6.1);float day=1.-.55*uDay;float bodyA=(uB*.28+lit*(.08+.12*(1.-vT))*tex+tr1*.28+tr2*.14)*vG*day;float headA=head*.5*vG*day;vec3 body=mix(vec3(.78,.97,1.),vec3(.95,.96,.84),vT);body=mix(body,vec3(.62,.93,.9),.2);vec3 tip=mix(vec3(1.,.97,.9),uInk,uRed);gl_FragColor=vec4(body*bodyA+tip*headA,1.);}' }));
+  fibers.material.userData.redEnds = 1; fibers.renderOrder = 7; g.add(fibers);
   const tipN = strands.length, tipPos = new Float32Array(tipN * 3), tipG = new THREE.BufferGeometry();
   tipG.setAttribute('position', new THREE.BufferAttribute(tipPos, 3));
-  const tips = new THREE.Points(tipG, new THREE.PointsMaterial({ map: ctx.glowTex, color: 0xd8fbff, size: .28, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const tips = new THREE.Points(tipG, new THREE.PointsMaterial({ map: ctx.glowTex, color: 0xd8fbff, size: .28, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); tips.material.userData.redEnd = 1;
   tips.renderOrder = 9; g.add(tips);
   const entryPos = new Float32Array(tipN * 3);
   strands.forEach((S, i) => { const p = strandAt(S, 0); entryPos[i * 3] = p[0]; entryPos[i * 3 + 1] = p[1]; entryPos[i * 3 + 2] = p[2] });
   const entryG = new THREE.BufferGeometry(); entryG.setAttribute('position', new THREE.BufferAttribute(entryPos, 3));
-  const entry = new THREE.Points(entryG, new THREE.PointsMaterial({ map: ctx.glowTex, color: 0xfff2d0, size: .18, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
+  const entry = new THREE.Points(entryG, new THREE.PointsMaterial({ map: ctx.glowTex, color: 0xfff2d0, size: .18, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending })); entry.material.userData.redEnd = 1;
   entry.renderOrder = 9; g.add(entry);
   let lastTipF = -1;
   function placeTips(F) {

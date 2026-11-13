@@ -35,10 +35,10 @@ export function mountAtmos(THREE, scene, root, o) {
   /* ---- fog: soft fbm banks, camera-facing (A, C) or lying flat (B) ---- */
   const fogM = (seed, a, flat) => new THREE.ShaderMaterial({ uniforms: { ...AU, uA: { value: a }, uS: { value: seed }, uFlat: { value: flat ? 1 : 0 } }, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
     vertexShader: 'varying vec2 vU;void main(){vU=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: `uniform float uT,uA,uS,uRed,uFlat;uniform vec3 uInk;varying vec2 vU;${NOISE}
+    fragmentShader: `uniform float uT,uA,uS,uFlat;varying vec2 vU;${NOISE}
       void main(){vec2 c=vU-.5;float m=smoothstep(.5,.12,length(c));vec2 q=vU*2.6+vec2(uS*7.3,uS*3.1);
         q+=vec2(uT*.018,uT*.007)*(uFlat>.5?1.4:1.);float n=fbm(q+vec2(fbm(q*1.7+uT*.01),0.)*.8);float a=m*smoothstep(.3,.78,n)*uA;
-        vec3 col=mix(vec3(.80,.80,.82),uInk*.85,uRed);gl_FragColor=vec4(col*a,1.);}` });
+        vec3 col=vec3(.80,.80,.82);gl_FragColor=vec4(col*a,1.);}` });
   const banks = [];
   function addBank(x, y, z, s, a, seed, flat, where) { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), fogM(seed, a, flat)); m.position.set(x, y, z); m.scale.set(s, s * (flat ? 1 : .62), 1);
     if (flat) m.rotation.x = -Math.PI / 2; m.renderOrder = 6; m.userData = { flat, where, base: m.position.clone(), seed }; grp.add(m); banks.push(m); return m }
@@ -56,10 +56,10 @@ export function mountAtmos(THREE, scene, root, o) {
   /* ---- light shafts through the fibre column: thin open cones of light that breathe ---- */
   const shaftM = (ph, w) => new THREE.ShaderMaterial({ uniforms: { ...AU, uI: { value: 0 }, uF: { value: 0 }, uP: { value: ph }, uW: { value: w } }, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
     vertexShader: 'varying float vY;varying vec3 vN;varying vec3 vV;varying vec2 vU;void main(){vY=uv.y;vU=uv;vec4 mv=modelViewMatrix*vec4(position,1.);vN=normalize(normalMatrix*normal);vV=normalize(-mv.xyz);gl_Position=projectionMatrix*mv;}',
-    fragmentShader: `uniform float uT,uI,uF,uP,uW,uRed;uniform vec3 uInk;varying float vY;varying vec3 vN;varying vec3 vV;varying vec2 vU;${NOISE}
+    fragmentShader: `uniform float uT,uI,uF,uP,uW;varying float vY;varying vec3 vN;varying vec3 vV;varying vec2 vU;${NOISE}
       void main(){float d=1.-vY;float lit=1.-smoothstep(uF-.02,uF+.02,d);float f=pow(abs(dot(vN,vV)),2.2);
         float br=.62+.38*sin(uT*uW+uP);float streak=.55+.45*fbm(vec2(vU.x*9.,d*2.-uT*.03+uP));
-        float a=uI*lit*f*br*streak*(.25+.75*d)*smoothstep(0.,.06,d);vec3 col=mix(vec3(1.,.96,.86),uInk,uRed);gl_FragColor=vec4(col*a,1.);}` });
+        float a=min(.2,uI*lit*f*br*streak*(.25+.75*d)*smoothstep(0.,.06,d));vec3 col=vec3(1.,.96,.86);gl_FragColor=vec4(col*a,1.);}` });
   const shafts = [];
   [[0, 0, .25, 1.2, .0, .55], [.9, .4, .2, .95, 1.7, .41], [-.7, .8, .3, 1.1, 3.1, .47], [.4, -1.0, .18, .8, 4.4, .36], [-1.1, -.5, .22, .9, 5.6, .5], [1.4, -.3, .15, .7, 2.2, .44]].forEach(([x, z, rt, rb, ph, w]) => {
     const m = new THREE.Mesh(new THREE.CylinderGeometry(rt, rb, FTOP - FBOT, 24, 1, true), shaftM(ph, w)); m.position.set(x, (FTOP + FBOT) / 2, z); m.renderOrder = 8; grp.add(m); shafts.push(m) });
@@ -73,36 +73,38 @@ export function mountAtmos(THREE, scene, root, o) {
   function syncLine() { RU.uLine.value = lineOn && !red ? 1 : 0 }
   /* A plan texture has two uses. On the whorl face it is part of the sculpture: Night leaves it alone, Red inks it.
      On a placed sheet (material.userData.sheet, set by spirit-eye's placeAll) Night adds a soft vignette into the mat and,
-     with the dev "night line" row, redraws it as warm-white lines on the mat colour. Red is the same on both.
+     with the dev "night line" row, redraws it with Red's own line finder (edges and dark fills) in warm white on the mat colour.
+     Red is the same on both.
      Colours here are linear (the map is sampled linear): #04070b and #e8e4dc. */
   function injectPlan(m) { if (m.userData.planInj) return; m.userData.planInj = 1;
     const img = m.map.image, tx = new THREE.Vector2(1.3 / (img.width || 1024), 1.3 / (img.height || 1024)), sheet = { value: m.userData.sheet ? 1 : 0 };
     m.onBeforeCompile = sh => { sh.uniforms.uRedR = RU.uRedR; sh.uniforms.uInkR = RU.uInkR; sh.uniforms.uWash = RU.uWash; sh.uniforms.uLine = RU.uLine; sh.uniforms.uSheet = sheet; sh.uniforms.uTx = { value: tx };
       sh.fragmentShader = 'uniform float uRedR,uWash,uLine,uSheet;uniform vec3 uInkR;uniform vec2 uTx;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 #ifdef USE_MAP
-if(uRedR>0.){vec3 W=vec3(.2126,.7152,.0722);float l0=dot(diffuseColor.rgb,W);
+bool nl=uRedR<=0.&&uSheet>.5&&uLine>.5;vec3 MAT=vec3(.00121,.00212,.00334);
+if(uRedR>0.||nl){vec3 W=vec3(.2126,.7152,.0722);float l0=dot(diffuseColor.rgb,W);
  float gx=dot(texture2D(map,vMapUv+vec2(uTx.x,0.)).rgb-texture2D(map,vMapUv-vec2(uTx.x,0.)).rgb,W);
  float gy=dot(texture2D(map,vMapUv+vec2(0.,uTx.y)).rgb-texture2D(map,vMapUv-vec2(0.,uTx.y)).rgb,W);
  float e=smoothstep(.07,.24,length(vec2(gx,gy)));float dk=(1.-smoothstep(.12,.42,l0))*.55;float k=max(e,dk);
- vec3 lineC=uInkR*(k*1.2+l0*.07);vec3 washC=uInkR*pow(l0,1.15)*.95;
- diffuseColor.rgb=mix(diffuseColor.rgb,mix(lineC,washC,uWash),uRedR);}
-else if(uSheet>.5){vec3 MAT=vec3(.00121,.00212,.00334);
- if(uLine>.5){float l1=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));diffuseColor.rgb=mix(MAT,vec3(.807,.776,.716),1.-smoothstep(.2,.8,l1));}
- float vig=1.-smoothstep(.7,1.5,length((vMapUv-.5)*2.));diffuseColor.rgb=mix(MAT,diffuseColor.rgb,mix(.5,1.,vig));}
+ if(nl)diffuseColor.rgb=mix(MAT,vec3(.807,.776,.716),clamp(max(e,dk*.5)*1.05,0.,1.));
+ else{vec3 lineC=uInkR*(k*1.2+l0*.07);vec3 washC=uInkR*pow(l0,1.15)*.95;
+ diffuseColor.rgb=mix(diffuseColor.rgb,mix(lineC,washC,uWash),uRedR);}}
+if(uRedR<=0.&&uSheet>.5){float vig=1.-smoothstep(.7,1.5,length((vMapUv-.5)*2.));diffuseColor.rgb=mix(MAT,diffuseColor.rgb,mix(.5,1.,vig));}
 #endif`) };
-    m.customProgramCacheKey = () => 'spaces-plan-v4'; m.needsUpdate = true }
+    m.customProgramCacheKey = () => 'spaces-plan-v5'; m.needsUpdate = true }
   /* spirit-eye hands a placed drawing over the moment its texture lands, so it never shows un-inked for a frame */
   function adopt(m) { if (isPlanMap(m)) injectPlan(m) }
   function injectShader(m) { if (m.userData.redInj || !m.fragmentShader) return; m.userData.redInj = 1; const lift = m.userData.redLift || 1.25;
     m.uniforms.uRedR = AU.uRed; m.uniforms.uInkR = AU.uInk;
     const fs = m.fragmentShader, i = fs.lastIndexOf('}');
     m.fragmentShader = 'uniform float uRedR;uniform vec3 uInkR;\n' + fs.slice(0, i) + `gl_FragColor.rgb=mix(gl_FragColor.rgb,uInkR*min(1.,dot(gl_FragColor.rgb,vec3(.2126,.7152,.0722))*${lift.toFixed(2)}),uRedR);` + fs.slice(i); m.needsUpdate = true }
-  function liftFor(obj) { if (obj.isPoints) return 1.6; if (obj.isLine || obj.isLineSegments) return 1.7; if (obj.isSprite) return 1.05; return .3 }
   function scan() { scene.traverse(obj => { if (obj.userData && obj.userData.keepTrue) return; let p = obj.parent; while (p) { if (p.userData && p.userData.atmos) return; p = p.parent }
     if (obj.isInstancedMesh) return; const ms = obj.material ? (Array.isArray(obj.material) ? obj.material : [obj.material]) : [];
-    ms.forEach(m => { if (m.isShaderMaterial) { if (!m.userData.redSkip) injectShader(m); return }
+    ms.forEach(m => {
+      if (m.userData && m.userData.redEnds && m.uniforms) { if (m.uniforms.uRed) m.uniforms.uRed = AU.uRed; if (m.uniforms.uInk) m.uniforms.uInk = AU.uInk }
+      if (m.isShaderMaterial) return;
       if (isPlanMap(m)) { injectPlan(m); return } if (isPhotoMap(m)) return;
-      if (m.color && !m.userData.redT) { m.userData.redT = { c0: m.color.clone(), set: null, lift: liftFor(obj) }; tracked.add(m) } }) }) }
+      if (m.userData.redEnd && m.color && !m.userData.redT) { m.userData.redT = { c0: m.color.clone(), set: null, lift: m.userData.redLift || 1.6 }; tracked.add(m) } }) }) }
   const tmp = new THREE.Color();
   function tick() { tracked.forEach(m => { const T = m.userData.redT; if (isPhotoMap(m)) { tracked.delete(m); return } /* a photo or drawing arrived: its loader set the colour */
       if (T.set && !m.color.equals(T.set)) T.c0.copy(m.color); /* someone else (day-night, water lerp) wrote a new colour */
@@ -111,8 +113,7 @@ else if(uSheet>.5){vec3 MAT=vec3(.00121,.00212,.00334);
   let scanAt = 0, variant = 'A';
   function setLine(on) { lineOn = !!on; syncLine() }
   function setRed(on) { red = !!on; AU.uRed.value = red ? 1 : 0; syncLine(); scan(); tick();
-    if (o.renderer) { if (red) { o.renderer.setClearColor(0x030102, 1) } else if (o.repaint) o.repaint() }
-    if (scene.fog) { if (red) scene.fog.color.setRGB(.012, .004, .006); else if (o.repaint) o.repaint() } }
+    if (!red && o.repaint) o.repaint() }
   function setVariant(v) { variant = /^[ABC]$/.test(v) ? v : 'A'; RU.uWash.value = variant === 'C' ? 1 : 0; buildFog(variant) }
   buildFog('A');
   function update(now, cam, F) {
@@ -125,8 +126,6 @@ else if(uSheet>.5){vec3 MAT=vec3(.00121,.00212,.00334);
     const dxz = Math.hypot(cam.position.x, cam.position.z), near = Math.min(1, Math.max(.15, (dxz - 1.2) / 6));
     shafts.forEach(m => { m.visible = F > .01; m.material.uniforms.uF.value = F; m.material.uniforms.uI.value = (.04 + .06 * F) * near });
     if (now - scanAt > 1000) { scanAt = now; scan() } tick();
-    if (red && scene.fog) scene.fog.color.setRGB(.012, .004, .006);
-    if (red && o.renderer) o.renderer.setClearColor(0x030102, 1);
   }
   return { update, setRed, setLine, adopt, setVariant, get variant() { return variant }, get red() { return red }, banks, shafts }
 }

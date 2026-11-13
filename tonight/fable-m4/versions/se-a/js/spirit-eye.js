@@ -143,11 +143,11 @@ export function mount(THREE, scene, ctx) {
   for (let i = 0; i < FN; i++) { const a = i * 2.39996, r = .25 + Math.sqrt(i / FN) * 1.15, tw = (i % 5 - 2) * .05;
     for (let j = 0; j < SEG; j++) for (const k of [j, j + 1]) { const t = k / SEG, rr = r * (1 + .25 * t * t), aa = a + tw * t * 6; fp.push(Math.cos(aa) * rr, FTOP + (FBOT - FTOP) * t, Math.sin(aa) * rr); ft.push(t) } }
   const fgeo = new THREE.BufferGeometry(); fgeo.setAttribute('position', new THREE.Float32BufferAttribute(fp, 3)); fgeo.setAttribute('aT', new THREE.Float32BufferAttribute(ft, 1));
-  const FU = { uF: { value: 0 }, uB: { value: .06 } };
+  const FU = { uF: { value: 0 }, uB: { value: .06 }, uRed: { value: 0 }, uInk: { value: new THREE.Vector3(1, 68 / 255, 87 / 255) } };
   const fibers = new THREE.LineSegments(fgeo, new THREE.ShaderMaterial({ uniforms: FU, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
     vertexShader: 'attribute float aT;varying float vT;void main(){vT=aT;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: 'uniform float uF,uB;varying float vT;void main(){float lit=1.-smoothstep(uF-.004,uF+.004,vT);float head=exp(-abs(vT-uF)*55.)*step(.01,uF)*(1.-step(.999,uF));float a=uB+lit*(.42+.25*(1.-vT))+head*1.4;gl_FragColor=vec4(vec3(.85,.98,1.)*a,1.);}' }));
-  fibers.renderOrder = 7; g.add(fibers);
+    fragmentShader: 'uniform float uF,uB,uRed;uniform vec3 uInk;varying float vT;void main(){float lit=1.-smoothstep(uF-.004,uF+.004,vT);float head=exp(-abs(vT-uF)*55.)*step(.01,uF)*(1.-step(.999,uF));float bodyA=uB*.45+lit*(.1+.14*(1.-vT));float headA=head*.55;vec3 tip=mix(vec3(1.,.97,.9),uInk,uRed);gl_FragColor=vec4(vec3(.85,.98,1.)*bodyA+tip*headA,1.);}' }));
+  fibers.material.userData.redEnds = 1; fibers.renderOrder = 7; g.add(fibers);
   const head = glowS(0xfff4d8, 0, 4.2); head.renderOrder = 9; g.add(head);
   const UB = { uI: { value: 0 }, uF: { value: 0 } };
   const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.25, 3.4, -FBOT + FTOP, 48, 24, true), new THREE.ShaderMaterial({ uniforms: UB, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
@@ -291,11 +291,11 @@ export function mount(THREE, scene, ctx) {
     const a = ang(s); sun.position.set(Math.cos(a) * 7.6, .9, -Math.sin(a) * 7.6); sunCore.position.copy(sun.position);
     const sa = a + .9; skySun.position.set(Math.cos(sa) * 26, 30, -Math.sin(sa) * 26); skyCore.position.copy(skySun.position);
     rd.set(0, LENS_Y, 0).sub(skySun.position); const len = rd.length(); rd.normalize(); Q.setFromUnitVectors(Y, rd); ray.quaternion.copy(Q); ray.position.copy(skySun.position); ray.scale.set(1, len, 1);
-    rayU.uR.value = R; rayU.uI.value = (cam.position.y > 0 ? 1 : .25) * Math.max(.1, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 3) / 8));
-    lensGlow.material.opacity = Math.min(1, R * R * 1.1) * (cam.position.y > 0 ? 1 : .5) * Math.max(.08, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 2.5) / 7)); lensGlow.scale.setScalar(4 + 4 * R);
-    FU.uF.value = F; UB.uF.value = F; const dxz = Math.hypot(cam.position.x, cam.position.z); UB.uI.value = (.1 + .38 * F) * Math.min(1, Math.max(.12, (dxz - 2.4) / 7));
+    rayU.uR.value = R; rayU.uI.value = (cam.position.y > 0 ? .28 : .08) * Math.max(.1, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 3) / 8));
+    lensGlow.material.opacity = Math.min(.4, R * R * .45) * (cam.position.y > 0 ? 1 : .5) * Math.max(.08, Math.min(1, (cam.position.distanceTo(lensGlow.position) - 2.5) / 7)); lensGlow.scale.setScalar(2.4 + 2.2 * R);
+    FU.uF.value = F; UB.uF.value = F; const dxz = Math.hypot(cam.position.x, cam.position.z); UB.uI.value = (.03 + .08 * F) * Math.min(1, Math.max(.12, (dxz - 2.4) / 7));
     head.position.set(0, FTOP + (FBOT - FTOP) * F, 0); head.material.opacity = F > .01 && F < .995 ? .9 : 0;
-    const L = Math.max(0, (F - .9) / .1); pool.material.opacity = .9 * L; ripples.forEach((r, k) => r.material.opacity = .25 * L * (1 - k * .25)); lightGarden(.08 + .92 * L);
+    const L = Math.max(0, (F - .9) / .1); pool.material.opacity = .22 * L; ripples.forEach((r, k) => r.material.opacity = .25 * L * (1 - k * .25)); lightGarden(.08 + .92 * L);
     if (true) { poseAt(s, cp, cl);
       if (enter) { const u = Math.min(1, (now - enter.t0) / T_ENTER), k = EASE(u); cp.lerpVectors(enter.p, cp, k); cl.lerpVectors(enter.l, cl, k); if (u >= 1) { enter = null; settleAt = now } }
       cam.position.copy(cp); cam.up.set(0, 1, 0); if (Math.abs(cl.x - cp.x) < 1e-3 && Math.abs(cl.z - cp.z) < 1e-3) cl.z -= .01; cam.lookAt(cl); cam.updateMatrixWorld() }

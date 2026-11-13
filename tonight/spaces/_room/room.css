@@ -27,8 +27,9 @@
 html.galbig #sphead .strip,html.galbig #sptune{display:none}
 /* one quiet hint line, just above Back and Next (same bottom inset as #senav), shown once by room.js and then gone.
    The faint dark plate keeps it readable when a sheet or the lit garden is behind it. */
-#sphint{position:fixed;z-index:7;left:50%;bottom:calc(58px + max(10px,env(safe-area-inset-bottom,0px) + 6px));transform:translateX(-50%);margin:0;max-width:calc(100% - 16px);padding:6px 11px;border-radius:11px;background:rgba(4,7,11,.6);color:rgba(232,228,220,.6);font:300 10.5px/1 Poppins,system-ui,sans-serif;letter-spacing:.03em;text-align:center;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
+#sphint{position:fixed;z-index:7;left:50%;bottom:calc(94px + max(10px,env(safe-area-inset-bottom,0px) + 6px));transform:translateX(-50%);margin:0;max-width:calc(100% - 16px);padding:6px 11px;border-radius:11px;background:rgba(4,7,11,.6);color:rgba(232,228,220,.6);font:300 10.5px/1 Poppins,system-ui,sans-serif;letter-spacing:.03em;text-align:center;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 1.1s ease}
 #sphint.on{opacity:1}
 @media (prefers-reduced-motion:reduce){#sphint{transition-duration:.3s}}
-html::after{content:"";position:fixed;left:0;right:0;top:0;height:calc(92px + env(safe-area-inset-top,0px));z-index:61;pointer-events:none;background:linear-gradient(180deg,rgba(4,6,12,.62),rgba(4,6,12,.28) 60%,rgba(4,6,12,0))}
+html::after{content:"";position:fixed;left:0;right:0;top:0;height:calc(128px + env(safe-area-inset-top,0px));z-index:61;pointer-events:none;background:linear-gradient(180deg,rgba(4,7,11,.78),rgba(4,7,11,.42) 62%,rgba(4,7,11,0))}
+html[data-theme=red]::after{background:linear-gradient(180deg,rgba(4,7,11,.94),rgba(4,7,11,.58) 70%,rgba(4,7,11,0))}
 html.galbig::after{display:none}

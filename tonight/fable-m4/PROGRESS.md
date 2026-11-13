@@ -28,6 +28,8 @@ Gallery sheets and the drifting tiles fade in from `#04070b`. One hint line read
 
 `tonight/fable-m4/versions/se-a/` carries the same sheet, caption, card, and fade. The live room is `tonight/spaces/forest-garden/`.
 
+The gallery Back control is inset past the mark. Back, Next, and the hint line sit above the To Go bar. The top scrim is darker in Red so the bar stays readable. Red lights the plan lines and the fibre tips; the fibre bodies keep their own colour. The lens glow is smaller along the shaft, and Red does not repaint the clear colour or the fog.
+
 ## About · drawer closes first, and the fold matches the mark
 
 While the drawer is open, arrow keys, Escape, the wheel, and Back close the drawer and leave the room where it is. A tap outside is swallowed so it does not also step the room. The camera keeps the pose it had when the drawer opened.
