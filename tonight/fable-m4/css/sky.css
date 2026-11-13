@@ -526,3 +526,15 @@ html:has(#layer.on) #mmap{display:none}
     linear-gradient(to bottom,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) top/100% 10px no-repeat,
     linear-gradient(to top,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) bottom/100% 10px no-repeat}
 #safelight[hidden]{display:none}
+
+/* the quiet colour-mode control (js/theme.js): a ring with a dot in the colour you would switch to; Night is the default */
+#themeBtn{position:fixed;z-index:48;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(46px + env(safe-area-inset-bottom,0px));width:26px;height:26px;border:1px solid rgba(255,255,255,.16);border-radius:50%;display:grid;place-items:center;background:none;padding:0;cursor:pointer;opacity:.7}
+#themeBtn i{display:block;width:8px;height:8px;border-radius:50%;background:#ff4d41}
+html[data-theme=red] #themeBtn i{background:#eef3f5}
+#themeBtn:focus-visible{outline:1px solid #eef3f5;outline-offset:2px}
+/* Red: native range tracks stay readable (a thin red line, a red thumb) */
+html[data-theme=red] #markmenu input[type=range]{-webkit-appearance:none;appearance:none;background:none;height:22px}
+html[data-theme=red] #markmenu input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(255,90,77,.45);border-radius:1px}
+html[data-theme=red] #markmenu input[type=range]::-moz-range-track{height:2px;background:rgba(255,90,77,.45);border-radius:1px}
+html[data-theme=red] #markmenu input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:#ff5a4d;border:0}
+html[data-theme=red] #markmenu input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#ff5a4d;border:0}

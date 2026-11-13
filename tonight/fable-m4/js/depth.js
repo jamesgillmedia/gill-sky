@@ -9,6 +9,7 @@ var PL={on:0,e:0,t0:0,busy:0,applied:0,pending:null,ox:0,oy:0};
 var FX={t0:0,life:0,fly:0};
 var BOK=[], SPR=null;
 
+if(window.GJ_THEME)GJ_THEME.on(function(w){if(w==='theme')SPR=null});
 function sprite(){
   if(SPR)return SPR;
   var sz=96,c=document.createElement('canvas');c.width=c.height=sz;

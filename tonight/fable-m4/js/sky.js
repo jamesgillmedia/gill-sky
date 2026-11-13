@@ -2933,6 +2933,8 @@ window.__depth={
   }
 };
 
+/* Red: cached glow sprites are redrawn through the mapped colours when the colour mode changes */
+if(window.GJ_THEME)GJ_THEME.on(function(w){if(w==='theme'){try{if(ready)buildGlow()}catch(e){}SOFT=null}});
 fetch('data.json').then(function(r){return r.json()}).then(boot).catch(function(err){
   var w=$('where');if(w)w.textContent='could not read the works';
   console.error(err);
