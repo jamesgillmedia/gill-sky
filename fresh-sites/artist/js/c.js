@@ -13,17 +13,22 @@ var svgNS='http://www.w3.org/2000/svg',trail=d.createElementNS(svgNS,'svg');trai
 var top=el('header','c-top','<a class="c-wm" href="#/">Gill James</a><span class="c-sub">a trail · five stops · Vancouver</span><button class="c-map" type="button">map</button>',app);
 var prof=el('div','c-prof',null,app);prof.setAttribute('aria-label','trail profile: drag to walk');
 var page=el('section','c-page',null,app);page.setAttribute('aria-label','stop');
-var idx=G.index(function(r){var p=r.split('/'),k=p[0],id=p.slice(1).join('/');if(id){var vs=views(k);for(var j=0;j<vs.length;j++)if(vs[j].it.id===id){sel[k]=j;break}}R.go(k,{replace:true})});G.player();G.devToggle();
+var idx=G.index(function(r){var p=r.split('/'),k=p[0],id=p.slice(1).join('/');if(id){var vs=views(k);for(var j=0;j<vs.length;j++)if(vs[j].it.id===id){sel[k]=j;break}}R.go(k,{replace:true})});
+/* index and nav follow the walk: Spaces, Film, Objects, Photo, About */
+(function(){var want=STOPS.map(function(s){return G.room(s.k).n}),box=idx.querySelector('.gi-in');
+  [].slice.call(box.querySelectorAll('section')).sort(function(a,b){return want.indexOf(a.querySelector('h3').textContent)-want.indexOf(b.querySelector('h3').textContent)}).forEach(function(s){box.appendChild(s)})})();
+G.player();G.devToggle();
 var PORT,LEN,SIGNS=[],openK=null,sel={};
 /* bands: the fixed UI (wordmark row on top; player, profile, dev toggle at the bottom) owns its strip, the work never runs under it */
 var TB=70,BB=70;
 function bands(){var H=innerHeight,tb=0,bb=H;
   top.querySelectorAll('.c-wm,.c-sub,.c-map').forEach(function(e){var r=e.getBoundingClientRect();if(r.width&&getComputedStyle(e).display!=='none')tb=Math.max(tb,r.bottom)});
-  [d.getElementById('gplay'),d.getElementById('dev'),openK?null:prof].forEach(function(e){if(!e)return;var r=e.getBoundingClientRect();if(r.width&&r.height)bb=Math.min(bb,r.top)});
+  /* on a phone the ladder is a side rail, not part of the bottom band */
+  [d.getElementById('gplay'),d.getElementById('dev'),(PORT||openK)?null:prof].forEach(function(e){if(!e)return;var r=e.getBoundingClientRect();if(r.width&&r.height)bb=Math.min(bb,r.top)});
   TB=Math.ceil(tb+10);BB=Math.ceil(H-bb+10);d.documentElement.style.setProperty('--tb',TB+'px');d.documentElement.style.setProperty('--bb',BB+'px')}
 function layout(){PORT=innerHeight>innerWidth*1.05;walk.classList.toggle('port',PORT);bands();
   var W=innerWidth,H=PORT?innerHeight-TB-BB:innerHeight,M=PORT?16:22;land.innerHTML='';land.appendChild(trail);SIGNS=[];
-  var c0=PORT?14:TB,c1=PORT?W-14:H-BB,AH=c1-c0; /* cross-axis room for the work */
+  var c0=PORT?14:TB,c1=PORT?W-58:H-BB,AH=c1-c0; /* phone keeps a right gutter for the ladder */
   var view=PORT?H:W,start=PORT?H*.36:W*.36,gap=PORT?H*.5:W*.3;
   var groups=[];
   STOPS.forEach(function(s,i){var a=start+gap*i,side=i%2?1:-1,sx,sy;
@@ -33,11 +38,11 @@ function layout(){PORT=innerHeight>innerWidth*1.05;walk.classList.toggle('port',
     var post=el('i','c-post',null,g);post.style.left=sx+'px';post.style.top=sy+'px';items.push({els:[sign,post],kind:'sign'});
     function box(cls,x,y,w,h){var e=el('button',cls,null,g);e.type='button';e.dataset.k=s.k;e.style.cssText='left:'+x+'px;top:'+y+'px;width:'+w+'px;height:'+h+'px';return e}
     if(s.k==='about'){var t=el('button','c-aboutlead',null,g);t.type='button';t.dataset.k='about';t.innerHTML='<span class="q">'+D.poem.slice(0,3).map(esc).join('<br>')+'</span><span class="b">'+esc(D.bio[0].split('. ')[0])+'.</span>';
-      if(PORT)t.style.cssText='left:'+(W*.08)+'px;top:'+(sy+24)+'px;width:'+(W*.84)+'px';else t.style.cssText='left:'+(sx+80)+'px;top:'+(c0+10)+'px;width:'+Math.min(W*.4,440)+'px';
+      if(PORT)t.style.cssText='left:'+c0+'px;top:'+(sy+24)+'px;width:'+(c1-c0)+'px';else t.style.cssText='left:'+(sx+80)+'px;top:'+(c0+10)+'px;width:'+Math.min(W*.4,440)+'px';
       items.push({els:[t]});groups.push({items:items,i:i,sx:sx,sy:sy});return}
     /* the stop's strongest piece: large, quiet, with air around it */
     var lw,lh,lx,ly;
-    if(PORT){lw=W-28;lh=lw/s.leadAr;if(lh>H*.56){lh=H*.56;lw=lh*s.leadAr}lx=(W-lw)/2;ly=sy+20}
+    if(PORT){var band=c1-c0;lw=band;lh=lw/s.leadAr;if(lh>H*.56){lh=H*.56;lw=Math.min(band,lh*s.leadAr);lh=lw/s.leadAr}lx=c0+(band-lw)/2;ly=sy+20}
     else{lh=Math.min(AH*.84,AH-20);lw=lh*s.leadAr;if(lw>W*.48){lw=W*.48;lh=lw/s.leadAr}lx=sx+70;ly=c0+(AH-lh)*(side<0?.8:.2)}
     var lead=box('c-lead',lx,ly,lw,lh);img(s.lead,'',G.room(s.k).n,lead);items.push({els:[lead]});
     var cap=el('div','c-cap',stopLine(s.k),g);
@@ -45,7 +50,7 @@ function layout(){PORT=innerHeight>innerWidth*1.05;walk.classList.toggle('port',
     items.push({els:[cap]});
     var secs=(s.sec||[]).filter(Boolean),n=secs.length;
     secs.forEach(function(q,j){var w2,h2,x2,y2,ar=q.w/q.h;
-      if(PORT){w2=(W-28-14)/Math.max(n,1);h2=w2/ar;if(h2>H*.3){h2=H*.3;w2=h2*ar}x2=14+j*((W-28-14)/Math.max(n,1)+14);y2=ly+lh+90}
+      if(PORT){var band2=c1-c0,gap2=14,slots=Math.max(n,1);w2=(band2-(slots-1)*gap2)/slots;h2=w2/ar;if(h2>H*.3){h2=H*.3;w2=Math.min(h2*ar,w2);h2=w2/ar}x2=c0+j*(w2+gap2);y2=ly+lh+90}
       else{h2=Math.min(AH*.4,AH-20);w2=h2*ar;x2=lx+lw+32+j*(w2+20);y2=side<0?c0+6:c1-h2-6}
       var e=box('c-sec',x2,y2,w2,h2);img(q.th||q.src,'',q.t||'',e);items.push({els:[e]})});
     groups.push({items:items,i:i,sx:sx,sy:sy})});
@@ -76,25 +81,54 @@ function layout(){PORT=innerHeight>innerWidth*1.05;walk.classList.toggle('port',
   trail.innerHTML='<defs><pattern id="gp" patternUnits="userSpaceOnUse" width="520" height="650"><image href="media/tex/graphite-b.webp" width="520" height="650" preserveAspectRatio="xMidYMid slice"/></pattern>'+
     '<filter id="rough"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter></defs>'+
     '<path d="'+dd+'" class="halo"/><path d="'+dd+'" class="tex" stroke="url(#gp)"/><path d="'+dd+'" class="core" filter="url(#rough)"/>';
-  buildProfile();onWalk()}
+  buildProfile();
+  /* the ladder stays on the edge, clear of the player and the dev toggle */
+  if(!PORT){var play=d.getElementById('gplay'),dev=d.getElementById('dev');
+    if(play){var pr=play.getBoundingClientRect();if(pr.width)prof.style.left=Math.ceil(pr.right+18)+'px'}
+    if(dev){var dr=dev.getBoundingClientRect();if(dr.width)prof.style.right=Math.ceil(innerWidth-dr.left+16)+'px'}}
+  onWalk()}
 function stopLine(k){if(k==='spaces')return '<i class="ct">'+esc(D.spaces[0].t)+'</i><span class="cm">'+esc(D.spiritEye.made)+'</span>';
   if(k==='film')return '<i class="ct">'+esc(D.film[0].t)+'</i><span class="cm">'+esc(D.film[0].role)+' · '+D.film[0].year+'</span>';
   if(k==='objects')return '<i class="ct">crescent rim of a cup</i><span class="cm">joio.co</span>';
   if(k==='photo')return '<span class="cm">'+D.photo.length+' photographs</span>';return''}
-function buildProfile(){var w=PORT?innerWidth-150:Math.min(560,innerWidth*.4),pts=[];for(var i=0;i<=60;i++)pts.push((i/60*w).toFixed(1)+','+(11+6*Math.sin(i*.5)+3*Math.sin(i*1.7)).toFixed(1));
-  prof.style.width=w+'px';prof.innerHTML='<svg width="'+w+'" height="24"><polyline points="'+pts.join(' ')+'"/></svg>'+SIGNS.map(function(s,i){return '<button class="nt" type="button" data-i="'+i+'" style="left:'+(posFrac(s.pos)*w)+'px" aria-label="stop '+(i+1)+' '+G.room(s.k).n+'">0'+(i+1)+'</button>'}).join('')+'<b class="here"></b>'}
+function buildProfile(){prof.classList.add('c-meter');prof.setAttribute('role','slider');prof.setAttribute('aria-valuemin','1');prof.setAttribute('aria-valuemax',String(SIGNS.length));prof.setAttribute('aria-label','trail meter');
+  prof.innerHTML='<div class="c-ladder">'+SIGNS.map(function(s,i){return '<button class="seg" type="button" data-i="'+i+'" aria-label="stop '+(i+1)+' '+G.room(s.k).n+'"><i></i><span>0'+(i+1)+'</span></button>'}).join('')+'<b class="led"></b></div>'}
 function vh(){return PORT?walk.clientHeight:innerWidth}
 function posFrac(p){var view=vh();return Math.max(0,Math.min(1,(p-view/2)/(LEN-view)))}
 function scrollPos(){return PORT?walk.scrollTop:walk.scrollLeft}
-function setScroll(v,smooth){var o=PORT?{top:v}:{left:v};o.behavior=smooth?'smooth':'auto';walk.scrollTo(o)}
-function onWalk(){var view=vh(),f=scrollPos()/Math.max(1,LEN-view),h=prof.querySelector('.here');if(h)h.style.left=(f*prof.clientWidth)+'px';
-  var c=scrollPos()+view/2;land.querySelectorAll('.c-stop').forEach(function(g,i){g.classList.toggle('near',Math.abs(SIGNS[i].pos-c)<view*.75)})}
+function rm(){var on=false;try{on=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}try{if(/[?&]rm=1(?:&|$)/.test(location.search))on=true}catch(e2){}d.documentElement.classList.toggle('rm',on);return on}
+function setScroll(v,smooth){var o=PORT?{top:v}:{left:v};o.behavior=(smooth&&!rm())?'smooth':'auto';walk.scrollTo(o)}
+function nearestSign(){var view=vh(),c=scrollPos()+view/2,best=0,bd=1e9;SIGNS.forEach(function(s,i){var dd=Math.abs(s.pos-c);if(dd<bd){bd=dd;best=i}});return best}
+function onWalk(){var view=vh(),f=scrollPos()/Math.max(1,LEN-view),iCur=nearestSign();
+  prof.querySelectorAll('.seg').forEach(function(b,j){b.classList.toggle('walked',j<=iCur);b.classList.toggle('on',j===iCur)});
+  var led=prof.querySelector('.led');if(led){led.style.top='';led.style.left='';if(PORT)led.style.top=(f*100)+'%';else led.style.left=(f*100)+'%'}
+  prof.setAttribute('aria-valuenow',String(iCur+1));prof.setAttribute('aria-valuetext',SIGNS[iCur]?G.room(SIGNS[iCur].k).n:'');
+  var c=scrollPos()+view/2;land.querySelectorAll('.c-stop').forEach(function(g,i){g.classList.toggle('near',Math.abs(SIGNS[i].pos-c)<view*.75)});
+  if(dialOn){var placed=paintDial();if(dialEl)dialEl.classList.toggle('tuck',!placed);if(placed&&dialEl)dialEl.classList.add('on')}tuckSoon()}
 walk.addEventListener('scroll',onWalk,{passive:true});
-/* desktop: vertical wheel walks sideways, settling softly */
-var target=null,wr=0;walk.addEventListener('wheel',function(e){if(PORT||openK)return;e.preventDefault();var dlt=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
-  target=Math.max(0,Math.min(LEN-innerWidth,(target==null?walk.scrollLeft:target)+dlt*1.1));if(!wr)(function step(){var cur=walk.scrollLeft,dx=target-cur;if(Math.abs(dx)<.5){walk.scrollLeft=target;wr=0;target=null;return}walk.scrollLeft=cur+dx*.18;wr=requestAnimationFrame(step)})()},{passive:false});
-prof.addEventListener('pointerdown',function(e){var nt=e.target.closest('.nt');if(nt){goSign(+nt.dataset.i,true);return}scrub(e);prof.setPointerCapture(e.pointerId);prof.onpointermove=scrub;prof.onpointerup=function(){prof.onpointermove=null}});
-function scrub(e){var r=prof.getBoundingClientRect(),f=Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),view=vh();setScroll(f*(LEN-view))}
+/* desktop: vertical wheel walks sideways. Reduce Motion jumps; otherwise it settles. */
+var target=null,wr=0;walk.addEventListener('wheel',function(e){if(PORT||openK)return;e.preventDefault();killSpring();var dlt=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;
+  target=Math.max(0,Math.min(LEN-innerWidth,(target==null?walk.scrollLeft:target)+dlt*1.1));
+  if(rm()){walk.scrollLeft=target;wr=0;target=null;onWalk();return}
+  if(!wr)(function step(){var cur=walk.scrollLeft,dx=target-cur;if(Math.abs(dx)<.5){walk.scrollLeft=target;wr=0;target=null;return}walk.scrollLeft=cur+dx*.18;wr=requestAnimationFrame(step)})()},{passive:false});
+/* drag spring w=10 while the ladder is held; settle w=9 (~0.6 s) onto the nearest stop */
+var meterDrag=false,meterBox=null,spring=0,springT=0,springV=0,springW=10,springLast=0;
+function killSpring(){if(spring){cancelAnimationFrame(spring);spring=0}springV=0}
+function springTo(dest,w){springT=Math.max(0,Math.min(Math.max(0,LEN-vh()),dest));springW=w;
+  if(rm()){killSpring();setScroll(springT,false);onWalk();return}
+  if(spring)return;springLast=performance.now();
+  function step(now){var dt=Math.min(.05,(now-springLast)/1000);springLast=now;var x=scrollPos(),v=springV,t=springT,ww=springW,e=x-t,k=Math.exp(-ww*dt),c=v+ww*e;
+    setScroll(t+(e+c*dt)*k,false);springV=(v-ww*c*dt)*k;onWalk();
+    if(Math.abs(springT-scrollPos())<.8&&Math.abs(springV)<12){setScroll(springT,false);killSpring();onWalk();return}
+    spring=requestAnimationFrame(step)}
+  spring=requestAnimationFrame(step)}
+function fracFromEvent(e){var r=meterBox||prof.getBoundingClientRect();return Math.max(0,Math.min(1,PORT?(e.clientY-r.top)/Math.max(1,r.height):(e.clientX-r.left)/Math.max(1,r.width)))}
+function scrub(e){springTo(fracFromEvent(e)*(LEN-vh()),10)}
+prof.addEventListener('pointerdown',function(e){meterDrag=true;prof.classList.add('hold');meterBox=prof.getBoundingClientRect();try{prof.setPointerCapture(e.pointerId)}catch(err){}scrub(e);showDial(e.clientX,e.clientY);e.preventDefault()});
+prof.addEventListener('pointermove',function(e){if(!meterDrag)return;scrub(e);showDial(e.clientX,e.clientY)});
+function endMeter(){if(!meterDrag)return;meterDrag=false;prof.classList.remove('hold');meterBox=null;var i=nearestSign(),view=vh();springTo(SIGNS[i].pos-view/2,9);hideDial()}
+prof.addEventListener('pointerup',endMeter);prof.addEventListener('pointercancel',endMeter);
+prof.addEventListener('keydown',function(e){var dir=e.key==='ArrowDown'||e.key==='ArrowRight'?1:e.key==='ArrowUp'||e.key==='ArrowLeft'?-1:0;if(!dir)return;e.preventDefault();e.stopPropagation();goSign(Math.max(0,Math.min(SIGNS.length-1,nearestSign()+dir)),!rm())});
 function goSign(i,smooth){var view=vh();setScroll(SIGNS[i].pos-view/2,smooth)}
 /* ---------- stop page: opens out of its sign like a print unfolding into light ---------- */
 function views(k){if(k==='spaces'){var v=[];D.spaces.forEach(function(s){v.push({src:s.src,th:s.th,w:s.w,h:s.h,it:s});s.views.forEach(function(x){v.push({src:x.src,th:x.src,w:x.w,h:x.h,it:s})})});return v}
@@ -114,13 +148,13 @@ function show(k,j,instant){var vs=views(k);j=(j+vs.length)%vs.length;sel[k]=j;va
   olds.forEach(function(o){o.classList.add('out');setTimeout(function(){o.remove()},1200)})
   info.innerHTML=G.caption(v.it,true);page.querySelectorAll('.c-v').forEach(function(b){b.classList.toggle('on',+b.dataset.j===j)})}
 function openStop(k,fromEl,instant){openK=k;d.body.classList.add('c-open');bands();fillPage(k);page.classList.add('on');var r=fromEl?fromEl.getBoundingClientRect():null;
-  if(instant||!r){page.style.clipPath='none';page.style.opacity=1;return}
+  if(instant||rm()||!r){page.style.clipPath='none';page.style.opacity=1;return}
   var cx=r.left+r.width/2,cy=r.top+r.height/2,R0=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy));
   G.tween(950,function(e){page.style.clipPath='circle('+(8+R0*e).toFixed(1)+'px at '+cx.toFixed(0)+'px '+cy.toFixed(0)+'px)';page.style.opacity=Math.min(1,e*2.2).toFixed(3)},function(){page.style.clipPath='none'})}
 var toHead=false;
 function closeStop(instant){if(!openK)return;var k=openK;openK=null;d.body.classList.remove('c-open');bands();var i=STOPS.findIndex(function(s){return s.k===k});if(toHead){toHead=false;setScroll(0,false);i=0}else goSign(i,false);
   var sg=land.querySelectorAll('.c-sign')[i],r=sg.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,R0=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy));
-  if(instant){page.classList.remove('on');return}
+  if(instant||rm()){page.classList.remove('on');page.style.clipPath='none';return}
   G.tween(900,function(e){page.style.clipPath='circle('+(8+R0*(1-e)).toFixed(1)+'px at '+cx.toFixed(0)+'px '+cy.toFixed(0)+'px)'},function(){page.classList.remove('on');page.style.clipPath='none'});
   sg.classList.add('back');setTimeout(function(){sg.classList.remove('back')},2400)}
 R.on(function(route,prev,how){if(route==='index'){idx.classList.add('open');return}idx.classList.remove('open');
@@ -131,11 +165,11 @@ R.on(function(route,prev,how){if(route==='index'){idx.classList.add('open');retu
 var lastFrom=null;
 land.addEventListener('click',function(e){var t=e.target.closest('.c-sign,.c-lead,.c-sec,.c-aboutlead');if(!t)return;lastFrom=t;R.go(t.dataset.k)});
 page.addEventListener('click',function(e){if(e.target.closest('.c-back')){R.up();return}var n=e.target.closest('.c-next');if(n){if(n.dataset.k)R.go(n.dataset.k,{replace:true});else{toHead=true;R.home()}return}
-  var v=e.target.closest('.c-v');if(v){show(openK,+v.dataset.j);if(PORT)page.scrollTo({top:0,behavior:'smooth'});return}if(e.target.closest('.c-hero'))show(openK,(sel[openK]||0)+1)});
+  var v=e.target.closest('.c-v');if(v){show(openK,+v.dataset.j);if(PORT)page.scrollTo({top:0,behavior:rm()?'auto':'smooth'});return}if(e.target.closest('.c-hero'))show(openK,(sel[openK]||0)+1)});
 top.addEventListener('click',function(e){if(e.target.closest('.c-map')){R.go('index');return}if(e.target.closest('.c-wm')){e.preventDefault();if(R.cur){toHead=true;R.home()}else setScroll(0,true)}});
 d.addEventListener('keydown',function(e){if(openK){if(e.key==='ArrowRight')show(openK,(sel[openK]||0)+1);if(e.key==='ArrowLeft')show(openK,(sel[openK]||0)-1);return}
   if(e.key==='ArrowRight'||e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='ArrowUp'){var view=vh(),c=scrollPos()+view/2,dir=(e.key==='ArrowRight'||e.key==='ArrowDown')?1:-1,i=0,bd=1e9;
-    SIGNS.forEach(function(s,j){var dd=Math.abs(s.pos-c);if(dd<bd){bd=dd;i=j}});var cur=SIGNS[i].pos-c;i=dir>0?(cur>20?i:i+1):(cur<-20?i:i-1);i=Math.max(0,Math.min(SIGNS.length-1,i));e.preventDefault();goSign(i,true)}});
+    SIGNS.forEach(function(s,j){var dd=Math.abs(s.pos-c);if(dd<bd){bd=dd;i=j}});var cur=SIGNS[i].pos-c;i=dir>0?(cur>20?i:i+1):(cur<-20?i:i-1);i=Math.max(0,Math.min(SIGNS.length-1,i));e.preventDefault();goSign(i,!rm())}});
 /* pinch: spread over a work on the trail opens its stop from the touched point; spread over a view shows it; pinch closed on a stop returns to its sign */
 function pinch(tg,onOut,onIn){var p0=null;tg.addEventListener('touchstart',function(e){if(e.touches.length===2){var a=e.touches[0],b=e.touches[1];p0={d:Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2,done:false}}},{passive:true});
   tg.addEventListener('touchmove',function(e){if(!p0||p0.done||e.touches.length<2)return;var a=e.touches[0],b=e.touches[1],dd=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
@@ -147,6 +181,49 @@ pinch(page,function(m){var t=d.elementFromPoint(m.x,m.y),v=t&&t.closest('.c-v');
 G.swipe(page,function(dir,st){if(dir==='right')R.up();else if(dir==='left'){var h=page.querySelector('.c-hero');if(h){var r=h.getBoundingClientRect();if(st.y>r.top&&st.y<r.bottom){show(openK,(sel[openK]||0)+1);return}}}});
 G.swipe(idx,function(dir){if(dir==='down'||dir==='right')R.up()});
 var rz=0;addEventListener('resize',function(){clearTimeout(rz);rz=setTimeout(function(){var f=scrollPos()/Math.max(1,LEN-vh());layout();setScroll(f*(LEN-vh()))},150)});
+/* ghost arc, the tune-drawer default: thin 110° edge arc, gold tick, free side away from the thumb.
+   It only appears while the ladder is dragged, and it is gone about a second after release. If every edge would cover work, it stays hidden and the ladder still scrubs. */
+var dialEl=null,dialOn=false,dialHideT=0,dialFadeT=0,dialPx=0,dialPy=0,RARC=44,SPAN=110;
+function ensureDial(){if(dialEl)return;dialEl=el('div','c-dial',null,d.body);dialEl.setAttribute('aria-hidden','true');
+  dialEl.innerHTML='<svg><g><path class="arc"/><path class="end"/><path class="def"/><path class="tick"/><text class="nm"></text></g></svg>'}
+function boxOf(node){if(!node||!node.getBoundingClientRect)return null;var b=node.getBoundingClientRect();if(b.width<2||b.height<2)return null;var n=node,s;while(n&&n!==d.documentElement){try{s=getComputedStyle(n)}catch(e){return null}if(s.display==='none'||s.visibility==='hidden'||parseFloat(s.opacity)===0)return null;n=n.parentElement}return b}
+function avoidRects(){var out=[];d.querySelectorAll('.c-lead img,.c-sec img,.c-hero img,#gplay,#dev,.c-wm,.c-map').forEach(function(node){var b=boxOf(node);if(b)out.push(b)});return out}
+function boxHits(box,list){for(var i=0;i<list.length;i++){var q=list[i];if(box.left<q.right&&box.right>q.left&&box.top<q.bottom&&box.bottom>q.top)return true}return false}
+function placeGhost(px,py){var W=innerWidth,H=innerHeight,right=px<W/2,ys=[H*.42,H*.30,H*.55],avoid=avoidRects(),cands=[],i;
+  [right,!right].forEach(function(r){ys.forEach(function(y){cands.push({r:r,y:y})})});
+  var reach=96; /* the arc plus the stop name, so the dial never sits on a picture */
+  for(i=0;i<cands.length;i++){var c=cands[i],box=c.r?{left:W-reach,top:c.y-RARC-10,right:W,bottom:c.y+RARC+14}:{left:0,top:c.y-RARC-10,right:reach,bottom:c.y+RARC+14};
+    if(!boxHits(box,avoid)&&Math.abs((c.r?W:0)-px)>40)return c}return null}
+function showDial(px,py){ensureDial();clearTimeout(dialHideT);clearTimeout(dialFadeT);dialOn=true;dialPx=px;dialPy=py;var placed=paintDial();
+  dialEl.classList.toggle('tuck',!placed);if(placed){dialEl.classList.remove('out');dialEl.classList.add('on')}tuckCheck()}
+function drawDial(c){var W=innerWidth,svg=dialEl.querySelector('svg');svg.setAttribute('viewBox','0 0 '+W+' '+innerHeight);
+  var cx=c.r?W-8+RARC*.62:8-RARC*.62,cy=c.y,mid=c.r?180:0,a0=mid-SPAN/2,a1=mid+SPAN/2,f=scrollPos()/Math.max(1,LEN-vh()),i=nearestSign(),snap=posFrac(SIGNS[i].pos);
+  function pt(a,rr){var q=a*Math.PI/180;return[cx+rr*Math.cos(q),cy+rr*Math.sin(q)]}
+  function arc(a,b,rr){var p=pt(a,rr),q=pt(b,rr);return'M'+p[0].toFixed(1)+' '+p[1].toFixed(1)+' A'+rr+' '+rr+' 0 0 1 '+q[0].toFixed(1)+' '+q[1].toFixed(1)}
+  function tick(a,r0,r1){var p=pt(a,r0),q=pt(a,r1);return'M'+p[0].toFixed(1)+' '+p[1].toFixed(1)+' L'+q[0].toFixed(1)+' '+q[1].toFixed(1)}
+  var ang=a0+SPAN*Math.max(0,Math.min(1,f)),as=a0+SPAN*Math.max(0,Math.min(1,snap));
+  dialEl.querySelector('.arc').setAttribute('d',arc(a0,a1,RARC));
+  dialEl.querySelector('.end').setAttribute('d',tick(a0,RARC-5,RARC+5)+tick(a1,RARC-5,RARC+5));
+  dialEl.querySelector('.def').setAttribute('d',tick(as,RARC-3,RARC+3));
+  dialEl.querySelector('.tick').setAttribute('d',tick(ang,RARC-9,RARC+8));
+  var nm=dialEl.querySelector('.nm'),np=pt(mid,RARC-16);nm.textContent=G.room(SIGNS[i].k).n.toUpperCase();nm.setAttribute('x',np[0].toFixed(1));nm.setAttribute('y',(cy+4).toFixed(1));nm.setAttribute('text-anchor',c.r?'end':'start')}
+function inkClear(){var g=dialEl.querySelector('g'),b=g.getBoundingClientRect();if(b.width<2)return false;return !boxHits({left:b.left-2,top:b.top-2,right:b.right+2,bottom:b.bottom+2},avoidRects())}
+function paintDial(){if(!dialEl||!SIGNS.length)return false;var W=innerWidth,H=innerHeight,right=dialPx<W/2,ys=[H*.42,H*.30,H*.55,H*.68],cands=[],i;
+  [right,!right].forEach(function(r){ys.forEach(function(y){cands.push({r:r,y:y})})});
+  for(i=0;i<cands.length;i++){var c=cands[i];if(Math.abs((c.r?W:0)-dialPx)<40)continue;drawDial(c);if(inkClear())return true}
+  dialEl.querySelectorAll('path').forEach(function(p){p.setAttribute('d','')});dialEl.querySelector('.nm').textContent='';return false}
+function hideDial(){if(!dialEl||!dialOn)return;if(rm()){dialOn=false;dialEl.classList.remove('on','out','tuck');return}
+  dialHideT=setTimeout(function(){dialEl.classList.add('out');dialFadeT=setTimeout(function(){dialOn=false;dialEl.classList.remove('on','out')},720)},280)}
+/* the ladder and the dial tuck off the work the moment they would cover a picture, and return when the walk stops */
+function hitsImages(rect){if(!rect||rect.width<4||rect.height<4)return false;var list=d.querySelectorAll('.c-lead img,.c-sec img,.c-hero img'),i,im,b,s;
+  for(i=0;i<list.length;i++){im=list[i];if(im.closest('.c-page')&&!d.body.classList.contains('c-open'))continue;try{s=getComputedStyle(im)}catch(e){continue}
+    if(s.display==='none'||s.visibility==='hidden'||parseFloat(s.opacity)===0)continue;b=im.getBoundingClientRect();if(b.width<8||b.height<8)continue;
+    if(rect.left<b.right-1&&rect.right>b.left+1&&rect.top<b.bottom-1&&rect.bottom>b.top+1)return true}return false}
+var tuckT=0;
+function tuckCheck(){var over=hitsImages(prof.getBoundingClientRect());prof.classList.toggle('tuck',over&&!document.body.classList.contains('c-open'))}
+function tuckSoon(){tuckCheck();clearTimeout(tuckT);tuckT=setTimeout(tuckCheck,160)}
+walk.addEventListener('scroll',tuckSoon,{passive:true});
+rm();
 layout();R.start();
 /* captions settle once the type has loaded: lay out again so nothing can touch */
 if(d.fonts&&d.fonts.ready)d.fonts.ready.then(function(){var f=scrollPos()/Math.max(1,LEN-vh());layout();setScroll(f*(LEN-vh()))});
