@@ -40,7 +40,7 @@ var RM=false;try{RM=matchMedia('(prefers-reduced-motion: reduce)').matches}catch
  open: mixed (board straight to the page, map with the tile reveal; default) | player (always straight) | reveal (always the reveal) | old (tap to pick, tap again)
  photo: B (dark, on the night sky; default) | A (the silver shelf: Photo's board is the photo lab Horizon)
  motion: glide strength in % (0 = instant) · snapAt: how far a scrub must go before it commits, in % · ripples: 1 | 0 */
-var DECDEF={film:'snap',mark:'fusion',open:'mixed',photo:'B',motion:100,snapAt:34,ripples:1},DECV={};
+var DECDEF={film:'snap',mark:'fusion',open:'mixed',photo:'B',motion:100,snapAt:34,ripples:1,safelight:0,safeK:60},DECV={};
 function dec(k){if(!(k in DECV)){var v=null;try{v=localStorage.getItem('gj.dec.'+k)}catch(e){}DECV[k]=v==null?DECDEF[k]:(typeof DECDEF[k]==='number'?+v:v)}return DECV[k]}
 function motionK(){var m=dec('motion');return isFinite(m)?Math.max(0,m)/100:1}
 var cur={lv:0,k:null,id:null},sel=null,phase='boot';

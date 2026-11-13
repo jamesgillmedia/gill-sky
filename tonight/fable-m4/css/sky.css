@@ -496,3 +496,10 @@ html:has(#layer.on) #mmap{display:none}
 #markmenu .mm-seg span{display:flex;flex-wrap:wrap;gap:4px 6px}
 #markmenu .mm-seg button{font:300 10px Poppins,sans-serif;letter-spacing:.03em;color:rgba(228,235,245,.7);background:none;border:1px solid rgba(207,216,230,.22);border-radius:999px;padding:5px 10px;min-height:28px;cursor:pointer}
 #markmenu .mm-seg button[aria-checked=true]{color:#04070b;background:rgba(85,218,161,.9);border-color:transparent}
+/* Safelight: edges only, a 10px band; under #layers/#layer (z 5/6) so pages are never tinted, outside the boards (14px in). */
+#safelight{position:absolute;inset:0;z-index:4;pointer-events:none;--safe:0;
+  background:linear-gradient(to right,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) left/10px 100% no-repeat,
+    linear-gradient(to left,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) right/10px 100% no-repeat,
+    linear-gradient(to bottom,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) top/100% 10px no-repeat,
+    linear-gradient(to top,rgba(255,92,40,calc(var(--safe)*.85)),rgba(255,92,40,0) 10px) bottom/100% 10px no-repeat}
+#safelight[hidden]{display:none}
