@@ -63,6 +63,16 @@ var MORE=[
   {k:'motion',label:'motion',min:0,max:200},
   {k:'snapAt',label:'snap threshold',min:15,max:70},
 ];
+/* Safelight: a warm edge glow from the Darkroom. It lives in a 10px band at the very edges of the screen, under every page
+ layer and outside every board (boards start 14px in), so it never tints or grades a photograph or a film frame. */
+function safelight(){
+  var G=D2();if(!G)return;
+  var el=document.getElementById('safelight');
+  if(!el){el=document.createElement('div');el.id='safelight';el.setAttribute('aria-hidden','true');var st=document.getElementById('stage')||document.body;st.appendChild(el)}
+  var on=+G.get('safelight')===1,k=Math.max(0,Math.min(100,+G.get('safeK')))/100;
+  el.hidden=!on||k<=0;
+  el.style.setProperty('--safe',(on?k:0).toFixed(2));
+}
 function D2(){return window.GJ_DEC||null}
 var NEXT='next: moon glow, snow, mist, reflection, ripple, drift, film spill, film sound';
 function room(){
@@ -85,11 +95,11 @@ function build(){
     if(e.target.closest('.mm-tune')){tuneOn=!tuneOn;paint();return}
     if(e.target.closest('.mm-reset')){reset();return}
     var db=e.target.closest('[data-dec]');
-    if(db&&D2()){D2().set(db.getAttribute('data-dec'),db.getAttribute('data-v'));paint();return}
+    if(db&&D2()){D2().set(db.getAttribute('data-dec'),db.getAttribute('data-v'));safelight();paint();return}
   });
   menu.addEventListener('input',function(e){
     var dr=e.target.closest('input[data-dec-r]');
-    if(dr&&D2()){D2().set(dr.getAttribute('data-dec-r'),+dr.value);var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dr.value;return}
+    if(dr&&D2()){var dk=dr.getAttribute('data-dec-r');D2().set(dk,+dr.value);var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dk==='safeK'?(dr.value/100).toFixed(2):dr.value;if(dk==='safeK')safelight();return}
     var r=e.target.closest('input[data-k]');if(!r)return;
     var row=findRow(r.getAttribute('data-k'));if(!row)return;
     var v=+r.value;
@@ -115,6 +125,9 @@ function paint(){
     h+='</span></div>';
   });
   MORE.forEach(function(m){var v=G?G.get(m.k):0;h+='<label><span>'+m.label+'</span><input type="range" min="'+m.min+'" max="'+m.max+'" step="1" value="'+v+'" data-dec-r="'+m.k+'" aria-label="'+m.label+'"><output>'+v+'</output></label>'});
+  var sl=G?+G.get('safelight'):0,sk=G?+G.get('safeK'):60;
+  h+='<div class="mm-seg"><b>safelight (warm edge glow)</b><span><button type="button" role="radio" aria-checked="'+(sl===0)+'" data-dec="safelight" data-v="0">off</button><button type="button" role="radio" aria-checked="'+(sl===1)+'" data-dec="safelight" data-v="1">on</button></span></div>';
+  h+='<label><span>safelight strength</span><input type="range" min="0" max="100" step="1" value="'+sk+'" data-dec-r="safeK" aria-label="safelight strength, 0 to 1"><output>'+(sk/100).toFixed(2)+'</output></label>';
   var rv=G?+G.get('ripples'):1;
   h+='<div class="mm-seg"><b>ripples (water)</b><span><button type="button" role="radio" aria-checked="'+(rv===1)+'" data-dec="ripples" data-v="1">on</button><button type="button" role="radio" aria-checked="'+(rv===0)+'" data-dec="ripples" data-v="0">off</button></span></div>';
   h+='</section>';
@@ -133,6 +146,7 @@ function reset(){
   ROOMS.forEach(function(R){R.rows.forEach(function(r){rm(r.k)})});
   if(T())T().reset();
   if(D2())D2().reset();
+  safelight();
   poke('gj.vol');
   paint();
 }
@@ -148,6 +162,6 @@ function restore(){
   ['map','stars','starS','starG','lineA','fdens','fgap'].forEach(function(k){var v=rd('gj.tune.'+k,null);if(v!=null&&D[k]!=null){o[k]=D[k]*v/100;any=true}});
   if(any)t.set(o);
 }
-var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();return}if(++tries<200)setTimeout(wait,50)})();
+var tries=0;(function wait(){if(window.__u1&&__u1.ready){restore();safelight();return}if(++tries<200)setTimeout(wait,50)})();
 window.GJ_MARKMENU={toggle:function(){show(!open)},show:show,get open(){return open},rooms:function(){return ROOMS.map(function(R){return {id:R.id,rows:R.rows.map(function(r){return r.label})}})}};
 })();
