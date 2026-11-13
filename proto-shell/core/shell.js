@@ -17,6 +17,7 @@ Promise.all([J('core/tokens.json').then(function(t){w.TK=t;return t}),J('data/sk
   .catch(function(e){$('where0').textContent='could not load: '+e.message;console.error(e)});
 
 function boot(skyD,tracks,shape){
+  var PAL=w.GJ_THEME.pal;
   var cv=$('cv'),g=cv.getContext('2d'),M=MODS[mid]||{id:mid,variants:{A:'A'}};SH.mod=M;
   var sky=ShellSky(skyD);SH.sky=sky;
   var cam=ShellCamera(cv,{onTap:tap,onTouch:function(x,y){ShellRipple(x,y)},onDouble:function(){clearTimeout(chipT);hideChip();ladder.out()},onSettle:function(src){ladder.settle(src)},onKey:key});SH.cam=cam;
@@ -34,6 +35,7 @@ function boot(skyD,tracks,shape){
       return null}};
   var ladder=ShellLadder(cam,world,{snapAt:function(){return GJ_DEC.get('snapAt')/100},onChange:crumb});SH.ladder=ladder;SH.world=world;
   var wave=ShellWave(shape,tracks);SH.wave=wave;
+  GJ_THEME.on(function(){sky.retheme()});sky.retheme();
   ShellMark.mount(SH);
   /* A/B/C: lab.js verbatim. Shim: its history.replaceState(null,'','?v=X') would drop ?m= and the ladder's state, so it is merged here. */
   var rs=history.replaceState.bind(history);
@@ -84,19 +86,21 @@ function boot(skyD,tracks,shape){
   var last=performance.now();
   function frame(t){requestAnimationFrame(frame);var dt=Math.min(.05,(t-last)/1000);last=t;cam.step(t,dt);
     var W=cam.W,H=cam.H;g.clearRect(0,0,W,H);
-    g.fillStyle='#04070b';g.fillRect(0,0,W,H); /* --bg */
+    g.fillStyle=PAL.bg;g.fillRect(0,0,W,H); /* --bg, from the theme layer */
     sky.drawWash(g,cam,T);
     sky.draw(g,cam,t,T,ladder.cur,M.hide?function(k){return M.hide(k,SH)}:null);
+    /* red: the dust glow sits under the module's pictures so it can never tint a photograph or a film frame */
+    if(PAL.name==='red')sky.drawDust(g,cam);
     soundLayer(t);
     if(M.draw)M.draw(g,cam,t,SH,T);
-    sky.drawDust(g,cam);
+    if(PAL.name!=='red')sky.drawDust(g,cam);
   }
   /* the Sound constellation is the waveform: the six song stars glow, the playing one breathes with the playhead */
   function soundLayer(t){var c=sky.chapter('sound');if(!c)return;var o=[0,0,0],here=ladder.cur.lv>=1&&ladder.cur.k==='sound',z=Math.sqrt(cam.zf());
     g.font='300 11px Poppins,sans-serif';g.textAlign='center';
     for(var i=0;i<tracks.length;i++){var s=c.stars[wave.starOf(i)];if(!s)continue;sky.proj(cam,s.x,s.y,1,o);var on=i===wave.sel,pl=on&&!wave.au.paused;
-      var r=(on?3.4:2.2)*Math.min(2.4,z)+(pl?Math.sin(t/260)*1.2:0);g.globalAlpha=on?1:.7;g.fillStyle=on?'#eef3f5':'rgb(255,214,206)';g.beginPath();g.arc(o[0],o[1],r,0,6.283);g.fill();
-      if(here){g.globalAlpha=on?1:.8;g.fillStyle=on?'#eef3f5':'rgba(201,211,214,.85)';var up=s.y<c.cy;g.fillText(tracks[i].title,o[0],up?o[1]-12-(i%2)*13:o[1]+20+(i%2)*13)}}
+      var r=(on?3.4:2.2)*Math.min(2.4,z)+(pl?Math.sin(t/260)*1.2:0);g.globalAlpha=on?1:.7;g.fillStyle=PAL.adj==='sound'?'#e8c48a':on?PAL.sndOn:PAL.sndOff;g.beginPath();g.arc(o[0],o[1],r,0,6.283);g.fill();
+      if(here){g.globalAlpha=on?1:.8;g.fillStyle=PAL.adj==='sound'?'#e8c48a':on?PAL.sndLblOn:PAL.sndLbl;var up=s.y<c.cy;g.fillText(tracks[i].title,o[0],up?o[1]-12-(i%2)*13:o[1]+20+(i%2)*13)}}
     g.globalAlpha=1}
   requestAnimationFrame(frame);
   SH.state=function(){return {module:mid,variant:SH.variant,level:ladder.cur,cam:{x:+cam.x.toFixed(1),y:+cam.y.toFixed(1),s:+cam.s.toFixed(4),zf:+cam.zf().toFixed(3)},histN:ladder.n,mod:M.state?M.state(SH):null}};

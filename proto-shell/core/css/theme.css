@@ -35,9 +35,20 @@ html[data-theme=red]{
 #themeBtn{width:28px;height:28px;border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;flex:0 0 auto;margin-right:2px}
 #themeBtn i{display:block;width:8px;height:8px;border-radius:50%;background:var(--toggle-dot)}
 #themeBtn:focus-visible{outline:1px solid var(--ink);outline-offset:2px}
-/* red: native range tracks stay readable (thin red line, gold thumb) */
+/* red: native range tracks stay readable (thin red line, red thumb that turns gold while it is being dragged) */
 html[data-theme=red] #markmenu input[type=range]{-webkit-appearance:none;appearance:none;background:none;height:22px}
 html[data-theme=red] #markmenu input[type=range]::-webkit-slider-runnable-track{height:2px;background:rgba(var(--mm-ink-rgb),.45);border-radius:1px}
 html[data-theme=red] #markmenu input[type=range]::-moz-range-track{height:2px;background:rgba(var(--mm-ink-rgb),.45);border-radius:1px}
-html[data-theme=red] #markmenu input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:var(--mm-accent);border:0}
-html[data-theme=red] #markmenu input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--mm-accent);border:0}
+html[data-theme=red] #markmenu input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-6px;border-radius:50%;background:var(--mm-ink);border:0}
+html[data-theme=red] #markmenu input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--mm-ink);border:0}
+html[data-theme=red] #markmenu input[type=range]:active::-webkit-slider-thumb{background:var(--mm-accent)}
+html[data-theme=red] #markmenu input[type=range]:active::-moz-range-thumb{background:var(--mm-accent)}
+/* red: red carries less light than the night inks, so the dimmer menu text steps up to stay readable (disabled items stay dim) */
+html[data-theme=red] #markmenu .mm-rooms a,html[data-theme=red] #markmenu .mm-rooms button:not(.mm-off):not([aria-disabled=true]){color:rgba(var(--mm-ink-rgb),.92)}
+html[data-theme=red] #markmenu .mm-rooms [data-go].on{color:var(--mm-accent)}
+html[data-theme=red] #markmenu h3{color:rgba(var(--mm-ink-rgb),.85)}
+html[data-theme=red] #markmenu h3 em,html[data-theme=red] #markmenu .mm-foot,html[data-theme=red] #markmenu .mm-off-room h3 em,html[data-theme=red] #markmenu .mm-theme b em{color:rgba(var(--mm-ink-rgb),.8)}
+html[data-theme=red] #markmenu output{color:var(--mm-ink)}
+html[data-theme=red] #markmenu .mm-seg button{color:rgba(var(--mm-ink-rgb),.95)}
+html[data-theme=red] #markmenu .mm-seg button[aria-checked=true]{color:var(--mm-on-ink)}
+html[data-theme=red] #markmenu .mm-off-room label{opacity:.7}

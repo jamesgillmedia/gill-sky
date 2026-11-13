@@ -8,19 +8,25 @@
    fading on sstep(2.2,3.6,zf). Seeded, so every load is identical, Reduce Motion included. */
 (function(w){
 'use strict';
+/* colours come from the theme layer (core/theme.js, css/theme.css): GJ_THEME.pal. Night values are the ones that were written here. */
+var P=(w.GJ_THEME&&w.GJ_THEME.pal)||{name:'night',field:[223,231,242],fieldCool:[150,175,215],fieldWarm:[244,230,208],wash:'19,32,46',glow:'205,225,255',core:'#fff',chapter:null,active:null,grid:null,adj:null};
 function clamp(v,a,b){return v<a?a:v>b?b:v}
 function sstep(a,b,v){var u=clamp((v-a)/(b-a),0,1);return u*u*(3-2*u)}
 function seeded(seed){var s=seed>>>0;return function(){s=(s+0x6D2B79F5)>>>0;var t=s;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 /* sky mood (gj.tune.mood, 0-200, 100 = the sky as written): m runs -1 (hushed, cool, sparse) to +1 (lit, warm, wider glow).
    At m = 0 every factor below is exactly 1 and the field colour is the original #dfe7f2, so 100 draws what it always drew. */
 function moodOf(T){var v=T&&T.mood!=null?+T.mood:1;return clamp(v-1,-1,1)}
-var FIELD_RGB=[223,231,242],FIELD_COOL=[150,175,215],FIELD_WARM=[244,230,208];
-function moodField(m){if(!m)return '#dfe7f2';var t=m<0?FIELD_COOL:FIELD_WARM,u=Math.abs(m),c=FIELD_RGB.map(function(a,i){return Math.round(a+(t[i]-a)*u)});return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
+function moodField(m){var t=m<0?P.fieldCool:P.fieldWarm,u=Math.abs(m),c=P.field.map(function(a,i){return Math.round(a+(t[i]-a)*u)});return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
 function glowSprite(rgb){var c=document.createElement('canvas');c.width=c.height=128;var q=c.getContext('2d'),gr=q.createRadialGradient(64,64,0,64,64,64);
   gr.addColorStop(0,'rgba('+rgb+',.95)');gr.addColorStop(.16,'rgba('+rgb+',.42)');gr.addColorStop(.42,'rgba('+rgb+',.10)');gr.addColorStop(1,'rgba('+rgb+',0)');q.fillStyle=gr;q.fillRect(0,0,128,128);return c}
 var DEP={film:1.10,photo:.92,objects:1.04,spaces:1.07,about:.95,sound:.88};
 function Sky(D){
-  var K={D:D,CH:[],FIELD:[],DUST:[],GW:glowSprite('205,225,255'),GL:{},port:false,FAR:{x:0,y:0,s:.3}};
+  var K={D:D,CH:[],FIELD:[],DUST:[],GW:glowSprite(P.glow),GL:{},port:false,FAR:{x:0,y:0,s:.3}},SPR={};
+  /* glow sprites by colour; the theme decides the colour (red: every constellation red, the one you are in or adjusting gold) */
+  K.spr=function(rgb){return SPR[rgb]||(SPR[rgb]=glowSprite(rgb))};
+  K.tintOf=function(k){var c=K.chapter(k);return P.chapter||(c?c.tint:'255,255,255')};
+  K.col=function(c,here){return P.active&&(here||P.adj==='sky'||P.adj===c.k)?P.active:(P.chapter||c.tint)};
+  K.retheme=function(){K.GW=glowSprite(P.glow);K.CH.forEach(function(c){K.GL[c.k]=K.spr(P.chapter||c.tint)})};
   /* m4 placeChapter, positions only: n works in list order (isNew first) */
   function place(k,n,port,isNew){
     var S=D.sh[k],cw=k==='photo'||k==='objects'?60:74,chh=k==='photo'||k==='objects'?78:56;if(k==='about'){cw=120;chh=40}
@@ -41,7 +47,7 @@ function Sky(D){
   K.isNew={};
   K.layout=function(W,H,T){
     var port=H>W*1.05;K.port=port;var ang=port?D.angp:D.ang,ord=D.order;
-    var C={};ord.forEach(function(k){C[k]=place(k,(D.skyItems||{})[k]||0,port,K.isNew[k]);C[k].tint=D.sh[k].t;C[k].z=DEP[k]||1;K.GL[k]=K.GL[k]||glowSprite(D.sh[k].t)});
+    var C={};ord.forEach(function(k){C[k]=place(k,(D.skyItems||{})[k]||0,port,K.isNew[k]);C[k].tint=D.sh[k].t;C[k].z=DEP[k]||1;K.GL[k]=K.spr(P.chapter||D.sh[k].t)});
     function at(k,rx,ry){var a=ang[k]*Math.PI/180;return {x:Math.cos(a)*rx,y:Math.sin(a)*ry}}
     function bbox(){var b={x0:1e9,y0:1e9,x1:-1e9,y1:-1e9};ord.forEach(function(k){var c=C[k];b.x0=Math.min(b.x0,c.x+c.ex.x0);b.x1=Math.max(b.x1,c.x+c.ex.x1);b.y0=Math.min(b.y0,c.y+c.ex.y0-20);b.y1=Math.max(b.y1,c.y+c.ex.y1+36)});
       b.x0=Math.min(b.x0,-80);b.x1=Math.max(b.x1,80);b.y0=Math.min(b.y0,-90);b.y1=Math.max(b.y1,200);return b}
@@ -76,10 +82,16 @@ function Sky(D){
   function zE(cam,z){return 1+(z-1)*(1-sstep(1.6,5,cam.zf()))}
   K.proj=function(cam,x,y,z,o){z=zE(cam,z);var k=Math.pow(cam.zf(),(z-1)*.38),s=cam.s*k;o=o||[0,0,0];
     o[0]=cam.W/2+(x-cam.x)*s+cam.tilt.x*(z-1)*2.2;o[1]=cam.H/2+(y-cam.y)*s+cam.tilt.y*(z-1)*2.2;o[2]=s;return o};
-  function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle='#fff';g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
+  function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle=P.core;g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
   /* the mood wash: the page wash (#13202e at 50% 0 into --bg, STANDARDS §4), growing with mood above 100. Behind everything. */
-  K.drawWash=function(g,cam,T){var m=moodOf(T);if(m<=0)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
-    gr.addColorStop(0,'rgba(19,32,46,'+(m*.95).toFixed(3)+')');gr.addColorStop(1,'rgba(19,32,46,0)');g.fillStyle=gr;g.fillRect(0,0,W,H)};
+  /* red mode: the dotted floor. A lattice of fine dots in the world at depth .55, so it slides under the constellations as you move
+     (spacing doubles as you zoom in so the dots stay 18-36 px apart). Static: nothing in it moves by itself. */
+  function floor(g,cam){var W=cam.W,H=cam.H,base=60,z=.55,o=[0,0,0],px=K.proj(cam,0,0,z,[0,0,0])[2],sp=base*Math.pow(2,Math.ceil(Math.log(18/(px*base))/Math.LN2));
+    var x0=Math.floor((cam.x-W/2/px-sp)/sp)*sp,y0=Math.floor((cam.y-H/2/px-sp)/sp)*sp,x1=cam.x+W/2/px+sp,y1=cam.y+H/2/px+sp;
+    g.fillStyle='rgba('+P.grid+',.5)';
+    for(var y=y0;y<y1;y+=sp)for(var x=x0;x<x1;x+=sp){K.proj(cam,x,y,z,o);if(o[0]<-2||o[0]>W+2||o[1]<-2||o[1]>H+2)continue;g.fillRect(o[0]-.5,o[1]-.5,1.2,1.2)}}
+  K.drawWash=function(g,cam,T){var m=moodOf(T);if(P.grid)floor(g,cam);if(m<=0)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
+    gr.addColorStop(0,'rgba('+P.wash+','+(m*.95).toFixed(3)+')');gr.addColorStop(1,'rgba('+P.wash+',0)');g.fillStyle=gr;g.fillRect(0,0,W,H)};
   K.draw=function(g,cam,t,T,st,hide){
     var o=[0,0,0],W=cam.W,H=cam.H,z=cam.zf(),sS=T.starS||1,sG=T.starG||1,lA=T.lineA||1,lW=T.lineW||1;
     var m=moodOf(T),fa=1+m*.6,fcol=moodField(m),mg=1+m*.5,ml=1+m*.45,hush=m<0?-m*.4:0;
@@ -87,16 +99,16 @@ function Sky(D){
       g.globalAlpha=Math.min(1,Math.min(1,p.b)*.55*fa);g.fillStyle=fcol;var r=p.b>.9?1.4:.9;g.fillRect(o[0]-r/2,o[1]-r/2,r,r)});g.globalAlpha=1;
     var zs=clamp(Math.sqrt(z),1,3.2);
     K.CH.forEach(function(c){if(hide&&hide(c.k))return;
-      var here=st.lv>=1&&st.k===c.k,dim=st.lv>=1&&!here?.35:1,pts=c.stars.map(function(s){return K.proj(cam,s.x,s.y,s.z,[0,0,0])});
-      g.strokeStyle='rgba('+c.tint+','+Math.min(1,.34*lA*ml*dim)+')';g.lineWidth=lW;
+      var here=st.lv>=1&&st.k===c.k,dim=st.lv>=1&&!here?.35:1,col=K.col(c,here),spr=K.spr(col),pts=c.stars.map(function(s){return K.proj(cam,s.x,s.y,s.z,[0,0,0])});
+      g.strokeStyle='rgba('+col+','+Math.min(1,.34*lA*ml*dim)+')';g.lineWidth=lW;
       c.e.forEach(function(e){var a=pts[e[0]],b=pts[e[1]];if(!a||!b)return;g.beginPath();g.moveTo(a[0],a[1]);g.lineTo(b[0],b[1]);g.stroke()});
       c.stars.forEach(function(s,i){var p=pts[i];if(p[0]<-30||p[0]>W+30||p[1]<-30||p[1]>H+30)return;
-        var rad=(s.dec?.6:.9+s.b*1.3)*sS*zs,gs=(s.dec?8:14+s.b*22)*sG*mg*zs;dot(g,p[0],p[1],rad,(s.dec?.45:.6+s.b*.4)*dim,K.GL[c.k],gs)});
+        var rad=(s.dec?.6:.9+s.b*1.3)*sS*zs,gs=(s.dec?8:14+s.b*22)*sG*mg*zs;dot(g,p[0],p[1],rad,(s.dec?.45:.6+s.b*.4)*dim,spr,gs)});
       if(c.k!=='film'||!hide)c.works.forEach(function(wk){if(!wk||wk.star>=0)return;K.proj(cam,wk.x,wk.y,c.z,o);if(o[0]<-10||o[0]>W+10||o[1]<-10||o[1]>H+10)return;
-        dot(g,o[0],o[1],.7*sS*zs,.5*dim,K.GL[c.k],9*sG*mg*zs)});
+        dot(g,o[0],o[1],.7*sS*zs,.5*dim,spr,9*sG*mg*zs)});
       var nm=K.proj(cam,c.cx,c.cy+c.ex.y1,c.z,[0,0,0]),na=(1-sstep(2.2,3.6,z))*dim,fs=clamp(12*Math.pow(z,.35),11,18);
       c._name=[nm[0],nm[1]+16,fs];
-      if(na>.02){g.globalAlpha=na;g.font='400 '+fs.toFixed(1)+'px "Julius Sans One",Poppins,sans-serif';g.textAlign='center';g.fillStyle='rgba('+c.tint+',.95)';
+      if(na>.02){g.globalAlpha=na;g.font='400 '+fs.toFixed(1)+'px "Julius Sans One",Poppins,sans-serif';g.textAlign='center';g.fillStyle='rgba('+col+',.95)';
         g.fillText(c.name.toUpperCase().split('').join(String.fromCharCode(8202)),nm[0],nm[1]+16);g.globalAlpha=1}
     });
   };
