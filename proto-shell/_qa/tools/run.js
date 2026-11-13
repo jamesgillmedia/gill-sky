@@ -14,6 +14,7 @@ for(const dev of devs){const rep={steps:[],gates:{}};report[dev]=rep;const runs=
  rep.gates['Reduce Motion matches (state path)']=JSON.stringify(n.states)===JSON.stringify(m.states)?'pass':'FAIL '+JSON.stringify([n.states,m.states]);
  const wf=name=>rep.steps.filter(s=>s.name.startsWith('waveform')).every(s=>s.ok);rep.gates['waveform plays, renders, never dims (night+red)']=wf()?'pass':'FAIL';
  rep.gates['dark background (all steps, night+red)']=rep.steps.filter(s=>/background|corner/.test(s.msg||'')).length?'FAIL':'pass';
+ const blanks=(n.log.find(x=>x[0]==='blank')||[null,[]])[1]||[];rep.gates['no blank or grey tiles']=blanks.length?'FAIL '+blanks.join(', '):'pass';
  rep.pass=rep.steps.filter(s=>s.rm==='no-preference').every(s=>s.ok)&&Object.values(rep.gates).every(g=>g==='pass'||g==='n/a');
  console.log(dev,rep.pass?'PASS':'FAIL',rep.steps.filter(s=>!s.ok).map(s=>`[${s.theme}/${s.rm}] ${s.name}: ${s.msg}`).join(' | '),JSON.stringify(rep.gates).slice(0,300));
  fs.writeFileSync(path.join(outdir,'report.json'),JSON.stringify(report,null,1))}
