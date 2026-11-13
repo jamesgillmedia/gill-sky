@@ -1688,7 +1688,7 @@ function bind(){
   $('dive').addEventListener('click',function(e){e.stopPropagation();skipToSky()});
   $('back').addEventListener('click',function(e){e.stopPropagation();back()});
   /* preview-film-snap: the mark opens its menu (list · contact · tune) from anywhere. The whole sky is still one move: the ‹ or a pinch out. */
-  $('crumb').querySelector('.sig').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(window.GJ_MARKMENU)GJ_MARKMENU.toggle();else farHome()});
+  $('crumb').querySelector('.sig').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(window.GJ_MARKMENU&&GJ_MARKMENU.open){GJ_MARKMENU.show(false);return}back()});
   addEventListener('keydown',function(e){
     var c=$('hirecard');
     if(e.key==='Escape'&&c&&!c.hidden){e.preventDefault();e.stopPropagation();hireOpen(false);return}
