@@ -17,15 +17,11 @@ function roleLine(w){var b=[];if(w.role)b.push(w.role);if(w.year)b.push(String(w
 function filmOn(){var u=window.__u1;return !!(u&&u.cur&&u.cur.k==='film')}
 function halt(){if(FP.t){clearInterval(FP.t);FP.t=0}}
 function stop(){halt();if(FP.root){var v=FP.root.querySelector('video.fp-loop');if(v){try{v.pause()}catch(e){}}}}
-/* Weird Kid's player hero is the 720p loop: poster, then the webm, then the mp4.
-   It stays out of the board markup until this player opens. Reduce Motion does not freeze it.
-   The board's own ladder in playback.js is separate and still prefers AV1. */
+/* Weird Kid's muted loop can sit behind the stills. The ladder is playback.js: AV1, then VP9, then H.264.
+   The stills stay on top, so the dissolve is the picture. Reduce Motion does not freeze the loop. */
 function loopHtml(work){
-  if(!work||work.id!=='film/weird-kid')return '';
-  return '<video class="fp-loop" muted playsinline webkit-playsinline loop preload="none" poster="media/films/weird-kid/loop-poster.jpg" aria-label="Weird Kid">'+
-    '<source src="media/films/weird-kid/loop-720.webm" type="video/webm">'+
-    '<source src="media/films/weird-kid/loop-720.mp4" type="video/mp4">'+
-    '</video>';
+  if(!work||work.id!=='film/weird-kid'||!window.GJ_PLAY||!GJ_PLAY.filmTag)return '';
+  return GJ_PLAY.filmTag(work).replace('class="clip gj-hero"','class="clip gj-hero fp-loop"');
 }
 function armLoop(root){
   var v=root&&root.querySelector('video.fp-loop');if(!v)return;
@@ -92,15 +88,22 @@ function paint(el,work,under){
     (under||'')+'</div>';
   FP.root=el.querySelector('.sheet.fp');FP.i=0;
   applyFrom(FP.root);
-  var y0=0,pid=0,drag=false;
+  var y0=0,y1=0,pid=0,drag=false;
+  function endDrag(e){
+    if(!drag||e.pointerId!==pid)return;drag=false;
+    var y=e.type==='pointercancel'?y1:e.clientY;
+    if(y-y0>64)shrink();
+  }
   FP.root.addEventListener('pointerdown',function(e){
     if(e.target.closest('a,button'))return;
-    y0=e.clientY;pid=e.pointerId;drag=true;
+    y0=y1=e.clientY;pid=e.pointerId;drag=true;
+    try{FP.root.setPointerCapture(e.pointerId)}catch(err){}
   });
-  FP.root.addEventListener('pointerup',function(e){
-    if(!drag||e.pointerId!==pid)return;drag=false;
-    if(e.clientY-y0>64)shrink();
+  FP.root.addEventListener('pointermove',function(e){
+    if(drag&&e.pointerId===pid)y1=e.clientY;
   });
+  FP.root.addEventListener('pointerup',endDrag);
+  FP.root.addEventListener('pointercancel',endDrag);
   [].forEach.call(el.querySelectorAll('.fp-strip button'),function(b,i){
     b.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();show(i);run()});
   });

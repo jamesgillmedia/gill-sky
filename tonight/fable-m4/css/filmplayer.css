@@ -5,15 +5,15 @@
   background:radial-gradient(ellipse 60% 55% at 50% 46%,rgba(232,228,220,.055),rgba(232,228,220,.018) 55%,rgba(0,0,0,0) 78%)}
 #layer .sheet.film.fp .heroframe.fp-frame{position:relative;flex:none;min-height:0;height:auto;width:100%;aspect-ratio:2.2;margin:0;background:#000;
   box-shadow:0 0 0 1px rgba(232,228,220,.06),0 18px 60px rgba(0,0,0,.9);cursor:zoom-in}
-#layer .sheet.film.fp{overflow:hidden}
-#layer .sheet.film.fp.fp-full{position:fixed;inset:0;z-index:6;overflow:hidden;max-height:none}
+#layer .sheet.film.fp{overflow:hidden;touch-action:none}
+#layer .sheet.film.fp.fp-full{position:fixed;inset:0;z-index:6;overflow:hidden;max-height:none;touch-action:none}
 #layer .sheet.film.fp.fp-from{animation:fpFrom .6s cubic-bezier(.22,.7,.2,1) both}
 @keyframes fpFrom{from{transform:scale(var(--fp-sx,.14),var(--fp-sy,.14))}to{transform:none}}
 #layer .sheet.film.fp.fp-shrink{animation:fpShrink .42s cubic-bezier(.4,0,.2,1) both;transform-origin:8% 100%}
 @keyframes fpShrink{to{transform:scale(.08,.06);opacity:1}}
 .fp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease;animation:none;z-index:1}
 .fp-frame img.on{opacity:1}
-.fp-frame video.fp-loop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:2;background:#000}
+.fp-frame video.fp-loop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;background:#04070b;pointer-events:none}
 .fp-frame img.fp-now{transition:none}
 #layer .sheet.film.fp.fp-full .fp-cards{opacity:.5}
 #layer .sheet.film.fp .fp-t,#layer .sheet.film.fp .fp-card b{color:#e8e4dc}
@@ -30,9 +30,9 @@
 .fp-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:#e8e4dc;transition:width .6s ease}
 .fp-strip{display:flex;gap:3px;margin:6px 0 0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .fp-strip::-webkit-scrollbar{display:none}
-.fp-strip button{flex:0 0 auto;width:clamp(44px,12vw,78px);aspect-ratio:2.2;padding:0;border:0;background:#000;opacity:.5;cursor:pointer;outline:1px solid transparent;outline-offset:-1px}
+.fp-strip button{flex:0 0 auto;width:clamp(44px,12vw,78px);height:auto;padding:0;border:0;background:#000;line-height:0;opacity:.5;cursor:pointer;outline:1px solid transparent;outline-offset:-1px}
 .fp-strip button.on{opacity:1;outline-color:#e8e4dc}
-.fp-strip img{width:100%;height:100%;object-fit:cover;display:block}
+.fp-strip img{width:100%;height:auto;object-fit:cover;display:block}
 .fp-meta{width:min(100%,1180px);margin:14px auto 0;text-align:left}
 #layer .sheet.film.fp .fp-meta *{text-align:left}
 .fp-pre{display:block;font:300 11px Poppins,sans-serif;letter-spacing:.04em;color:rgba(232,228,220,.62);margin:0 0 2px}

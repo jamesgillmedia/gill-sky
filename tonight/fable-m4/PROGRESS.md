@@ -9,3 +9,7 @@ The full-length player files need real hosting, not YouTube and not Vimeo: Weird
 ## Film room package
 
 Featured order is One With the Devil, Weird Kid, Back to the Start, Backward Fall, BMW Legends. A board three or more columns wide gives One With the Devil a 2×2 lead tile. Featured films open in the stills player (`js/filmplayer.js`): local stills dissolve, then role, awards, and the other featured cards. The board and any work without stills keep the muted codec ladder (AV1, then VP9, then H.264). One With the Devil does not use its AAC clip as the hero. Weird Kid stays featured second; its 6.51s 1366×720 muted loop remains the board stand-in.
+
+## Sketch nav and motion
+
+The player is a full-size state. A slim To Go bar sits under Film at full brightness. Tapping it grows the player from the touch point. A downward swipe shrinks it back into the bar. A featured card grows the next film from the card. The first still is up at once, and the entrance bokeh is capped. The mark steps up one level. The drawer is the separate control beside the mark. Esc on the sky leaves for the hub. A/B/C stays hidden unless `?dev=1`. Titles and Film chrome (Hire, role lines, the now-playing pill) use `#e8e4dc`. Reduce Motion keeps the same 1.2 s dissolve. Backward Fall carries the Leo Award for Best Student Production (2014, producer). Back to the Start stays `Co-director · Cinematographer · Producer`.

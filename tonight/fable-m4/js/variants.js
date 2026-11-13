@@ -1,11 +1,11 @@
-/* DEV ONLY · A/B/C variant switch (film-pass-1113). Hide at launch: set GJ_VAR_DEV=false (or drop this file).
- A room lists its variants here; the mark's tune menu shows a small A B C toggle only in a room that has them.
- The choice persists per room (localStorage gj.var.<room>) and can be forced with ?v=A|B|C (applies to the room you open).
- Switching is instant: it only sets html[data-var-<room>] and tells listeners. Nothing re-renders, so scroll,
- camera and level stay where they are, and nav is never touched. */
+/* DEV ONLY · A/B/C variant switch (film-pass-1113).
+ Hidden unless the page is opened with ?dev=1. A room lists its variants here; the tune menu
+ shows A B C only then. The choice persists per room (localStorage gj.var.<room>) and ?v=A|B|C
+ overrides it while dev is on. Switching only sets html[data-var-<room>] and tells listeners. */
 (function(){
 'use strict';
-var DEV=window.GJ_VAR_DEV!==false;
+function devOn(){try{return new URLSearchParams(location.search).get('dev')==='1'}catch(e){return false}}
+var DEV=devOn();
 var ROOMS={
   film:{A:'push-in from the board · 1.2 s dissolve · 3.4 s per still (main)',
         B:'dissolve-only entrance (no push) · slow 2.4 s dissolve · 5 s per still',

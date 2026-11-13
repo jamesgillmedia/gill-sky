@@ -2,7 +2,7 @@
 @font-face{font-family:Poppins;font-weight:200;font-display:swap;src:url(../media/pro2/fonts/poppins-200.woff2) format("woff2")}
 @font-face{font-family:"Julius Sans One";font-display:swap;src:url(../media/pro2/fonts/julius-sans-one.woff2) format("woff2")}
 @font-face{font-family:Syl;font-weight:700;font-display:block;src:url(../media/pro2/fonts/noto-canadian-aboriginal-subset.woff2) format("woff2");unicode-range:U+1400-167F}
-:root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--mint:#55DAA1;--line:rgba(255,255,255,.16);
+:root{--bg:#04070b;--ink:#eef3f5;--dim:#c9d3d6;--mint:#e8e4dc;--line:rgba(255,255,255,.16);
  --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);overflow:hidden;overscroll-behavior:none;touch-action:manipulation;-webkit-text-size-adjust:100%}
@@ -147,7 +147,7 @@ html.deep #bar .nav a,html.deep #hire{padding:0 1px}
 #apro .astars{list-style:none;margin:0;padding:0 0 0 4px;position:relative}
 #apro .astars li{min-height:44px}
 #apro .astars a,#apro .astars button{display:flex;align-items:center;gap:10px;min-height:44px;width:100%;text-align:left;padding-left:var(--jx,8px)}
-#apro .dot{width:9px;height:9px;border-radius:50%;background:#fff;box-shadow:0 0 8px 2px rgba(190,225,255,.75);flex:none}
+#apro .dot{width:9px;height:9px;border-radius:50%;background:#e8e4dc;box-shadow:0 0 8px 2px rgba(232,228,220,.55);flex:none}
 #apro .astars b{font-weight:300;font-size:14px}
 #apro .astars small{font-size:11px;color:var(--dim);letter-spacing:.03em}
 #apro .amore{display:flex;justify-content:flex-end;margin:8px 0 0}
@@ -162,7 +162,8 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 #mmap canvas{width:100%;height:100%;display:block}
 #bar .nav{display:flex;flex:0 0 auto}
 #bar .nav a,#hire{min-height:36px;display:inline-grid;place-items:center;padding:0 4px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
-#hire{color:var(--mint)}
+#hire{color:#e8e4dc}
+#marktune{min-width:28px;min-height:36px;margin-left:2px;color:#e8e4dc;font-size:16px;letter-spacing:0;line-height:1}
 #hire[hidden]{display:none}
 .hire-card{position:absolute;z-index:8;top:calc(52px + var(--st));right:max(10px,var(--sr));width:min(260px,calc(100% - 24px));
  padding:16px 16px 12px;background:rgba(4,7,11,.94);border:1px solid rgba(255,255,255,.16);color:var(--ink)}
@@ -213,7 +214,7 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 .credits li{white-space:normal;overflow-wrap:break-word;line-height:1.4;max-width:100%}
 .rel{margin:8px 0 0;font-size:13px}
 .rel a{color:var(--mint)}
-.play{min-height:44px;padding:0 16px;margin-top:8px;border:1px solid rgba(85,218,161,.55);border-radius:22px;letter-spacing:.12em;font-size:12px}
+.play{min-height:44px;padding:0 16px;margin-top:8px;border:1px solid rgba(232,228,220,.55);border-radius:22px;letter-spacing:.12em;font-size:12px}
 .stillbig{display:block;width:100%;max-height:70vh;object-fit:contain;background:#000;margin:0 auto}
 .poemcard span{display:block;font-weight:200;font-size:16px;line-height:1.5}
 .poemcard .sig{font-family:Syl,sans-serif;font-weight:700;font-size:24px;margin-top:8px}
@@ -228,26 +229,26 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 .rl-st::before{content:'';position:absolute;inset:0 0 auto;height:120px;background:linear-gradient(to bottom,rgba(3,6,10,.55),rgba(3,6,10,0));pointer-events:none;z-index:1}
 .rl.fit .rl-st::after,.rl.fit .rl-st::before{display:none}
 .rl-ui{position:absolute;inset:0;pointer-events:none;font-family:Poppins,sans-serif;z-index:2}
-.rl-k{position:absolute;left:max(16px,var(--sl));top:calc(76px + var(--st));margin:0;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:#55DAA1;font-variant-numeric:tabular-nums;text-transform:uppercase}
+.rl-k{position:absolute;left:max(16px,var(--sl));top:calc(76px + var(--st));margin:0;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:#e8e4dc;font-variant-numeric:tabular-nums;text-transform:uppercase}
 .rl-k::before{content:'reel';color:#c9d5e3;margin-right:10px}
 .rl.paused .rl-k::after{content:'paused';margin-left:10px;color:#c9d5e3}
 .rl-fit{position:absolute;right:max(8px,var(--sr));top:calc(66px + var(--st));margin:0;display:flex;align-items:center;pointer-events:auto}
 .rl-fit i{font-style:normal;color:#5d6f84;font-size:11px}
 .rl-fit button{height:40px;padding:0 7px;border:0;background:transparent;color:#9fb0c4;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.18em}
-.rl-fit button[aria-pressed=true]{color:#55DAA1}
+.rl-fit button[aria-pressed=true]{color:#e8e4dc}
 .rl-b{position:absolute;left:max(16px,var(--sl));right:16px;bottom:calc(112px + var(--sb));margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .rl-b b{font-weight:400;font-size:14px;letter-spacing:.02em;color:#e6eeff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .rl-b small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#a9b8c9}
-.rl-v{pointer-events:auto;margin-top:2px;padding:8px 0;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#55DAA1;text-decoration:none}
+.rl-v{pointer-events:auto;margin-top:2px;padding:8px 0;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#e8e4dc;text-decoration:none}
 .rl.nob .rl-b b,.rl.nol .rl-v{display:none}
-.rl-h{position:absolute;left:max(16px,var(--sl));top:calc(96px + var(--st));margin:0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#55DAA1;transition:opacity .5s}
+.rl-h{position:absolute;left:max(16px,var(--sl));top:calc(96px + var(--st));margin:0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#e8e4dc;transition:opacity .5s}
 .rl.seen .rl-h{opacity:0}
 .rl-fs{position:absolute;left:0;right:0;bottom:calc(42px + var(--sb));height:56px;overflow:hidden;z-index:3;cursor:grab}
 .rl.scrub .rl-fs{cursor:grabbing}
 .rl-tr{position:absolute;left:0;top:8px;height:40px;display:flex;will-change:transform}
 .rl-tr b{flex:0 0 40px;height:40px;background-image:url(../media/pro2/reel/strip.webp);background-size:var(--bs);opacity:.5;filter:saturate(.75)}
 .rl-tr b.on{opacity:1;filter:none}
-.rl-mk{position:absolute;left:50%;top:2px;width:2px;height:52px;margin-left:-1px;background:#55DAA1;box-shadow:0 0 8px rgba(85,218,161,.6)}
+.rl-mk{position:absolute;left:50%;top:2px;width:2px;height:52px;margin-left:-1px;background:#e8e4dc;box-shadow:0 0 8px rgba(232,228,220,.6)}
 html.reelon #mmap{display:none !important}
 .snd{position:absolute;left:0;right:0;bottom:0;pointer-events:auto;
  padding:12px max(12px,var(--sr)) calc(10px + var(--sb)) max(12px,var(--sl));
@@ -304,7 +305,7 @@ html.reelon #mmap{display:none !important}
 #layers .copy.sel,#layers .copy.sel *{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 #lrail{position:absolute;z-index:3;right:10px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:8px;align-items:center}
 #lrail i{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.35);display:block}
-#lrail i.on{background:#e7f6c8;box-shadow:0 0 8px #e7f6c8}
+#lrail i.on{background:#e8e4dc;box-shadow:0 0 8px rgba(232,228,220,.7)}
 #lrail b{font-size:10px;letter-spacing:.14em;font-weight:400;color:rgba(236,244,230,.85)}
 .heroframe{position:relative;width:100%;flex:1 1 auto;height:auto;min-height:58vh;margin:8px 0 0;overflow:hidden;background:#000}
 .heroframe img,.heroframe video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
@@ -338,7 +339,7 @@ html.bleed #proof,html.bleed #mmap{display:none !important}
 .photoseries .series{display:flex;flex-direction:column;gap:12px}
 .photoseries .series figure{margin:0}
 .photoseries .series img{width:100%;max-height:54vh;object-fit:cover;display:block}
-.photoseries .series figure.on img{outline:1px solid rgba(85,218,161,.8)}
+.photoseries .series figure.on img{outline:1px solid rgba(232,228,220,.8)}
 .photoseries figcaption,.contact figcaption{font-size:11px;color:rgba(201,211,214,.8);margin-top:4px}
 .contact{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
 .contact figure{margin:0}
@@ -348,8 +349,8 @@ html.bleed #proof,html.bleed #mmap{display:none !important}
 .enterframe.push.in img,.herobleed img.push{animation:slowpush 16s cubic-bezier(.22,.6,.2,1) forwards;transform-origin:50% 42%}
 @keyframes slowpush{from{transform:scale(1)}to{transform:scale(1.1)}}
 .syncwave{position:absolute;left:0;right:0;bottom:0;height:46%;pointer-events:none}
-.syncwave i{position:absolute;width:7px;height:7px;border-radius:50%;background:rgba(85,218,161,.92);box-shadow:0 0 6px rgba(85,218,161,.45);animation:dotpulse 1.8s ease-in-out infinite alternate}
-.syncwave i.on{background:#e7f6c8;box-shadow:0 0 10px #55daa1}
+.syncwave i{position:absolute;width:7px;height:7px;border-radius:50%;background:rgba(232,228,220,.92);box-shadow:0 0 6px rgba(232,228,220,.45);animation:dotpulse 1.8s ease-in-out infinite alternate}
+.syncwave i.on{background:#e8e4dc;box-shadow:0 0 10px rgba(232,228,220,.7)}
 @keyframes dotpulse{from{transform:translateY(3px)}to{transform:translateY(-3px)}}
 .graincrops{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative}
 .graincrops figure{margin:0;overflow:hidden}
@@ -428,8 +429,8 @@ html:not(.port) .poem .sig{font-size:clamp(18px,4.4vh,26px);margin-top:6px}
 html:not(.port) #dive{left:27%}
 @media (max-height:720px){.poem span{line-height:1.32}}
 
-#layer .songsel{outline:1.5px solid rgb(85,218,161);outline-offset:2px;box-shadow:0 0 14px rgba(85,218,161,.45)}
-#songtitle{position:fixed;left:50%;bottom:calc(64px + var(--sb,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.86);border:1px solid rgba(85,218,161,.55);color:#e8f1f4;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
+#layer .songsel{outline:1.5px solid #e8e4dc;outline-offset:2px;box-shadow:0 0 14px rgba(232,228,220,.45)}
+#songtitle{position:fixed;left:50%;bottom:calc(64px + var(--sb,0px));transform:translateX(-50%);z-index:30;max-width:calc(100vw - 48px);padding:8px 14px;border-radius:999px;background:rgba(6,12,20,.86);border:1px solid rgba(232,228,220,.45);color:#e8e4dc;font:300 12px Poppins,sans-serif;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0;pointer-events:none;transition:opacity .25s linear}
 #songtitle.on{opacity:1}
 /* fable-m4: chapter doors (objects in 3d; photo lab), only at that chapter's landing */
 .gdoor{position:absolute;z-index:7;left:max(10px,var(--sl));bottom:calc(58px + var(--sb));display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border-radius:22px;border:1px solid rgba(255,255,255,.18);background:rgba(3,5,10,.62);font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;text-transform:lowercase;color:#eef3f5;text-decoration:none}
@@ -441,7 +442,7 @@ html:not(.port) #dive{left:27%}
 #wrail li{min-height:24px;min-width:24px;box-sizing:border-box}
 #wrail li{position:relative}
 #wrail li.tap span{display:block;position:absolute;inset:0;opacity:0;overflow:hidden;font-size:1px}
-#wrail li.tap:focus-within{outline:2px solid #55DAA1;outline-offset:1px;border-radius:12px}
+#wrail li.tap:focus-within{outline:2px solid #e8e4dc;outline-offset:1px;border-radius:12px}
 /* K11: the place name in the rail is never cut; it wraps at words */
 #wrail li.here span{max-width:60vw;white-space:normal;text-overflow:clip;overflow:visible}
 
