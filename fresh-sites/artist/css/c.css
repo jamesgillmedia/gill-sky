@@ -1,0 +1,83 @@
+/* C · Trail Line — Archivo Narrow + Newsreader + IBM Plex Mono. The trail is a graphite stroke cut from Gill's drawing. */
+html[data-v=C] body{background:#090a09}
+.c-walk{position:absolute;inset:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.c-walk.port{overflow-x:hidden;overflow-y:auto}
+.c-walk::-webkit-scrollbar{display:none}
+.c-land{position:relative}
+.c-trail{position:absolute;left:0;top:0;pointer-events:none}
+.c-trail path{fill:none;stroke-linecap:round}
+.c-trail .halo{stroke:rgba(232,228,220,.035);stroke-width:46}
+.c-trail .tex{stroke-width:9;opacity:.85}
+.c-trail .core{stroke:rgba(232,228,220,.5);stroke-width:1.2}
+.c-sign{position:absolute;transform:translate(-50%,calc(-100% - 64px));display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 10px;z-index:3}
+.c-sign .no{font:400 9.5px/1 'IBM Plex Mono',monospace;letter-spacing:.16em;color:rgba(232,228,220,.6)}
+.c-sign .nm{font:500 13px/1 'Archivo Narrow',sans-serif;letter-spacing:.4em;padding-left:.4em;text-transform:uppercase;color:#e8e4dc}
+.c-sign:hover .nm,.c-sign.back .nm{text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:1px}
+.c-post{position:absolute;width:1px;height:58px;transform:translate(-.5px,-58px);background:linear-gradient(rgba(232,228,220,.55),rgba(232,228,220,.15));pointer-events:none}
+.c-post::after{content:"";position:absolute;left:-3px;bottom:-3px;width:7px;height:7px;border-radius:50%;background:#090a09;border:1px solid rgba(232,228,220,.7)}
+.c-lead,.c-sec{position:absolute;background:#121311;box-shadow:0 24px 60px rgba(0,0,0,.6);cursor:pointer;transition:transform 1.4s cubic-bezier(.2,.7,.2,1),opacity 1.6s}
+.c-lead img,.c-sec img{width:100%;height:100%;object-fit:cover}
+.c-sec{box-shadow:0 12px 30px rgba(0,0,0,.55)}
+.c-stop .c-lead,.c-stop .c-sec,.c-stop .c-cap,.c-stop .c-aboutlead{opacity:.35}
+.c-stop.near .c-lead,.c-stop.near .c-sec,.c-stop.near .c-cap,.c-stop.near .c-aboutlead{opacity:1}
+.c-lead:hover{transform:translateY(-4px)}
+.c-cap{position:absolute;font:400 10px/1.5 'IBM Plex Mono',monospace;letter-spacing:.08em;color:rgba(232,228,220,.68);pointer-events:none;transition:opacity 1.6s}
+.c-cap .ct,.c-info .ct{display:block;font:400 italic 21px/1.2 'Newsreader',serif;letter-spacing:0;color:#e8e4dc;margin-bottom:4px}
+.c-cap .cm{display:block}
+.c-aboutlead{position:absolute;text-align:left;transition:opacity 1.6s}
+.c-aboutlead .q{display:block;font:300 italic 34px/1.3 'Newsreader',serif;color:#e8e4dc;margin-bottom:22px}
+.c-aboutlead .b{display:block;font:400 15px/1.55 'Newsreader',serif;color:rgba(232,228,220,.78);max-width:30em}
+.c-top{position:fixed;left:0;right:0;top:0;z-index:50;display:flex;align-items:baseline;gap:22px;padding:calc(24px + env(safe-area-inset-top)) 32px 0;pointer-events:none}
+.c-top>*{pointer-events:auto}
+.c-wm{font:500 15px/1 'Archivo Narrow',sans-serif;letter-spacing:.34em;text-transform:uppercase}
+.c-sub{font:400 9.5px/1 'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(232,228,220,.55);text-transform:uppercase}
+.c-map{margin-left:auto;font:500 10.5px/1 'Archivo Narrow',sans-serif;letter-spacing:.3em;text-transform:uppercase;padding:6px 0}
+.c-prof{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));height:44px;z-index:20;cursor:pointer;touch-action:none}
+.c-prof svg{position:absolute;top:0;left:0}.c-prof polyline{fill:none;stroke:rgba(232,228,220,.4);stroke-width:1}
+.c-prof .nt{position:absolute;top:22px;transform:translateX(-50%);font:400 8.5px/1 'IBM Plex Mono',monospace;color:rgba(232,228,220,.6);padding:4px 3px}
+.c-prof .nt::before{content:"";position:absolute;left:50%;top:-16px;width:1px;height:12px;background:rgba(232,228,220,.45)}
+.c-prof .here{position:absolute;top:6px;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;border:1.5px solid #e8e4dc;background:#090a09;pointer-events:none}
+/* the stop */
+.c-page{position:fixed;inset:0;z-index:40;background:#0b0c0b;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.c-page.on{display:block}
+.c-page::before{content:"";position:fixed;inset:0;background:url(../media/tex/graphite-b.webp) right 30%/48% auto no-repeat;opacity:.06;mix-blend-mode:screen;pointer-events:none}
+.c-back{position:fixed;left:28px;top:calc(22px + env(safe-area-inset-top));z-index:3;font:500 11px/1 'Archivo Narrow',sans-serif;letter-spacing:.3em;text-transform:uppercase;padding:8px 0}
+.c-where{position:fixed;left:130px;top:calc(30px + env(safe-area-inset-top));font:400 9.5px 'IBM Plex Mono',monospace;letter-spacing:.12em;color:rgba(232,228,220,.55);text-transform:uppercase}
+.c-hero{position:fixed;left:0;top:0;bottom:0;width:64vw;margin:0;cursor:e-resize}
+.c-hero img{position:absolute;inset:7vh 3vw 9vh 3vw;width:calc(100% - 6vw);height:84vh;object-fit:contain;transition:opacity 1.4s cubic-bezier(.4,0,.2,1),filter 2.2s}
+.c-hero img.out{opacity:0}
+.c-hero img.small{left:50%;right:auto;width:min(var(--mw),calc(100% - 6vw));transform:translateX(-50%)}
+.c-info{position:relative;margin:16vh 0 0 68vw;width:26vw;font:400 10.5px/1.6 'IBM Plex Mono',monospace;letter-spacing:.06em;color:rgba(232,228,220,.72)}
+.c-info .ct{font-size:38px;line-height:1.08;margin-bottom:14px}
+.c-info .cm,.c-info .ca{display:block}
+.c-side{position:relative;margin:40px 0 0 68vw;width:28vw;padding-bottom:140px}
+.c-views{display:flex;flex-wrap:wrap;gap:14px 12px;align-items:flex-end}
+.c-v{height:64px;background:#141513;opacity:.62;transition:opacity .8s}
+.c-v img{width:100%;height:100%;object-fit:cover}
+.c-v.on,.c-v:hover{opacity:1}.c-v.on{outline:1px solid #e8e4dc;outline-offset:3px}
+.c-next{position:fixed;right:32px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:3;font:500 11px/1 'Archivo Narrow',sans-serif;letter-spacing:.24em;text-transform:uppercase;padding:8px 0;margin-right:90px}
+.c-about{max-width:1100px;margin:0 auto;padding:18vh 40px 160px;display:grid;grid-template-columns:1.5fr 1fr;gap:80px}
+.c-about p{font:400 17px/1.62 'Newsreader',serif;color:rgba(232,228,220,.88);margin-bottom:1em}
+.c-about p.lede{font:300 italic 26px/1.35 'Newsreader',serif;color:#e8e4dc}
+.c-about .poem{font:300 italic 21px/1.5 'Newsreader',serif;color:#e8e4dc;padding-top:6px}
+.c-about .mail{font:400 11px 'IBM Plex Mono',monospace;letter-spacing:.12em}.c-about .mail a{border-bottom:1px solid rgba(232,228,220,.4)}
+@media (max-aspect-ratio:1/1.05){
+  .c-top{padding:calc(20px + env(safe-area-inset-top)) 20px 0;gap:12px;flex-wrap:wrap}.c-sub{order:3;flex-basis:100%;margin-top:-6px}
+  .c-sign{transform:translate(-50%,calc(-100% - 50px))}
+  .c-aboutlead .q{font-size:27px}
+  .c-prof{left:20px;transform:none;bottom:calc(52px + env(safe-area-inset-bottom))}
+  .c-back{left:18px}.c-where{left:110px}
+  .c-hero{position:relative;width:100%;height:58vh;margin-top:64px}.c-hero img{inset:0 14px;width:calc(100% - 28px);height:100%}
+  .c-info{margin:18px 22px 0;width:auto}.c-info .ct{font-size:27px}
+  .c-side{margin:26px 0 0;width:auto;padding:0 0 150px}
+  .c-views{flex-wrap:nowrap;overflow-x:auto;padding:4px 22px 8px;scrollbar-width:none}.c-v{flex:0 0 auto;height:72px}
+  .c-next{right:18px;margin-right:0;bottom:calc(56px + env(safe-area-inset-bottom));background:rgba(11,12,11,.8);padding:10px 8px}
+  .c-about{grid-template-columns:1fr;gap:30px;padding:90px 22px 170px}.c-about p.lede{font-size:21px}.c-about p{font-size:15.5px}
+}
+
+/* the wordmark stays on top at stop level; the stop's own controls sit under it */
+body.c-open .c-sub,body.c-open .c-map{display:none}
+.c-back{top:calc(64px + env(safe-area-inset-top));min-height:44px;padding:0 10px 0 0;display:inline-flex;align-items:center}
+.c-where{top:calc(80px + env(safe-area-inset-top))}
+.c-walk{touch-action:pan-x pan-y}
+@media (max-aspect-ratio:1/1.05){.c-hero{margin-top:112px}}
