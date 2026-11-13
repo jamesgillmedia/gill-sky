@@ -16,6 +16,7 @@ function seeded(seed){var s=seed>>>0;return function(){s=(s+0x6D2B79F5)>>>0;var 
 /* sky mood (gj.tune.mood, 0-200, 100 = the sky as written): m runs -1 (hushed, cool, sparse) to +1 (lit, warm, wider glow).
    At m = 0 every factor below is exactly 1 and the field colour is the original #dfe7f2, so 100 draws what it always drew. */
 function moodOf(T){var v=T&&T.mood!=null?+T.mood:1;return clamp(v-1,-1,1)}
+function moodCore(m){var t=m<0?P.coreCool:P.coreWarm,u=Math.abs(m),c=P.coreRGB.map(function(a,i){return Math.round(a+(t[i]-a)*u)});return m?'rgb('+c[0]+','+c[1]+','+c[2]+')':P.core}
 function moodField(m){var t=m<0?P.fieldCool:P.fieldWarm,u=Math.abs(m),c=P.field.map(function(a,i){return Math.round(a+(t[i]-a)*u)});return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
 function glowSprite(rgb){var c=document.createElement('canvas');c.width=c.height=128;var q=c.getContext('2d'),gr=q.createRadialGradient(64,64,0,64,64,64);
   gr.addColorStop(0,'rgba('+rgb+',.95)');gr.addColorStop(.16,'rgba('+rgb+',.42)');gr.addColorStop(.42,'rgba('+rgb+',.10)');gr.addColorStop(1,'rgba('+rgb+',0)');q.fillStyle=gr;q.fillRect(0,0,128,128);return c}
@@ -80,17 +81,18 @@ function Sky(D){
   K.fitBox=function(b,top,bot,W,H){var s=Math.min((W-24)/(b.x1-b.x0),(H-top-bot)/(b.y1-b.y0)),cy=(top+(H-bot))/2;return {x:(b.x0+b.x1)/2,y:(b.y0+b.y1)/2-(cy-H/2)/s,s:s}};
   K.chFit=function(k,W,H){var c=K.chapter(k);return K.fitBox({x0:c.x+c.ex.x0,y0:c.y+c.ex.y0,x1:c.x+c.ex.x1,y1:c.y+c.ex.y1},36,28,W,H)};
   function zE(cam,z){return 1+(z-1)*(1-sstep(1.6,5,cam.zf()))}
+  K.core=P.core;
   K.proj=function(cam,x,y,z,o){z=zE(cam,z);var k=Math.pow(cam.zf(),(z-1)*.38),s=cam.s*k;o=o||[0,0,0];
     o[0]=cam.W/2+(x-cam.x)*s+cam.tilt.x*(z-1)*2.2;o[1]=cam.H/2+(y-cam.y)*s+cam.tilt.y*(z-1)*2.2;o[2]=s;return o};
-  function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle=P.core;g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
+  function dot(g,x,y,rad,a,spr,gs){if(a<.01)return;g.globalAlpha=a*.85;g.drawImage(spr,x-gs/2,y-gs/2,gs,gs);g.globalAlpha=a;g.fillStyle=K.core;g.beginPath();g.arc(x,y,rad,0,6.283);g.fill();g.globalAlpha=1}
   /* the mood wash: the page wash (#13202e at 50% 0 into --bg, STANDARDS §4), growing with mood above 100. Behind everything. */
   /* red mode: the dotted floor. A lattice of fine dots in the world at depth .55, so it slides under the constellations as you move
      (spacing doubles as you zoom in so the dots stay 18-36 px apart). Static: nothing in it moves by itself. */
-  function floor(g,cam){var W=cam.W,H=cam.H,base=60,z=.55,o=[0,0,0],px=K.proj(cam,0,0,z,[0,0,0])[2],sp=base*Math.pow(2,Math.ceil(Math.log(18/(px*base))/Math.LN2));
+  function floor(g,cam,m){var W=cam.W,H=cam.H,base=60,z=.55,o=[0,0,0],px=K.proj(cam,0,0,z,[0,0,0])[2],sp=base*Math.pow(2,Math.ceil(Math.log(18/(px*base))/Math.LN2));
     var x0=Math.floor((cam.x-W/2/px-sp)/sp)*sp,y0=Math.floor((cam.y-H/2/px-sp)/sp)*sp,x1=cam.x+W/2/px+sp,y1=cam.y+H/2/px+sp;
-    g.fillStyle='rgba('+P.grid+',.5)';
+    g.fillStyle='rgba('+P.grid+','+(.5*(1+m*.5)).toFixed(3)+')';
     for(var y=y0;y<y1;y+=sp)for(var x=x0;x<x1;x+=sp){K.proj(cam,x,y,z,o);if(o[0]<-2||o[0]>W+2||o[1]<-2||o[1]>H+2)continue;g.fillRect(o[0]-.5,o[1]-.5,1.2,1.2)}}
-  K.drawWash=function(g,cam,T){var m=moodOf(T);if(P.grid)floor(g,cam);if(m<=0)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
+  K.drawWash=function(g,cam,T){var m=moodOf(T);K.core=moodCore(m);if(P.grid)floor(g,cam,m);if(m<=0||!P.wash)return;var W=cam.W,H=cam.H,gr=g.createRadialGradient(W/2,0,0,W/2,0,Math.max(W,H)*.95);
     gr.addColorStop(0,'rgba('+P.wash+','+(m*.95).toFixed(3)+')');gr.addColorStop(1,'rgba('+P.wash+',0)');g.fillStyle=gr;g.fillRect(0,0,W,H)};
   K.draw=function(g,cam,t,T,st,hide){
     var o=[0,0,0],W=cam.W,H=cam.H,z=cam.zf(),sS=T.starS||1,sG=T.starG||1,lA=T.lineA||1,lW=T.lineW||1;

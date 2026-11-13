@@ -66,7 +66,7 @@ M.draw=function(g,cam,t,sh){
     var e=ease(clamp(f*1.3-it.st*.3,0,1)),x=it.lx+(it.bx-it.lx)*e,y=it.ly+(it.by-it.ly)*e;sky.proj(cam,x,y,z+(1-z)*e,o);
     var sw=B.tw*e*o[2],sh2=B.th*e*o[2];if(o[0]<-sw-40||o[0]>cam.W+sw+40||o[1]<-sh2-60||o[1]>cam.H+sh2+60){it._r=null;return}
     var da=1-sstep(.25,.55,e),dimW=work>=0&&work!==i;
-    if(da>.02){g.globalAlpha=da*(dimW?.3:1);var rr=(1.2+it.st)*Math.min(2.2,Math.sqrt(cam.zf()));g.drawImage(fsp,o[0]-rr*6,o[1]-rr*6,rr*12,rr*12);g.fillStyle=PAL.core;g.beginPath();g.arc(o[0],o[1],rr*.55,0,6.283);g.fill()}
+    if(da>.02){g.globalAlpha=da*(dimW?.3:1);var rr=(1.2+it.st)*Math.min(2.2,Math.sqrt(cam.zf()));g.drawImage(fsp,o[0]-rr*6,o[1]-rr*6,rr*12,rr*12);g.fillStyle=sky.core;g.beginPath();g.arc(o[0],o[1],rr*.55,0,6.283);g.fill()}
     var ia=sstep(.3,.7,e);
     if(ia>.02){g.globalAlpha=ia*(dimW?.18:1);var x0=o[0]-sw/2,y0=o[1]-sh2/2;
       if(it.ld){var im=it.im,ar=im.naturalWidth/im.naturalHeight,ta=sw/sh2,sx=0,sy=0,w2=im.naturalWidth,h2=im.naturalHeight;if(ar>ta){w2=h2*ta;sx=(im.naturalWidth-w2)/2}else{h2=w2/ta;sy=(im.naturalHeight-h2)/2}

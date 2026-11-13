@@ -17,11 +17,12 @@ function lsSet(v){try{localStorage.setItem(KEY,v)}catch(e){}}
 function css(n){return getComputedStyle(root).getPropertyValue(n).trim()}
 function tri(n){var v=css(n);return v==='none'||!v?null:v}
 function nums(n){return css(n).split(',').map(Number)}
+function hex(h){h=h.replace('#','');if(h.length===3)h=h.replace(/./g,'$&$&');return [0,2,4].map(function(i){return parseInt(h.substr(i,2),16)})}
 function build(){
   P.name=eff;
   ['bg','ink','dim','meta','mint','line'].forEach(function(k){P[k]=css('--'+k)});
   P.bgRGB=css('--bg-rgb');
-  P.field=nums('--c-field');P.fieldCool=nums('--c-field-cool');P.fieldWarm=nums('--c-field-warm');P.wash=css('--c-wash');P.glow=css('--c-glow');P.core=css('--c-core');
+  P.field=nums('--c-field');P.fieldCool=nums('--c-field-cool');P.fieldWarm=nums('--c-field-warm');P.wash=tri('--c-wash');P.glow=css('--c-glow');P.core=css('--c-core');P.coreRGB=hex(css('--c-core'));P.coreCool=hex(css('--c-core-cool'));P.coreWarm=hex(css('--c-core-warm'));
   P.chapter=tri('--c-chapter');P.active=tri('--c-active');P.grid=tri('--c-grid');
   P.label=css('--c-label');P.slot=css('--c-slot');
   P.sndOn=css('--c-snd-on');P.sndOff=css('--c-snd-off');P.sndLblOn=css('--c-snd-lbl-on');P.sndLbl=css('--c-snd-lbl');

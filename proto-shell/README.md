@@ -57,3 +57,8 @@ Modules paint with GJ_THEME.pal (or the CSS variables), never their own hex; GJ_
 Red = bright red on black, thin lines, a dotted floor; the room or part being adjusted in the tune menu lights up gold for a moment.
 Never themed: photographs, film frames and video; the mint "new" marker; the safelight; the Photo room (it keeps its own look, so
 red steps aside while you are inside it). No transitions and no motion differences between themes, Reduce Motion included.
+
+Red and mood are one system: the sky mood slider (hushed to lit) runs on the red palette too. Hushed red is deep, sparse and dim; lit red
+glows and warms toward gold. Red never washes or brightens the page: the black stays black and only the elements give light. Stars, glows, lines, the dotted floor and the star cores all follow it. The
+callout, its corner marks, the leader and the zoom-level scale are drawn from the same language as the constellations (glowing star dots,
+fine dotted runs, hairline lines).

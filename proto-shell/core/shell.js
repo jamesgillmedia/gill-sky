@@ -100,11 +100,9 @@ function boot(skyD,tracks,shape){
     g.fillStyle=PAL.bg;g.fillRect(0,0,W,H); /* --bg, from the theme layer */
     sky.drawWash(g,cam,T);
     sky.draw(g,cam,t,T,ladder.cur,M.hide?function(k){return M.hide(k,SH)}:null);
-    /* red: the dust glow sits under the module's pictures so it can never tint a photograph or a film frame */
-    if(PAL.name==='red')sky.drawDust(g,cam);
     soundLayer(t);
     if(M.draw)M.draw(g,cam,t,SH,T);
-    if(PAL.name!=='red')sky.drawDust(g,cam);
+    if(PAL.name!=='red')sky.drawDust(g,cam); /* red has no haze: nothing but the elements themselves gives light */
     if(PAL.name==='red'){lvlStep();co.step(cam)}
   }
   /* the Sound constellation is the waveform: the six song stars glow, the playing one breathes with the playhead */

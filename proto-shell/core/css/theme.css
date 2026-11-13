@@ -11,7 +11,7 @@
   --mm-bg:rgba(6,10,16,.84);--mm-ink:#e4ebf5;--mm-ink-rgb:228,235,245;--mm-line-rgb:207,216,230;--mm-accent:#d9b98a;
   --mm-on-bg:#e8e4dc;--mm-on-ink:#04070b;--mm-on-text:#e8e4dc;
   /* canvas (read by theme.js): rgb triplets, or a full colour where noted */
-  --c-field:223,231,242;--c-field-cool:150,175,215;--c-field-warm:244,230,208;--c-wash:19,32,46;--c-glow:205,225,255;--c-core:#fff;
+  --c-field:223,231,242;--c-field-cool:150,175,215;--c-field-warm:244,230,208;--c-wash:19,32,46;--c-glow:205,225,255;--c-core:#fff;--c-core-cool:#fff;--c-core-warm:#fff;
   --c-chapter:none;--c-active:none;--c-grid:none;
   --c-label:#e6edf0;--c-slot:rgba(201,211,214,.5);
   --c-snd-on:#eef3f5;--c-snd-off:rgb(255,214,206);--c-snd-lbl-on:#eef3f5;--c-snd-lbl:rgba(201,211,214,.85);
@@ -25,7 +25,7 @@ html[data-theme=red]{
   --ctl-rgb:255,72,60;--ctl-ink:#ff5a4d;--tc:#ff6a5d;--pill-on:rgba(232,196,138,.85);--toggle-dot:#eef3f5;
   --mm-bg:rgba(14,0,0,.9);--mm-ink:#ff5a4d;--mm-ink-rgb:255,90,77;--mm-line-rgb:255,72,60;--mm-accent:#e8c48a;
   --mm-on-bg:#ff3b30;--mm-on-ink:#000;--mm-on-text:#ff5a4d;
-  --c-field:255,86,72;--c-field-cool:150,26,22;--c-field-warm:255,190,120;--c-wash:70,0,0;--c-glow:255,50,40;--c-core:#ff6a5a;
+  --c-field:255,86,72;--c-field-cool:150,26,22;--c-field-warm:255,190,120;--c-wash:none;--c-glow:255,50,40;--c-core:#ff6a5a;--c-core-cool:#c8322c;--c-core-warm:#ffd9a8;
   --c-chapter:255,48,48;--c-active:232,196,138;--c-grid:255,48,48;
   --c-label:#ff5a4d;--c-slot:rgba(255,90,77,.55);
   --c-snd-on:#e8c48a;--c-snd-off:rgb(255,60,50);--c-snd-lbl-on:#e8c48a;--c-snd-lbl:rgba(255,90,77,.92);
@@ -56,17 +56,16 @@ html[data-theme=red] #markmenu .mm-off-room label{opacity:.7}
 /* red only: the floating callout (core/callout.js), the zoom-level scale (#lvl, shell.js), and the tune menu stepping aside while a slider moves */
 #callouts,#lvl{display:none}
 html[data-theme=red] #callouts{display:block;position:fixed;inset:0;width:100%;height:100%;z-index:46;pointer-events:none;overflow:visible}
-#callouts .co-br{fill:none;stroke:#e8c48a;stroke-width:1.2}
-#callouts .co-ln{fill:none;stroke:rgba(232,196,138,.75);stroke-width:1}
-#callouts .co-dm{fill:#e8c48a}
+#callouts .co-br{fill:none;stroke:rgba(232,196,138,.55);stroke-width:1}
+#callouts .co-ln{fill:none;stroke:rgba(232,196,138,.85);stroke-width:1.2;stroke-linecap:round;stroke-dasharray:.1 4.5}
 #callouts .co-box{fill:rgba(14,0,0,.86);stroke:#e8c48a;stroke-width:1}
 #callouts .co-t1{font:400 9px "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;fill:#e8c48a}
 #callouts .co-t2{font:300 11px Poppins,sans-serif;letter-spacing:.04em;fill:var(--ink)}
 html[data-theme=red] #markmenu.mm-peek{opacity:.2;-webkit-backdrop-filter:none;backdrop-filter:none}
 html[data-theme=red] #lvl{display:block;position:fixed;z-index:46;left:calc(8px + var(--sl));top:50%;width:64px;height:132px;margin-top:-66px;pointer-events:none}
-#lvl .rail{position:absolute;left:3px;top:0;bottom:0;width:1px;background:rgba(var(--ctl-rgb),.45)}
-#lvl b{position:absolute;left:0;height:12px;margin-top:-6px;padding-left:11px;font:400 8px/12px "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
-#lvl b::before{content:"";position:absolute;left:0;top:5px;width:7px;height:1px;background:currentColor}
+#lvl .rail{position:absolute;left:3px;top:0;bottom:0;width:0;border-left:1.5px dotted rgba(var(--ctl-rgb),.6)}
+#lvl b{position:absolute;left:0;height:12px;margin-top:-6px;padding-left:13px;font:400 8px/12px "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--dim)}
+#lvl b::before{content:"";position:absolute;left:1px;top:4px;width:4px;height:4px;border-radius:50%;background:currentColor;box-shadow:0 0 6px 1px currentColor}
 #lvl b.off{opacity:.4}
 #lvl b.on{color:#e8c48a}
-#lvl s{position:absolute;left:0;top:0;width:11px;height:3px;margin:-1px 0 0 -1px;background:#e8c48a}
+#lvl s{position:absolute;left:0;top:0;width:8px;height:8px;margin:-4px 0 0 -1px;border-radius:50%;background:#ffe9c4;box-shadow:0 0 8px 2px #e8c48a}
