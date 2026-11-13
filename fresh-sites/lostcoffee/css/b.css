@@ -11,32 +11,20 @@ html[data-v=B] body{font-family:'Space Mono',monospace;background:#050505}
 .b-ch:hover .b-face{opacity:.3}
 .b-hit{position:absolute;inset:0;z-index:0}
 .b-ch>*:not(.b-face):not(.b-hit){position:relative;z-index:1}
-/* The full-strip hit button sits underneath. Interactive pieces opt back in.
-   The old pointer-events:none on every child beat the master and path rules
-   (higher specificity), so a phone touch never reached a fader. */
-.b-ch>*:not(.b-face):not(.b-hit):not(.b-path):not(.b-fader):not(.b-mt):not(.b-links):not(.b-mm){pointer-events:none}
-.b-ch .b-path,.b-ch .b-path *,.b-ch .b-fader,.b-ch .b-fader *,.b-master .b-mt,.b-master .b-mt *,.b-master .b-links,.b-master .b-links *,.b-master .b-mm,.b-master .b-mm *{pointer-events:auto}
-.b-scr{width:min(100%,92px);aspect-ratio:1;background:#111;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.6)}
-.b-scr img{width:100%;height:100%;object-fit:cover}
+/* The full-strip hit button sits underneath. The waveform and the master links opt back in. */
+.b-ch>*:not(.b-face):not(.b-hit):not(.b-path):not(.b-links):not(.b-mm){pointer-events:none}
+.b-ch .b-path,.b-ch .b-path *,.b-master .b-links,.b-master .b-links *,.b-master .b-mm,.b-master .b-mm *{pointer-events:auto}
+.b-scr{flex:0 0 auto;flex-shrink:0;width:min(100%,92px);aspect-ratio:1 / 1;background:#111;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.6)}
+.b-scr img{width:100%;height:100%;object-fit:cover;display:block}
 .b-no{margin-top:10px;font:400 9px/1 'Space Mono',monospace;letter-spacing:.2em;color:rgba(232,228,220,.62)}
 .b-path{flex:1;width:min(100%,64px);margin:12px 0 10px;position:relative;min-height:60px}
 .b-path canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .b-led{position:absolute;right:-8px;top:0;bottom:0;width:3px;background:linear-gradient(0deg,#e8e4dc 0,#e8e4dc 70%,#e8c48a 100%);transform-origin:50% 100%;transform:scaleY(0)}
 .b-nm{font:800 clamp(18px,2vw,30px)/1 'Big Shoulders Display',sans-serif;letter-spacing:.01em;text-transform:uppercase;text-align:center;white-space:nowrap}
 .b-ln{margin-top:6px;font:400 10px/1 'Space Mono',monospace;color:rgba(232,228,220,.72)}
-.b-fader{position:relative;z-index:5;width:44px;min-width:44px;height:132px;min-height:44px;margin-top:8px;display:flex;align-items:center;justify-content:center;touch-action:none;pointer-events:auto}
-.b-fader input{-webkit-appearance:none;appearance:none;writing-mode:vertical-lr;direction:rtl;width:44px;min-width:44px;height:120px;min-height:44px;margin:0;background:transparent;cursor:pointer;touch-action:none;pointer-events:auto}
-.b-fader input::-webkit-slider-runnable-track{width:1px;background:rgba(232,228,220,.45)}
-.b-fader input::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#e8e4dc}
-.b-fader input::-moz-range-track{width:1px;background:rgba(232,228,220,.45);border:0}
-.b-fader input::-moz-range-thumb{width:18px;height:18px;border:0;border-radius:50%;background:#e8e4dc}
-.b-master .lv-tune input{min-width:44px;min-height:44px;height:44px}
 .b-so{margin-top:10px;font:400 8.5px/1 'Space Mono',monospace;letter-spacing:.24em;text-transform:uppercase;padding:6px 10px;border:1px solid rgba(232,228,220,.4);border-radius:2px}
 .b-ch.live .b-so{background:#e8e4dc;color:#050505;border-color:#e8e4dc}
 .b-master{flex:0 0 clamp(150px,13vw,190px);cursor:default;justify-content:flex-start;gap:16px;padding:14px 14px}
-.b-master .b-mt{margin-top:8px;pointer-events:auto}
-.lv-tune.vert{flex-direction:column;gap:14px;align-items:flex-start}
-.lv-tune.vert input{width:100%;min-width:110px}
 .b-master .b-links{margin-top:auto;font:400 9px/1 'Space Mono',monospace;letter-spacing:.14em;text-transform:uppercase;pointer-events:auto;text-align:center}
 .b-mm{font:400 9px/1.5 'Space Mono',monospace;color:rgba(232,228,220,.6);text-align:center;pointer-events:auto}.b-mm a{border-bottom:1px solid rgba(232,228,220,.25)}
 /* solo */
@@ -44,7 +32,7 @@ html[data-v=B] body{font-family:'Space Mono',monospace;background:#050505}
 #app.solo .b-win{opacity:1;pointer-events:auto}
 #app.solo .b-desk{left:auto;width:auto;right:clamp(18px,3vw,40px);gap:4px}
 #app.solo .b-ch{flex:0 0 46px;padding:10px 4px;background:rgba(12,12,11,.86)}
-#app.solo .b-ch .b-scr{width:34px}#app.solo .b-ch .b-no,#app.solo .b-ch .b-so,#app.solo .b-ch .b-ln{display:none}
+#app.solo .b-ch .b-scr{flex:0 0 auto;flex-shrink:0;width:34px;aspect-ratio:1 / 1}#app.solo .b-ch .b-no,#app.solo .b-ch .b-so,#app.solo .b-ch .b-ln{display:none}
 #app.solo .b-ch .b-nm{writing-mode:vertical-rl;transform:rotate(180deg);font-size:18px;margin-top:10px}
 #app.solo .b-ch .b-path{width:20px}#app.solo .b-ch .b-led{right:-5px}
 #app.solo .b-ch.on{flex-basis:56px;background:#151513;box-shadow:inset 0 0 0 1px #e8e4dc}
@@ -68,25 +56,26 @@ html[data-v=B] body{font-family:'Space Mono',monospace;background:#050505}
 @media (max-width:720px){
   .b-desk{gap:4px;bottom:calc(56px + env(safe-area-inset-bottom));flex-wrap:wrap}
   .b-ch{flex:1 1 0;padding:8px 3px 10px;height:calc(100% - 128px)}
-  .b-scr{width:100%}.b-no{font-size:7.5px;letter-spacing:.08em}
+  .b-scr{flex:0 0 auto;flex-shrink:0;width:100%;aspect-ratio:1 / 1}.b-no{font-size:7.5px;letter-spacing:.08em}
   .b-nm{writing-mode:vertical-rl;transform:rotate(180deg);font-size:20px;margin:6px 0}
   .b-path{width:100%;margin:8px 0}.b-led{right:-2px}
   .b-so{padding:5px 4px;letter-spacing:.1em;font-size:7.5px}.b-ln{font-size:8.5px}
   .b-master{flex:0 0 100%;height:120px;flex-direction:row;flex-wrap:wrap;align-items:center;padding:10px 12px;gap:10px}
-  .b-master .b-no{margin:0;width:100%}.b-master .b-mt{margin:0}.lv-tune.vert{flex-direction:row}.lv-tune.vert input{min-width:0;width:80px}
+  .b-master .b-no{margin:0;width:100%}
   .b-master .b-links{margin:0 0 0 auto}.b-mm{width:100%;text-align:left}
   #app.solo .b-desk{left:clamp(18px,3vw,40px);right:clamp(18px,3vw,40px);top:auto;height:58px;bottom:calc(52px + env(safe-area-inset-bottom));flex-wrap:nowrap}
-  #app.solo .b-ch{flex:1 1 0;height:58px;flex-direction:row;padding:6px;gap:6px}
-  #app.solo .b-ch .b-scr{width:44px;flex:0 0 auto}#app.solo .b-ch .b-nm{writing-mode:horizontal-tb;transform:none;font-size:13px;margin:0;white-space:nowrap;overflow:hidden}
+  /* Inactive strips keep a 44px cover. The open strip takes the spare width for its name,
+     and the name is allowed to shrink so it never pushes a cover out of the strip. */
+  #app.solo .b-ch{flex:0 1 56px;min-width:0;height:58px;flex-direction:row;align-items:center;padding:6px;gap:6px}
+  #app.solo .b-ch .b-scr{flex:0 0 auto;flex-shrink:0;width:min(44px,100%);aspect-ratio:1 / 1}
+  #app.solo .b-ch .b-nm{writing-mode:horizontal-tb;transform:none;font-size:13px;margin:0;min-width:0;flex:1 1 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   #app.solo .b-ch .b-path{display:none}
-  #app.solo .b-ch.on{flex-basis:auto}
+  #app.solo .b-ch.on{flex:1 1 56px;min-width:0}
   .b-solo{right:clamp(18px,3vw,40px);bottom:calc(122px + env(safe-area-inset-bottom))}
   .b-st{font-size:clamp(52px,16vw,80px);max-width:100%}
   .b-cov{top:auto;bottom:160px;left:0;right:auto;width:40vw}.b-pls{top:auto;bottom:160px;right:0;width:44vw}
   .b-tr{bottom:84px}
 }
-.b-stune{margin-left:18px}
-@media (max-width:720px){.b-tr{flex-wrap:wrap;gap:12px;right:0}.b-stune{margin-left:0;flex-basis:100%}.b-stune input{width:80px}.b-tr{bottom:80px}}
 /* solo opens straight away from the strip: no empty beat */
 .b-win{transition:opacity .45s}
 .b-solo{transition:opacity .35s}
