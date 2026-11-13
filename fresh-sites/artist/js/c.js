@@ -148,13 +148,14 @@ function show(k,j,instant){var vs=views(k);j=(j+vs.length)%vs.length;sel[k]=j;va
   olds.forEach(function(o){o.classList.add('out');setTimeout(function(){o.remove()},1200)})
   info.innerHTML=G.caption(v.it,true);page.querySelectorAll('.c-v').forEach(function(b){b.classList.toggle('on',+b.dataset.j===j)})}
 function openStop(k,fromEl,instant){openK=k;d.body.classList.add('c-open');bands();fillPage(k);page.classList.add('on');var r=fromEl?fromEl.getBoundingClientRect():null;
-  if(instant||rm()||!r){page.style.clipPath='none';page.style.opacity=1;return}
+  /* phone and tablet open as a full page: the circle was clipping the still and the type */
+  if(instant||rm()||PORT||!r){page.style.clipPath='none';page.style.opacity=1;return}
   var cx=r.left+r.width/2,cy=r.top+r.height/2,R0=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy));
   G.tween(950,function(e){page.style.clipPath='circle('+(8+R0*e).toFixed(1)+'px at '+cx.toFixed(0)+'px '+cy.toFixed(0)+'px)';page.style.opacity=Math.min(1,e*2.2).toFixed(3)},function(){page.style.clipPath='none'})}
 var toHead=false;
 function closeStop(instant){if(!openK)return;var k=openK;openK=null;d.body.classList.remove('c-open');bands();var i=STOPS.findIndex(function(s){return s.k===k});if(toHead){toHead=false;setScroll(0,false);i=0}else goSign(i,false);
   var sg=land.querySelectorAll('.c-sign')[i],r=sg.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2,R0=Math.hypot(Math.max(cx,innerWidth-cx),Math.max(cy,innerHeight-cy));
-  if(instant||rm()){page.classList.remove('on');page.style.clipPath='none';return}
+  if(instant||rm()||PORT){page.classList.remove('on');page.style.clipPath='none';return}
   G.tween(900,function(e){page.style.clipPath='circle('+(8+R0*(1-e)).toFixed(1)+'px at '+cx.toFixed(0)+'px '+cy.toFixed(0)+'px)'},function(){page.classList.remove('on');page.style.clipPath='none'});
   sg.classList.add('back');setTimeout(function(){sg.classList.remove('back')},2400)}
 R.on(function(route,prev,how){if(route==='index'){idx.classList.add('open');return}idx.classList.remove('open');

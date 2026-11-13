@@ -108,12 +108,16 @@ body.c-open .c-top{background:#0b0c0b}
 .c-side{padding-bottom:28px}
 .c-next{position:relative;right:auto;bottom:auto;margin:10px 0 40px 68vw;display:inline-flex;align-items:center;min-height:44px;background:none}
 @media (max-aspect-ratio:1/1.05){
+  /* the trail stays behind the stop, so its drawings cannot cut the still or the bio */
+  body.c-open .c-walk{visibility:hidden}
   .c-back{left:18px;top:4px}.c-where{left:110px;top:20px}
-  .c-hero{position:relative;top:auto;bottom:auto;margin-top:56px}
-  .c-hero img{inset:0 14px;height:100%}
-  .c-info{margin-top:18px}
-  .c-side{padding:0 0 20px}
-  .c-next{margin:6px 18px 30px;background:none;padding:0 8px}
+  .c-hero{position:relative;top:auto;bottom:auto;margin:52px 0 0;height:auto;min-height:0}
+  .c-hero img{position:relative;inset:auto;display:block;width:calc(100% - 28px);height:auto;max-height:52vh;margin:0 14px;object-fit:contain}
+  .c-info{position:relative;margin:16px 22px 0;width:auto}
+  .c-side{position:relative;margin:18px 0 0;width:auto;padding:0 0 28px}
+  .c-views{padding:4px 22px 16px}
+  .c-next{margin:8px 18px 24px;background:none;padding:0 8px}
+  .c-about{position:relative;grid-template-columns:1fr;gap:28px;padding:56px 22px 36px}
 }
 @media (max-height:520px) and (min-aspect-ratio:1/1.05){
   .c-aboutlead .q{font-size:22px;margin-bottom:12px}.c-aboutlead .b{font-size:13px}
