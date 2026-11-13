@@ -33,17 +33,17 @@ var CSS=
 '#opc .oc-ty{position:absolute;left:max(16px,var(--sl,0px));right:max(16px,var(--sr,0px));bottom:calc(30px + var(--sb,0px));z-index:3;pointer-events:none;display:flex;flex-direction:column;align-items:flex-start}'+
 '#opc p{position:static;left:auto;right:auto;bottom:auto;font:inherit;letter-spacing:normal;text-shadow:none}'+
 '#opc .oc-ty h2{margin:0;font:400 clamp(22px,6vw,40px)/1.15 "Julius Sans One",sans-serif;letter-spacing:.08em;text-shadow:0 2px 16px rgba(0,0,0,.7)}'+
-'#opc .oc-role{margin:6px 0 0;color:var(--mint,#55DAA1);font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 1px 8px #04070b}'+
+'#opc .oc-role{margin:6px 0 0;color:var(--mint,#e8e4dc);font-size:11px;letter-spacing:.14em;text-transform:uppercase;text-shadow:0 1px 8px #04070b}'+
 '#opc .oc-role:empty,#opc .oc-meta:empty{display:none}'+
 '#opc .oc-meta{margin:6px 0 0;font:300 12px/1.45 Poppins,sans-serif;color:var(--dim,#c9d3d6);text-shadow:0 1px 8px #04070b}'+
 '#opc .oc-momo{margin:0 0 12px;width:min(34vw,132px);text-align:center}'+
 '#opc .oc-momo video{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px;opacity:.88;background:#3d8ee0}'+
 '#opc .oc-momo figcaption{margin-top:6px;font-size:12px;letter-spacing:.06em;opacity:.6}'+
-'#opc .oc-play{pointer-events:auto;min-height:44px;min-width:88px;padding:0 18px;margin-top:14px;border:1px solid rgba(85,218,161,.55);border-radius:22px;letter-spacing:.12em;font:300 12px Poppins,sans-serif;text-transform:lowercase;color:inherit;background:rgba(4,7,11,.35);cursor:pointer}'+
-'#opc .oc-play[aria-pressed="true"]{color:var(--mint,#55DAA1);border-color:var(--mint,#55DAA1);box-shadow:0 0 10px rgba(85,218,161,.35)}'+
-'#opc .oc-k{position:absolute;left:max(24px,calc(var(--sl,0px) + 12px));top:calc(26px + var(--st,0px));margin:0;z-index:5;pointer-events:none;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:var(--mint,#55DAA1);font-variant-numeric:tabular-nums}'+
+'#opc .oc-play{pointer-events:auto;min-height:44px;min-width:88px;padding:0 18px;margin-top:14px;border:1px solid rgba(232,228,220,.55);border-radius:22px;letter-spacing:.12em;font:300 12px Poppins,sans-serif;text-transform:lowercase;color:inherit;background:rgba(4,7,11,.35);cursor:pointer}'+
+'#opc .oc-play[aria-pressed="true"]{color:var(--mint,#e8e4dc);border-color:var(--mint,#e8e4dc);box-shadow:0 0 10px rgba(232,228,220,.35)}'+
+'#opc .oc-k{position:absolute;left:max(24px,calc(var(--sl,0px) + 12px));top:calc(26px + var(--st,0px));margin:0;z-index:5;pointer-events:none;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;color:var(--mint,#e8e4dc);font-variant-numeric:tabular-nums}'+
 '#opc .oc-dots{position:absolute;left:0;right:0;bottom:calc(16px + var(--sb,0px));display:flex;justify-content:center;gap:7px;z-index:5;pointer-events:none}'+
-'#opc .oc-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.32)}#opc .oc-dots i.on{background:var(--mint,#55DAA1);box-shadow:0 0 6px rgba(85,218,161,.7)}'+
+'#opc .oc-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.32)}#opc .oc-dots i.on{background:var(--mint,#e8e4dc);box-shadow:0 0 6px rgba(232,228,220,.7)}'+
 '#opb{position:absolute;inset:0;z-index:6;display:none;overflow:hidden;touch-action:none;background:transparent}#opb.on{display:block}#opb #opc{z-index:1}';
 function vid(src,poster,cls){
   var v=document.createElement('video');

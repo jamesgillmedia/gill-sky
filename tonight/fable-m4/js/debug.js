@@ -20,10 +20,10 @@
     '#gjdbg .tune{margin-top:12px}' +
     '#gjdbg label.sl{display:block;margin:0 0 8px;color:#9fb6cc;font-size:10px;letter-spacing:.03em}' +
     '#gjdbg label.sl b{float:right;color:#dfe8f2;font-weight:300}' +
-    '#gjdbg label.sl input{display:block;width:100%;margin:4px 0 0;accent-color:#55DAA1}' +
+    '#gjdbg label.sl input{display:block;width:100%;margin:4px 0 0;accent-color:#e8e4dc}' +
     '#gjdbg .acts{display:flex;gap:8px;margin-top:4px}' +
     '#gjdbg .acts button{flex:1;height:36px;border-radius:18px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#dfe8f2;font:300 11px Poppins,sans-serif;letter-spacing:.04em}' +
-    '#gjdbg a.go{display:block;margin-top:10px;padding:9px 12px;text-align:center;border-radius:16px;border:1px solid rgba(85,218,161,.55);color:#55DAA1;text-decoration:none;background:rgba(85,218,161,.1);letter-spacing:.08em}';
+    '#gjdbg a.go{display:block;margin-top:10px;padding:9px 12px;text-align:center;border-radius:16px;border:1px solid rgba(232,228,220,.55);color:#e8e4dc;text-decoration:none;background:rgba(232,228,220,.1);letter-spacing:.08em}';
   var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st);
 
   var root = document.createElement('div'); root.id = 'gjdbg';

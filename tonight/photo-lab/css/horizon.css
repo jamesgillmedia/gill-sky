@@ -7,7 +7,7 @@
 .water::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(255,255,255,.035) 0 1px,transparent 1px 7px);animation:drift 9s linear infinite}
 @keyframes drift{to{background-position:0 70px}}
 .frames{position:absolute;left:0;right:0;top:0;height:var(--hy);overflow:hidden;pointer-events:none;z-index:2}
-.refl{position:absolute;left:0;right:0;top:var(--hy);bottom:0;overflow:hidden;pointer-events:none;z-index:1;opacity:.42;filter:blur(2px);-webkit-mask:linear-gradient(180deg,#000,transparent 55%);mask:linear-gradient(180deg,#000,transparent 55%)}
+.refl{position:absolute;left:0;right:0;top:var(--hy);bottom:0;overflow:hidden;pointer-events:none;z-index:1;opacity:.22;filter:blur(2px);-webkit-mask:linear-gradient(180deg,#000,transparent 55%);mask:linear-gradient(180deg,#000,transparent 55%)}
 .refl .fm{top:0;transform-origin:50% 0;pointer-events:none}
 .fm{position:absolute;left:50%;top:100%;transform-origin:50% 100%;will-change:transform,opacity;pointer-events:auto;cursor:pointer}
 .fm img{display:block;width:100%;height:100%;object-fit:cover}
@@ -17,7 +17,7 @@
 .rt{position:absolute;left:50%;top:0;display:flex;gap:1px;will-change:transform}
 .rt i{display:block;width:5px;height:4px;margin-top:-1px;opacity:.95}
 .rt i.on{height:10px;margin-top:-4px}
-.head{z-index:3;position:absolute;left:50%;top:var(--hy);width:9px;height:9px;margin:10px 0 0 -4.5px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px 2px rgba(85,218,161,.6)}
+.head{z-index:3;position:absolute;left:50%;top:var(--hy);width:9px;height:9px;margin:10px 0 0 -4.5px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px 2px rgba(232,228,220,.6)}
 .ends{z-index:3;position:absolute;left:0;right:0;top:calc(var(--hy) + 26px);display:flex;justify-content:space-between;padding:0 calc(16px + var(--sr)) 0 calc(16px + var(--sl));font-size:10.5px;letter-spacing:.2em;color:rgba(238,243,245,.6);text-transform:uppercase;pointer-events:none}
 .ends #now{color:var(--ink);letter-spacing:.14em}
 
@@ -34,7 +34,7 @@
 .cell .win{position:relative;aspect-ratio:4/5;overflow:hidden;background:#050607;box-shadow:0 0 0 1px rgba(255,255,255,.06)}
 .cell img{display:block;width:100%;height:100%;object-fit:cover}
 .cell .no{margin:5px 0 0;font-size:9.5px;letter-spacing:.16em;color:var(--mute);text-transform:uppercase}
-.cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(85,218,161,.25)}
+.cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(232,228,220,.25)}
 .cell.cur .no{color:var(--ink)}
 .cell .pen{position:absolute;right:4px;top:-2px;font:26px/1 Caveat,cursive;color:var(--mint);transform:rotate(-14deg);text-shadow:0 1px 3px #000;pointer-events:none}
 .cell .hh{position:absolute;left:5px;top:3px;color:var(--mint);font-size:11px;text-shadow:0 0 4px #000;pointer-events:none}
@@ -42,11 +42,11 @@ body.marking .cell{cursor:cell}
 body.marking .cell .win{cursor:cell}
 
 /* the day: the m4 film-page shape, a big hero then large full-width stills stacked */
-.day{position:fixed;inset:0;z-index:40;background:var(--bg,#04070b);opacity:0;transition:opacity 1s var(--ease)}
+.day{position:fixed;inset:0;z-index:40;background:#05070c;opacity:0;transition:opacity .6s var(--ease)}
 .day.open{opacity:1}
 .day[hidden]{display:none}
 .dsc{position:absolute;inset:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding-bottom:calc(40px + var(--sb))}
-.hero{margin:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;background:var(--hg,var(--bg));transition:background 1s var(--ease)}
+.hero{margin:0;height:100vh;height:100svh;display:flex;align-items:center;justify-content:center;background-color:#05070c;background-image:var(--hg,none);transition:background 1s var(--ease)}
 .hero img{max-width:100%;max-height:calc(100% - 120px);margin-top:40px;object-fit:contain;transform:scale(.97);opacity:0;transition:transform 1.2s var(--ease),opacity 1.2s var(--ease)}
 .day.open .hero img{transform:none;opacity:1}
 .cred{padding:22px calc(18px + var(--sr)) 26px calc(18px + var(--sl));display:flex;flex-wrap:wrap;gap:6px 26px;font-size:11px;letter-spacing:.16em;color:var(--dim);text-transform:uppercase;border-bottom:1px solid var(--line)}
@@ -64,7 +64,7 @@ body.marking .cell .win{cursor:cell}
 
 body.sheet-open .lab-top{background:color-mix(in srgb, var(--bg) 94%, transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .sc{scroll-padding-top:calc(66px + var(--st));scroll-padding-bottom:calc(16px + var(--sb))}
-@media (max-width:620px){.lab-top .crumb{display:none}}
+@media (max-width:620px){.lab-top .crumb{display:inline;flex:0 1 auto}.lab-top .crumb b,.lab-top .crumb #where{display:none}.lab-top .crumb::before{content:"PHOTO";letter-spacing:.18em;font-size:10px;color:var(--ink)}}
 
 .fm video,.cell .win video{display:block;width:100%;height:100%;object-fit:cover;background:#050607}
 .hero video{max-width:100%;max-height:calc(100% - 120px);margin-top:40px;object-fit:contain;width:auto;height:auto;transform:scale(.97);opacity:0;transition:transform 1.2s var(--ease),opacity 1.2s var(--ease)}
@@ -114,3 +114,23 @@ body.safe.sheet-open .lab-top{background:color-mix(in srgb, var(--bg) 94%, trans
 
 /* keep the proof heading clear of the wrapped top bar */
 .sc{padding-top:calc(var(--bar-h,62px) + 8px)}
+
+/* ---------- Nov 13 pass: night sky, drying line, rippling reflections, rings on the water ---------- */
+#nsky{position:absolute;left:0;top:0;width:100%;z-index:0;pointer-events:none}
+#dline{position:absolute;inset:0;z-index:4;pointer-events:none}
+#dline .dl-svg{position:absolute;left:0;top:0;overflow:visible}
+#dline path{fill:none;stroke:rgba(232,228,220,.32);stroke-width:1}
+#dline .dlp{position:absolute;left:0;top:0;padding:3px 3px 9px;background:#05070c;border:0;border-radius:1px;transform-origin:50% 0;pointer-events:auto;cursor:pointer;
+  box-shadow:0 10px 22px rgba(0,0,0,.55);box-sizing:content-box}
+#dline .dlp.in{background:#e9e5dd}
+#dline .dlp img{display:block;width:100%;height:100%;object-fit:cover;background:#05070c;opacity:0;transition:opacity .35s linear}
+#dline .dlp.in img{opacity:1}
+@media (prefers-reduced-motion:reduce){#dline .dlp img{transition:none}}
+#dline .dlp i{position:absolute;left:50%;top:-5px;width:5px;height:11px;margin-left:-2.5px;background:#8a8378;border-radius:1px;box-shadow:0 1px 2px rgba(0,0,0,.5)}
+.refl{filter:url(#hzRipple);opacity:.46}
+.wring{position:absolute;z-index:3;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;border:1px solid rgba(232,228,220,.42);pointer-events:none;
+  transform:scale(1,.3);animation:wring 2.2s cubic-bezier(.22,1,.36,1) forwards}
+@keyframes wring{to{transform:scale(16,4.8);opacity:0}}
+.lab-var{display:inline-flex;align-items:center;pointer-events:auto;order:0}
+@media (max-width:620px){.lab-var .tnv-l{display:none}}
+.refl .fm img,.refl .fm video{transform:scaleY(-1)}

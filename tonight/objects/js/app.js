@@ -64,16 +64,16 @@ const shadowTex = (() => { const c = document.createElement('canvas'); c.width =
 const HOOP_V = 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
 function hoop(Rr, ticks, warm, strength) {
   const g = new THREE.Group();
-  const core = new THREE.Mesh(new THREE.TorusGeometry(Rr, Rr * .012, 8, 180), new THREE.MeshBasicMaterial({ color: warm ? 0xffe6c6 : 0xcfdde6, transparent: true, opacity: .9 * strength, fog: true }));
+  const core = new THREE.Mesh(new THREE.TorusGeometry(Rr, Rr * .006, 8, 180), new THREE.MeshBasicMaterial({ color: 0xe8e4dc, transparent: true, opacity: .32 * strength, fog: true }));
   g.add(core);
-  const U = { uA: { value: .5 * strength }, uC: { value: new THREE.Color(warm ? 0xffc98a : 0x9fc4d6) } };
-  const band = new THREE.Mesh(new THREE.RingGeometry(Rr * .86, Rr * 1.14, 160, 1), new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide,
+  const U = { uA: { value: .12 * strength }, uC: { value: new THREE.Color(0xe8e4dc) } };
+  const band = new THREE.Mesh(new THREE.RingGeometry(Rr * .94, Rr * 1.06, 160, 1), new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, blending: THREE.NormalBlending, side: THREE.DoubleSide,
     vertexShader: 'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
     fragmentShader: `uniform float uA;uniform vec3 uC;varying vec3 vP;void main(){float r=length(vP.xy);float d=(r-${Rr.toFixed(4)})/${(Rr * .07).toFixed(4)};gl_FragColor=vec4(uC*uA*exp(-d*d),1.);}` }));
   band.renderOrder = 3; g.add(band);
   let tk = null;
   if (ticks > 0) { const pts = []; for (let i = 0; i < ticks; i++) { const a = Math.PI / 2 - i / ticks * Math.PI * 2, r0 = Rr * 1.035, r1 = Rr * 1.09; pts.push(V(Math.cos(a) * r0, Math.sin(a) * r0, 0), V(Math.cos(a) * r1, Math.sin(a) * r1, 0)) }
-    tk = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xf6e7d0, transparent: true, opacity: .55 * strength })); g.add(tk) }
+    tk = new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: 0xe8e4dc, transparent: true, opacity: .2 * strength })); g.add(tk) }
   g.userData = { core, band, U, tk, base: strength };
   return g;
 }
@@ -159,7 +159,7 @@ for (let k = 1; k <= 3; k++) { const h = hoop(HR * (1 + k * .22), 0, k % 2 === 0
   scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xbfc8d6, size: .22, transparent: true, opacity: .5, fog: false, depthWrite: false }))) })();
 
 /* ---------- ambience: glow (all rings and per ring), haze, stars, the lamp on the cup. Photographs are never touched. ---------- */
-const AMB = { G: 1, Rk: RINGS.map(() => 1), haze: 1, star: 1, lamp: 1 };
+const AMB = { G: .18, Rk: RINGS.map(() => 1), haze: 1, star: 1, lamp: 1 };
 const sceneGlow = []; let farStars = null;
 scene.children.forEach(o => { if (o.isGroup && o.userData && o.userData.U && !W_.rings.some(r => r.grp === o)) { o.userData.U.uA.ab = o.userData.U.uA.value; o.traverse(c => { if (c.material && !c.material.isShaderMaterial) { c.material.userData.ab = c.material.opacity; sceneGlow.push(c.material) } }); sceneGlow.push(o.userData.U.uA) }
   if (o.isPoints && o.material.size === .22) farStars = o });
@@ -323,7 +323,7 @@ function along(d) { if (tr || detOpen) return; const n = nextOf(S, d); if (!n) {
 const stack = [];
 function push() { stack.push({ ...S }) }
 let detOpen = false;
-function rise() { if (tr) return; if (detOpen) { closeDetail(); return } if (!stack.length) { if (S.lv !== 'board') { stack.length = 0; riseTo(S.lv === 'ring' ? { lv: 'board', r: S.r, L: 0, k: 0 } : S.lv === 'room' && S.L > 0 ? { ...S, L: S.L - 1, k: memK[S.r][S.L - 1] } : { lv: 'ring', r: S.r, L: 0, k: 0 }) } else if (FROM_M4) leave(M4); return } history.back() }
+function rise() { if (tr) return; if (detOpen) { closeDetail(); return } if (!stack.length) { if (S.lv !== 'board') { stack.length = 0; riseTo(S.lv === 'ring' ? { lv: 'board', r: S.r, L: 0, k: 0 } : S.lv === 'room' && S.L > 0 ? { ...S, L: S.L - 1, k: memK[S.r][S.L - 1] } : { lv: 'ring', r: S.r, L: 0, k: 0 }) } else if (FROM_M4) leave(M4); else if (window.__front && __front.toSky) __front.toSky(); else location.href = '../constellation-blend/#back'; return } history.back() }
 function riseTo(n) { setState(n, 'replace') }
 addEventListener('popstate', e => {
   if (detOpen) { closeDetail(true); return }
@@ -541,8 +541,9 @@ function paintDial() {
   });
 })();
 function leave(href) { $('veil').classList.remove('off'); setTimeout(() => { location.href = href }, 900) }
-$('m4').onclick = e => { e.preventDefault(); leave(M4) };
-if (FROM_M4) $('m4').textContent = '‹ board';
+/* preview-film-snap: guarded, so a missing board link can never abort init and leave the veil up (the black Objects page on preview-restore). */
+const m4link = $('m4');
+if (m4link) { m4link.onclick = e => { e.preventDefault(); leave(M4) }; if (FROM_M4) m4link.textContent = '‹ board'; }
 addEventListener('pageshow', () => $('veil').classList.add('off'));
 
 /* ---------- frame loop: render only while something moves ---------- */
@@ -572,6 +573,7 @@ function frame(now) {
   /* hoops nearer the camera glow a little more; the current layer's hoop is brightest */
   W_.rings.forEach((rm, i) => rm.layers.forEach((L, li) => { const hp = L.hoop, d = cam.position.distanceTo(rm.C.clone().add(V(0, 0, L.hoopZ))), on = i === S.r && (S.lv === 'ring' ? li === 0 : S.lv === 'room' ? li === S.L + 1 || li === S.L : false);
     hp.userData.U.uA.value = hp.userData.base * (on ? .9 : .45) * Math.max(.15, 1 - d / 46) * ringK(i);
+    if (hp.userData.core) hp.userData.core.material.opacity = .32 * hp.userData.base * ringK(i);
     L.frames.forEach(f => { const m = f.m, dd = cam.position.distanceTo(m.getWorldPosition(tmpP)); m.material.opacity = m.material.map ? Math.max(0, Math.min(1, (40 - dd) / 14, (dd - .7) / 1.5)) : 0 }) }));
   R.render(scene, cam);
 }

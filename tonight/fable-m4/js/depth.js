@@ -9,6 +9,7 @@ var PL={on:0,e:0,t0:0,busy:0,applied:0,pending:null,ox:0,oy:0};
 var FX={t0:0,life:0,fly:0};
 var BOK=[], SPR=null;
 
+if(window.GJ_THEME)GJ_THEME.on(function(w){if(w==='theme')SPR=null});
 function sprite(){
   if(SPR)return SPR;
   var sz=96,c=document.createElement('canvas');c.width=c.height=sz;
@@ -16,14 +17,14 @@ function sprite(){
   for(i=0;i<2;i++){
     var g=x.createRadialGradient(sz/2,sz/2,0,sz/2,sz/2,sz/2);
     if(i===0){
-      g.addColorStop(0,'rgba(255,252,248,.92)');
-      g.addColorStop(.18,'rgba(214,228,242,.42)');
-      g.addColorStop(.5,'rgba(170,198,220,.12)');
-      g.addColorStop(1,'rgba(170,198,220,0)');
+      g.addColorStop(0,'rgba(232,228,220,.34)');
+      g.addColorStop(.22,'rgba(180,190,200,.12)');
+      g.addColorStop(.55,'rgba(80,90,100,.04)');
+      g.addColorStop(1,'rgba(4,7,11,0)');
     }else{
-      g.addColorStop(0,'rgba(255,236,228,.7)');
-      g.addColorStop(.2,'rgba(255,190,170,.22)');
-      g.addColorStop(1,'rgba(255,180,160,0)');
+      g.addColorStop(0,'rgba(210,180,170,.16)');
+      g.addColorStop(.3,'rgba(160,120,110,.05)');
+      g.addColorStop(1,'rgba(4,7,11,0)');
     }
     x.fillStyle=g;x.beginPath();x.arc(sz/2,sz/2,sz/2-1,0,7);x.fill();
   }
@@ -78,13 +79,14 @@ function viewScale(){
   return 1+(raw-1)*sens;
 }
 function drawFx(g,W,H){
+  if(document.querySelector('#layer.on .sheet.fp'))return;
   var now=performance.now();
   var age=FX.t0?(now-FX.t0)/900:1;
   var live=PL.on&&!PL.quiet,show=live||FX.life>0||FX.fly>0.02;
   if(!show||!BOK.length)return;
   var spr=sprite(),i,b,near,diam,x,y,a;
   g.save();
-  g.globalCompositeOperation='lighter';
+  g.globalCompositeOperation='source-over';
   for(i=0;i<BOK.length;i++){
     b=BOK[i];
     near=live?Math.min(1,PL.e*(0.55+b.lag*0.7)):Math.min(1,(FX.fly>0?FX.fly:age)*(0.45+b.lag));
@@ -100,9 +102,9 @@ function drawFx(g,W,H){
     var push=near*near;
     x=W*(0.5+(b.x-0.5)*(0.35+push*1.7))+Math.cos(b.ang+near*2)*W*0.04;
     y=H*(0.5+(b.y-0.5)*(0.28+push*1.5))+Math.sin(b.ang+near)*H*0.03;
-    a=(0.22+0.55*near)*(1-Math.max(0,near-0.92)/0.08)*openFade;
+    a=(0.08+0.16*near)*(1-Math.max(0,near-0.92)/0.08)*openFade;
     if(a<=0.02)continue;
-    g.globalAlpha=Math.min(0.85,a);
+    g.globalAlpha=Math.min(0.22,a);
     g.drawImage(spr,x-diam/2,y-diam/2,diam,diam);
   }
   g.restore();
@@ -276,6 +278,11 @@ function soundStep(api){
   else api.backHist();
 }
 function openFilm(api,work,shot){
+  if(window.GJ_FP&&GJ_FP.from&&work&&work.stills&&work.stills.length&&api.tileBox){
+    var b=api.tileBox(work);
+    if(b&&b.w)GJ_FP.from({x:b.l+b.w/2,y:b.t+b.h/2,w:b.w,h:b.h});
+  }
+  hush();
   filmWork=work;filmLv=1;filmAt=(shot&&shot.t)||0;filmScale=1;still=null;piece=null;
   api.setCur({lv:2,k:work.chapter||'film',id:work.id});
   api.arrive();
@@ -457,6 +464,14 @@ function zoomSound(){
   }catch(e){}
 }
 function quiet(fn){fn.quiet=1;return fn}
+function filmStill(it){
+  var w=it&&(it._work||it);
+  return !!(w&&w.stills&&w.stills.length&&(w.chapter==='film'||w.kind==='film'));
+}
+function openTileAct(api,it){
+  var fn=function(){openTile(api,it)};
+  return filmStill(it)?quiet(fn):fn;
+}
 function planIn(x,y,api){
   var cur=api.cur();
   if(soundOn)return function(){zoomSound()};
@@ -507,11 +522,11 @@ function planIn(x,y,api){
     var it=api.tileAt(x,y);
     if(!it&&cur.lv>=2){
       var w=api.byId(cur.id);
-      if(w)return function(){openTile(api,w)};
+      if(w)return openTileAct(api,w);
       return null;
     }
     if(!it)return null;
-    return function(){openTile(api,it)};
+    return openTileAct(api,it);
   }
   if(cur.lv>=2){
     var w2=api.byId(cur.id);
@@ -579,6 +594,11 @@ function sync(cur,api){
   if(!cur||cur.lv===0){board=null;filmLv=0;filmWork=null;still=null;piece=null;snd=null;dropFly();setBleed(false);hideSound();return}
   if(cur.k!=='sound'&&soundOn)hideSound();
   if(cur.lv===1){
+    if(cur.k==='sound'){
+      filmLv=0;still=null;filmWork=null;piece=null;dropFly();setBleed(false);board=null;
+      if(!soundOn)showSound('togo',false);
+      return;
+    }
     filmLv=0;still=null;filmWork=null;piece=null;snd=null;dropFly();setBleed(false);
     if(soundOn)hideSound();
     var fw=cur.id&&api.byId(cur.id),fk=fw&&shotsOf(fw);
@@ -655,6 +675,7 @@ function isKiesza(src){
 }
 function gallery(work){
   var all=(shotsOf(work)||[]).slice(),seen={},i;
+  if(work&&work.stills&&work.stills.length){var own=work.stills.map(function(src){return {src:src,t:0,clip:'',title:''}});all=own.concat(all.filter(function(s){return work.stills.indexOf(s.src)<0}))}
   for(i=0;i<all.length;i++)if(all[i].src)seen[all[i].src]=1;
   if(work&&work.id==='film/weird-kid'&&window.GJ_REEL){
     GJ_REEL.forEach(function(r){
@@ -896,7 +917,8 @@ function followEnd(){
 }
 function holdOut(){return !!COOL&&performance.now()-COOL<1200}
 /* Swipe or arrow keys step through the stills of the same film while one fills the screen.
- The next still fades in over this one as the finger moves (same drag rule as the reel: horizontal, past a small slop), and the ends stop. */
+ The picture stays fully bright while the finger moves. On a commit the next still is decoded,
+ then it cuts in at full opacity. Nothing fades, and the ends stop. */
 var SW=null,SWB=0;
 function stillNodes(){return document.querySelectorAll('#layer .framewall img[data-hi="1"]')}
 function stillOpen(){return filmLv===3&&!!filmWork&&fly&&fly.el&&fly.el.classList.contains('in')&&!holdOut()}
@@ -916,20 +938,36 @@ function stillLayer(i){
   return {el:el,i:i,src:src};
 }
 function stillCommit(L){
+  if(!L||!L.el||!fly)return;
   var old=fly.el;
   SWB=1;
-  L.el.style.transition='opacity .26s ease';
-  void L.el.offsetWidth;
-  L.el.style.opacity='1';
-  fly={el:L.el,i:L.i};
-  filmFocus=L.i;filmSrc=L.src;
-  var node=stillNodes()[L.i];
-  if(node&&node.scrollIntoView)node.scrollIntoView({block:'center'});
-  setTimeout(function(){
-    if(old.parentNode&&old!==fly.el)old.parentNode.removeChild(old);
-    if(fly&&fly.el===L.el)L.el.style.transition='';
-    SWB=0;
-  },300);
+  var img=L.el.querySelector('img');
+  var prev=old&&old.querySelector('img');
+  if(prev&&prev.getAttribute('src')){
+    L.el.style.backgroundColor='#04070b';
+    L.el.style.backgroundImage='url("'+String(prev.getAttribute('src')).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")';
+    L.el.style.backgroundSize='cover';
+    L.el.style.backgroundPosition='center';
+  }
+  function go(){
+    if(!L.el.parentNode){SWB=0;return}
+    L.el.style.transition='none';
+    L.el.style.opacity='1';
+    fly={el:L.el,i:L.i};
+    filmFocus=L.i;filmSrc=L.src;
+    var node=stillNodes()[L.i];
+    if(node&&node.scrollIntoView)node.scrollIntoView({block:'center'});
+    requestAnimationFrame(function(){
+      if(old&&old.parentNode&&(!fly||old!==fly.el))old.parentNode.removeChild(old);
+      if(fly&&fly.el===L.el){
+        L.el.style.transition='';
+        if(img&&img.getAttribute('src'))L.el.style.backgroundImage='url("'+String(img.getAttribute('src')).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'")';
+      }
+      SWB=0;
+    });
+  }
+  var p=img&&typeof img.decode==='function'?img.decode():null;
+  if(p&&p.then)p.then(go,go);else go();
 }
 function stillRevert(L){
   var el=fly&&fly.el;
@@ -964,10 +1002,9 @@ addEventListener('pointermove',function(e){
     SW.dir=dir;
     SW.L=(to>=0&&to<stillNodes().length)?stillLayer(to):null;
   }
-  var prog=Math.max(0,Math.min(1,Math.abs(dx)/(innerWidth*.5)));
-  fly.el.style.transition='none';
-  fly.el.style.transform='translateX('+(dx*(SW.L?.28:.1)).toFixed(1)+'px)';
-  if(SW.L)SW.L.el.style.opacity=prog.toFixed(3);
+  /* The current still does not slide or fade. A partial incoming picture would dim it. */
+  if(fly.el.style.transform){fly.el.style.transition='none';fly.el.style.transform=''}
+  if(SW.L)SW.L.el.style.opacity='0';
   SW.dx=dx;
 },true);
 function swEnd(e){
@@ -1044,7 +1081,7 @@ function fitWall(wall){
   });
 }
 function masterSrc(src){
-  return /\/frames\//.test(src)||/\/owtd\/stills\//.test(src)||/\/reel\/.+\.webp$/.test(src);
+  return /\/frames\//.test(src)||/\/media\/films\/[^/]+\/stills\//.test(src)||/\/owtd\/stills\//.test(src)||/\/reel\/.+\.webp$/.test(src);
 }
 function enterFilm(x,y,api,preset){
   var hit=preset||nearestStill(x,y,'#layer .framewall img[data-hi="1"]');
@@ -1090,12 +1127,26 @@ function paintFilm(el,work){
   var wk=work.id==='film/weird-kid';
   if(filmLv===3&&document.querySelector('.enterframe'))return;
   if(filmLv!==3){dropFly();setBleed(false)}
+  if(filmLv!==1&&window.GJ_FP)GJ_FP.stop();
+  /* Featured films with stills use the room player. The muted loop ladder stays the hero on the board
+     (playback.js) and on any work that has no stills. Never fall through to the AAC clip when the ladder exists. */
+  if(filmLv===1&&work.stills&&work.stills.length&&window.GJ_FP){
+    filmKeep=-1;
+    GJ_FP.paint(el,work,stillsWall(work));
+    fitWall(el.querySelector('.framewall'));
+    return;
+  }
   if(filmLv===1){
     var hero=wk?'media/pro2/frames/22/12.webp':work.id==='film/back-to-the-start'?'media/pro2/frames/20/56.webp':heroOf(work,poster);
     if(!wk&&/\/sc\//.test(clip))clip='';
-    var media=(!wk&&clip)
+    /* Playback pack: the hero is the muted loop (720p for the two featured films).
+       The full-length player file is not in this preview; this loop is the stand-in. */
+    var playTag=window.GJ_PLAY&&GJ_PLAY.filmTag(work);
+    var media=playTag
+      ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+playTag
+      : ((!wk&&clip)
       ? (hero?'<img src="'+esc(hero)+'" alt="">':'')+'<video muted playsinline loop autoplay poster="'+esc(hero)+'" src="'+esc(clip)+'"></video>'
-      : (hero?'<img src="'+esc(hero)+'" alt="">':'');
+      : (hero?'<img src="'+esc(hero)+'" alt="">':''));
     var role=work.role||'';
     if(role==='Director · Director of Photography'&&creditList(work).length)role='';
     var keep=filmKeep;filmKeep=-1;
@@ -1108,6 +1159,7 @@ function paintFilm(el,work){
     if(keep>0){var sh=el.querySelector('.sheet');if(sh)sh.scrollTop=keep}
     var v1=el.querySelector('video');
     if(v1){
+      v1.muted=true;v1.defaultMuted=true;v1.setAttribute('muted','');
       function showFrame(){if(v1.readyState>=2)v1.classList.add('live')}
       v1.addEventListener('loadeddata',showFrame);
       v1.addEventListener('playing',showFrame);
@@ -1393,6 +1445,7 @@ function fitLongTitle(el){
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pass);
 }
 function paintLayer(el){
+  if(window.GJ_FP&&!(filmLv===1&&filmWork&&filmWork.stills&&filmWork.stills.length))GJ_FP.stop();
   if(snd&&(fly||snd.empty)){
     el.classList.add('on');
     if(snd.empty&&!fly)el.innerHTML='<div class="sheet full"><h2>'+esc(snd.work.title)+'</h2><div class="empty-slot">no picture for this song</div></div>';

@@ -24,8 +24,9 @@
       const k = Math.max(.94, Math.min(1.12, 16 / dist)); T.style.setProperty('--k', k.toFixed(3));
       const tw = T.offsetWidth, th = T.offsetHeight, m = 14, narrow = W < 640;
       let lx, ly;
-      if (narrow) { lx = (W - tw) / 2; ly = Math.max(y + 40, H - th - 70) > H - th - 70 ? H - th - 70 : Math.max(y + 40, H - th - 70) }
-      else { const right = x < W * .5; lx = right ? x + 70 : x - 70 - tw; lx = Math.max(m, Math.min(W - tw - m, lx)); ly = Math.max(60, Math.min(H - th - 70, y - th / 2)) }
+      /* narrow: the card ends 38px above Back and Next (the hint line has the gap), measured from the nav's real top (which already carries the home-indicator inset), and never rises into the mark's row */
+      if (narrow) { const nav = document.getElementById('senav'), hd = document.getElementById('sphead'), navTop = nav && nav.offsetHeight ? nav.getBoundingClientRect().top : H - 62, minTop = Math.max(72, hd ? hd.getBoundingClientRect().bottom + 8 : 0); lx = (W - tw) / 2; ly = Math.max(minTop, navTop - 38 - th) }
+      else { const right = x < W * .5; lx = right ? x + 70 : x - 70 - tw; lx = Math.max(m, Math.min(W - tw - m, lx)); ly = Math.max(60, Math.min(H - th - 100, y - th / 2)) }
       T.style.transform = `translate(${lx.toFixed(1)}px,${ly.toFixed(1)}px)`;
       if (!ln) { const L = lines(); ln = document.createElementNS('http://www.w3.org/2000/svg', 'line'); dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle'); dot.setAttribute('r', 4); ln.setAttribute('class', 'pin'); dot.setAttribute('class', 'pin'); L.appendChild(ln); L.appendChild(dot) }
       const ex = Math.max(lx, Math.min(lx + tw, x)), ey = Math.max(ly, Math.min(ly + th, y));

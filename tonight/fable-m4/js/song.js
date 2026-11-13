@@ -75,10 +75,10 @@
         x=4+(i+0.5)*(w-8)/n;
         y=Math.max(1.2,pk*(h*0.42));
         on=head>0&&i/n<head;
-        g.fillStyle=on?'rgba(85,218,161,'+(0.45+0.5*pk).toFixed(2)+')':'rgba(220,232,240,'+(0.16+0.28*pk).toFixed(2)+')';
+        g.fillStyle=on?'rgba(232,228,220,'+(0.45+0.5*pk).toFixed(2)+')':'rgba(220,232,240,'+(0.16+0.28*pk).toFixed(2)+')';
         g.fillRect(x-bw/2,h/2-y,bw,y*2);
       }
-      g.fillStyle='rgba(85,218,161,.8)';
+      g.fillStyle='rgba(232,228,220,.8)';
       g.fillRect(4,(h/2)-0.5,Math.max(0,(w-8)*head),1.5);
       if(mark&&peaks.length){
         var age=hold?0:(performance.now()-mark.t)/680;
@@ -88,7 +88,7 @@
           var xi=4+mark.u*(w-8);
           var idx=Math.max(0,Math.min(n-1,Math.floor(mark.u*n)));
           var py=Math.max(3,peaks[idx]*(h*0.46));
-          g.fillStyle='rgba(85,218,161,'+(0.55*a*dim()).toFixed(3)+')';
+          g.fillStyle='rgba(232,228,220,'+(0.55*a*dim()).toFixed(3)+')';
           g.beginPath();
           g.arc(xi,h/2,Math.max(3,py*0.22),0,6.3);
           g.fill();
