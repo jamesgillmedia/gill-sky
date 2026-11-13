@@ -17,7 +17,7 @@
 #markmenu.mm-folding .mm-3d{transition:transform .5s cubic-bezier(.5,0,.75,.3) .08s}
 #markmenu.mm-peek .mm-3d{transition:none}
 #markmenu .mm-plate{transform-style:preserve-3d}
-#markmenu .mm-3d>nav,#markmenu .mm-plate>*{position:relative;transform-origin:50% 0;
+#markmenu .mm-3d>nav,#markmenu .mm-plate>*{position:relative;transform-origin:50% 50%;
  transform:translateY(-6px) rotateX(-88deg);opacity:0;
  transition:transform .56s cubic-bezier(.22,.7,.2,1) calc(var(--i,0) * 38ms),opacity .3s linear calc(var(--i,0) * 38ms)}
 #markmenu.mm-in .mm-3d>nav,#markmenu.mm-in .mm-plate>*{transform:translateZ(var(--z,0px));opacity:1}
