@@ -109,7 +109,7 @@ var PTR=null,HOLD=false,kbT=0;
  free screen edge away from the thumb; where there is no safe place the menu just stays visible */
 function ghost(r,info){
   if(!window.GJ_GHOST||!menu)return;var b=r.getBoundingClientRect(),p=HOLD&&PTR?PTR:{x:b.left+b.width/2,y:b.top+b.height/2};info.x=p.x;info.y=p.y;
-  var placed=GJ_GHOST.update(info);menu.classList.toggle('mm-peek',!!placed&&HOLD);
+  var placed=GJ_GHOST.update(info);
   if(!HOLD){clearTimeout(kbT);kbT=setTimeout(function(){GJ_GHOST.release()},400)}}
 var menu=null,open=false,tuneOn=false,allOn=false,hooked=false;
 function safelight(){
@@ -152,7 +152,7 @@ function build(){
   });
   menu.addEventListener('pointerdown',function(e){PTR={x:e.clientX,y:e.clientY};if(e.target.closest('input[type=range]'))HOLD=true},true);
   menu.addEventListener('pointermove',function(e){if(HOLD)PTR={x:e.clientX,y:e.clientY}},true);
-  function letGo(){HOLD=false;menu.classList.remove('mm-peek');if(window.GJ_GHOST)GJ_GHOST.release()}
+  function letGo(){HOLD=false;if(window.GJ_GHOST)GJ_GHOST.release()}
   ['pointerup','pointercancel','touchend','touchcancel'].forEach(function(n){addEventListener(n,letGo,true)});addEventListener('blur',letGo);
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
   document.addEventListener('pointerdown',function(e){if(open&&!e.target.closest('#markmenu,#crumb .sig'))show(false)},true);
