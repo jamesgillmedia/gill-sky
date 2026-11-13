@@ -1,6 +1,7 @@
-/* Night chrome accent gate. Samples nav, mark, active labels and toggle dots
-   in Film, Spaces, Objects and Photo. Fails if a chrome pixel is mint or teal.
-   Does not sample the WebGL canvas or photographs. */
+/* Night chrome accent gate. Samples nav, mark, active labels, toggle dots and
+   dial dots in the sky, Film, Sound, Objects, Photo, About and Spaces.
+   Fails if a chrome pixel is mint or teal. Does not sample the WebGL canvas
+   or photographs. Also writes one Night screenshot per room, phone and desktop. */
 const { chromium } = require('playwright-core');
 const { PNG } = require('/tmp/qa/sp2/node_modules/pngjs');
 const fs = require('fs');
@@ -8,6 +9,7 @@ const fs = require('fs');
 const BASE = 'http://127.0.0.1:8982/';
 const CHROME = '/usr/local/bin/google-chrome';
 const WARM = 'rgb(232, 228, 220)';
+const SHOTS = '/opt/cursor/artifacts';
 const fails = [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -106,6 +108,87 @@ async function expectWarm(page, name, sel, prop, pseudo) {
   ok(name + ' pixels', hits.length === 0, hits.join(' '));
 }
 
+async function shot(page, tag, room) {
+  const name = room + '-' + (tag === 'phone' ? 'phone' : 'desktop') + '.png';
+  await page.screenshot({ path: SHOTS + '/' + name, type: 'png' });
+  console.log('SHOT ' + name);
+}
+
+async function togoOpacity(page, name) {
+  const v = await page.evaluate(() => {
+    const el = document.getElementById('togo');
+    if (!el) return null;
+    const cs = getComputedStyle(el);
+    if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return null;
+    const canvas = el.querySelector('canvas');
+    const span = el.querySelector('span');
+    return {
+      op: cs.opacity,
+      canvas: canvas ? getComputedStyle(canvas).opacity : null,
+      span: span ? getComputedStyle(span).opacity : null
+    };
+  });
+  if (!v) { console.log('SKIP ' + name + ' togo hidden'); return; }
+  ok(name + ' togo opacity', v.op === '1' && v.canvas === '1' && v.span === '1', JSON.stringify(v));
+}
+
+async function sky(page, tag) {
+  const t = Date.now();
+  await page.goto(BASE + 'fable-m4/?sky=1&t=' + t + '#/', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForFunction(() => {
+    const w = document.querySelector('#where');
+    const sig = document.querySelector('#crumb .sig');
+    return w && sig && /sky/i.test(w.textContent || '') && sig.getBoundingClientRect().width > 4;
+  }, null, { timeout: 20000 });
+  await sleep(700);
+  await shot(page, tag, 'sky');
+  await expectWarm(page, tag + ' sky mark', '#crumb .sig', 'color');
+  await expectWarm(page, tag + ' sky where', '#where', 'color');
+  await expectWarm(page, tag + ' sky hire', '#hire', 'color');
+  await togoOpacity(page, tag + ' sky');
+}
+
+async function about(page, tag) {
+  const t = Date.now();
+  await page.goto(BASE + 'fable-m4/?sky=1&t=' + t + '#about', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForFunction(() => {
+    const w = document.querySelector('#where');
+    return w && /about/i.test(w.textContent || '');
+  }, null, { timeout: 20000 });
+  await sleep(800);
+  await shot(page, tag, 'about');
+  await expectWarm(page, tag + ' about mark', '#crumb .sig', 'color');
+  await expectWarm(page, tag + ' about crumb', '#wcrumb b', 'color');
+  await expectWarm(page, tag + ' about hire', '#hire', 'color');
+  await togoOpacity(page, tag + ' about');
+}
+
+async function sound(page, tag) {
+  const t = Date.now();
+  await page.goto(BASE + 'fable-m4/?sky=1&t=' + t + '#sound', { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForFunction(() => {
+    const w = document.querySelector('#where');
+    return w && /sound/i.test(w.textContent || '');
+  }, null, { timeout: 20000 });
+  await sleep(800);
+  await shot(page, tag, 'sound');
+  await expectWarm(page, tag + ' sound mark', '#crumb .sig', 'color');
+  await expectWarm(page, tag + ' sound crumb', '#wcrumb b', 'color');
+  const rail = await page.locator('#wrail li.here').count();
+  if (rail) {
+    await expectWarm(page, tag + ' sound rail label', '#wrail li.here', 'color');
+    await expectWarm(page, tag + ' sound rail dot', '#wrail li.here', 'backgroundColor', '::before');
+  } else console.log('SKIP ' + tag + ' sound rail (not shown at this depth)');
+  await page.goto(BASE + 'fable-m4/player/?m4=1&t=' + t, { waitUntil: 'domcontentloaded', timeout: 30000 });
+  await page.waitForFunction(() => document.querySelector('.hud .sig') && document.querySelector('#ttl'), null, { timeout: 15000 });
+  await sleep(500);
+  await expectWarm(page, tag + ' sound player mark', '.hud .sig', 'color');
+  await expectWarm(page, tag + ' sound now playing', '#ttl', 'color');
+  const dot = await page.locator('.sc-rail .tk.on').count();
+  if (dot) await expectWarm(page, tag + ' sound rail dot', '.sc-rail .tk.on', 'backgroundColor');
+  else console.log('SKIP ' + tag + ' sound player dot (no track armed)');
+}
+
 async function film(page, tag) {
   const t = Date.now();
   await page.goto(BASE + 'fable-m4/?sky=1&t=' + t + '#film/board', { waitUntil: 'domcontentloaded', timeout: 30000 });
@@ -124,6 +207,12 @@ async function film(page, tag) {
   await sleep(500);
   await expectWarm(page, tag + ' film work label', '#wrail li.here', 'color');
   await expectWarm(page, tag + ' film work dot', '#wrail li.here', 'backgroundColor', '::before');
+  await expectWarm(page, tag + ' film mark', '#crumb .sig', 'color');
+  await expectWarm(page, tag + ' film hire', '#hire', 'color');
+  const role = await page.locator('#layer .role').count();
+  if (role) await expectWarm(page, tag + ' film role', '#layer .role', 'color');
+  await shot(page, tag, 'film');
+  await togoOpacity(page, tag + ' film');
 }
 
 async function spaces(page, tag) {
@@ -133,6 +222,7 @@ async function spaces(page, tag) {
   await expectWarm(page, tag + ' spaces mark', '#sphead .sig', 'color');
   await expectWarm(page, tag + ' spaces crumb', '#sphead .crumb', 'color');
   await expectWarm(page, tag + ' spaces toggle', '.ambx-tg i', 'backgroundColor');
+  await shot(page, tag, 'spaces');
   await page.click('.ambx-tg');
   await page.waitForFunction(() => {
     const b = document.querySelector('.ambx-tg');
@@ -147,6 +237,7 @@ async function objects(page, tag) {
   await page.waitForFunction(() => document.querySelector('.ambx-tg i'), null, { timeout: 15000 });
   await sleep(400);
   await expectWarm(page, tag + ' objects toggle', '.ambx.obj-ctl .ambx-tg i, .ambx-tg i', 'backgroundColor');
+  await shot(page, tag, 'objects');
   await page.click('.ambx-tg');
   await sleep(250);
   await expectWarm(page, tag + ' objects toggle open', '.ambx-tg[aria-expanded="true"] i', 'backgroundColor');
@@ -162,20 +253,27 @@ async function photo(page, tag) {
   }
   await sleep(300);
   await expectWarm(page, tag + ' photo dial dot', '.cb-dial .dot', 'backgroundColor');
+  await shot(page, tag, 'photo');
 }
 
 (async () => {
   const desk = await boot(1440, 900, false);
   const phone = await boot(390, 844, true);
   try {
+    await sky(desk.page, 'desk');
+    await sky(phone.page, 'phone');
     await film(desk.page, 'desk');
     await film(phone.page, 'phone');
-    await spaces(desk.page, 'desk');
-    await spaces(phone.page, 'phone');
+    await sound(desk.page, 'desk');
+    await sound(phone.page, 'phone');
     await objects(desk.page, 'desk');
     await objects(phone.page, 'phone');
     await photo(desk.page, 'desk');
     await photo(phone.page, 'phone');
+    await about(desk.page, 'desk');
+    await about(phone.page, 'phone');
+    await spaces(desk.page, 'desk');
+    await spaces(phone.page, 'phone');
   } finally {
     await desk.browser.close();
     await phone.browser.close();

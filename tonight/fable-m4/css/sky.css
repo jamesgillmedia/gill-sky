@@ -119,8 +119,8 @@ html.deep #reel{padding:0 5px}
 html.deep #bar .nav a,html.deep #hire{padding:0 1px}
 #crumb{flex:1;min-width:0;margin:0;text-align:center;font-size:11px;letter-spacing:.14em;color:var(--dim);
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#crumb .sig{font-family:Syl,sans-serif;font-weight:700;font-size:16px;letter-spacing:0;color:#fff;
- text-shadow:1px 0 rgba(10,189,240,.75),-1px 0 rgba(254,1,1,.55);padding:10px}
+#crumb .sig{font-family:Syl,sans-serif;font-weight:700;font-size:16px;letter-spacing:0;color:#e8e4dc;
+ text-shadow:0 1px 2px #04070b,0 0 8px #04070b;padding:10px}
 .chips{display:flex;gap:4px;align-items:center}
 .chips{flex:0 0 auto}
 .chips button{width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.28);color:var(--dim);font-size:11px;background:rgba(4,7,11,.4)}

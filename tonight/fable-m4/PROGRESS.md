@@ -39,3 +39,7 @@ Layer 1 words sit on a `#04070b` plate. Leaving the moon pauses the tiles, hides
 Drawer A is the default: no scrim, a hairline off the mark, and the room stays visible. B and C are dev toggles (`?dev=1`). B is typewritten labels on one hairline, with no panel behind the room. C is the current room's labels only; a label opens its slider, and sky labels that would sit under the drawer are not drawn. Slider tracks are 55% of the row. Dev defaults off.
 
 The mark, the name, and the chapter labels are `#e8e4dc`. The sky and About keep the To Go bar at full opacity. Tapping it outside Film opens a sheet from the touch point; Film keeps its own bar. Reduce Motion keeps the drawer's end pose and drops the transition. Touch glow is skipped on the film board and when bloom is high, and it draws over the scene instead of adding light onto the photographs. The safelight layer is `z-index: 55`. The calibre star layer stays deferred.
+
+## Night chrome
+
+The sky bar mark is `#e8e4dc` with a dark shadow, so the cyan fringe is not part of the chrome. Sound's mark, crumb, and now-playing title use the same warm white. The To Go bar stays at opacity 1 on the sky, Film, and About, including while it is shown over a room. `proto-shell/_qa/chrome-accent.js` samples the sky, Film, Sound, Objects, Photo, About, and Spaces, on phone and desktop, and fails if a nav, mark, active label, toggle dot, or dial dot pixel is mint or teal. It does not sample the canvas or the photographs.
