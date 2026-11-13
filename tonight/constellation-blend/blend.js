@@ -332,7 +332,7 @@ addEventListener('resize',function(){resize();if(BOARD){BD.classList.toggle('sid
    (the camera is saved when you go in). At the whole sky, one more step out is the opener's sky. Nothing moves on its
    own; there is no Reduce Motion branch, so the output is the same with it on. */
 var ROOMS={film:[['open ›','../fable-m4/#film']],photo:[['darkroom ›','../red-light/'],['photo lab ›','../photo-lab/']],objects:[['open ›','../objects/']],
-  spaces:[['spirit eye ›','../fable-m4/versions/se-a/'],['forest garden ›','../spaces/forest-garden/']],about:[['open ›','../about/bio/?sky=1#about/bio']],sound:[['open ›','../fable-m4/#sound']]};
+  spaces:[['spirit eye ›','../fable-m4/versions/se-a/'],['forest garden ›','../spaces/forest-garden/']],about:[['open ›','../fable-m4/#about/bio']],sound:[['open ›','../fable-m4/#sound']]};
 var CHIP={k:null},CE=document.getElementById('chip');
 function chipOff(){if(!CHIP.k)return;CHIP.k=null;CE.classList.remove('on');CE.hidden=true}
 function chipOn(c,w,x,y){var rs=ROOMS[c.k];if(!rs)return;CHIP.k=c.k;CHIP.w=w||null;

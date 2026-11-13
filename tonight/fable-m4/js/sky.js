@@ -50,6 +50,10 @@ var landI=0,landT=0,lands=[];
 var drag=null,pinch=null,moved=false,PT={};
 function lsr(k,d){try{var v=parseFloat(localStorage.getItem(k));return isFinite(v)?Math.max(0,Math.min(1,v)):d}catch(x){return d}}
 var GVOL=lsr('gj.vol',1),GFL=lsr('gj.flash',.6);
+/* about-1113: Stop flashing + glitch dimmer (ported by hand from tonight/about/bio, the about-noflash pass; same keys gj.noflash / gj.glitch) */
+function lsOn(k){try{var v=localStorage.getItem(k);return v==='1'||v==='true'||v==='yes'}catch(x){return false}}
+var GNOFLASH=lsOn('gj.noflash'),GGL=lsr('gj.glitch',1);
+addEventListener('storage',function(e){if(e.key==='gj.noflash'){GNOFLASH=lsOn('gj.noflash');applyNoflash()}if(e.key==='gj.glitch'){GGL=lsr('gj.glitch',1);applyGlitch()}});
 function applyCtl(){document.documentElement.style.setProperty('--flash',GFL);if(au)au.volume=GVOL}
 addEventListener('storage',function(e){if(e.key==='gj.vol'){GVOL=lsr('gj.vol',1);applyCtl()}if(e.key==='gj.flash'){GFL=lsr('gj.flash',.6);applyCtl()}});
 var song=null,playing=false,au=null,AC=null,AN=null,FD=null,TD=null,L={rms:0,beat:0};
@@ -2108,42 +2112,43 @@ function layoutCalc(){
   zoom.style.transformOrigin=ox.toFixed(2)+'% '+oy.toFixed(2)+'%';
   zoom.style.transform='scale('+z.toFixed(3)+')';
 }
-function drawGlitch(t){
-  if(!bioOn)return;
-  var v=$('calc'),c=$('glitch'),zoom=$('calczoom');
-  if(!v||!c||!zoom||v.readyState<2||!v.videoWidth)return;
-  var W=zoom.clientWidth||innerWidth,H=zoom.clientHeight||innerHeight;
-  if(W<2||H<2)return;
+/* about-1113: the m4 glitch body, parameterised by (state, video, canvas, crop, W, H, t) so the 3D calculator face (js/aboutcalc.js) runs the same pixels.
+ The glitch itself is m4's, unchanged at full dimmer and 100% speed; Stop flashing freezes it on one still; the dimmer scales amount, displacement and frequency. */
+function glitchCore(GL,v,c,crop,W,H,t){
+  var amt=clamp(GGL,0,1),freeze=!!GNOFLASH;
+  var tt=freeze&&GL.holdT!=null?GL.holdT:t;
+  if(freeze&&GL.holdT==null)GL.holdT=t;
+  if(!freeze)GL.holdT=null;
   var bw=Math.max(2,Math.min(W,520)),bh=Math.max(2,Math.round(bw*H/W));
-  if(c.width!==bw||c.height!==bh){c.width=bw;c.height=bh;GL.frame=null;GL.prev=null}
-  if(!zoom._crop)layoutCalc();
-  var crop=zoom._crop;if(!crop)return;
+  if(c.width!==bw||c.height!==bh){c.width=bw;c.height=bh;GL.frame=null;GL.prev=null;GL.still=0}
   var g=c.getContext('2d',{willReadFrequently:true});
+  if(freeze&&GL.still&&!GL.needStill&&GL.stillW===bw&&GL.stillH===bh&&GL.stillAmt===amt)return g;
   g.drawImage(v,crop.sx,crop.sy,crop.sw,crop.sh,0,0,bw,bh);
+  if(amt<=0){GL.needStill=0;GL.still=freeze?1:0;GL.stillW=bw;GL.stillH=bh;GL.stillAmt=amt;return g}
   var img=g.getImageData(0,0,bw,bh),d=img.data;
   if(!GL.frame||GL.frame.length!==d.length){GL.frame=new Uint8ClampedArray(d.length);GL.prev=new Uint8ClampedArray(d.length)}
   var src=GL.frame,prev=GL.prev,i;
   src.set(d);
   var depth=(Math.max(1,Math.min(7,bioLv))-1)/6;
-  var shift=Math.round(1+depth*16+(GL.burst>0?2+depth*8:0));
-  var mix=0.16+depth*0.84;
-  var dim=0.28+depth*0.42;
+  var shift=Math.round((1+depth*16+(GL.burst>0?2+depth*8:0))*amt);
+  var mix=(0.16+depth*0.84)*amt;
+  var dim=(0.28+depth*0.42)*amt;
   var scan=depth>0.55?2:3;
-  var flick=(0.78-depth*0.5)+(0.28+depth*0.85)*(0.5+0.5*Math.sin(t*0.05));
-  if(depth>0.35&&Math.sin(t*0.021)>0.8)flick*=0.35;
-  var yBand=(Math.sin(t*0.0023)*0.5+0.5);
+  var flick=(0.78-depth*0.5)+(0.28+depth*0.85)*(0.5+0.5*Math.sin(tt*(0.05*amt)));
+  if(depth>0.35&&Math.sin(tt*(0.021*amt))>0.8)flick*=0.35;
+  if(amt<1)flick=1+(flick-1)*amt;
+  var yBand=(Math.sin(tt*(0.0023*amt))*0.5+0.5);
   var standY=(yBand*(bh-8))|0;
-  var standDx=Math.round(Math.sin(t*0.0031)*(depth*26));
+  var standDx=Math.round(Math.sin(tt*(0.0031*amt))*(depth*26)*amt);
   var standH=Math.round(2+depth*20);
   var standY2=((standY+((bh*0.37)|0))%bh);
-  var standDx2=Math.round(Math.cos(t*0.0027)*(depth*20));
-  if(Math.random()<0.12+depth*0.28+(GL.burst>0?0.55:0)){
-    GL.bands.push({y:(Math.random()*bh)|0,hh:Math.round(3+Math.random()*(6+depth*22)),dx:Math.round((Math.random()*2-1)*(2+depth*26)),life:3+((Math.random()*(4+depth*10))|0),mosh:Math.random()<0.45+depth*0.4});
+  var standDx2=Math.round(Math.cos(tt*(0.0027*amt))*(depth*20)*amt);
+  if(!freeze&&Math.random()<((0.12+depth*0.28+(GL.burst>0?0.55:0))*amt)){
+    GL.bands.push({y:(Math.random()*bh)|0,hh:Math.round(3+Math.random()*(6+depth*22)),dx:Math.round((Math.random()*2-1)*(2+depth*26)*amt),life:3+((Math.random()*(4+depth*10))|0),mosh:Math.random()<0.45+depth*0.4});
   }
-  if(GL.burst>0)GL.burst--;
-  var live=[],bi;
-  for(bi=0;bi<GL.bands.length;bi++){GL.bands[bi].life--;if(GL.bands[bi].life>0)live.push(GL.bands[bi])}
-  GL.bands=live.slice(-8);
+  var live,bi;
+  if(!freeze){if(GL.burst>0)GL.burst--;live=[];for(bi=0;bi<GL.bands.length;bi++){GL.bands[bi].life--;if(GL.bands[bi].life>0)live.push(GL.bands[bi])}GL.bands=live.slice(-8)}
+  else live=GL.bands;
   for(var y=0;y<bh;y++){
     var dx=0,mosh=0;
     if(y>=standY&&y<standY+standH)dx=standDx;
@@ -2170,8 +2175,21 @@ function drawGlitch(t){
     }
   }
   g.putImageData(img,0,0);
-  prev.set(src);
+  if(!freeze)prev.set(src);
   GL.seen=1;
+  GL.needStill=0;GL.still=freeze?1:0;GL.stillW=bw;GL.stillH=bh;GL.stillAmt=amt;
+  return g;
+}
+function drawGlitch(t){
+  if(!bioOn||bioMoon)return;
+  if(window.GJ_ACALC&&GJ_ACALC.draw(t))return;
+  var v=$('calc'),c=$('glitch'),zoom=$('calczoom');
+  if(!v||!c||!zoom||v.readyState<2||!v.videoWidth)return;
+  var W=zoom.clientWidth||innerWidth,H=zoom.clientHeight||innerHeight;
+  if(W<2||H<2)return;
+  if(!zoom._crop)layoutCalc();
+  var crop=zoom._crop;if(!crop)return;
+  glitchCore(GL,v,c,crop,W,H,window.GJ_ACALC?GJ_ACALC.clock(t):t);
 }
 function paintBio(flick){
   var texts=(window.GJ_BIO&&GJ_BIO.layers)||[];
@@ -2192,8 +2210,9 @@ function paintBio(flick){
     rail.innerHTML=dots+'<b>'+bioLv+'</b>';
   }
   var v=$('calc');
-  if(v){v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){})}
+  if(v&&!GNOFLASH){v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){})}
   layoutCalc();
+  if(window.GJ_ACALC)GJ_ACALC.paint(flick,bioLv);
 }
 function syncBio(){
   var el=$('layers');if(!el)return;
@@ -2203,6 +2222,7 @@ function syncBio(){
   if(!bioOn)bioLv=1;
   bioOn=1;if(bioLv<1)bioLv=1;if(bioLv>7)bioLv=7;
   el.hidden=false;el.classList.add('on');
+  if(window.GJ_ACALC)GJ_ACALC.show();
   if(bioMoon){el.classList.add('exit');el.classList.remove('moonfade');return}
   el.classList.remove('exit','moonfade');
   paintGrain();paintBio(false);
@@ -2915,6 +2935,22 @@ window.GJ_TUNE={
     if(ready){layout();arriveAt(cur,true)}
   }
 };
+/* about-1113: bio API for js/aboutcalc.js (3D calculator) and the tune menu's About rows */
+function applyNoflash(){
+  document.documentElement.classList.toggle('gj-noflash',!!GNOFLASH);
+  var v=$('calc'),moon=$('moons');
+  if(GNOFLASH){if(v)try{v.pause()}catch(e){}if(moon)try{moon.pause()}catch(e){}GL.needStill=1;GL.still=0;if(window.GJ_ACALC)GJ_ACALC.restill()}
+  else{GL.still=0;GL.holdT=null;GL.needStill=0;if(bioOn&&isBio()&&!bioMoon&&v){v.muted=true;var p=v.play();if(p&&p.catch)p.catch(function(){})}if(bioMoon&&moon){moon.muted=true;var q=moon.play();if(q&&q.catch)q.catch(function(){})}}
+}
+function applyGlitch(){GGL=clamp(GGL,0,1);if(GNOFLASH){GL.still=0;GL.needStill=1;if(window.GJ_ACALC)GJ_ACALC.restill()}}
+window.GJ_BIOCTL={
+  noflash:function(){return !!GNOFLASH},setNoflash:function(on){GNOFLASH=!!on;try{localStorage.setItem('gj.noflash',GNOFLASH?'1':'0')}catch(e){}applyNoflash()},
+  glitch:function(){return GGL},setGlitch:function(v){var n=+v;GGL=isFinite(n)?clamp(n,0,1):1;try{localStorage.setItem('gj.glitch',String(GGL))}catch(e){}applyGlitch()},
+  core:function(G,v,c,crop,W,H,t){return glitchCore(G,v,c,crop,W,H,t)},
+  get on(){return !!(bioOn&&isBio())},get lv(){return bioLv},get moon(){return !!bioMoon},get exit(){return !!bioExit},
+  deeper:function(){deeper(innerWidth/2,innerHeight/2)},back:function(){back()}
+};
+setTimeout(applyNoflash,0);
 window.__u1={
   get phase(){return phase},get cur(){return snap(cur)},get step(){return STEP},
   get sel(){return sel},get ready(){return ready},
@@ -2926,7 +2962,7 @@ window.__u1={
   pinchIn:function(x,y){deeper(x,y)},
   pinchOut:function(){back()},
   open:function(id){var it=byId[id];if(!it)return;go({lv:2,k:it.chapter,id:it.id})},
-  get bio(){return {on:bioOn?1:0,lv:bioLv,exit:bioExit?1:0}},
+  get bio(){return {on:bioOn?1:0,lv:bioLv,exit:bioExit?1:0,moon:bioMoon?1:0}},
   byId:function(id){return byId[id]},
   get map(){return {s:+rest.s.toFixed(3),prog:progress.map(function(it){var q=sp(it.cx,it.cy);return {t:it.title,x:Math.round(q[0]),y:Math.round(q[1])}}),ch:ORDER.map(function(k){var q=sp(CH[k].x,CH[k].y);return {k:k,x:Math.round(q[0]),y:Math.round(q[1])}})}},
   get mid(){if(cur.lv!==1||onBoard())return null;return midItems().map(function(it){var p=posOf(it),q=sp(p[0],p[1]);return {id:it.id,t:it.title,x:Math.round(q[0]),y:Math.round(q[1]),r:it._mr||null,l:it._ml||null}})},
