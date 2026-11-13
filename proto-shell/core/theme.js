@@ -45,7 +45,7 @@ var T={pal:P,get pref(){return pref},get eff(){return eff},get room(){return roo
   /* the ladder room (null at the whole sky) */
   setRoom:function(k){k=k||null;if(k===room)return;room=k;apply();label()},
   /* red only: the part being adjusted (a room id from the tune menu) lights up gold for a moment */
-  adjust:function(k){if(eff!=='red')return;adj=k;P.adj=adj;clearTimeout(adjT);adjT=setTimeout(function(){adj=null;P.adj=null;hooks.forEach(function(f){f('adj',null)})},1400);hooks.forEach(function(f){f('adj',k)})},
+  adjust:function(k,info){if(eff!=='red')return;adj=k;P.adj=adj;T.adjInfo=info||null;clearTimeout(adjT);adjT=setTimeout(function(){adj=null;P.adj=null;T.adjInfo=null;hooks.forEach(function(f){f('adj',null)})},1400);hooks.forEach(function(f){f('adj',k)})},
   on:function(f){hooks.push(f)},
   mount:function(){var lab=document.getElementById('lab');if(!lab||btn)return;btn=document.createElement('button');btn.type='button';btn.id='themeBtn';btn.innerHTML='<i></i>';
     btn.addEventListener('click',function(e){e.stopPropagation();T.toggle()});btn.addEventListener('pointerdown',function(e){e.stopPropagation()});

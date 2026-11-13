@@ -36,6 +36,17 @@ function boot(skyD,tracks,shape){
   var ladder=ShellLadder(cam,world,{snapAt:function(){return GJ_DEC.get('snapAt')/100},onChange:crumb});SH.ladder=ladder;SH.world=world;
   var wave=ShellWave(shape,tracks);SH.wave=wave;
   GJ_THEME.on(function(){sky.retheme()});sky.retheme();
+  /* red: floating callout for the part being adjusted + the zoom-level scale (both hidden by CSS in night) */
+  var co=ShellCallout(SH);SH.callout=co;
+  GJ_THEME.on(function(what,v){if(what==='adj'){if(v)co.show(v,GJ_THEME.adjInfo);else co.hide()}else if(what==='theme'&&v!=='red')co.hide()});
+  var lvl=document.createElement('div');lvl.id='lvl';lvl.setAttribute('aria-hidden','true');lvl.innerHTML='<i class="rail"></i>'+['sky','mid','board','work'].map(function(n,i){return '<b data-i="'+i+'" style="top:'+(i*44)+'px">'+n+'</b>'}).join('')+'<s></s>';document.body.appendChild(lvl);
+  var lvB=lvl.querySelectorAll('b'),lvS=lvl.querySelector('s');
+  function lvlStep(){var st=ladder.cur,k=st.k||sky.near([cam.x,cam.y]),sc=[],have=[];
+    [{lv:0},{lv:1,k:k},{lv:2,k:k},st.lv===3?st:{lv:3,k:k,id:st.id}].forEach(function(q,i){var s=null;try{s=world.stop(q)}catch(e){}sc[i]=s?s.s:null;have[i]=!!s});
+    var idx=[];sc.forEach(function(v,i){if(v)idx.push(i)});var pos=0,s=cam.s;
+    if(idx.length>1){if(s<=sc[idx[0]])pos=idx[0];else if(s>=sc[idx[idx.length-1]])pos=idx[idx.length-1];
+      else for(var j=0;j<idx.length-1;j++){var a=sc[idx[j]],b=sc[idx[j+1]];if(s>=a&&s<b){pos=idx[j]+(idx[j+1]-idx[j])*Math.log(s/a)/Math.log(b/a);break}}}
+    lvS.style.top=Math.round(pos*44)+'px';for(var i=0;i<4;i++){lvB[i].className=i===st.lv?'on':have[i]?'':'off'}}
   ShellMark.mount(SH);
   /* A/B/C: lab.js verbatim. Shim: its history.replaceState(null,'','?v=X') would drop ?m= and the ladder's state, so it is merged here. */
   var rs=history.replaceState.bind(history);
@@ -94,6 +105,7 @@ function boot(skyD,tracks,shape){
     soundLayer(t);
     if(M.draw)M.draw(g,cam,t,SH,T);
     if(PAL.name!=='red')sky.drawDust(g,cam);
+    if(PAL.name==='red'){lvlStep();co.step(cam)}
   }
   /* the Sound constellation is the waveform: the six song stars glow, the playing one breathes with the playhead */
   function soundLayer(t){var c=sky.chapter('sound');if(!c)return;var o=[0,0,0],here=ladder.cur.lv>=1&&ladder.cur.k==='sound',z=Math.sqrt(cam.zf());

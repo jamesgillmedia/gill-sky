@@ -141,12 +141,14 @@ function build(){
     if(dr&&D2()){var dk=dr.getAttribute('data-dec-r');D2().set(dk,+dr.value);var oo=dr.parentNode.querySelector('output');if(oo)oo.textContent=dk==='safeK'?(dr.value/100).toFixed(2):dr.value;if(dk==='safeK')safelight();return}
     var r=e.target.closest('input[data-k]');if(!r)return;
     var row=findRow(r.getAttribute('data-k'));if(!row)return;
-    if(window.GJ_THEME)GJ_THEME.adjust(roomOfRow(row.k));
+    if(window.GJ_THEME)GJ_THEME.adjust(roomOfRow(row.k),{label:row.label,value:+r.value});
     var v=+r.value;
     if(row.k.indexOf('gj.tune.')===0)wr(row.k,v);
     row.apply(v,true);
     var o=r.parentNode.querySelector('output');if(o)o.textContent=v;
   });
+  menu.addEventListener('pointerdown',function(e){if(e.target.closest('input[type=range]'))menu.classList.add('mm-peek')});
+  ['pointerup','pointercancel','touchend','touchcancel','blur'].forEach(function(n){addEventListener(n,function(){menu.classList.remove('mm-peek')},true)});
   menu.addEventListener('keydown',function(e){if(e.key==='Escape'){e.stopPropagation();show(false)}});
   document.addEventListener('pointerdown',function(e){if(open&&!e.target.closest('#markmenu,#crumb .sig'))show(false)},true);
 }
