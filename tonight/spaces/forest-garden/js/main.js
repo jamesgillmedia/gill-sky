@@ -1,12 +1,15 @@
 /* se3 standalone: v2's sky (starfield shader, FogExp2, PerspectiveCamera) around the Spirit Eye only. No chapter clusters, no orbit. */
-import * as SE from './spirit-eye.js';
-import * as ATMOS from './atmos.js';
+import * as SE from './spirit-eye.js?v=se-gf2';
+import * as ATMOS from './atmos.js?v=se-gf2';
 const html = document.documentElement, $ = s => document.querySelector(s);
 /* ---------- end gallery (parts/gallery/gallery.js behaviour: tap opens large; Back, Esc, browser Back return to the grid) ---------- */
 (function gallery() {
   const cells = Array.from(document.querySelectorAll('#segal .cell')), viewer = $('#viewer'), full = $('#full'), lab = $('#lab'), back = $('#gback');
   let openI = -1, pushed = false;
-  function open(i, push) { if (i < 0 || i >= cells.length) return; openI = i; const p = cells[i].dataset.page; full.src = cells[i].dataset.full; full.alt = 'PDF page ' + p; 
+  function open(i, push) { if (i < 0 || i >= cells.length) return; openI = i; const p = cells[i].dataset.page;
+    /* the sheet waits dark on its mat and fades in once this page is decoded (never the page before it) */
+    const src = cells[i].dataset.full, shown = () => { if (full.getAttribute('src') === src) full.classList.add('in') };
+    full.classList.remove('in'); full.src = src; full.alt = 'PDF page ' + p; if (full.decode) full.decode().then(shown, shown); else full.onload = shown;
     viewer.classList.add('on'); viewer.setAttribute('aria-hidden', 'false'); html.classList.add('galbig'); back.focus({ preventScroll: true }); if (push) { history.pushState({ seGallery: p }, '', '#p' + p); pushed = true } }
   function close(fromPop) { viewer.classList.remove('on'); viewer.setAttribute('aria-hidden', 'true'); html.classList.remove('galbig'); openI = -1;
     if (!fromPop && pushed) { pushed = false; history.back(); return } if (!fromPop && location.hash) history.replaceState(null, '', location.pathname + location.search); pushed = false }
@@ -100,12 +103,14 @@ function start() {
     /* at night the sky dome stays off, so the scene matches today's look exactly */
     sky.visible = day > .02;
   }
-  const SEC = SE.mount(THREE, scene, { glowTex: GT, poolTex: () => ATMOS.poolTex(THREE), tell: $('#setell'), call: $('#secall'), lines: $('#selines'), gal: $('#segal'), dial: $('#sedial'), pg: $('#sepg'), dayNight: () => dayN, ...(window.__SEX || {}) });
+  let ATM = null;
+  const SEC = SE.mount(THREE, scene, { onPlan: m => { if (ATM) ATM.adopt(m) }, glowTex: GT, poolTex: () => ATMOS.poolTex(THREE), tell: $('#setell'), call: $('#secall'), lines: $('#selines'), gal: $('#segal'), dial: $('#sedial'), pg: $('#sepg'), dayNight: () => dayN, ...(window.__SEX || {}) });
   if (window.__SEX && window.__SEX.mounted) window.__SEX.mounted(SEC, cam, R);
   /* spaces-1113: fog + breathing shafts through the fibre column, and Red (plan drawings and fibre ends glow; photos keep true colour) */
-  const ATM = ATMOS.mountAtmos(THREE, scene, SEC.group, { renderer: R, repaint: () => { if (typeof paintSky === 'function') paintSky(dayN); else { R.setClearColor(0x04060c, 1); scene.fog.color.set(0x04060c) } } });
+  ATM = ATMOS.mountAtmos(THREE, scene, SEC.group, { renderer: R, repaint: () => { if (typeof paintSky === 'function') paintSky(dayN); else { R.setClearColor(0x04060c, 1); scene.fog.color.set(0x04060c) } } });
   { const T = window.GJ_THEME, VV = window.GJ_VARIANT; ATM.setVariant(VV ? VV.v : 'A'); if (VV) VV.on(v => ATM.setVariant(v));
-    ATM.setRed(!!(T && T.eff === 'red')); if (T) T.on(() => ATM.setRed(T.eff === 'red')) }
+    ATM.setRed(!!(T && T.eff === 'red')); if (T) T.on(() => ATM.setRed(T.eff === 'red'));
+    ATM.setLine(html.classList.contains('se-line')) } /* the dev "night line" row (room.js) may have been chosen before the scene was up */
   function layout() { const w = innerWidth, h = innerHeight; R.setSize(w, h, false); cam.aspect = w / h; cam.updateProjectionMatrix(); U.uPx.value = R.getPixelRatio() * h / 780; SEC.resize(w / h) }
   const cv = $('#c');
   cv.addEventListener('pointerdown', e => { e.preventDefault(); try { cv.setPointerCapture(e.pointerId) } catch (x) {} SEC.down(e) });

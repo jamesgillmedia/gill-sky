@@ -241,28 +241,38 @@ export function mount(THREE, scene, ctx) {
   /* ---------- drawings and plant cards placed in depth, per stop ---------- */
   const planes = [], cards = [];
   const frame = (i, pos, look, fwd, right, up) => { poseAt(i, pos, look); fwd.copy(look).sub(pos).normalize(); right.crossVectors(fwd, Math.abs(fwd.y) > .97 ? V(0, 0, -1) : V(0, 1, 0)).normalize(); up.crossVectors(right, fwd).normalize() };
-  const cardMat = () => new THREE.MeshBasicMaterial({ color: 0x1a2230, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide });
+  const PLANF = /p07-plan-dial|p15-whorl-top|p17-side-view|p15-side2/;
+  /* a tile waits as the dark ground colour (never grey), then fades in once its image is decoded. redT.hold keeps Red from tinting the placeholder. */
+  const DARK = new THREE.Color(0x04070b), LIT = new THREE.Color(0xffffff), FADE = 700;
+  const cardMat = () => { const m = new THREE.MeshBasicMaterial({ color: 0x04070b, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }); m.userData.redT = { hold: 1 }; return m };
   function placeAll(aspect) {
-    [...planes, ...cards].forEach(m => { g.remove(m); m.geometry.dispose() }); planes.length = 0; cards.length = 0;
+    [...planes, ...cards].forEach(m => { g.remove(m); m.geometry.dispose(); m.children.forEach(ch => { if (ch.geometry) ch.geometry.dispose(); if (ch.material) ch.material.dispose() }) }); planes.length = 0; cards.length = 0;
     const pos = V(0, 0, 0), look = V(0, 0, 0), fwd = V(0, 0, 0), right = V(0, 0, 0), up = V(0, 0, 0), sx = Math.min(1, aspect / 1.05);
     STOPS.forEach((st, i) => {
       (PLACE[st.k] || []).forEach(([f, d, x, y, w, wide]) => { if (wide && aspect < .8) return; frame(i, pos, look, fwd, right, up);
+        const isPlan = PLANF.test(f);
         const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cardMat()); const yy = sx < 1 && x ? y + Math.sign(x) * w * .3 * (1 - sx) : y;
         m.position.copy(pos).addScaledVector(fwd, d).addScaledVector(right, x * sx).addScaledVector(up, yy); m.up.copy(up); m.lookAt(pos);
-        m.userData = { stop: i, w: w * (sx < 1 ? .5 + .5 * sx : 1), base: m.position.clone(), fwd: fwd.clone(), d }; m.scale.set(m.userData.w, m.userData.w * .624, 1); m.renderOrder = 4; g.add(m); planes.push(m);
-        tex(f, t => { m.material.map = t; m.material.color.set(0xffffff); m.material.needsUpdate = true; m.scale.y = m.userData.w * t.image.height / t.image.width }) });
+        const ww = w * (sx < 1 ? .5 + .5 * sx : 1) * (isPlan ? .72 : 1);
+        m.userData = { stop: i, w: ww, base: m.position.clone(), fwd: fwd.clone(), d, plan: isPlan ? 1 : 0, ready: 0 };
+        if (!isPlan) m.userData.keepTrue = 1;
+        m.scale.set(ww, ww * .624, 1); m.renderOrder = 4; g.add(m); planes.push(m);
+        /* a plan drawing is a sheet on a dark mat: smaller than the page it came from, the mat a little larger and just behind it */
+        if (isPlan) { m.material.color.copy(LIT); m.material.userData.sheet = 1;
+          const mat = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cardMat()); mat.position.set(0, 0, -.03); mat.scale.set(1.16, 1.22, 1); mat.renderOrder = 3; delete mat.material.userData.redT; m.add(mat) } /* the mat is a plain dark colour, so Red takes it to its own black like every other dark */
+        tex(f, t => { m.material.map = t; m.material.needsUpdate = true; m.userData.ready = performance.now(); m.scale.y = m.userData.w * t.image.height / t.image.width; if (isPlan && ctx.onPlan) ctx.onPlan(m.material) }) });
       if (st.cards) { frame(i, pos, look, fwd, right, up);
         /* a layered wall of the page's plants in the garden: columns by screen shape, rows staggered in depth */
         const cols = aspect < .8 ? 2 : 4, rows = Math.ceil(st.cards.length / cols), tv = Math.tan(30 * Math.PI / 180), W = SW(), H = SH();
-        const topPx = 74, botPx = 78, labPx = aspect < .8 ? 44 : 34, chPx = (H - topPx - botPx) / rows, cwPx = W * .94 / cols;
+        const nar = aspect < .8, topPx = 74, botPx = nar ? 86 : 78, labPx = nar ? 64 : 34, chPx = (H - topPx - botPx) / rows, cwPx = W * .94 / cols;
         st.cards.forEach((c, j) => { const col = j % cols, row = Math.floor(j / cols), d = 9 + (col % 2) * 1.2 + row * .8;
           const vh = 2 * d * tv, k = vh / H; /* world units per css px at this depth */
           const bw = cwPx * .86 * k, bh = Math.max(20, chPx - labPx - 8) * k;
           const xo = (col - (cols - 1) / 2) * cwPx * k, yo = (H / 2 - (topPx + chPx * row + (chPx - labPx) / 2)) * k;
           const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), cardMat()); m.material.depthTest = false;
           m.position.copy(pos).addScaledVector(fwd, d).addScaledVector(right, xo).addScaledVector(up, yo); m.up.copy(up); m.lookAt(pos);
-          m.userData = { stop: i, bw, bh, t: c.t, j }; m.scale.set(bw, bh, 1); m.renderOrder = 5; g.add(m); cards.push(m);
-          tex(c.f, t => { const ar = t.image.width / t.image.height; let w = bw, h = bw / ar; if (h > bh) { h = bh; w = bh * ar } m.scale.set(w, h, 1); m.material.map = t; m.material.color.set(0xffffff); m.material.needsUpdate = true }) }) }
+          m.userData = { stop: i, bw, bh, t: c.t, j, ready: 0, keepTrue: 1 }; m.scale.set(bw, bh, 1); m.renderOrder = 12; /* after the mist, the shafts and the pool of light (6 to 9): they are additive and take the Red ink, and a photo must not */ g.add(m); cards.push(m);
+          tex(c.f, t => { const ar = t.image.width / t.image.height; let w = bw, h = bw / ar; if (h > bh) { h = bh; w = bh * ar } m.scale.set(w, h, 1); m.material.map = t; m.material.needsUpdate = true; m.userData.ready = performance.now() }) }) }
     });
   }
   /* ---------- DOM: reading pages, callouts, gallery, dial, nav ---------- */
@@ -299,9 +309,14 @@ export function mount(THREE, scene, ctx) {
   function placeCallouts(cam) { const W = SW(), H = SH(), show = CALL.classList.contains('on');
     LINES.style.opacity = show ? 1 : 0;
     CO.forEach(o => {
-      if (o.card) { const m = o.card; pv.copy(m.position).addScaledVector(m.up, -m.scale.y / 2).project(cam); const x = (pv.x + 1) / 2 * W, y = (1 - pv.y) / 2 * H; o.e.style.maxWidth = Math.max(110, W / (W / H < .8 ? 2.2 : 4.4)) + 'px'; o.e.style.transform = `translate(${(x - o.e.offsetWidth / 2).toFixed(1)}px,${(y - 2).toFixed(1)}px)`; return }
+      if (o.card) { const m = o.card, nar = W / H < .8; let x, y;
+        /* two columns (phone): the caption hangs under the photo's real lower edge, so no plate ever sits on a photograph. Four columns: a small pill on the lower edge, as before. */
+        if (nar) { m.updateWorldMatrix(true, false); pv.set(-.5, -.5, 0); m.localToWorld(pv).project(cam); const x1 = pv.x, y1 = pv.y; pv.set(.5, -.5, 0); m.localToWorld(pv).project(cam);
+          x = ((x1 + pv.x) / 2 + 1) / 2 * W; y = (1 - Math.min(y1, pv.y)) / 2 * H + 6 }
+        else { pv.copy(m.position).addScaledVector(m.up, -m.scale.y / 2).project(cam); x = (pv.x + 1) / 2 * W; y = (1 - pv.y) / 2 * H - 2 }
+        o.e.style.maxWidth = Math.max(110, W / (nar ? 2.2 : 4.4)) + 'px'; o.e.style.transform = `translate(${(x - o.e.offsetWidth / 2).toFixed(1)}px,${y.toFixed(1)}px)`; return }
       const a = o.c.at === 'front' ? head.position : pv.set(...o.c.at); const p = a.clone().project(cam); const x = (p.x + 1) / 2 * W, y = (1 - p.y) / 2 * H;
-      const ew = o.e.offsetWidth, eh = o.e.offsetHeight; let lx = x + o.c.dx * W, ly = y + o.c.dy * H; lx = Math.max(10, Math.min(W - ew - 10, lx - (o.c.dx < 0 ? ew : 0))); ly = Math.max(70, Math.min(H - eh - 70, ly));
+      const ew = o.e.offsetWidth, eh = o.e.offsetHeight; let lx = x + o.c.dx * W, ly = y + o.c.dy * H; lx = Math.max(10, Math.min(W - ew - 10, lx - (o.c.dx < 0 ? ew : 0))); ly = Math.max(70, Math.min(H - eh - 96, ly));
       o.e.style.transform = `translate(${lx.toFixed(1)}px,${ly.toFixed(1)}px)`;
       const ex = Math.max(lx, Math.min(lx + ew, x)), ey = Math.max(ly, Math.min(ly + eh, y));
       o.ln.setAttribute('x1', x); o.ln.setAttribute('y1', y); o.ln.setAttribute('x2', ex); o.ln.setAttribute('y2', ey); o.dot.setAttribute('cx', x); o.dot.setAttribute('cy', y) });
@@ -361,10 +376,14 @@ export function mount(THREE, scene, ctx) {
     const camY = cam.position.y; under.visible = camY < .4;
     faceM.opacity = Math.max(.16, Math.min(1, (Math.hypot(cam.position.x, cam.position.y - .6, cam.position.z) - 2.2) / 7)); housing.material.opacity = .5 + .42 * faceM.opacity;
     water.material.opacity = camY < 0 ? .98 : (.9 - .16 * day); wall.visible = camY > 0;
-    [...planes, ...cards].forEach(m => { const d = Math.abs(sm - m.userData.stop), dd = Math.min(d, NS - d); m.material.opacity = Math.max(0, 1 - dd / .85);
+    [...planes, ...cards].forEach(m => { const d = Math.abs(sm - m.userData.stop), dd = Math.min(d, NS - d); let op = Math.max(0, 1 - dd / .85);
       if (ctx.fly && m.userData.base) { const sd = mod(sm - m.userData.stop + NS / 2, NS) - NS / 2, z = m.userData.d * (1 - .9 * sd); m.position.copy(m.userData.base).addScaledVector(m.userData.fwd, -sd * .9 * m.userData.d);
-        m.material.opacity = Math.max(0, Math.min(1, 1 - Math.abs(sd) / 1.1, (z - 1.2) / 2.5)) }
-      m.visible = m.material.opacity > .01 });
+        op = Math.max(0, Math.min(1, 1 - Math.abs(sd) / 1.1, (z - 1.2) / 2.5)) }
+      const u = m.userData.ready ? Math.min(1, (now - m.userData.ready) / FADE) : 0, rv = u <= 0 ? 0 : u * u * (3 - 2 * u);
+      if (m.userData.plan) m.material.opacity = op * rv; /* the sheet fades in over its mat */
+      else { m.material.color.copy(DARK).lerp(LIT, rv * rv); m.material.opacity = op } /* a photo comes up out of the dark tile */
+      m.visible = op > .01;
+      m.children.forEach(ch => { if (ch.material) ch.material.opacity = op }) });
     if (coShown >= 0 && CALL.classList.contains('on')) placeCallouts(cam); else LINES.style.opacity = 0;
     
     const dl = cam.position.distanceTo(lensGlow.position); halo.material.opacity = .08 * Math.max(0, Math.min(1, (dl - 4) / 8)) * dayGlow; faceM.opacity *= dl < 5 ? .5 : 1;

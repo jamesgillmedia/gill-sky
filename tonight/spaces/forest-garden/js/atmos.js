@@ -68,20 +68,31 @@ export function mountAtmos(THREE, scene, root, o) {
   const tracked = new Set(); let red = false, wash = 0;
   const isPhotoMap = m => !!(m && m.map && m.map.image && m.map.image.src);
   const isPlanMap = m => !!(m && m.map && m.map.image && m.map.image.src && PLAN.test(m.map.image.src));
-  const RU = { uRedR: AU.uRed, uInkR: AU.uInk, uWash: { value: 0 } };
+  const RU = { uRedR: AU.uRed, uInkR: AU.uInk, uWash: { value: 0 }, uLine: { value: 0 } };
+  let lineOn = false;
+  function syncLine() { RU.uLine.value = lineOn && !red ? 1 : 0 }
+  /* A plan texture has two uses. On the whorl face it is part of the sculpture: Night leaves it alone, Red inks it.
+     On a placed sheet (material.userData.sheet, set by spirit-eye's placeAll) Night adds a soft vignette into the mat and,
+     with the dev "night line" row, redraws it as warm-white lines on the mat colour. Red is the same on both.
+     Colours here are linear (the map is sampled linear): #04070b and #e8e4dc. */
   function injectPlan(m) { if (m.userData.planInj) return; m.userData.planInj = 1;
-    const img = m.map.image, tx = new THREE.Vector2(1.3 / (img.width || 1024), 1.3 / (img.height || 1024));
-    m.onBeforeCompile = sh => { sh.uniforms.uRedR = RU.uRedR; sh.uniforms.uInkR = RU.uInkR; sh.uniforms.uWash = RU.uWash; sh.uniforms.uTx = { value: tx };
-      sh.fragmentShader = 'uniform float uRedR,uWash;uniform vec3 uInkR;uniform vec2 uTx;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
+    const img = m.map.image, tx = new THREE.Vector2(1.3 / (img.width || 1024), 1.3 / (img.height || 1024)), sheet = { value: m.userData.sheet ? 1 : 0 };
+    m.onBeforeCompile = sh => { sh.uniforms.uRedR = RU.uRedR; sh.uniforms.uInkR = RU.uInkR; sh.uniforms.uWash = RU.uWash; sh.uniforms.uLine = RU.uLine; sh.uniforms.uSheet = sheet; sh.uniforms.uTx = { value: tx };
+      sh.fragmentShader = 'uniform float uRedR,uWash,uLine,uSheet;uniform vec3 uInkR;uniform vec2 uTx;\n' + sh.fragmentShader.replace('#include <map_fragment>', `#include <map_fragment>
 #ifdef USE_MAP
 if(uRedR>0.){vec3 W=vec3(.2126,.7152,.0722);float l0=dot(diffuseColor.rgb,W);
  float gx=dot(texture2D(map,vMapUv+vec2(uTx.x,0.)).rgb-texture2D(map,vMapUv-vec2(uTx.x,0.)).rgb,W);
  float gy=dot(texture2D(map,vMapUv+vec2(0.,uTx.y)).rgb-texture2D(map,vMapUv-vec2(0.,uTx.y)).rgb,W);
- float e=smoothstep(.07,.24,length(vec2(gx,gy)));float dk=smoothstep(.42,.12,l0)*.55;float k=max(e,dk);
+ float e=smoothstep(.07,.24,length(vec2(gx,gy)));float dk=(1.-smoothstep(.12,.42,l0))*.55;float k=max(e,dk);
  vec3 lineC=uInkR*(k*1.2+l0*.07);vec3 washC=uInkR*pow(l0,1.15)*.95;
  diffuseColor.rgb=mix(diffuseColor.rgb,mix(lineC,washC,uWash),uRedR);}
+else if(uSheet>.5){vec3 MAT=vec3(.00121,.00212,.00334);
+ if(uLine>.5){float l1=dot(diffuseColor.rgb,vec3(.2126,.7152,.0722));diffuseColor.rgb=mix(MAT,vec3(.807,.776,.716),1.-smoothstep(.2,.8,l1));}
+ float vig=1.-smoothstep(.7,1.5,length((vMapUv-.5)*2.));diffuseColor.rgb=mix(MAT,diffuseColor.rgb,mix(.5,1.,vig));}
 #endif`) };
-    m.customProgramCacheKey = () => 'spaces-plan-red'; m.needsUpdate = true }
+    m.customProgramCacheKey = () => 'spaces-plan-v4'; m.needsUpdate = true }
+  /* spirit-eye hands a placed drawing over the moment its texture lands, so it never shows un-inked for a frame */
+  function adopt(m) { if (isPlanMap(m)) injectPlan(m) }
   function injectShader(m) { if (m.userData.redInj || !m.fragmentShader) return; m.userData.redInj = 1; const lift = m.userData.redLift || 1.25;
     m.uniforms.uRedR = AU.uRed; m.uniforms.uInkR = AU.uInk;
     const fs = m.fragmentShader, i = fs.lastIndexOf('}');
@@ -98,7 +109,8 @@ if(uRedR>0.){vec3 W=vec3(.2126,.7152,.0722);float l0=dot(diffuseColor.rgb,W);
       if (red) { const L = Math.min(1, lumOf(T.c0) * T.lift); tmp.setRGB(INK[0] * L, INK[1] * L, INK[2] * L); m.color.copy(tmp); T.set = tmp.clone() }
       else if (T.set) { m.color.copy(T.c0); T.set = null } }) }
   let scanAt = 0, variant = 'A';
-  function setRed(on) { red = !!on; AU.uRed.value = red ? 1 : 0; scan(); tick();
+  function setLine(on) { lineOn = !!on; syncLine() }
+  function setRed(on) { red = !!on; AU.uRed.value = red ? 1 : 0; syncLine(); scan(); tick();
     if (o.renderer) { if (red) { o.renderer.setClearColor(0x030102, 1) } else if (o.repaint) o.repaint() }
     if (scene.fog) { if (red) scene.fog.color.setRGB(.012, .004, .006); else if (o.repaint) o.repaint() } }
   function setVariant(v) { variant = /^[ABC]$/.test(v) ? v : 'A'; RU.uWash.value = variant === 'C' ? 1 : 0; buildFog(variant) }
@@ -116,5 +128,5 @@ if(uRedR>0.){vec3 W=vec3(.2126,.7152,.0722);float l0=dot(diffuseColor.rgb,W);
     if (red && scene.fog) scene.fog.color.setRGB(.012, .004, .006);
     if (red && o.renderer) o.renderer.setClearColor(0x030102, 1);
   }
-  return { update, setRed, setVariant, get variant() { return variant }, get red() { return red }, banks, shafts }
+  return { update, setRed, setLine, adopt, setVariant, get variant() { return variant }, get red() { return red }, banks, shafts }
 }

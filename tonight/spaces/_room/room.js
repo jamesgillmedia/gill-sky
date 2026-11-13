@@ -61,7 +61,15 @@
     bindMenu();
     strip.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b || !w.__se) return; var S = w.__se.SEC, i = S.STOPS.findIndex(function (s) { return s.k === b.dataset.k }); if (i >= 0) S.go(i, true) });
     if (w.GJ_THEME) w.GJ_THEME.on(paint);
-    paint(); setInterval(follow, 200) }
+    paint(); setInterval(follow, 200); applyLine(lineMode()); fadeSheets(); setTimeout(hint, 900) }
+  /* the gallery sheets wait dark on their mats and fade in once decoded (the opened sheet does the same in each room's main.js) */
+  function fadeSheets() {
+    [].forEach.call(document.querySelectorAll('#segal .cell img'), function (img) {
+      function show() { img.classList.add('in') }
+      if (img.decode) img.decode().then(show, show);
+      else if (img.complete) show(); else { img.addEventListener('load', show, { once: true }); img.addEventListener('error', show, { once: true }) }
+    });
+  }
   function setOpen(o) { open = o; menu.hidden = !o; tuneBtn.setAttribute('aria-expanded', String(o)); document.documentElement.classList.toggle('sptune-open', o) }
   var lastK = null;
   function follow() { if (!w.__se) return; var st = w.__se.st(), k = st.k; if (k === lastK) return; lastK = k;
@@ -71,6 +79,29 @@
     [].forEach.call(menu.querySelectorAll('[data-v]'), function (b) { b.setAttribute('aria-checked', String(b.dataset.v === v)) });
     var n = menu.querySelector('.vnote'); if (n) n.textContent = v + ' · ' + NOTE[v];
     vtag.textContent = SHOW_VARIANTS ? v : ''; vtag.hidden = !SHOW_VARIANTS }
+  /* dev row "drawings": sheet (the true drawings, the default and the only look at launch) | night line (light lines on the dark ground).
+     Stored in localStorage gj.spaces.line and read only while dev is on; Red keeps its own linework either way.
+     The class drives the gallery sheets (se.css); the placed plans follow through atmos.setLine, which main.js also reads from the class when the scene comes up. */
+  var LINE = 'gj.spaces.line';
+  function lineMode() { return devOn() && lsGet(LINE) === 'line' ? 'line' : 'sheet' }
+  function applyLine(n, store) {
+    n = devOn() && n === 'line' ? 'line' : 'sheet';
+    if (store && devOn()) lsSet(LINE, n);
+    document.documentElement.classList.toggle('se-line', n === 'line');
+    var a = w.__se && w.__se.atmos; if (a && a.setLine) a.setLine(n === 'line');
+  }
+  /* one quiet line above Back and Next: it fades in once after the room opens and leaves after a few seconds or at the first touch, key or wheel */
+  function hint() {
+    if (document.getElementById('sphint')) return;
+    var h = document.createElement('p'); h.id = 'sphint';
+    h.textContent = 'the mark closes the sheet · next wraps to the start';
+    document.body.appendChild(h);
+    requestAnimationFrame(function () { requestAnimationFrame(function () { h.classList.add('on') }) });
+    var gone = false, evs = ['pointerdown', 'wheel', 'keydown'];
+    function bye() { if (gone) return; gone = true; h.classList.remove('on'); evs.forEach(function (ev) { removeEventListener(ev, bye, true) }) }
+    setTimeout(bye, 4600);
+    evs.forEach(function (ev) { addEventListener(ev, bye, true) });
+  }
   function bindMenu() {
     if (!w.GJ_MARKMENU || bindMenu.done) return !!bindMenu.done;
     bindMenu.done = true;
@@ -79,6 +110,12 @@
       seg: [['A', 'A · fog banks'], ['B', 'B · low ground mist'], ['C', 'C · red ink wash']],
       get: function () { return w.GJ_VARIANT.v },
       apply: function (n) { w.GJ_VARIANT.set(n) }
+    });
+    w.GJ_MARKMENU.variant('spaces', {
+      k: LINE, label: 'drawings', dev: 1, def: 'sheet',
+      seg: [['sheet', 'sheet'], ['line', 'night line']],
+      get: lineMode,
+      apply: function (n) { applyLine(n, true) }
     });
     return true;
   }
