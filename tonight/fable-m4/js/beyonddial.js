@@ -259,6 +259,7 @@ function bindDial(d){
         return;
       }
     }
+    openT=1;
     held={k:d.k,ringKey:ringKey,id:e.pointerId};
     d.ring=ringKey;d.drag=true;d.rate=e.pointerType==='mouse'?14:22;d.cx0=cx;d.cy0=cy;d.sc=sc;
     try{s.setPointerCapture(e.pointerId)}catch(x){}
