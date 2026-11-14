@@ -91,7 +91,7 @@ body.safe .sheet{background:#0a0506}
 body.safe .sheet::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse at 50% 0%, rgba(140,20,12,.16), transparent 55%),
              radial-gradient(ellipse at 50% 100%, rgba(90,10,8,.20), transparent 60%)}
-body.safe .sc{position:relative;z-index:1}
+body.safe .sc{z-index:1}
 body.safe .proof{background:linear-gradient(180deg,#1a1010,#100a0a);border-color:rgba(255,92,78,.18);box-shadow:0 24px 60px rgba(40,0,0,.45)}
 body.safe .day{background:#0a0506}
 body.safe .hero{background:var(--hg,#0a0506)}
