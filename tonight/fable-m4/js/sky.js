@@ -1186,7 +1186,8 @@ function drawWindow(){
     if(cn){g.font='300 10px Poppins,sans-serif';g.fillStyle='rgba(228,235,245,.55)';g.fillText(cn,spec.x0+spec.w/2,spec.y0+33)}
   }
   g.save();
-  g.beginPath();g.rect(spec.x0+1,spec.y0+(spec.head-6),spec.w-2,spec.winH-(spec.head-6));g.clip();
+  var clipTop=spec.key==='film'&&spec.board?0:spec.head-6; /* film: stills reach the top of the window like the video tiles do, so they cover the header text the same way */
+  g.beginPath();g.rect(spec.x0+1,spec.y0+clipTop,spec.w-2,spec.winH-clipTop);g.clip();
   if(spec.board&&spec.key==='film'&&items.length>1&&!FS){
     /* Straight rows: a short thread across the gutter joins each tile to its partner, clear of the titles. */
     g.globalAlpha=.2*b;g.strokeStyle='rgba(207,216,230,1)';g.lineWidth=1;g.beginPath();
