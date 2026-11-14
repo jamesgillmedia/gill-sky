@@ -154,3 +154,8 @@ body.at-board:not(.at-detail) #ohd[data-g] .ofollow{display:inline-block}
 #front.g-stopped .g-rail{scroll-behavior:auto!important}
 /* the photograph an object was cut from, while its object is revealed: an outline outside the photograph, never on it */
 #front .pc.pair-src .disc{outline:1px solid rgba(232,228,220,.6);outline-offset:4px}
+
+/* the gallery's own controls never take a touch while the board is away (inside a room) */
+#board:not(.on) .gal-fg>*{pointer-events:none}
+/* inside a room the pill moves under the glow control, clear of Back / Board, so the cup's turn can still be stopped */
+body:not(.at-board) .g-stop{top:calc(98px + var(--g-st,0px));left:auto;right:12px;transform:none}

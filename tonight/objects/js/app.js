@@ -174,7 +174,7 @@ function applyAmb() {
   dirty = true }
 window.__objAmb = { AMB, apply: () => applyAmb(), rings: RINGS.map(r => ({ id: r.id, title: r.title })), state: () => ({ ...S }) };
 /* ---------- the mesh cup (real 3D, from photographs) in the joio cup's first room ---------- */
-let cup = null, cupSpin = 0, cupVel = 0;
+let cup = null, cupSpin = 0, cupVel = 0, lastIn = performance.now();
 const J = RINGS.findIndex(r => r.mesh);
 if (J >= 0) loadGLB(THREE, 'media/' + RINGS[J].mesh).then(({ geometry, map }) => {
   const mat = new THREE.MeshStandardMaterial({ map, roughness: .88, metalness: 0, side: THREE.DoubleSide });
@@ -407,7 +407,7 @@ function hitAt(x, y) {
   return hs[0].object;
 }
 const ptr = new Map(); let g0 = null, pinch = null, spinning = false, lastTap = 0;
-canvas.addEventListener('pointerdown', e => { try { canvas.setPointerCapture(e.pointerId) } catch (err) {}
+canvas.addEventListener('pointerdown', e => { lastIn = performance.now(); try { canvas.setPointerCapture(e.pointerId) } catch (err) {}
   ptr.set(e.pointerId, { x: e.clientX, y: e.clientY });
   if (ptr.size === 1) { const h = hitAt(e.clientX, e.clientY); spinning = !!(h && h.userData.kind === 'cup' && S.lv === 'room');
     g0 = { x: e.clientX, y: e.clientY, t: performance.now(), lx: e.clientX, ly: e.clientY, lt: performance.now(), h, mode: null }; canvas.classList.add('grab') }
@@ -430,7 +430,7 @@ canvas.addEventListener('pointermove', e => { if (!ptr.has(e.pointerId)) return;
     }
   }
 });
-function up(e) { if (!ptr.has(e.pointerId)) return; ptr.delete(e.pointerId); canvas.classList.remove('grab');
+function up(e) { lastIn = performance.now(); if (!ptr.has(e.pointerId)) return; ptr.delete(e.pointerId); canvas.classList.remove('grab');
   if (ptr.size === 0) { flyDrag = false;
     if (g0 && !pinch) { const dx = e.clientX - g0.x, dy = e.clientY - g0.y, dt = performance.now() - g0.t;
       if (g0.mode === 'spin' || (spinning && g0.mode !== 'zoom')) { /* the cup keeps a little of the turn, then settles: eased, never on its own */ }
@@ -567,6 +567,10 @@ function frame(now) {
       softBound(); holdLook(); cam.lookAt(lookNow); dirty = true;
     }
   }
+  /* gallery takes only (js/gallery.js sets OBJ_GAL.orbit): the joio cup keeps turning on its own, slowly, once a hand has been off it for 3.5 s, and tap-to-stop holds it */
+  const GAL = window.OBJ_GAL;
+  if (cup && GAL && GAL.stopped) cupVel = 0;
+  if (cup && GAL && GAL.orbit && !spinning && !tr && !detOpen && S.r === J && (S.lv === 'ring' || S.lv === 'room') && now - lastIn > 3500) { cupSpin += .28 * dt; dirty = true }
   if (cup && Math.abs(cupVel) > 1e-4 && !spinning) { cupVel *= .9; cupSpin += cupVel; dirty = true }
   if (cup) cup.rotation.y = cupSpin - .5;
   if (!dirty) return; dirty = false;

@@ -95,9 +95,11 @@
     ui[V] = C; C.el.classList.add('g-ui'); C.el.hidden = true;
   }
   function syncUI(V, host) {
-    Object.keys(ui).forEach(function (k) { ui[k].el.hidden = k !== V || host.board.scrollTop > 40; if (k !== V && ui[k].isOpen()) ui[k].open(false) });
+    var atFront = host.board.classList.contains('on') && host.board.scrollTop <= 40;
+    Object.keys(ui).forEach(function (k) { ui[k].el.hidden = k !== V || !atFront; if ((k !== V || !atFront) && ui[k].isOpen()) ui[k].open(false) });
     if (ui[V]) ui[V].refresh();
-    if (stopBtn) stopBtn.hidden = !/^G/.test(V || '') || host.board.scrollTop > 40;
+    if (stopBtn) stopBtn.hidden = !/^G/.test(V || '') || (host.board.classList.contains('on') && host.board.scrollTop > 40);
+    if (railEl) railEl.style.pointerEvents = atFront ? '' : 'none';
   }
 
   /* ---------------- tap to stop / tap to play (gallery only) ----------------
@@ -255,7 +257,7 @@
       requestAnimationFrame(function () { requestAnimationFrame(function () { if (curV === V) applyLight(V, host) }) });
     } else applyLight(V, host);
     syncUI(V, host);
-    if (!scrollBound) { scrollBound = true; host.board.addEventListener('scroll', function () { if (curV && hostRef) syncUI(curV, hostRef) }, { passive: true }) }
+    if (!scrollBound) { scrollBound = true; host.board.addEventListener('scroll', function () { if (curV && hostRef) syncUI(curV, hostRef) }, { passive: true }); new MutationObserver(function () { if (curV && hostRef) syncUI(curV, hostRef) }).observe(host.board, { attributes: true, attributeFilter: ['class'] }) }
     var fd = host.fdown; if (fdownHTML == null) fdownHTML = fd.innerHTML;
     fd.classList.remove('g-door'); fd.innerHTML = fdownHTML;
   }
@@ -391,5 +393,5 @@
     }
   }
 
-  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
+  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, get orbit() { return !!curV && !stopped }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
 })();
