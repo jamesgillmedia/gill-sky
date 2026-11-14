@@ -69,11 +69,11 @@ function pump() {
 
 /* ---------- layout ---------- */
 /* Beyond: when active the whole field is laid out continuously in rank order (best match first). Selection only: no frame is ever filtered or tinted. */
-let bperm = null, bsw = null, swPush = 0, bgal = 0;
+let bperm = null, bsw = null, swPush = 0, bgal = 0, FN = 0, searchH = 0;   // FN = the stills; film clips are appended after them and only exist inside a search gallery
 const GK = 2.4;   // gallery tiles are this much larger than field tiles
 const kk = g => (L && L.k ? L.k[g] : 1);
 function build(cols) {
-  const r = new Float32Array(F.length * 2), k = new Float32Array(F.length).fill(1); const heads = [];
+  const r = new Float32Array(F.length * 2).fill(-1e7), k = new Float32Array(F.length).fill(1); const heads = [];
   let gal = null;
   let y = PAD, W = PAD * 2 + cols * CW + (cols - 1) * GX;
   if (mode === 'film' && !bperm) {
@@ -96,18 +96,20 @@ function build(cols) {
       for (let j = 0; j < K; j++) { const g = bperm[j], c = j % gc, rr = (j / gc) | 0; r[g * 2] = gx0 + c * (GW + GX); r[g * 2 + 1] = gy0 + rr * (GH + GY); k[g] = GK; }
       y = gal.y + gal.h + FGAP * 1.4; j0 = K;
     }
-    for (let j = j0; j < F.length; j++) {
+    const total = bperm ? bperm.length : FN;
+    for (let j = j0; j < total; j++) {
       const g = bperm ? bperm[j] : j, jj = j - j0, c = jj % cols, rr = (jj / cols) | 0;
       r[g * 2] = PAD + c * (CW + GX); r[g * 2 + 1] = y + rr * (CH + GY);
     }
-    y += Math.ceil((F.length - j0) / cols) * (CH + GY) - GY;
+    y += Math.ceil((total - j0) / cols) * (CH + GY) - GY;
   }
   return { cols, r, k, kmax: gal ? GK : 1, gal, heads, W, H: y + PAD };
 }
 /* the eyepiece: a soft rounded-rectangle aperture (css px). The whole field fits inside it at the widest zoom, below the title bar and above the controls. */
 function ap() {
   const cr = document.querySelector('.corner'), bot = cr ? Math.max(40, vh - cr.getBoundingClientRect().top + 8) : 56;
-  const x = 10, y = TOP + 8, w = Math.max(60, vw - x * 2), h = Math.max(60, vh - y - bot);
+  const vv = window.visualViewport, vhe = vv ? Math.min(vh, vv.height + vv.offsetTop) : vh;   // with the phone keyboard up the results stay in what you can see
+  const x = 10, y = TOP + 8 + searchH, w = Math.max(60, vw - x * 2), h = Math.max(60, vhe - y - bot);
   return { x, y, w, h, r: Math.max(14, Math.min(46, Math.min(w, h) * .06)) };
 }
 function apFit() { const a = ap(), ins = a.r * .3 + 3; return { w: a.w - 2 * ins, h: a.h - 2 * ins, cx: a.x + a.w / 2, cy: a.y + a.h / 2 }; }
@@ -205,9 +207,9 @@ function draw() {
     cx.strokeStyle = 'rgba(255,255,255,.2)'; cx.beginPath(); cx.moveTo(gx + 1, snap(gy) + 1.5); cx.lineTo(gx + gw - 1, snap(gy) + 1.5); cx.stroke();
     const gts = Math.min(15, HEAD * s * .34);
     if (gts >= 6.5) {
-      const lab = (window.GJ_BEYOND ? GJ_BEYOND.label.split(' \u00b7 ') : ['', '']); cx.textBaseline = 'alphabetic';
-      cx.font = `400 ${gts}px "Julius Sans One",sans-serif`; cx.fillStyle = 'rgba(238,240,242,.9)'; cx.fillText((lab[1] || lab[0]).toLowerCase(), gx + 20 * s, gy + HEAD * s * .56);
-      cx.font = `400 ${Math.max(6, gts * .78)}px ${MONO}`; cx.fillStyle = 'rgba(150,157,162,.9)'; const ct = pad4(G.n) + ' of ' + F.length.toLocaleString('en-US'), cw_ = cx.measureText(ct).width; cx.fillText(ct, gx + gw - 20 * s - cw_, gy + HEAD * s * .56);
+      const si = selInfo(); cx.textBaseline = 'alphabetic';
+      cx.font = `400 ${gts}px "Julius Sans One",sans-serif`; cx.fillStyle = 'rgba(238,240,242,.9)'; cx.fillText(si.title, gx + 20 * s, gy + HEAD * s * .56, Math.max(40, gw - 40 * s - 120 * s));
+      cx.font = `400 ${Math.max(6, gts * .78)}px ${MONO}`; cx.fillStyle = 'rgba(150,157,162,.9)'; const ct = si.n.toLocaleString('en-US') + ' of ' + si.tot.toLocaleString('en-US'), cw_ = cx.measureText(ct).width; cx.fillText(ct, gx + gw - 20 * s - cw_, gy + HEAD * s * .56);
       cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.beginPath(); cx.moveTo(gx + 20 * s, snap(gy + HEAD * s * .76) + .5); cx.lineTo(gx + gw - 20 * s, snap(gy + HEAD * s * .76) + .5); cx.stroke();
     }
     lay(1);
@@ -216,6 +218,11 @@ function draw() {
   for (const g of vis) {
     const x = F[g], f = films[x.f], kg = L.k[g], gbw = bw * kg, gbh = bh * kg, gdev = gbw * dpr, tier = gdev <= 100 ? 0 : gdev <= 300 ? 1 : 2;
     const sx = (wxS(g)), sy = (wyS(g));
+    if (x.vid) {   // a film clip: its poster frame, a play mark on top; the clip plays muted in a layer over the tile on tap or hover
+      let im = tier === 2 ? img(x.posterL) : null; if (!im) im = img(x.poster);
+      if (im) drawContain(im, 0, 0, im.naturalWidth, im.naturalHeight, sx, sy, gbw, gbh); else { cx.fillStyle = '#141619'; cx.fillRect(sx, sy, gbw, gbh); }
+      continue;
+    }
     let drawn = false;
     if (tier >= 1) {
       const src = (tier === 2 ? 'media/l/' : 'media/s/') + f.slug + '/' + x.id + '.webp';
@@ -271,10 +278,17 @@ function draw() {
         cx.fillRect(sx, sy, tw, th);
         cx.fillStyle = dim ? 'rgba(255,255,255,.45)' : '#fff';
       }
-      cx.fillText(pad4(F[g].n), sx + 3.5, sy + th / 2 + .5);
+      cx.fillText(F[g].vid ? 'clip' : pad4(F[g].n), sx + 3.5, sy + th / 2 + .5);
     }
   }
   lay(.55);
+  for (const g of vis) {   // clip tiles: a play mark (hidden while the clip plays on the tile)
+    if (!F[g].vid || vcur === g) continue;
+    const kg = L.k[g], tw_ = bw * kg, th_ = bh * kg, mx_ = wxS(g) + tw_ / 2, my_ = wyS(g) + th_ / 2, rr = Math.max(7, Math.min(24, tw_ * .085));
+    cx.fillStyle = 'rgba(10,11,13,.6)'; cx.beginPath(); cx.arc(mx_, my_, rr, 0, 7); cx.fill();
+    cx.strokeStyle = 'rgba(238,240,242,.85)'; cx.lineWidth = 1; cx.beginPath(); cx.arc(mx_, my_, rr, 0, 7); cx.stroke();
+    cx.fillStyle = 'rgba(238,240,242,.92)'; cx.beginPath(); cx.moveTo(mx_ - rr * .3, my_ - rr * .42); cx.lineTo(mx_ - rr * .3, my_ + rr * .42); cx.lineTo(mx_ + rr * .5, my_); cx.closePath(); cx.fill();
+  }
   // film headers (by-film order)
   if (mode === 'film' && !bperm) {
     const hs = HEAD * s;
@@ -303,8 +317,9 @@ function draw() {
   }
   pump();
   let a = 1e9, z = -1;
-  for (const g of vis) { const sx = wxS(g), sy = wyS(g); if (sx + bw > 0 && sx < vw && sy + bh > TOP && sy < vh) { a = Math.min(a, F[g].n); z = Math.max(z, F[g].n); } }
+  for (const g of vis) { if (F[g].vid) continue; const sx = wxS(g), sy = wyS(g); if (sx + bw > 0 && sx < vw && sy + bh > TOP && sy < vh) { a = Math.min(a, F[g].n); z = Math.max(z, F[g].n); } }
   $('lvl').textContent = z > 0 ? pad4(a) + '–' + pad4(z) : '';
+  placeClip();
 }
 const wxS = g => (L.r[g * 2] - ox) * s, wyS = g => (L.r[g * 2 + 1] - oy) * s;
 const snap = v => Math.round(v * dpr) / dpr;
@@ -360,14 +375,39 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
+function selInfo() {   // the caption of the gallery: the search, or the Beyond step
+  const Sx = window.GJ_SEARCH; if (Sx && Sx.active) return { title: Sx.caption, n: Sx.total, tot: Sx.pool };
+  const lab = GJ_BEYOND.label.split(' \u00b7 '); return { title: (lab[1] || lab[0]).toLowerCase(), n: L.gal.n, tot: FN };
+}
+/* film clips: tiles that exist only inside a search gallery; the clip plays muted in a layer over the tile on tap or hover, one at a time */
+const vclip = $('vclip'); let vcur = -1;
+function addClips(list) {
+  if (!FN || F.length > FN) return;
+  list.forEach(r => { const k = films.findIndex(f => f.slug === r.film), g = F.length; r.g = g; F.push({ vid: true, n: 0, id: r.id, i: 0, tc: '', t: 0, w: 1920, h: 1080, f: k, j: -1, g, clip: r.src, poster: r.poster, posterL: r.poster.replace('media/s/', 'media/l/') }); });
+  layout(); dirty = true;
+}
+function startClip(g) {
+  if (vcur === g || !F[g] || !F[g].vid) return; vcur = g; const x = F[g];
+  if (vclip.getAttribute('src') !== x.clip) vclip.src = x.clip;
+  vclip.muted = true; try { vclip.currentTime = 0; } catch (e) {} const pr = vclip.play(); if (pr && pr.catch) pr.catch(() => {});
+  placeClip(); dirty = true;
+}
+function stopClip() { if (vcur < 0) return; vcur = -1; vclip.pause(); vclip.style.display = 'none'; dirty = true; }
+function placeClip() {
+  if (vcur < 0) return; const g = vcur, k = kk(g), w = CW * s * k, h = CH * s * k, sx = wxS(g) + dr.x.x, sy = wyS(g) + dr.y.x;
+  if (L.r[g * 2] < -1e5 || sx + w < 0 || sx > vw || sy + h < TOP || sy > vh) { stopClip(); return; }
+  const st = vclip.style; st.left = sx.toFixed(1) + 'px'; st.top = sy.toFixed(1) + 'px'; st.width = w.toFixed(1) + 'px'; st.height = h.toFixed(1) + 'px'; st.display = 'block';
+}
 function frameGallery(anim) {
   const G = L.gal; if (!G) return false; const fv = apFit();
   const ts = Math.min(maxS(), Math.max(minS(), Math.min(fv.w / G.w, fv.h / G.h) * .98));
   go(ts, G.x + G.w / 2 - fv.cx / ts, G.y + G.h / 2 - fv.cy / ts, anim); return true;
 }
 function applyBeyond() {
-  const Bd = window.GJ_BEYOND; if (!Bd || !L) return;
-  const np = Bd.active ? Bd.order() : null, ng = np ? Bd.gallery : 0;
+  const Bd = window.GJ_BEYOND || { active: false }; if (!L) return;
+  const Sx = window.GJ_SEARCH, useS = !!(Sx && Sx.active);
+  const np = useS ? Sx.order() : (Bd.active ? Bd.order() : null), ng = useS ? Sx.gallery : (np ? Bd.gallery : 0);
+  stopClip();
   if (!np && !bperm) return;
   if (np && bperm && ng === bgal && np.every((g, i) => g === bperm[i])) return;
   const old = L.r.slice(), oldK = L.k.slice(), ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
@@ -400,7 +440,7 @@ vp.addEventListener('pointerdown', e => {
 });
 vp.addEventListener('pointermove', e => {
   if (!P.has(e.pointerId)) {
-    if (e.pointerType === 'mouse') { const h = hit(e.clientX, e.clientY); if (h !== hov) { hov = h; dirty = true; } }
+    if (e.pointerType === 'mouse') { const h = hit(e.clientX, e.clientY); if (h !== hov) { hov = h; dirty = true; if (h >= 0 && F[h].vid) startClip(h); else if (vcur >= 0) stopClip(); } }
     return;
   }
   const p = P.get(e.pointerId), dx = e.clientX - p.x, dy = e.clientY - p.y;
@@ -433,7 +473,7 @@ function up(e) {
   if (P.size) return;
   pinch = null;
   if (tap && !tap.moved && e.type === 'pointerup' && performance.now() - tap.t < 600) {
-    const g = hit(e.clientX, e.clientY); if (g >= 0) openLift(g, true);
+    const g = hit(e.clientX, e.clientY); if (g >= 0) { if (F[g].vid) { if (vcur === g) stopClip(); else startClip(g); } else openLift(g, true); }
   } else if (tap && tap.moved && !RM.matches && performance.now() - vel[2] < 60) {
     let vx = vel[0], vy = vel[1];
     glide = () => { vx *= .92; vy *= .92; ox -= vx / s; oy -= vy / s; clamp(); dirty = true; if (Math.abs(vx) + Math.abs(vy) < .3) glide = null; };
@@ -516,16 +556,17 @@ function fillLift() {
   const x = F[cur], f = films[x.f], n = pad4(x.n);
   const lsrc = 'media/s/' + f.slug + '/' + x.id + '.webp', hsrc = 'media/l/' + f.slug + '/' + x.id + '.webp';
   lo.src = lsrc; hiImg.classList.remove('on'); hiImg.onload = () => hiImg.classList.add('on'); hiImg.src = hsrc;
-  $('ltnum').textContent = n + ' / ' + pad4(F.length);
+  $('ltnum').textContent = n + ' / ' + pad4(FN);
   $('lttitle').textContent = f.title;
   $('lttitle').setAttribute('aria-pressed', hi === x.f ? 'true' : 'false');
   $('lttc').textContent = 'frame ' + x.i + ' of ' + f.frames.length + ' · ' + x.tc;
   fig.setAttribute('aria-label', 'Frame ' + n + ', ' + f.title + ', ' + x.tc);
-  [cur - 1, cur + 1].forEach(k => { if (k >= 0 && k < F.length) { const y = F[k]; new Image().src = 'media/l/' + films[y.f].slug + '/' + y.id + '.webp'; } });
+  [cur - 1, cur + 1].forEach(k => { if (k >= 0 && k < FN) { const y = F[k]; new Image().src = 'media/l/' + films[y.f].slug + '/' + y.id + '.webp'; } });
 }
 function poseHome(w) { uy = upv = 0; cam.yaw.t = cam.pit.t = cam.tx.t = cam.ty.t = 0; cam.zoom.t = 1; cam.yaw.w = cam.pit.w = cam.tx.w = cam.ty.w = cam.zoom.w = w; lastIn = performance.now(); }
 function setInert(on) { outside.forEach(el => { if (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); } }); }
 function openLift(g, animate, fromHash, origin) {
+  stopClip();
   const was = cur >= 0; cur = g; closing = null;
   const sx = wxS(g), sy = wyS(g);
   if (sx < 0 || sy < TOP || sx + CW * s > vw || sy + CH * s > vh) focusOn(g, false);
@@ -541,7 +582,7 @@ function openLift(g, animate, fromHash, origin) {
   dirty = true; wake(); lt.focus({ preventScroll: true });
 }
 function step(d) {
-  if (cur < 0) return; const g = cur + d; if (g < 0 || g >= F.length) return;
+  if (cur < 0) return; const g = cur + d; if (g < 0 || g >= FN) return;
   openLift(g, false);
 }
 function closeLift(fromPop, toCentre) {
@@ -676,7 +717,7 @@ const cst = Constellation({
 });
 function enterCst() {
   if (cur < 0 || cst.isOpen()) return;
-  cstSet = hi !== null && films[hi] ? films[hi].frames.map(x => x.g) : F.map((_, g) => g);
+  cstSet = hi !== null && films[hi] ? films[hi].frames.map(x => x.g) : F.slice(0, FN).map((_, g) => g);
   const at = Math.max(0, cstSet.indexOf(cur));
   LP.clear(); interacting = false; lpinch = null; ltap = null; uy = upv = 0; lt.classList.remove('drag');
   closeLift(true, true); setInert(true);
@@ -706,7 +747,7 @@ fb.onclick = () => { fl.hidden = !fl.hidden; fb.setAttribute('aria-expanded', St
 function buildList() {
   const ol = $('filmlist'); ol.innerHTML = '';
   const none = document.createElement('li'); none.className = 'none';
-  none.innerHTML = '<button type="button" data-k="" aria-pressed="true"><span class="r">0001–' + pad4(F.length) + '</span><span class="t">all films</span></button>';
+  none.innerHTML = '<button type="button" data-k="" aria-pressed="true"><span class="r">0001–' + pad4(FN) + '</span><span class="t">all films</span></button>';
   ol.appendChild(none);
   films.forEach((f, k) => {
     const li = document.createElement('li'); const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k;
@@ -778,7 +819,7 @@ function readHash() {
   const o = q.get('order'); setMode(o === 'continuous' ? 'all' : 'film', true);
   const fs = q.get('film'); if (fs) { const k = films.findIndex(f => f.slug === fs); if (k >= 0) setHi(k); }
   const n = parseInt(q.get('n'), 10);
-  if (n >= 1 && n <= F.length) { focusOn(n - 1, false); openLift(n - 1, false, true); }
+  if (n >= 1 && n <= FN) { focusOn(n - 1, false); openLift(n - 1, false, true); }
   else if (cur >= 0) closeLift(true);
 }
 
@@ -786,14 +827,18 @@ function readHash() {
 fetch('data/index.json').then(r => r.json()).then(d => {
   D = d; films = d.films;
   films.forEach((f, k) => f.frames.forEach((x, j) => { x.f = k; x.j = j; x.g = F.length; F.push(x); }));
+  FN = F.length;
   $('count').textContent = d.count.toLocaleString('en-US') + ' frames · ' + films.length + ' films · 0001–' + pad4(d.count);
   buildList(); resize();
-  if (window.GJ_BEYOND) { GJ_BEYOND.attach({ films, F }); GJ_BEYOND.on((st, sel) => { if (sel) applyBeyond(); }); }
+  if (window.GJ_BEYOND) { GJ_BEYOND.attach({ films, F, n: FN }); GJ_BEYOND.on((st, sel) => { if (sel) applyBeyond(); }); }
+  if (window.GJ_SEARCH) { GJ_SEARCH.onData(d => { addClips(d.records.filter(r => r.kind === 'video')); applyBeyond(); }); GJ_SEARCH.on(() => applyBeyond()); }
   films.forEach(f => img(f.atlas.src)); pump();
   if (location.hash) readHash();
   requestAnimationFrame(loop);
 });
+addEventListener('searchlayout', e => { searchH = (e.detail && e.detail.h) || 0; if (!L) return; if (L.gal && bgal) frameGallery(!RM.matches); else if (!bperm || s <= fitS() * 1.05) fit(!RM.matches); dirty = true; });
+if (window.visualViewport) visualViewport.addEventListener('resize', () => { if (searchH && L) { if (L.gal && bgal) frameGallery(false); dirty = true; } });
 addEventListener('resize', resize);
-window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6), swapping: () => !!bsw || !!anim, gallery: () => (L && L.gal ? { n: L.gal.n, ids: bperm.slice(0, 4), k: kk(bperm[0]) } : null) };
+window.__ai = { clip: () => vcur, clips: () => F.length - FN, drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6), swapping: () => !!bsw || !!anim, gallery: () => (L && L.gal ? { n: L.gal.n, ids: bperm.slice(0, 4), k: kk(bperm[0]) } : null) };
 if (document.fonts) document.fonts.ready.then(() => { dirty = true; });
 })();
