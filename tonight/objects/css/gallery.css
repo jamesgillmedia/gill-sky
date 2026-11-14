@@ -91,7 +91,7 @@
 .gal.g3 .g-wall::after{content:"";position:absolute;inset:0;opacity:.35;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .88 0 0 0 0 .84 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
 .g-rail{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,228,220,.18) 12%,rgba(232,228,220,.18) 88%,transparent)}
 .g-skirt{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0e0f13,#08090b);border-top:1px solid rgba(232,228,220,.08)}
-.g-beam{position:absolute;width:0;pointer-events:none;filter:blur(calc(3px + 11px * var(--spr)))}
+.g-beam{position:absolute;width:0;pointer-events:none;filter:blur(calc(2px + 6px * var(--spr)))}
 .g-beam.b1{--sx:var(--s1)}.g-beam.b2{--sx:var(--s2)}.g-beam.b3{--sx:var(--s3)}
 .g-beam i{position:absolute;top:0;height:100%;left:calc(var(--bw) * (.34 + .5 * var(--spr)) / -2);width:calc(var(--bw) * (.34 + .5 * var(--spr)) * 1.9);clip-path:polygon(43% 0,57% 0,100% 100%,0 100%);
   background:linear-gradient(180deg,rgba(255,232,196,calc(.30 * var(--sx) * (1.3 - .6 * var(--spr)))),rgba(255,232,196,calc(.05 * var(--sx))))}

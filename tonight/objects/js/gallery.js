@@ -111,7 +111,7 @@
       return out;
     }
     /* G3: salon hang. Fractions of the wall (x of W, row of the free height), sizes as a share of a base width. */
-    var wy = TOP, wh = H - TOP - BOT, slot = 20, P3;
+    var tp = land ? TOP : 108, wy = tp, wh = H - tp - BOT, slot = 20, P3;
     if (land) {
       var base = Math.min(W * .15, (wh / 2 - slot - 22) * .8 * 1.0);
       P3 = [[.145, 0, 1.0], [.335, 0, 1.12], [.54, 0, .92], [.74, 0, 1.06], [.22, 1, 1.1], [.43, 1, .94], [.63, 1, 1.12], [.83, 1, .96]];
