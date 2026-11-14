@@ -43,7 +43,7 @@ await page.evaluate(() => document.getElementById('dsc').scrollTo({ top: 900, be
 await page.keyboard.press('Escape'); await wait(1500);
 await pinch('out', '#sky'); await wait(2600);            // constellation
 await pinch('in', '#cstl'); await wait(2200);            // sheet
-await pinch('out', '#sheet'); await wait(1800);          // horizon
+await pinch('in', '#sheet'); await wait(1800);           // horizon
 await page.tap('#cam'); await wait(2200);                // camera back
 await page.keyboard.press('Escape'); await wait(1200); await page.keyboard.press('Escape'); await wait(1400);
 for (let i = 0; i < 2; i++) { await page.keyboard.press('Escape'); await wait(900); }

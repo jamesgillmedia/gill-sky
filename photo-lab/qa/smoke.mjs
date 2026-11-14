@@ -107,6 +107,25 @@ async function run(profile, safe) {
   await audit('2-sheet', { contrast: true }); await plainFilter('sheet');
   // scrollbar on the sheet scroller
   if (safe) { const sb = await page.evaluate(() => getComputedStyle(document.getElementById('sc')).scrollbarColor); ok('sheet scroller has a red scrollbar', /rgb\(92, 20, 12\)/.test(sb), sb); }
+  // real scrolling (wheel on desktop, touch swipe on devices) must work with the lamp on
+  const scrollBy = async (id, dy) => {
+    const c = await page.evaluate((i) => { const b = document.getElementById(i).getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height * 0.6 }; }, id);
+    const before = await page.evaluate((i) => document.getElementById(i).scrollTop, id);
+    if (touch) {
+      const y1 = Math.max(40, c.y - dy * 0.6);
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: c.x, y: c.y, id: 1 }] });
+      for (let i = 1; i <= 12; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: c.x, y: c.y + (y1 - c.y) * i / 12, id: 1 }] }); await wait(16); }
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    }
+    else { await page.mouse.move(c.x, c.y); await page.mouse.wheel(0, dy); }
+    await wait(700);
+    return [before, await page.evaluate((i) => document.getElementById(i).scrollTop, id)];
+  };
+  const pos = await page.evaluate(() => getComputedStyle(document.getElementById('sc')).position);
+  ok('sheet scroller keeps position:absolute', pos === 'absolute', pos);
+  const [sb0, sb1] = await scrollBy('sc', 500);
+  ok(`sheet scrolls by ${touch ? 'touch' : 'wheel'} (${Math.round(sb0)} -> ${Math.round(sb1)})`, sb1 > sb0 + 100);
+  await audit('2a-sheet-scrolled-live');
   await page.evaluate(() => document.getElementById('sc').scrollTo(0, 900)); await wait(500);
   await audit('2b-sheet-scrolled');
   await page.locator('.cell').nth(5).scrollIntoViewIfNeeded();
@@ -118,6 +137,8 @@ async function run(profile, safe) {
   const cur = await page.evaluate(() => { const b = document.querySelector('.fm.cur').getBoundingClientRect(); return { x: b.left + b.width / 2, y: b.top + b.height / 2 }; });
   await tapAt(cur.x, cur.y); await expectAt('tap on the standing print opens its day', 'day', 1600);
   await audit('3-day', { contrast: true }); await plainFilter('day');
+  const [db0, db1] = await scrollBy('dsc', 600);
+  ok(`day scrolls by ${touch ? 'touch' : 'wheel'} (${Math.round(db0)} -> ${Math.round(db1)})`, db1 > db0 + 100);
   await page.evaluate(() => document.getElementById('dsc').scrollTo(0, 1400)); await wait(700);
   await audit('3b-day-stack'); await plainFilter('day stack');
   await page.keyboard.press('Escape'); await expectAt('Esc rises from the day to the horizon', 'horizon');
@@ -131,12 +152,15 @@ async function run(profile, safe) {
   // camera back
   touch ? await page.tap('#cam') : await page.click('#cam'); await expectAt('camera button opens the camera back', 'camera back', 1500);
   await audit('4-camera-one', { contrast: true });
+  const halo = await page.evaluate(() => { const c = getComputedStyle(document.querySelector('.cb-dial'), '::before'); return { content: c.content, bg: c.backgroundImage }; });
+  ok('dial halo exists', halo.content !== 'none' && /radial-gradient/.test(halo.bg), JSON.stringify(halo).slice(0, 200));
+  if (safe) { const bad = (halo.bg.match(/rgba?\([^)]*\)/g) || []).filter((t) => { const [r, g, b, a = 1] = t.replace(/rgba?\(|\)/g, '').split(',').map(Number); return +a > 0 && !(r > g * 2.5 && r > b * 2.5); }); ok('dial halo is darkroom red only', bad.length === 0, bad.join(' ')); }
   await page.keyboard.press('Escape'); await wait(800); await page.keyboard.press('Escape'); await wait(900);
   await audit('4b-camera-9up');
   await page.keyboard.press('Escape'); await wait(800); await page.keyboard.press('Escape');
   await expectAt('Esc x4 steps down the camera levels and leaves', 'horizon', 1500);
 
-  // pinch loop: horizon -out-> constellation -in-> sheet -out-> horizon -in-> day -in-> camera -out(x4)-> day -out-> horizon
+  // pinch loop: horizon -out-> constellation -in-> sheet -out-> constellation -in-> sheet -in-> horizon -in-> day -in-> camera -out(x4)-> day -out-> horizon (sheet pinches in to the horizon, out to the constellation)
   await pinch('out', '#sky'); await expectAt('pinch out on the horizon: constellation', 'constellation', 1800);
   await audit('5-constellation', { contrast: true });
   if (safe) {
@@ -146,7 +170,10 @@ async function run(profile, safe) {
   await page.keyboard.press('Escape'); await expectAt('Esc rises from the constellation', 'horizon', 1500);
   await pinch('out', '#sky'); await expectAt('constellation again', 'constellation', 1800);
   await pinch('in', '#cstl'); await expectAt('pinch in on the constellation: contact sheet', 'sheet', 2000);
-  await pinch('out', '#sheet'); await expectAt('pinch out on the sheet: horizon', 'horizon', 1800);
+  await pinch('out', '#sheet'); await expectAt('pinch out on the sheet: constellation', 'constellation', 2000);
+  await pinch('in', '#cstl'); await expectAt('pinch in on the constellation again: contact sheet', 'sheet', 2000);
+  ok('unwind leaves a clean layer stack at the sheet', (await depth()) === 0, String(await depth()));
+  await pinch('in', '#sheet'); await expectAt('pinch in on the sheet: horizon', 'horizon', 1800);
   await pinch('in', '#sky'); await expectAt('pinch in on the horizon: day', 'day', 1800);
   await pinch('in', '#day'); await expectAt('pinch in on the day: camera back', 'camera back', 1800);
   for (let i = 0; i < 3; i++) { await pinch('out', '.cb-scr'); await wait(1100); }
