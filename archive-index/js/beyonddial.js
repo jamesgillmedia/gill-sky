@@ -167,8 +167,11 @@
     var i;
     for (i = 0; i < ORDER.length; i++) {
       var k = ORDER[i], d = D[k], e = clamp(openA.x, 0, 1), L = LAY[k];
-      var hk = clamp(holdS.x, 0, 1), x = -L.x * (1 - e), y = -L.y * (1 - e), z = L.z * e, s = lerp(.16, 1, e) * (1 - .08 * hk), ry = lerp(-6, -12, e);   // held: the dial steps back (ring and labels .5, solid body .8, scale .92) and stays visible
-      d.box.style.transform = 'perspective(240px) translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,' + z.toFixed(2) + 'px) rotateY(' + ry.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
+      /* held: the dial steps back. It squeezes up toward its top edge (scaleY .68, scaleX .94 about the top of the body: the body's top stays put), the ring and labels go to .5
+         and the solid body to .8, all on the one sprung value, so it eases in and expands back to full height when it is active again. Never hidden. */
+      var hk = clamp(holdS.x, 0, 1), sy = lerp(1, .68, hk), sx = lerp(1, .94, hk), s = lerp(.16, 1, e);
+      var x = -L.x * (1 - e), y = -L.y * (1 - e) - (1 - sy) * d.bodyR * s, z = L.z * e, ry = lerp(-6, -12, e);
+      d.box.style.transform = 'perspective(240px) translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,' + z.toFixed(2) + 'px) rotateY(' + ry.toFixed(2) + 'deg) scale(' + (s * sx).toFixed(4) + ',' + (s * sy).toFixed(4) + ')';
       d.box.style.visibility = e > .012 ? '' : 'hidden';
       d.svg.style.opacity = (1 - .5 * hk).toFixed(3); d.bodyEl.style.opacity = d.mistEl.style.opacity = (1 - .2 * hk).toFixed(3);   // the ring and labels step back to .5, the solid body stays at .8: never vanishes
     }

@@ -77,8 +77,13 @@ const parse = c => (/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c) || []).slice(1, 4).
       const held = await p.evaluate(() => { const d = document.querySelector('.bd-dial'), c = getComputedStyle(d); return { op: +getComputedStyle(d.querySelector('.bd-svg')).opacity, body: +getComputedStyle(d.querySelector('.bd-body')).opacity, vis: c.visibility, mode: GJ_BEYOND.state.mode, tr: d.style.transform }; });
       ok(held.mode === 'green', tag + ': a ring drag from red round to green still changes the step (' + held.mode + ')');
       ok(held.vis === 'visible' && held.op >= .35 && held.op <= .55 && held.body >= .7, tag + ': held, the dial steps back to a lower presence and stays visible (ring ' + held.op.toFixed(2) + ', body ' + held.body.toFixed(2) + ')');
-      ok(/scale\(0\.9\d*\)/.test(held.tr) || /scale\(0\.8[5-9]/.test(held.tr), tag + ': and scales down a little (' + (/scale\([^)]*\)/.exec(held.tr) || [''])[0] + ')');
-      await T('touchEnd', []); await sleep(1500);
+      const sc = (/scale\(([\d.]+),\s*([\d.]+)\)/.exec(held.tr) || []).slice(1).map(Number);
+      ok(sc.length === 2 && sc[1] >= .6 && sc[1] <= .76 && sc[0] >= .9 && sc[0] <= .98 && sc[1] < sc[0], tag + ': and squeezes up: scaleY .6-.75 with a slight scaleX (' + sc.join(' x ') + ')');
+      const topHeld = await p.evaluate(() => document.querySelector('.bd-body').getBoundingClientRect().top);
+      await T('touchEnd', []); await sleep(1700);
+      const topRel = await p.evaluate(() => document.querySelector('.bd-body').getBoundingClientRect().top), hRel = await p.evaluate(() => document.querySelector('.bd-body').getBoundingClientRect().height);
+      ok(Math.abs(topRel - topHeld) < 6, tag + ': the squeeze tightens toward the top edge: the body top stays put (' + topHeld.toFixed(1) + ' held, ' + topRel.toFixed(1) + ' released)');
+      ok(hRel > 150, tag + ': released, it expands back to full height (' + hRel.toFixed(0) + 'px)');
       const rel = await p.evaluate(() => +getComputedStyle(document.querySelector('.bd-dial .bd-svg')).opacity);
       ok(rel > .98, tag + ': released, it comes back to full presence (' + rel.toFixed(2) + ')');
       await p.keyboard.press('Escape'); await sleep(700);
