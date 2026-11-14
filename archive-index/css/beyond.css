@@ -2,8 +2,8 @@
    The archive version is NOT boxless: an opaque solid dark body, a feathered blurred mist around its edge (pointer-events none), a subtle glow.
    No fade while open. All colour that shows state (ring ramp, active arc, thumbs, label, hub dot) is set by the script and lives on the dial only.
    Every move is a sampled spring in beyonddial.js; there is no CSS transition. */
-#bdial{position:relative;width:44px;height:44px;pointer-events:none;-webkit-tap-highlight-color:transparent}
-#bdial.bd-solo{position:fixed;z-index:60;right:calc(max(.5rem,env(safe-area-inset-right)) + 44px);bottom:calc(.55rem + env(safe-area-inset-bottom))}
+#bdial{position:relative;z-index:2;width:44px;height:44px;pointer-events:none;-webkit-tap-highlight-color:transparent}
+#bdial.bd-solo{position:fixed;z-index:60;right:calc(var(--sr) - 9px + 44px);bottom:calc(var(--sb) - 6px)}
 .bd-hub{position:absolute;left:0;top:0;width:44px;height:44px;display:grid;place-items:center;padding:0;margin:0;border:0;background:none;cursor:pointer;opacity:.72;touch-action:none;pointer-events:auto;
   transform:perspective(240px) translate3d(0,0,6px) rotateY(-8deg)}
 .bd-hub:hover,#bdial[data-lvl="1"] .bd-hub{opacity:1}

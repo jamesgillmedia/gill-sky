@@ -4,6 +4,8 @@
 :root{
   --bg:#0a0b0d;--ink:#eef0f2;--dim:#b9bfc4;--meta:#8a9196;--red:#e5372c;--redq:rgba(229,55,44,.55);
   --line:rgba(255,255,255,.14);
+  /* one set of edges for every corner control: the margin is at least --edge and never less than the device's safe-area inset (notch, Dynamic Island, rounded corners, gesture bar) */
+  --edge:14px;--sl:max(var(--edge),env(safe-area-inset-left,0px));--sr:max(var(--edge),env(safe-area-inset-right,0px));--sb:max(var(--edge),calc(env(safe-area-inset-bottom,0px) + 6px));--st:env(safe-area-inset-top,0px);
   --mono:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,"DejaVu Sans Mono","Liberation Mono",monospace;
 }
 *{box-sizing:border-box}
@@ -17,7 +19,7 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 #cv{display:block;width:100%;height:100%}
 
 .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;align-items:center;gap:14px;
-  padding:calc(.55rem + env(safe-area-inset-top)) max(.85rem,env(safe-area-inset-right)) .55rem max(.85rem,env(safe-area-inset-left));
+  padding:calc(.55rem + var(--st)) var(--sr) .55rem var(--sl);
   background:linear-gradient(180deg,rgba(10,11,13,.98) 72%,rgba(10,11,13,0))}
 .brand{margin:0;font:400 14px/1 "Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase;
   color:#f4f6f8;white-space:nowrap;text-shadow:1.2px 0 0 rgba(10,189,240,.6),-1.2px 0 0 rgba(254,1,1,.5)}
@@ -32,8 +34,8 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 @media (hover:hover){.modes button:hover,.filmsbtn:hover,.q:hover{color:var(--ink)}}
 
-.films{position:fixed;z-index:25;top:calc(46px + env(safe-area-inset-top));right:max(.6rem,env(safe-area-inset-right));
-  width:min(360px,calc(100vw - 1.2rem));max-height:calc(100% - 64px - env(safe-area-inset-top));overflow:auto;
+.films{position:fixed;z-index:25;top:calc(46px + var(--st));right:var(--sr);
+  width:min(360px,calc(100vw - var(--sl) - var(--sr)));max-height:calc(100% - 64px - var(--st));overflow:auto;
   background:rgba(10,11,13,.96);border:1px solid var(--line);overscroll-behavior:contain}
 .films ol{list-style:none;margin:0;padding:4px 0}
 .films li button{display:flex;width:100%;gap:10px;align-items:baseline;text-align:left;padding:7px 12px;min-height:36px}
@@ -44,7 +46,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .films li button[aria-pressed=true]{box-shadow:inset 2px 0 0 var(--red)}
 .films li.none button .t{color:var(--meta);text-transform:uppercase;letter-spacing:.16em;font-size:10px}
 
-.corner{position:fixed;z-index:20;left:max(.6rem,env(safe-area-inset-left));bottom:calc(.6rem + env(safe-area-inset-bottom));
+.corner{position:fixed;z-index:20;left:var(--sl);bottom:var(--sb);min-height:32px;
   display:flex;align-items:center;gap:10px}
 .q{border:1px solid var(--line);background:rgba(10,11,13,.85);min-height:32px}
 .lvl:empty{display:none}
@@ -65,14 +67,14 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .lt-box #lthi.on{opacity:1}
 .lt-ch{opacity:0}
 .lt-mark,.lt-x,.lt-nav{position:absolute;color:var(--meta);transition:color .3s cubic-bezier(.22,.7,.2,1)}
-.lt-mark{left:max(1rem,env(safe-area-inset-left));top:calc(.9rem + env(safe-area-inset-top));min-height:44px;display:flex;align-items:center;
+.lt-mark{left:var(--sl);top:calc(.7rem + var(--st));min-height:44px;display:flex;align-items:center;
   font:400 12px/1 "Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase}
-.lt-x{top:calc(.5rem + env(safe-area-inset-top));right:max(.6rem,env(safe-area-inset-right));width:44px;height:44px;display:grid;place-items:center;font:200 24px/1 Poppins,sans-serif}
+.lt-x{top:calc(.7rem + var(--st));right:calc(var(--sr) - 9px);width:44px;height:44px;display:grid;place-items:center;font:200 24px/1 Poppins,sans-serif}
 .lt-nav{top:50%;margin-top:-22px;width:44px;height:44px;display:grid;place-items:center;font:200 28px/1 Poppins,sans-serif}
-.lt-nav.prev{left:max(.5rem,env(safe-area-inset-left))}
-.lt-nav.next{right:max(.5rem,env(safe-area-inset-right))}
+.lt-nav.prev{left:calc(var(--sl) - 9px)}
+.lt-nav.next{right:calc(var(--sr) - 9px)}
 @media (hover:hover){.lt-mark:hover,.lt-x:hover,.lt-nav:hover{color:var(--ink)}}
-.lt-cap{position:absolute;left:0;right:0;bottom:calc(1.1rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:9px;
+.lt-cap{position:absolute;left:0;right:0;bottom:calc(var(--sb) + 4px);display:flex;flex-direction:column;align-items:center;gap:9px;
   pointer-events:none;padding:0 1rem;text-align:center}
 .lt-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:4px 16px;padding-top:11px;border-top:1px solid var(--hair);min-width:min(320px,80vw)}
 .lt-line>*{pointer-events:auto}
@@ -87,12 +89,14 @@ body.lt-touched .lt-hint{opacity:0}
   .count{display:none}
   .top{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand films" "modes boxsw";gap:7px 8px;align-items:center}
   .brand{grid-area:brand}.filmsbtn{grid-area:films}.modes{grid-area:modes;justify-self:start}.boxsw{grid-area:boxsw;justify-self:end}
-  .films{top:calc(84px + env(safe-area-inset-top))}
+  .films{top:calc(84px + var(--st))}
   .modes button,.filmsbtn{padding:0 8px;letter-spacing:.12em}
   .brand{font-size:12.5px;letter-spacing:.16em}
-  .lt-nav{top:auto;bottom:calc(.9rem + env(safe-area-inset-bottom));margin-top:0}
+  .lt-nav{top:auto;bottom:calc(var(--sb) - 6px);margin-top:0}
+  .lt-nav.prev{left:calc(var(--sl) - 9px)}.lt-nav.next{left:calc(var(--sl) - 9px + 44px);right:auto}
   .lt-hint{letter-spacing:.08em;font-size:9.5px}
-  .lt-cap{bottom:calc(3.3rem + env(safe-area-inset-bottom))}
+  .lt-cap{bottom:calc(var(--sb) + 44px)}
+  .cs-hint{bottom:calc(var(--sb) + 44px)}
 }
 
 /* box chrome: dim / hide (hairline around the object follows the same switch) */
@@ -107,17 +111,17 @@ body[data-boxes=dim] button:focus-visible,body[data-boxes=hide] button:focus-vis
 .cstl[hidden]{display:none}
 .cstl:focus{outline:none}
 .cstl canvas{display:block;position:absolute;inset:0}
-.cs-back{position:absolute;left:max(1rem,env(safe-area-inset-left));top:calc(.9rem + env(safe-area-inset-top));min-height:44px;display:flex;align-items:center;
+.cs-back{position:absolute;left:var(--sl);top:calc(.7rem + var(--st));min-height:44px;display:flex;align-items:center;
   font:200 11px/1 Poppins,sans-serif;letter-spacing:.2em;text-transform:lowercase;color:var(--meta);transition:color .3s cubic-bezier(.22,.7,.2,1)}
 @media (hover:hover){.cs-back:hover{color:var(--ink)}}
-.cs-hint{position:absolute;left:0;right:0;bottom:calc(1.1rem + env(safe-area-inset-bottom));margin:0;text-align:center;font:200 10px/1 Poppins,sans-serif;letter-spacing:.14em;color:var(--meta);pointer-events:none}
-.cs-count{position:absolute;right:max(1rem,env(safe-area-inset-right));top:calc(.9rem + env(safe-area-inset-top));margin:0;min-height:44px;display:flex;align-items:center;font:400 10.5px/1 var(--mono);letter-spacing:.08em;color:var(--meta);pointer-events:none}
+.cs-hint{position:absolute;left:0;right:0;bottom:calc(var(--sb) + 4px);margin:0;text-align:center;font:200 10px/1 Poppins,sans-serif;letter-spacing:.14em;color:var(--meta);pointer-events:none}
+.cs-count{position:absolute;right:var(--sr);top:calc(.7rem + var(--st));margin:0;min-height:44px;display:flex;align-items:center;font:400 10.5px/1 var(--mono);letter-spacing:.08em;color:var(--meta);pointer-events:none}
 
 /* red mode dot + sub-toggle */
-.rm-ui{position:fixed;z-index:60;right:max(.5rem,env(safe-area-inset-right));bottom:calc(.55rem + env(safe-area-inset-bottom));display:flex;align-items:center;gap:2px;pointer-events:none}
+.rm-ui{position:fixed;z-index:60;right:calc(var(--sr) - 9px);bottom:calc(var(--sb) - 6px);display:flex;align-items:center;gap:2px;pointer-events:none}
 .rm-ui>*{pointer-events:auto}
-.rm-dot{width:44px;height:44px;display:grid;place-items:center;opacity:.62;transition:opacity .3s cubic-bezier(.22,.7,.2,1)}
-.rm-dot::before{content:"";position:absolute;width:26px;height:26px;border-radius:50%;border:1px solid rgba(238,243,245,.45);transition:border-color .45s cubic-bezier(.22,.7,.2,1)}
+.rm-dot{position:relative;width:44px;height:44px;display:grid;place-items:center;opacity:.62;transition:opacity .3s cubic-bezier(.22,.7,.2,1)}
+.rm-dot::before{content:"";position:absolute;left:50%;top:50%;margin:-13px 0 0 -13px;width:26px;height:26px;border-radius:50%;border:1px solid rgba(238,243,245,.45);transition:border-color .45s cubic-bezier(.22,.7,.2,1)}
 .rm-dot i{display:block;width:8px;height:8px;border-radius:50%;background:#ff4d41;transition:background .45s cubic-bezier(.22,.7,.2,1)}
 .rm-dot:hover{opacity:1}
 html.rm .rm-dot::before{border-color:rgba(214,70,84,.55)}
@@ -138,7 +142,8 @@ html.rm button:focus-visible{outline-color:rgba(204,68,82,.6)}
 html.rm .cstl{background:#050203}
 html.rm .lt-box{background:#000}
 html.rm-img #cv,html.rm-img .lt-box img{filter:grayscale(1) sepia(1) hue-rotate(-56deg) saturate(3.4) brightness(.58) contrast(1.15)}
-@media (max-width:520px){.lt-nav.next{right:calc(max(.5rem,env(safe-area-inset-right)) + 52px)}}
+/* on a phone the images sub-toggle sits above the dot, right-aligned to it, so the bottom row is only the hub and the dot and never meets the corner controls */
+@media (max-width:640px){.rm-sub{position:absolute;right:9px;bottom:100%;z-index:1;min-height:30px;padding:0;display:flex;align-items:center}}
 
 /* eyepiece: only the outer silhouette. Mask is the room colour, so it is invisible at rest; the hairline edge shows while moving. */
 #eye{position:fixed;inset:0;width:100%;height:100%;z-index:15;pointer-events:none;overflow:visible}

@@ -37,7 +37,7 @@
 
   /* ---------- layout ---------- */
   var BIG = 160, HUB = 44;
-  var LAY = { beyond: { x: -72, y: -120, z: 28 } };
+  var NOM = { x: -72, y: -120 }, LAY = { beyond: { x: NOM.x, y: NOM.y, z: 28 } };
   var ORDER = ['beyond'];
   var wrap, hub, cluster, D = {}, lvl = 0, holdS = { x: 0, v: 0, t: 0, w: 4.6 }, hubSw = null, noClickUntil = 0, openA = { x: 0, v: 0, t: 0, w: 4.6 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
 
@@ -101,16 +101,33 @@
     doc.addEventListener('pointerdown', function (e) { if (lvl && !held && !wrap.contains(e.target)) { e.preventDefault(); e.stopPropagation(); closeOne(); } }, true);
     doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && lvl) { e.preventDefault(); e.stopImmediatePropagation(); closeOne(); } }, true);
     B.on(function () { paintAll(); kick(); });
-    w.addEventListener('rmchange', function () { paintAll(); });
-    paintAll(); layout();
+    w.addEventListener('rmchange', function () { paintAll(); requestAnimationFrame(placeDial); });
+    w.addEventListener('resize', function () { placeDial(); }); w.addEventListener('orientationchange', function () { setTimeout(placeDial, 250); });
+    paintAll(); placeDial(); layout();
   }
 
   /* ---------- swipe down: the same rule as everywhere else in the archive (70px, mostly vertical) ---------- */
   function isSwipeDown(sw, e) { var dx = e.clientX - sw.x, dy = e.clientY - sw.y; return dy >= 70 && dy > 1.3 * Math.abs(dx) && performance.now() - sw.t < 1200; }
   function onSwipeDown() { if (lvl) closeOne(); else w.dispatchEvent(new CustomEvent('bd-swipe-down')); }   // an open dial closes first (one level at a time); otherwise the page handles it
 
+  /* ---------- placement: the dial opens up and to the left of the hub, but is never clipped: it is kept inside the safe area (notch, Dynamic Island, gesture bar) ---------- */
+  var probe = null;
+  function safeInsets() {
+    if (!probe) { probe = doc.createElement('div'); probe.setAttribute('aria-hidden', 'true'); probe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'; doc.body.appendChild(probe); }
+    var c = getComputedStyle(probe); return { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 };
+  }
+  function placeDial() {
+    var d = D.beyond; if (!d || !wrap) return;
+    var r = wrap.getBoundingClientRect(); if (!r.width) return;
+    var hx = r.left + r.width / 2, hy = r.top + r.height / 2, sa = safeInsets(), R = d.bodyR + 6, vw = innerWidth, vh = innerHeight;
+    var lo = sa.l + R, hi = vw - sa.r - R, cx = hi < lo ? (lo + hi) / 2 : clamp(hx + NOM.x, lo, hi);
+    var to = sa.t + R, bo = vh - sa.b - R, cy = bo < to ? (to + bo) / 2 : clamp(hy + NOM.y, to, bo);
+    LAY.beyond.x = cx - hx; LAY.beyond.y = cy - hy;
+    d.box.style.left = (HUB / 2 + LAY.beyond.x - d.cx) + 'px'; d.box.style.top = (HUB / 2 + LAY.beyond.y - d.cy) + 'px';
+  }
+
   /* ---------- open / close ---------- */
-  function setLvl(n) { lvl = n; openA.t = n ? 1 : 0; var c = B.cam(); if (c.instant) { openA.x = openA.t; openA.v = 0; } wrap.setAttribute('data-lvl', String(n)); hub.setAttribute('aria-expanded', n ? 'true' : 'false'); kick(); paintAll(); layout(); }
+  function setLvl(n) { if (n) placeDial(); lvl = n; openA.t = n ? 1 : 0; var c = B.cam(); if (c.instant) { openA.x = openA.t; openA.v = 0; } wrap.setAttribute('data-lvl', String(n)); hub.setAttribute('aria-expanded', n ? 'true' : 'false'); kick(); paintAll(); layout(); }
   function cycle() { if (lvl) closeOne(); else { history.pushState({ bd: 1 }, '', location.href); pushes = 1; setLvl(1); } }
   function closeOne() {
     if (!lvl) return;

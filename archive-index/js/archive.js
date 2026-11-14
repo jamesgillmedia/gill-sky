@@ -486,13 +486,19 @@ function fitScale(w, h, P, aw, ah) {   // scale so the worst clamped orbit corne
   }
   return 1 / worst;
 }
+let saProbe = null;
+function safeIns() {   // the device's safe-area insets in px (notch, Dynamic Island, gesture bar)
+  if (!saProbe) { saProbe = document.createElement('div'); saProbe.setAttribute('aria-hidden', 'true'); saProbe.style.cssText = 'position:fixed;left:0;top:0;width:0;height:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)'; document.body.appendChild(saProbe); }
+  const c = getComputedStyle(saProbe); return { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 };
+}
 function liftTarget(g) {
-  const x = F[g], ar = x.w / x.h, narrow = vw < 560;
-  const mx = narrow ? 22 : 96, my = narrow ? 104 : 88;
-  const aw = vw - mx * 2, ah = vh - my * 2, P = (vh / 2) / TAN30;
+  const x = F[g], ar = x.w / x.h, narrow = vw < 560, sa = safeIns();
+  const mx = narrow ? Math.max(22, sa.l, sa.r) : Math.max(96, sa.l + 84, sa.r + 84);
+  const mt = sa.t + (narrow ? 72 : 88), mb = narrow ? Math.max(14, sa.b + 6) + 108 : Math.max(88, sa.b + 70);   // the room's chrome and caption keep clear of the frame
+  const aw = vw - mx * 2, ah = vh - mt - mb, P = (vh / 2) / TAN30;
   let w = Math.min(aw, 1280), h = w / ar; if (h > ah) { h = ah; w = h * ar; }
   const f = fitScale(w, h, P, aw, ah); w *= f; h *= f;
-  return { w, h, x: (vw - w) / 2, y: (vh - h) / 2, P };
+  return { w, h, x: (vw - w) / 2, y: mt + (ah - h) / 2, P };
 }
 function placeLift(animate, origin) {
   rect = liftTarget(cur);
