@@ -14,11 +14,11 @@ var booted=false,mode='light',L=[],pos=0,target=0,raf=0,els=[],rels=[],reflE=$('
 function hex(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
 function mix(a,b,t){a=hex(a);b=hex(b);return'rgb('+[0,1,2].map(function(k){return Math.round(a[k]+(b[k]-a[k])*t)}).join(',')+')'}
 function dark(h,k){var c=hex(h);return'#'+c.map(function(v){v=Math.round(v*k);return(v<16?'0':'')+v.toString(16)}).join('')}
-function order(){L=P.slice();if(mode==='light')L.sort(function(a,b){return a.lum-b.lum});
+function order(){L=(LAB.media?LAB.media.list():P).slice();if(mode==='light')L.sort(function(a,b){return a.lum-b.lum});
   else L.sort(function(a,b){var ga=a.sat<.06,gb=b.sat<.06;if(ga!==gb)return ga?1:-1;if(ga)return a.lum-b.lum;return ((a.hue+.92)%1)-((b.hue+.92)%1)});
   $('e0').textContent=mode==='light'?'darker':'warm';$('e1').textContent=mode==='light'?'lighter':'greys';sortB.textContent=mode==='light'?'by light':'by colour';
   $('phdsort').textContent=mode==='light'?'lined up by light':'lined up by colour';
-  $('phd').textContent=P.length+' frames'}
+  $('phd').textContent=L.length+' frames'}
 function colCount(){return (innerWidth<720)?4:6}
 
 var park=(function(){var d=document.createElement('div');d.id='vidpark';d.hidden=true;d.setAttribute('aria-hidden','true');document.body.appendChild(d);return d})();
@@ -137,7 +137,7 @@ function near(p){var i=L.indexOf(p),out=[];for(var d=1;out.length<8&&d<L.length;
 function fillDay(p){cp=p;parkVideos($('hero'));parkVideos(stack);var hero=$('hero');hero.innerHTML='';hero.style.setProperty('--hg','linear-gradient(180deg,'+p.top+','+dark(p.bot,.4)+')');
   if(LAB.isClip(p)){var v=getClipVid(p,'day');if(!v.getAttribute('src'))v.src=LAB.clip(p);hero.appendChild(v);LAB.arm(v)}
   else{var im=new Image();im.id='himg';im.alt='photograph '+LAB.num(p);im.src=LAB.img(p);hero.appendChild(im)}
-  cred.innerHTML='<span>frame <b>'+LAB.num(p)+'</b> of '+P.length+'</span><span><i class="sw" style="background:'+p.avg+'"></i>measured light <b>'+Math.round(p.lum*100)+'</b></span>'+
+  cred.innerHTML='<span>frame <b>'+LAB.num(p)+'</b> of '+L.length+'</span><span><i class="sw" style="background:'+p.avg+'"></i>measured light <b>'+Math.round(p.lum*100)+'</b></span>'+
     '<button type="button" class="lab-btn" id="dh">'+(LAB.hearts.has(p.id)?'♥ kept':'♡ keep')+'</button>';
   $('dh').classList.toggle('on',LAB.hearts.has(p.id));
   $('dh').addEventListener('click',function(){LAB.hearts.toggle(p.id);fillDay(p)},{once:true});
@@ -186,6 +186,8 @@ LAB.goto=function(id){var i=typeof id==='number'?id:L.findIndex(function(p){retu
 LAB.line=function(){return L};
 order();build();go(Math.round(L.length*.5),true);
 enterHorizon(Math.round(pos));booted=true;
+document.addEventListener('lab:list',function(){var c=L[Math.round(pos)],lum=c?c.lum:.5,id=c&&c.id;order();
+  var i=L.findIndex(function(p){return p.id===id});if(i<0){var bd=9;L.forEach(function(p,k){var d=Math.abs(p.lum-lum);if(d<bd){bd=d;i=k}})}pos=target=Math.max(0,i);build();paint()});
 LAB.hz={camera:camera,enter:function(){enterHorizon(Math.round(pos))},list:function(){return L},cur:function(){return Math.round(pos)},set:function(i){go(i,true)},sky:sky,where:function(t){where.textContent=t}};
 LAB.hint('drag sideways: every photograph, darkest to brightest · pinch out for the constellation · tap the one standing there',5600);
 

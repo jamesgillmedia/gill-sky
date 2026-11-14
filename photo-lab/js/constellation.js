@@ -83,9 +83,10 @@ function draw(t){
   g.globalAlpha=1;
   stars.forEach(function(s){var q=sp(s.x,s.y,c);s.sx=q[0];s.sy=q[1]});
   g.lineWidth=1;g.strokeStyle='rgba(170,200,240,'+(.34*(1-e)).toFixed(3)+')';g.beginPath();
-  edges.forEach(function(E){var a=stars[E[0]],b=stars[E[1]];g.moveTo(a.sx,a.sy);g.lineTo(b.sx,b.sy)});g.stroke();
+  edges.forEach(function(E){var a=stars[E[0]],b=stars[E[1]];if(!a.on||!b.on)return;g.moveTo(a.sx,a.sy);g.lineTo(b.sx,b.sy)});g.stroke();
   var gz=clamp(Math.pow(Z,.35),1,2.4);
   stars.forEach(function(s){
+    if(!s.on)return;
     if(s.sx<-200||s.sx>W+200||s.sy<-200||s.sy>H+200)return;
     var on=s.i===sel,pulse=1+.07*Math.sin(t/900+s.ph),gs=(5+16*s.b)*pulse*gz*(on?1.25:1);
     g.globalAlpha=(.45+.5*s.b)*(1-e*.7);g.drawImage(glow(s.tint),s.sx-gs,s.sy-gs,gs*2,gs*2);
@@ -105,17 +106,17 @@ function frame(n){raf=0;if(!shown)return;var dt=Math.min(.05,(n-lastT)/1000);las
   draw(n);raf=requestAnimationFrame(frame)}
 function run(){if(!raf){lastT=performance.now();raf=requestAnimationFrame(frame)}}
 
-function pick(x,y,max){var best=-1,bd=max*max;stars.forEach(function(s){var d=(s.sx-x)*(s.sx-x)+(s.sy-y)*(s.sy-y);if(d<bd){bd=d;best=s.i}});return best}
+function pick(x,y,max){var best=-1,bd=max*max;stars.forEach(function(s){if(!s.on)return;var d=(s.sx-x)*(s.sx-x)+(s.sy-y)*(s.sy-y);if(d<bd){bd=d;best=s.i}});return best}
 function frameIndex(i){var L=LAB.hz.list(),id=stars[i].p.id;return L.findIndex(function(p){return p.id===id})}
 
 function openIt(){
   if(shown)return;
   if(LAB.layer.top()==='')LAB.hz.enter();
   if(LAB.layer.top()!=='horizon')return;
-  if(!stars.length)layout();fit();clearTimeout(hideT);toSheetFlag=false;exitStar=-1;
+  if(!stars.length)layout();fit();var inL={};LAB.hz.list().forEach(function(p){inL[p.id]=1});stars.forEach(function(s){s.on=!!inL[s.p.id]});clearTimeout(hideT);toSheetFlag=false;exitStar=-1;
   var L=LAB.hz.list(),cur=L[LAB.hz.cur()];sel=byId[cur.id].i;var st=stars[sel];
   aim(cxS,st.x,true);aim(cyS,st.y,true);aim(csS,fitS*ZIN,true);aim(lxS,0,true);aim(lyS,0,true);
-  stars.forEach(load);
+  stars.forEach(function(s){if(s.on)load(s)});
   shown=true;el.hidden=false;void el.offsetWidth;draw(performance.now());
   csS.w=cxS.w=cyS.w=W_GLIDE;aim(cxS,0);aim(cyS,0);aim(csS,fitS);
   el.classList.add('open');run();

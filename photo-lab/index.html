@@ -10,10 +10,12 @@
 <link rel="stylesheet" href="css/constellation.css">
 <link rel="stylesheet" href="css/drawer.css">
 <link rel="stylesheet" href="css/lamp.css">
+<link rel="stylesheet" href="css/media.css">
 </head><body class="hz">
 <header class="lab-top"><button type="button" class="lab-btn ic" id="back" aria-label="back one place">‹</button><a class="sig" href="./" lang="cr" aria-label="Photo lab">ᑕᐣᓯ</a>
  <span class="crumb ju"><b>photo lab · </b><span id="where">horizon</span></span>
  <button type="button" class="lab-btn" id="sort" aria-label="line them up by light or by colour">by light</button>
+ <span class="lab-media" id="media" role="group" aria-label="media: stills, video or clips"><button type="button" data-m="stills" aria-pressed="true" class="on">stills</button><button type="button" data-m="video" aria-pressed="false">video</button><button type="button" data-m="clips" aria-pressed="false">clips</button></span>
  <button type="button" class="lab-btn" id="safe" aria-pressed="false" aria-label="safelight">safelight</button>
  <button type="button" class="lab-btn" id="sheetBtn" aria-pressed="false" aria-label="contact sheet">sheet</button>
  <button type="button" class="lab-btn" id="pencil" hidden aria-pressed="false" aria-label="grease pencil: mark picks">✎</button>
@@ -21,6 +23,7 @@
 <main class="sky fadein" id="sky" aria-label="horizon: drag sideways to scrub through the photographs, darkest to brightest" tabindex="0">
  <div class="water" id="water"></div>
  <i class="lamp-bloom" aria-hidden="true"></i>
+ <i class="tn-moon" aria-hidden="true"></i><i class="tn-dust" id="tnDust" aria-hidden="true"></i>
  <div class="refl" id="refl" aria-hidden="true"></div><div class="frames" id="frames"></div>
  <div class="ribbon" id="ribbon" aria-hidden="true"><div class="rt" id="rt"></div></div>
  <div class="head" aria-hidden="true"></div>
@@ -50,6 +53,7 @@
 <div class="veil"></div>
 <script src="js/photos.js"></script>
 <script src="js/lab.js"></script>
+<script src="js/media.js"></script>
 <script src="js/constellation.js"></script>
 <script src="js/horizon.js"></script>
 <script src="js/drawer.js"></script>
