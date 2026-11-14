@@ -48,7 +48,7 @@
     var k = 0;
     (function next() {
       if (k >= films.length) { finish(); return; }
-      var f = films[k++], im = new Image(); im.decoding = 'async';
+      var f = films[k++], im = new Image(); im.decoding = 'async'; im.crossOrigin = 'anonymous';   // pixels are read back: a CDN that redirects large files must allow it
       im.onload = function () { try { f.frames.forEach(function (x) { measure(im, f.atlas, x.j, x.g, cv, cx); }); } catch (e) {} setTimeout(next, 0); };
       im.onerror = function () { setTimeout(next, 0); };
       im.src = f.atlas.src;
@@ -59,6 +59,8 @@
     var l = [], wv = [], g; for (g = 0; g < F.length; g++) if (M[g]) { l.push(M[g].lum); wv.push(M[g].warm); }
     l.sort(function (a, b) { return a - b; }); wv.sort(function (a, b) { return a - b; });
     for (g = 0; g < F.length; g++) if (M[g]) { M[g].lp = pct(l, M[g].lum); M[g].wp = pct(wv, M[g].warm); }
+    var n = 0; for (g = 0; g < F.length; g++) if (M[g]) n++;
+    if (n < F.length * .5) { try { console.warn('beyond: could not measure the atlases (' + n + '/' + F.length + ')'); } catch (e) {} return; }   // nothing to select from: Beyond stays inactive
     ready = true; rev++; emit('index');
   }
   function angDist(a, b) { var d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; }
