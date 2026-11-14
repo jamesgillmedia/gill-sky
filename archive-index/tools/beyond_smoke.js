@@ -74,12 +74,12 @@ const parse = c => (/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c) || []).slice(1, 4).
       await T('touchStart', [{ x: p1[0], y: p1[1] }]);
       for (let i = 1; i <= 14; i++) { const q = at0(1 + 3 * i / 14); await T('touchMove', [{ x: q[0], y: q[1] }]); await sleep(30); }
       await sleep(900);
-      const held = await p.evaluate(() => { const d = document.querySelector('.bd-dial'), c = getComputedStyle(d); return { op: +c.opacity, vis: c.visibility, mode: GJ_BEYOND.state.mode, tr: d.style.transform }; });
+      const held = await p.evaluate(() => { const d = document.querySelector('.bd-dial'), c = getComputedStyle(d); return { op: +getComputedStyle(d.querySelector('.bd-svg')).opacity, body: +getComputedStyle(d.querySelector('.bd-body')).opacity, vis: c.visibility, mode: GJ_BEYOND.state.mode, tr: d.style.transform }; });
       ok(held.mode === 'green', tag + ': a ring drag from red round to green still changes the step (' + held.mode + ')');
-      ok(held.vis === 'visible' && held.op >= .35 && held.op <= .55, tag + ': held, the dial steps back to a lower presence and stays visible (opacity ' + held.op.toFixed(2) + ')');
+      ok(held.vis === 'visible' && held.op >= .35 && held.op <= .55 && held.body >= .7, tag + ': held, the dial steps back to a lower presence and stays visible (ring ' + held.op.toFixed(2) + ', body ' + held.body.toFixed(2) + ')');
       ok(/scale\(0\.9\d*\)/.test(held.tr) || /scale\(0\.8[5-9]/.test(held.tr), tag + ': and scales down a little (' + (/scale\([^)]*\)/.exec(held.tr) || [''])[0] + ')');
       await T('touchEnd', []); await sleep(1500);
-      const rel = await p.evaluate(() => +getComputedStyle(document.querySelector('.bd-dial')).opacity);
+      const rel = await p.evaluate(() => +getComputedStyle(document.querySelector('.bd-dial .bd-svg')).opacity);
       ok(rel > .98, tag + ': released, it comes back to full presence (' + rel.toFixed(2) + ')');
       await p.keyboard.press('Escape'); await sleep(700);
       const hubOp = await p.evaluate(() => +getComputedStyle(document.querySelector('.bd-hub')).opacity);

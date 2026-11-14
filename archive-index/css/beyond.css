@@ -41,4 +41,4 @@ html.rm .bd-min{stroke:rgba(190,48,64,.34)}html.rm .bd-maj{stroke:rgba(214,70,84
 .bd-c1{font:400 9px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:lowercase}
 .bd-c2{font:300 11px Poppins,sans-serif;letter-spacing:.04em}
 .ring-in.dead{opacity:.34}
-/* held: the whole dial steps back (opacity .45 and scale .92, sprung in beyonddial.js) and stays visible; nothing is hidden */
+/* held: the dial steps back (ring and labels .5, solid body .8, scale .92, sprung in beyonddial.js) and stays visible; nothing is hidden */
