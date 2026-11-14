@@ -101,7 +101,9 @@ body{
     f.title=it.t;
     f.setAttribute("allow","fullscreen; autoplay; accelerometer; gyroscope; clipboard-write");
     f.setAttribute("allowfullscreen","");
-    f.addEventListener("load",function(){f.classList.add("on");if(old&&old.parentNode===view)view.removeChild(old)});
+    var shown=function(){f.classList.add("on");if(old&&old.parentNode===view)view.removeChild(old)};
+    f.addEventListener("load",shown);
+    setTimeout(shown,7000);
     f.src=it.u;
     view.appendChild(f);
     if(old)old.style.pointerEvents="none";
