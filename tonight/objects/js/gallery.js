@@ -393,5 +393,5 @@
     }
   }
 
-  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, get orbit() { return !!curV && !stopped }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
+  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, get orbit() { return !!curV && !stopped }, get active() { return !!curV }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
 })();

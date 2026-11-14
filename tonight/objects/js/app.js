@@ -62,14 +62,18 @@ const shadowTex = (() => { const c = document.createElement('canvas'); c.width =
 
 /* a light hoop: thin bright core + soft glow band + one tick per frame inside it */
 const HOOP_V = 'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}';
+/* the hoop's glow band was written with alpha 1 on normal blending, so wherever it sits in front of a piece it paints an opaque dark ring over it (the ring across the ice cream scoop).
+   In the gallery takes (js/gallery.js: OBJ_GAL.active) the band is drawn as what it is meant to be, light: the same colour, its own falloff as alpha, so it can only add glow and never covers a piece.
+   Everywhere else the original band is untouched (uG stays 0). */
+const GALU = { value: 0 };
 function hoop(Rr, ticks, warm, strength) {
   const g = new THREE.Group();
   const core = new THREE.Mesh(new THREE.TorusGeometry(Rr, Rr * .006, 8, 180), new THREE.MeshBasicMaterial({ color: 0xe8e4dc, transparent: true, opacity: .32 * strength, fog: true }));
   g.add(core);
-  const U = { uA: { value: .12 * strength }, uC: { value: new THREE.Color(0xe8e4dc) } };
+  const U = { uA: { value: .12 * strength }, uC: { value: new THREE.Color(0xe8e4dc) }, uG: GALU };
   const band = new THREE.Mesh(new THREE.RingGeometry(Rr * .94, Rr * 1.06, 160, 1), new THREE.ShaderMaterial({ uniforms: U, transparent: true, depthWrite: false, blending: THREE.NormalBlending, side: THREE.DoubleSide,
     vertexShader: 'varying vec3 vP;void main(){vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-    fragmentShader: `uniform float uA;uniform vec3 uC;varying vec3 vP;void main(){float r=length(vP.xy);float d=(r-${Rr.toFixed(4)})/${(Rr * .07).toFixed(4)};gl_FragColor=vec4(uC*uA*exp(-d*d),1.);}` }));
+    fragmentShader: `uniform float uA;uniform vec3 uC;uniform float uG;varying vec3 vP;void main(){float r=length(vP.xy);float d=(r-${Rr.toFixed(4)})/${(Rr * .07).toFixed(4)};float k=exp(-d*d);gl_FragColor=mix(vec4(uC*uA*k,1.),vec4(uC,clamp(uA*k,0.,1.)),uG);}` }));
   band.renderOrder = 3; g.add(band);
   let tk = null;
   if (ticks > 0) { const pts = []; for (let i = 0; i < ticks; i++) { const a = Math.PI / 2 - i / ticks * Math.PI * 2, r0 = Rr * 1.035, r1 = Rr * 1.09; pts.push(V(Math.cos(a) * r0, Math.sin(a) * r0, 0), V(Math.cos(a) * r1, Math.sin(a) * r1, 0)) }
@@ -568,7 +572,8 @@ function frame(now) {
     }
   }
   /* gallery takes only (js/gallery.js sets OBJ_GAL.orbit): the joio cup keeps turning on its own, slowly, once a hand has been off it for 3.5 s, and tap-to-stop holds it */
-  const GAL = window.OBJ_GAL;
+  const GAL = window.OBJ_GAL, gOn = GAL && GAL.active ? 1 : 0;
+  if (GALU.value !== gOn) { GALU.value = gOn; dirty = true }
   if (cup && GAL && GAL.stopped) cupVel = 0;
   if (cup && GAL && GAL.orbit && !spinning && !tr && !detOpen && S.r === J && (S.lv === 'ring' || S.lv === 'room') && now - lastIn > 3500) { cupSpin += .28 * dt; dirty = true }
   if (cup && Math.abs(cupVel) > 1e-4 && !spinning) { cupVel *= .9; cupSpin += cupVel; dirty = true }
