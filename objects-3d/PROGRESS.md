@@ -3,6 +3,13 @@
 LOCAL-ONLY prototype of the Objects chapter in 3D. Branch `objects-3d-proto`. Never merged to main, never deployed, no PR.
 Only `objects-3d/` is written; every other folder is read-only.
 
+## preview-objects-orbit (Nov 14): camera logic, orbit, the room (PROTOTYPE ONLY, not merged, not wired into any nav)
+Gill asked for the same camera logic and a gentle orbit here, "most opaque and refined", "just you and it, alone in a room". This overrides the Nov 11 "no orbit / no room" note for this preview only.
+- Camera: site-3d `sstep` springs and weights (`W_REL 9.5`, `W_FLY 5.6`, `W_GLIDE 4.6`, `W_SOFT 3.2`; Reduce Motion 14 / 9 / 8 / 6), FOV 60, fable-m4's 960 ms push (peak scaled to a breath), moon-opener exponential lag. Stop-to-stop moves now ride the `W_GLIDE` spring instead of a fixed tween.
+- Orbit: drag or one finger orbits the object (yaw +-0.62 rad, pitch +-0.36 rad, soft walls, slow inertia settling on `W_SOFT`), very slow idle drift after 3.5 s (off under Reduce Motion), frames are shrunk so the clamped orbit never leaves the room. Pinch / wheel / tap stay the one-stop dolly. `0` settles the orbit.
+- Room: solid opaque `#050507`, no stars, no washes; the warm light behind the cutout is quieter; hairline type; chrome recedes while you hold the object. Photos are never tinted or dimmed.
+- Changed on purpose: horizontal swipe no longer changes specimen (drag is the orbit now); use the side chevrons or ArrowLeft / ArrowRight. Back at the first stop settles the orbit, then leaves via browser history if there is any.
+
 ## Open it
 ```
 sh objects-3d/serve.sh        # then http://localhost:8765/objects-3d/

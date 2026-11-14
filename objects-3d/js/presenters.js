@@ -44,7 +44,7 @@ function loadTex(THREE, url, done) {
 /* the piece alone: alpha cutout + warm light pool + contact shadow */
 export function cutout(THREE, frame, env) {
   const group = new THREE.Group();
-  const pool = blob(THREE, 0xffa857, .95, -.03), glow = blob(THREE, 0xffc78f, .6, -.04), shadow = blob(THREE, 0x000000, .85, -.01), shadow2 = blob(THREE, 0x000000, .5, -.012);
+  const pool = blob(THREE, 0xffa857, .6, -.3), glow = blob(THREE, 0xffc78f, .22, -.55), shadow = blob(THREE, 0x000000, .85, -.06), shadow2 = blob(THREE, 0x000000, .5, -.1);   // layers sit at slightly different depths so the orbit reads as parallax; the room is solid, so the light stays quiet
   const mat = new THREE.MeshBasicMaterial({ transparent: true, depthWrite: false, opacity: 0, alphaTest: .002 });
   const mesh = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), mat); mesh.visible = false;
   group.add(glow, pool, shadow2, shadow, mesh);
@@ -59,10 +59,10 @@ export function cutout(THREE, frame, env) {
       let w = box.w * .94, h = w / aspect; const hmax = box.h * .66; if (h > hmax) { h = hmax; w = h * aspect }
       mesh.scale.set(w, h, 1);
       const oy = h * .02;
-      glow.scale.set(w * 2.5, w * 2.1, 1); glow.position.set(0, oy + h * .08, -.04);
-      pool.scale.set(w * 1.9, w * .72, 1); pool.position.set(0, -h / 2 + (sit ? w * .02 : -w * .12), -.03);
-      if (sit) { shadow.scale.set(w * .85, w * .11, 1); shadow.position.set(0, -h / 2 + w * .028, -.01); shadow2.scale.set(w * 1.5, w * .26, 1); shadow2.position.set(0, -h / 2 + w * .01, -.012) }
-      else { shadow.scale.set(w * .7, w * .1, 1); shadow.position.set(0, -h / 2 - w * .14, -.01); shadow.userData.base = .55; shadow2.scale.set(w * 1.2, w * .22, 1); shadow2.position.set(0, -h / 2 - w * .16, -.012) }
+      glow.scale.set(w * 2.5, w * 2.1, 1); glow.position.set(0, oy + h * .08, -.55);
+      pool.scale.set(w * 1.9, w * .72, 1); pool.position.set(0, -h / 2 + (sit ? w * .02 : -w * .12), -.3);
+      if (sit) { shadow.scale.set(w * .85, w * .11, 1); shadow.position.set(0, -h / 2 + w * .028, -.06); shadow2.scale.set(w * 1.5, w * .26, 1); shadow2.position.set(0, -h / 2 + w * .01, -.1) }
+      else { shadow.scale.set(w * .7, w * .1, 1); shadow.position.set(0, -h / 2 - w * .14, -.06); shadow.userData.base = .55; shadow2.scale.set(w * 1.2, w * .22, 1); shadow2.position.set(0, -h / 2 - w * .16, -.1) }
       return { w, h };
     },
     dispose() { mesh.geometry.dispose(); mat.dispose(); if (tex) tex.dispose() }

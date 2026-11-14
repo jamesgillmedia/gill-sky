@@ -1,10 +1,11 @@
-/* objects-3d prototype: boot, HUD, input. Presentation lives in presenters.js / moves.js / transitions.js, state in nav.js.
-   Gestures (one gesture = exactly one step, see nav.js):
-     in  : pinch in, wheel / trackpad toward, Enter, ArrowDown, tap
-     up  : pinch out, wheel / trackpad away, ArrowUp, Backspace, Escape, the Back button
-     next / previous specimen : horizontal swipe, ArrowRight / ArrowLeft, the side buttons
-     Home: the Home button, the Home key
-   No auto-advance, no idle motion, no audio. Nothing reads prefers-reduced-motion: motion is the same with Reduce Motion on. */
+/* objects-3d prototype: boot, HUD, input. Presentation lives in presenters.js / moves.js / transitions.js, state in nav.js, camera in view.js.
+   Gestures:
+     orbit        : drag with the mouse or one finger (gentle, soft walls, slow inertia, very slow idle drift)
+     in / up      : pinch in / out, wheel or trackpad toward / away (the dolly: exactly one stop per gesture), Enter / ArrowDown, ArrowUp, tap
+     back         : the Back button, Backspace, Escape (up one layer; at the first stop it first settles the orbit, then leaves the page the way it came)
+     next / previous specimen : ArrowRight / ArrowLeft, the side chevrons
+     Home: the Home button, the Home key;  0 settles the orbit
+   Reduce Motion: no idle drift, no inertia, no push, short eases and stiffer springs. No audio, no auto-advance. */
 import { SPECIMENS, stopsOf } from './data.js';
 import { PRESENTERS } from './presenters.js';
 import { MOVE } from './moves.js';
@@ -30,7 +31,7 @@ if (!html.classList.contains('nogl')) {
   } catch (e) { console.warn(e); html.classList.add('nogl'); view = null }
 }
 if (!view) {
-  view = { place() {}, show() {}, layout() {}, fade: () => Promise.resolve(), move: (sp, a, b, mid) => new Promise(r => { FB.style.opacity = 0; setTimeout(() => { mid && mid(); FB.style.opacity = 1; setTimeout(r, 200) }, 250) }) };
+  view = { place() {}, show() {}, layout() {}, grab() {}, drag() {}, release() {}, poseHome() {}, displaced: () => false, fade: () => Promise.resolve(), move: (sp, a, b, mid) => new Promise(r => { FB.style.opacity = 0; setTimeout(() => { mid && mid(); FB.style.opacity = 1; setTimeout(r, 200) }, 250) }) };
 }
 
 let axisN = -1;
@@ -42,7 +43,7 @@ const ui = {
     const f = s.frame;
     $('.t', CAP).textContent = f.slot ? '' : f.cap;
     $('.s', CAP).textContent = f.slot ? 'placeholder · not live' : f.stem + (f.crop ? ' · detail crop' : '');
-    BACK.disabled = s.stop === 0; PREV.disabled = s.spec === 0; NEXT.disabled = s.spec === s.nSpec - 1;
+    BACK.disabled = s.stop === 0 && history.length <= 1; PREV.disabled = s.spec === 0; NEXT.disabled = s.spec === s.nSpec - 1;
     if (axisN !== s.spec * 1000 + s.n) {
       axisN = s.spec * 1000 + s.n; AXIS.innerHTML = '';
       stopsOf(SPECIMENS[s.spec]).forEach((st, k, a) => { const i = document.createElement('i'); if (k && a[k - 1].layer !== st.layer) i.className = 'g'; AXIS.appendChild(i) });
@@ -54,17 +55,25 @@ const ui = {
 const nav = createNav(SPECIMENS, stopsOf, view, TRANSITION, ui);
 
 /* ---------- input ---------- */
-const deeper = () => nav.deeper(), up = () => nav.up();
-BACK.addEventListener('click', up); $('#home').addEventListener('click', () => nav.home());
+const deeper = () => nav.deeper(), up = () => nav.up(), back = () => {
+  if (nav.info().stop === 0) {   // first stop: settle the orbit, then step out of the page (never a trap)
+    if (view.displaced()) view.poseHome(4.6); else if (history.length > 1) history.back();
+    return;
+  }
+  nav.up();
+};
+BACK.addEventListener('click', back); $('#home').addEventListener('click', () => nav.home());
 PREV.addEventListener('click', () => nav.prevSpecimen()); NEXT.addEventListener('click', () => nav.nextSpecimen());
 addEventListener('keydown', e => {
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
   const k = e.key;
   if (k === 'Enter' || k === 'ArrowDown') deeper();
-  else if (k === 'ArrowUp' || k === 'Backspace' || k === 'Escape') up();
+  else if (k === 'ArrowUp') up();
+  else if (k === 'Backspace' || k === 'Escape') back();
   else if (k === 'ArrowRight') nav.nextSpecimen();
   else if (k === 'ArrowLeft') nav.prevSpecimen();
   else if (k === 'Home') nav.home();
+  else if (k === '0') view.poseHome(4.6);
   else return;
   e.preventDefault();
 });
@@ -82,18 +91,23 @@ cv.addEventListener('wheel', e => {
   wLock = true; const d = wAcc; wAcc = 0; if (d < 0) deeper(); else up();
 }, { passive: false });
 
-/* touch / mouse: two fingers = pinch (one step per pinch, fired when the spread has changed by ~20%, then locked until the fingers lift);
-   one finger: a short tap goes deeper, a horizontal swipe goes to the next or previous specimen */
+/* touch / mouse: one finger or the mouse orbits the object; a short tap goes deeper;
+   two fingers = pinch (one step per pinch, fired when the spread has changed by ~20%, then locked until the fingers lift) */
 const PT = new Map(); let G = null;
 const dist = () => { const a = [...PT.values()]; return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) };
+const endOrbit = () => { if (G && G.orbit) { G.orbit = false; view.release(); html.classList.remove('orbiting') } };
 cv.addEventListener('pointerdown', e => {
   e.preventDefault(); try { cv.setPointerCapture(e.pointerId) } catch (x) {}
   PT.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (!G) G = { x0: e.clientX, y0: e.clientY, t0: performance.now(), multi: false, fired: false, d0: 0 };
-  if (PT.size >= 2) { G.multi = true; if (!G.d0) G.d0 = dist() }
+  if (!G) G = { x0: e.clientX, y0: e.clientY, t0: performance.now(), multi: false, fired: false, d0: 0, orbit: false };
+  if (PT.size >= 2) { endOrbit(); G.multi = true; if (!G.d0) G.d0 = dist() }
 });
 cv.addEventListener('pointermove', e => {
-  const p = PT.get(e.pointerId); if (!p) return; p.x = e.clientX; p.y = e.clientY;
+  const p = PT.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
+  if (G && !G.multi && PT.size === 1) {
+    if (!G.orbit && Math.hypot(e.clientX - G.x0, e.clientY - G.y0) > 6) { G.orbit = true; view.grab(); html.classList.add('orbiting'); view.drag(e.clientX - G.x0, e.clientY - G.y0) }
+    else if (G.orbit) view.drag(dx, dy);
+  }
   if (G && G.multi && PT.size >= 2 && !G.fired && G.d0 > 0) {
     const r = dist() / G.d0;
     if (r > 1.2) { G.fired = true; deeper() } else if (r < .83) { G.fired = true; up() }
@@ -102,11 +116,11 @@ cv.addEventListener('pointermove', e => {
 function release(e, cancel) {
   const p = PT.get(e.pointerId); if (!p) return; PT.delete(e.pointerId);
   if (!G) return;
-  if (!G.multi && !cancel) {
+  if (!G.multi && !cancel && !G.orbit) {
     const dx = e.clientX - G.x0, dy = e.clientY - G.y0, dt = performance.now() - G.t0;
-    if (Math.abs(dx) > 50 && Math.abs(dx) > 1.3 * Math.abs(dy)) { if (dx < 0) nav.nextSpecimen(); else nav.prevSpecimen() }
-    else if (Math.hypot(dx, dy) < 12 && dt < 600) deeper();
+    if (Math.hypot(dx, dy) < 12 && dt < 600) deeper();
   }
+  endOrbit();
   if (PT.size === 0) G = null;
 }
 cv.addEventListener('pointerup', e => release(e, false)); cv.addEventListener('pointercancel', e => release(e, true));

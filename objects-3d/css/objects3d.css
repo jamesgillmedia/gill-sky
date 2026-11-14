@@ -1,31 +1,31 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;height:100%;overflow:hidden;background:#07050a;color:#d9dee7;font:13px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
-body{background:radial-gradient(ellipse 60% 45% at 18% 14%,rgba(39,64,122,.16),transparent 70%),radial-gradient(ellipse 55% 45% at 84% 86%,rgba(74,42,106,.2),transparent 70%),radial-gradient(ellipse 50% 40% at 62% 6%,rgba(29,74,86,.12),transparent 70%),radial-gradient(ellipse 90% 80% at 50% 42%,#2a1f2c 0%,#1a1320 34%,#0f0b15 66%,#07050a 100%)}
-#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+html,body{margin:0;height:100%;overflow:hidden;background:#050507;color:#d9dee7;font:300 13px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;overscroll-behavior:none}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none;cursor:grab;background:#050507}
+html.orbiting #c{cursor:grabbing}
 #fb{display:none}
 .nogl #c{display:none}
 .nogl #fb{display:block;position:fixed;left:50%;top:50%;max-width:92vw;max-height:70vh;transform:translate(-50%,-50%);transition:opacity .4s}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;padding:0}
 #hud{position:fixed;left:0;right:0;top:0;padding:max(10px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-left)) 0;pointer-events:none;z-index:2}
 #hud .row{display:flex;gap:6px;pointer-events:auto}
-#hud button{min-height:44px;min-width:44px;padding:0 12px;letter-spacing:.08em;font-size:13px;color:#b9c2d1;opacity:.85;transition:opacity .25s}
+#hud button{min-height:44px;min-width:44px;padding:0 12px;letter-spacing:.16em;font-size:11px;font-weight:300;text-transform:lowercase;color:#8b95a6;opacity:.8;transition:opacity .25s}
 #hud button:hover{opacity:1}
 #back[disabled]{opacity:0;pointer-events:none}
 #where{padding:0 12px;transition:opacity .35s;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
-#where .w{font-size:15px;letter-spacing:.14em;color:#e8edf5}
-#where .n{font-size:12px;letter-spacing:.1em;color:#8b95a6}
+#where .w{font-size:13px;font-weight:300;letter-spacing:.2em;color:#cfd6e2;text-transform:lowercase}
+#where .n{font-size:11px;letter-spacing:.14em;color:#6c7687}
 #cap{position:fixed;left:0;right:0;bottom:0;padding:10px max(16px,env(safe-area-inset-right)) max(16px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));text-align:center;color:#9aa4b4;z-index:2;pointer-events:none;transition:opacity .35s;height:96px;overflow:hidden}
-#cap .t{display:block;font-size:13px;color:#aab3c2;min-height:18px}
-#cap .s{display:block;font-size:11px;letter-spacing:.12em;color:#6c7687;margin-top:3px}
+#cap .t{display:block;font-size:12.5px;font-weight:200;letter-spacing:.03em;color:#9aa4b4;min-height:18px}
+#cap .s{display:block;font-size:10px;letter-spacing:.16em;color:#566073;margin-top:3px}
 .side{position:fixed;top:50%;transform:translateY(-50%);width:44px;height:88px;font-size:30px;color:#8b95a6;opacity:.45;z-index:2;transition:opacity .25s}
 .side:hover{opacity:.9}
 .side[disabled]{opacity:0;pointer-events:none}
 #prev{left:max(0px,env(safe-area-inset-left))}
 #next{right:max(0px,env(safe-area-inset-right))}
 #axis{position:fixed;right:max(8px,env(safe-area-inset-right));top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:3px;z-index:1;pointer-events:none}
-#axis i{display:block;width:3px;height:3px;border-radius:2px;background:#3a4252;transition:background .3s,height .3s}
+#axis i{display:block;width:1px;height:3px;background:#2c3341;transition:background .3s,height .3s}
 #axis i.g{margin-top:7px}
-#axis i.on{background:#cfd8e6;height:9px}
+#axis i.on{background:#aeb9cb;height:9px}
 .fade{opacity:0!important}
 @media (max-aspect-ratio:1/1){.side{top:auto;bottom:calc(100px + env(safe-area-inset-bottom));transform:none;height:56px}}
 @media (min-aspect-ratio:3/2) and (max-height:520px){
@@ -38,3 +38,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
   #axis{top:auto;bottom:10px;right:50%;transform:translateX(50%);flex-direction:row}
   #axis i.g{margin-top:0;margin-left:7px}
 }
+
+/* the room goes quiet while you hold the object: chrome recedes, the object does not (same fold curve as the site's drawers) */
+#hud,#cap,.side,#axis{transition:opacity .45s cubic-bezier(.22,.7,.2,1)}
+html.orbiting #hud,html.orbiting #cap,html.orbiting #axis{opacity:.2}
+html.orbiting .side{opacity:.12}
+@media (prefers-reduced-motion:reduce){#hud,#cap,.side,#axis,#hud button,#where{transition:none}}
