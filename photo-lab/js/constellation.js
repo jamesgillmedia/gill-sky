@@ -42,6 +42,7 @@ document.addEventListener('lab:layer',paintMark);
 /* ---------- the stars ---------- */
 var el=document.createElement('section');el.className='cstl';el.id='cstl';el.hidden=true;
 el.setAttribute('aria-label','constellation: every photograph as a star. Pinch in for the contact sheet, tap a star for that photograph.');
+var lb=document.createElement('i');lb.className='lamp-bloom';lb.setAttribute('aria-hidden','true');el.appendChild(lb);
 var cv=document.createElement('canvas');el.appendChild(cv);
 var g=cv.getContext('2d'),W=0,H=0,DPR=1;
 var stars=[],byId={},edges=[],glows={},imgs={},field=[],fitS=1,maxR=1,sel=0,shown=false,raf=0,lastT=0,exitStar=-1,toSheetFlag=false,hideT=0;
