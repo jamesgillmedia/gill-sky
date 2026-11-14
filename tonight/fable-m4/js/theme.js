@@ -5,6 +5,7 @@
    Never mapped (carve-outs): photographs, film frames and video (images are not colours); the mint "new" marker and its lit state;
    the safelight; the Photo room (Red steps aside inside it, it keeps its own look).
    Red never washes or brightens the page: black maps to black, and only elements give light.
+   The favicon follows the saved choice (pref): Red swaps the page's icon links for red twins (icons/*-red.png, made with this same map), Night restores the authored links.
    GJ_THEME: pref ('night'|'red', localStorage gj.theme, ?theme=night|red), eff, set(), toggle(), setRoom(k), exempt(k), on(fn). A quiet ring button
    (bottom left) toggles; the tune menu's pinned globals carry the same choice. Reduce Motion: nothing here animates. */
 (function(w){
@@ -78,7 +79,29 @@ function build(){
   var out=[];for(var i=0;i<document.styleSheets.length;i++){var ss=document.styleSheets[i];if(ss.ownerNode&&ss.ownerNode.id==='theme-red')continue;var rules;try{rules=ss.cssRules}catch(e){continue}if(rules)walk(rules,out)}
   if(!sheet){var el=document.createElement('style');el.id='theme-red';document.head.appendChild(el);sheet=el.sheet;sheet._el=el}
   sheet._el.textContent=out.join('\n');built=true}
+/* favicon: follows pref, not eff, so the tab stays red in the Photo room and on the player, whose pages keep their own look.
+   Only links whose file has a red twin (icons/icon-192.png, icons/apple-touch-icon.png) are managed; blank data: icons are left alone.
+   Night at load touches nothing. A change inserts a fresh <link> (cache-busting ?fav=) before each old one and removes the old, because browsers ignore a changed href on a live link. */
+var FAV=/\/icons\/(icon-192|apple-touch-icon)\.png$/,FSEL='link[rel~="icon"],link[rel="shortcut icon"],link[rel="apple-touch-icon"],link[rel="apple-touch-icon-precomposed"]',fSlots=null,fLive=[],fShown='night',fSeq=0;
+function favBust(u){return u+(u.indexOf('?')<0?'?':'&')+'fav='+Date.now().toString(36)+(++fSeq)}
+function favCapture(){
+  var out=[],ls=document.querySelectorAll(FSEL);
+  for(var i=0;i<ls.length;i++){var l=ls[i],u;try{u=new URL(l.href,location.href)}catch(e){continue}
+    if(u.protocol==='data:'||!FAV.test(u.pathname))continue;
+    out.push({live:l,orig:l.cloneNode(false),red:u.origin+u.pathname.replace(FAV,'/icons/$1-red.png')})}
+  if(out.length){fSlots=out;fLive=out.map(function(o){return o.live})}}
+function favApply(force){
+  if(!fSlots){if(document.readyState==='loading'&&pref==='night')return;favCapture();if(!fSlots)return}
+  if(pref===fShown&&!force)return;
+  if(pref==='night'&&fShown==='night'&&fLive[0]&&fLive[0]===fSlots[0].live)return;
+  fShown=pref;
+  fLive=fSlots.map(function(o,i){var old=fLive[i],n=o.orig.cloneNode(false);
+    n.setAttribute('href',favBust(pref==='red'?o.red:o.orig.getAttribute('href')));
+    if(old&&old.parentNode)old.parentNode.insertBefore(n,old),old.parentNode.removeChild(old);else(document.head||root).appendChild(n);
+    return n})}
+function favSync(){var v=lsGet();if(v===null)return;v=v==='red'?'red':'night';if(v!==pref){pref=v;apply(true);label();hooks.forEach(function(f){f('pref',pref)})}}
 function apply(force){
+  favApply(false);
   /* the sound player and its waveform stay at Night luminance: Red must never dim them */
   var playerPage=/\/player\//.test(location.pathname);
   var e=(pref==='red'&&!(room&&EXEMPT[room])&&!playerPage)?'red':'night';if(e===eff&&!force&&root.getAttribute('data-theme')===e)return;
@@ -94,16 +117,22 @@ var T={get pref(){return pref},get eff(){return eff},get room(){return room},pal
   toggle:function(){T.set(pref==='red'?'night':'red')},
   setRoom:function(k){k=k||null;if(k===room)return;room=k;apply();label()},
   adjust:function(){},adjInfo:null,
+  favicon:{get mode(){return fShown},refresh:function(){favApply(true)}},
   on:function(f){hooks.push(f)},
   mount:function(){if(btn||w.top!==w.self||!document.querySelector('link[href$="sky.css"]'))return;btn=document.createElement('button');btn.type='button';btn.id='themeBtn';btn.innerHTML='<i></i>';
     btn.addEventListener('click',function(e){e.stopPropagation();T.toggle()});btn.addEventListener('pointerdown',function(e){e.stopPropagation()});
     document.body.appendChild(btn);label()}};
 w.GJ_THEME=T;
 root.setAttribute('data-theme',eff);
-function ready(){if(eff==='red'&&!built)build();T.mount();
+favApply(true);
+function ready(){if(eff==='red'&&!built)build();T.mount();favApply(false);
   setInterval(function(){var c=w.__u1&&w.__u1.cur;T.setRoom(c&&c.lv>=1?c.k:null)},300);
   /* the sound player and any frame share the choice through localStorage */
   addEventListener('storage',function(e){if(e.key===KEY){var v=e.newValue==='red'?'red':'night';if(v!==pref){pref=v;apply(true);label();hooks.forEach(function(f){f('pref',pref)})}}});
+  /* the favicon is re-asserted when a page comes back from the back/forward cache or its tab regains focus */
+  addEventListener('pageshow',function(){favSync();favApply(true)});
+  addEventListener('focus',function(){favSync();favApply(false)});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){favSync();favApply(false)}});
   /* sheets that arrive late */
   addEventListener('load',function(){if(eff==='red')build()})}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ready);else ready();
