@@ -127,6 +127,7 @@ function ensure(){
     "#gj-head{position:absolute;z-index:2;cursor:pointer;background:transparent;outline:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}",
     "#gj-head[hidden]{display:none}",
     "#gj-head:focus-visible{box-shadow:inset 0 0 0 1px rgba(232,228,220,.28)}",
+    "#gj-head .gj-rip{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border:1px solid #e8e4dc;border-radius:50%;opacity:0;pointer-events:none;box-sizing:border-box}",
     "#gj-head .gj-glyph{position:absolute;right:14px;top:12px;width:10px;height:12px;opacity:0;pointer-events:none;transition:opacity 1.1s ease-out;color:#e8e4dc}",
     "#gj-head .gj-glyph.on{opacity:.4;transition:none}",
     "#gj-head .gj-glyph.pause{background:linear-gradient(90deg,currentColor 0 3px,transparent 3px 7px,currentColor 7px 10px)}",
@@ -360,6 +361,18 @@ function flash(kind){
   clearTimeout(glyphT);
   glyphT=setTimeout(function(){glyph.classList.remove("on")},50);
 }
+/* One thin ring, a whisper: 0.16 at its peak, ends 32px out, gone in about half a second. No burst, no fill. */
+function ripple(x,y){
+  if(!band||!band.animate)return;
+  try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return}catch(e){}
+  var r=band.getBoundingClientRect(),ring=document.createElement("i");
+  ring.className="gj-rip";
+  ring.style.left=(x-r.left)+"px";
+  ring.style.top=(y-r.top)+"px";
+  band.appendChild(ring);
+  var a=ring.animate([{transform:"scale(.375)",opacity:.16},{transform:"scale(1)",opacity:0}],{duration:520,easing:"cubic-bezier(.2,.6,.3,1)",fill:"forwards"});
+  a.onfinish=function(){if(ring.parentNode)ring.parentNode.removeChild(ring)};
+}
 function inBox(x,y,b){return x>=b.l&&x<=b.r&&y>=b.t&&y<=b.b}
 /* A tap counts only on the empty black of the header: not on its text, and not on any film (video or still, caption included). */
 function emptyHeader(x,y,info){
@@ -393,6 +406,7 @@ function ensureBand(){
     if(!info||info.key!=="film")return;
     if(e.detail&&!emptyHeader(e.clientX,e.clientY,info))return;
     e.stopPropagation();
+    if(e.detail)ripple(e.clientX,e.clientY);
     setPaused(!paused);
   });
   band.addEventListener("keydown",function(e){
