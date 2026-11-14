@@ -64,6 +64,11 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .lt-box #lthi{opacity:0;transition:opacity .25s}
 .lt-box #lthi.on{opacity:1}
 .lt-ch{opacity:0}
+.lt-modesw{position:absolute;top:calc(.9rem + env(safe-area-inset-top));right:calc(max(.6rem,env(safe-area-inset-right)) + 52px);min-height:44px;display:flex;align-items:center;gap:7px;
+  font:200 10px/1 Poppins,sans-serif;letter-spacing:.18em;text-transform:lowercase;color:var(--meta)}
+.lt-modesw button{min-height:44px;padding:0 3px;color:var(--meta);font:inherit;letter-spacing:inherit;transition:color .3s cubic-bezier(.22,.7,.2,1)}
+.lt-modesw button[aria-pressed=true]{color:var(--ink);border-bottom:1px solid var(--hair2);border-radius:0}
+@media (hover:hover){.lt-modesw button:hover{color:var(--ink)}}
 .lt-mark,.lt-x,.lt-nav{position:absolute;color:var(--meta);transition:color .3s cubic-bezier(.22,.7,.2,1)}
 .lt-mark{left:max(1rem,env(safe-area-inset-left));top:calc(.9rem + env(safe-area-inset-top));min-height:44px;display:flex;align-items:center;
   font:400 12px/1 "Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase}
@@ -82,7 +87,7 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .lt-tc{font:400 10.5px/1 var(--mono);color:var(--meta);letter-spacing:.06em}
 .lt-hint{font:200 10px/1 Poppins,sans-serif;letter-spacing:.14em;color:var(--meta);text-transform:lowercase;transition:opacity .6s cubic-bezier(.22,.7,.2,1)}
 body.lt-touched .lt-hint{opacity:0}
-@media (prefers-reduced-motion:reduce){.lt-box #lthi,.lt-hint,.lt-mark,.lt-x,.lt-nav{transition:none}}
+@media (prefers-reduced-motion:reduce){.lt-box #lthi,.lt-hint,.lt-mark,.lt-x,.lt-nav,.lt-modesw button{transition:none}}
 @media (max-width:520px){
   .count{display:none}
   .top{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand films" "modes boxsw";gap:7px 8px;align-items:center}
