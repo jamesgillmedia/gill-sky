@@ -250,9 +250,9 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 .rl-fs{position:absolute;left:0;right:0;bottom:calc(42px + var(--sb));height:56px;overflow:hidden;z-index:3;cursor:grab}
 .rl.scrub .rl-fs{cursor:grabbing}
 .rl-tr{position:absolute;left:0;top:8px;height:40px;display:flex;will-change:transform}
-.rl-tr b{flex:0 0 40px;height:40px;background-image:url(../media/pro2/reel/strip.webp);background-size:var(--bs);opacity:.5;filter:saturate(.75)}
+.rl-tr b{flex:0 0 40px;height:40px;background-image:url(../media/pro2/reel/strip.webp);background-size:var(--bs);opacity:1;filter:none}
 .rl-tr b.on{opacity:1;filter:none}
-.rl-mk{position:absolute;left:50%;top:2px;width:2px;height:52px;margin-left:-1px;background:#e8e4dc;box-shadow:0 0 8px rgba(232,228,220,.6)}
+.rl-mk{position:absolute;left:50%;top:2px;width:1px;height:52px;margin-left:-.5px;background:#e8e4dc}
 html.reelon #mmap{display:none !important}
 .snd{position:absolute;left:0;right:0;bottom:0;pointer-events:auto;
  padding:12px max(12px,var(--sr)) calc(10px + var(--sb)) max(12px,var(--sl));

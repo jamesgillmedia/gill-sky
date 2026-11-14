@@ -145,6 +145,7 @@ function mount(el,hooks){
     toggle();
   }
   function onWheel(e){
+    if(hooks.embed&&Math.abs(e.deltaY)>=Math.abs(e.deltaX))return; /* inside the player a vertical wheel scrolls the page */
     e.preventDefault();
     var d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(e.deltaMode===1)d*=32;
     if(!wheeling){wheeling=true;root.classList.add('scrub');quiet();root.classList.add('seen')}
