@@ -88,6 +88,48 @@
   function syncUI(V, host) {
     Object.keys(ui).forEach(function (k) { ui[k].el.hidden = k !== V || host.board.scrollTop > 40; if (k !== V && ui[k].isOpen()) ui[k].open(false) });
     if (ui[V]) ui[V].refresh();
+    if (stopBtn) stopBtn.hidden = !/^G/.test(V || '') || host.board.scrollTop > 40;
+  }
+
+  /* ---------------- tap to stop / tap to play (gallery only) ----------------
+     One quiet hint-style pill, top centre, on touch screens and narrow windows. It stops whatever moves in the gallery stage: CSS animations are paused (and resume where they were), transitions snap to their end
+     and are held off, scripted animations are paused, any video or audio inside the stage is paused, and OBJ_GAL.stopped is
+     true so anything that auto-advances can honour it (onStop(fn) is called on every change). Tap again resumes. It lives only in G1 / G2 / G3. */
+  var stopped = false, stopBtn = null, frozen = [], mediaPaused = [], stopFns = [];
+  function paintStop() {
+    if (!stopBtn) return;
+    stopBtn.textContent = stopped ? 'tap to play' : 'tap to stop'; stopBtn.setAttribute('aria-pressed', String(stopped));
+    stopBtn.setAttribute('aria-label', stopped ? 'the gallery is stopped: tap to play' : 'tap to stop everything moving in the gallery');
+  }
+  function setStopped(on, host) {
+    on = !!on; if (on === stopped || !host) return; stopped = on; var f = host.front;
+    if (on) {
+      try { f.getAnimations({ subtree: true }).forEach(function (a) { var css = (window.CSSAnimation && a instanceof CSSAnimation) || (window.CSSTransition && a instanceof CSSTransition); if (!css && a.playState === 'running') { a.pause(); frozen.push(a) } }) } catch (e) { }
+      [].forEach.call(f.querySelectorAll('video,audio'), function (m) { if (!m.paused) { m.pause(); mediaPaused.push(m) } });
+      f.classList.add('g-stopped');
+    } else {
+      f.classList.remove('g-stopped');
+      frozen.forEach(function (a) { try { a.play() } catch (e) { } }); frozen = [];
+      mediaPaused.forEach(function (m) { try { var pr = m.play(); if (pr && pr.catch) pr.catch(function () { }) } catch (e) { } }); mediaPaused = [];
+    }
+    paintStop(); stopFns.forEach(function (fn) { try { fn(stopped) } catch (e) { } });
+  }
+  function ensureStop(host) {
+    if (stopBtn) return;
+    stopBtn = el('button', 'g-stop'); stopBtn.type = 'button'; stopBtn.hidden = true; paintStop();
+    stopBtn.addEventListener('click', function (e) { e.stopPropagation(); setStopped(!stopped, hostRef || host) });
+    ['pointerdown', 'pointerup', 'touchstart', 'wheel'].forEach(function (t) { stopBtn.addEventListener(t, function (e) { e.stopPropagation() }, { passive: true }) });
+    document.body.appendChild(stopBtn);
+  }
+  /* the header's follow link (joio on Instagram). Only drawn while a gallery take is showing. */
+  function ensureFollow() {
+    var hd = document.getElementById('ohd'); if (!hd) return null;
+    if (!hd.querySelector('.ofollow')) {
+      var a = el('a', 'ofollow', 'follow'); a.href = 'https://www.instagram.com/co.joio/'; a.target = '_blank'; a.rel = 'noopener noreferrer';
+      a.setAttribute('aria-label', 'follow joio on Instagram (opens in a new tab)');
+      var cnt = hd.querySelector('.ocount'); hd.insertBefore(a, cnt || null);
+    }
+    return hd;
   }
 
   /* ---------------- plans: where every still goes ----------------
@@ -102,7 +144,7 @@
   }
   function plan(V, host) {
     var W = host.W, H = host.H, land = host.land, n = host.els.length, out = [], i, sf = safe(), short = H < 500;
-    var L = sf.l + EDGE, R = W - sf.r - EDGE, TOPR = (short ? 56 : 92) + sf.t, BOTR = (short ? 50 : 58) + sf.b;
+    var L = sf.l + EDGE, R = W - sf.r - EDGE, TOPR = (short ? 80 : 92) + sf.t, BOTR = (short ? 50 : 58) + sf.b;
     host._safe = sf;
     if (V === 'G1') {
       var cur = host.cur, pad = land ? 16 : 12;
@@ -143,7 +185,7 @@
     }
     /* G3: salon hang in rows. Each row's cells share one width; a piece is a little smaller than its cell by a fixed, varied share,
        so the hang is not a grid but nothing ever touches. Under every piece: a thread and the shop slot (34px). */
-    var rowsCfg = land ? [4, 4] : [3, 2, 3], tp = (land ? TOPR : 108 + sf.t), wy = tp, wh = H - tp - BOTR, SLOT = 34;
+    var rowsCfg = land ? [4, 4] : [3, 2, 3], tp = (land ? TOPR + (short ? 14 : 0) : 108 + sf.t), wy = tp, wh = H - tp - BOTR, SLOT = 34;
     var maxc = Math.max.apply(null, rowsCfg), cw = (R - L - (maxc - 1) * GUTTER) / maxc, rh = wh / rowsCfg.length;
     var share = [1, .9, .96, .86, .93, 1, .88, .95], idx = 0;
     rowsCfg.forEach(function (cnt, r) {
@@ -176,13 +218,13 @@
   function joio(host, i) { return host.P[i].b.meta === 'joio.co' }
 
   function chrome(V, host) {
-    ensure(host); hostRef = host;
+    ensure(host); hostRef = host; ensureStop(host); var hdr = ensureFollow(); if (hdr) hdr.setAttribute('data-g', '1');
     var entering = curV !== V;
     if (entering) { curV = V; if (!ST[V]) ST[V] = loadState(V); makePicker(V, host) }
     gal.innerHTML = ''; fg.innerHTML = '';
     var W = host.W, H = host.H, land = host.land, els = host.els;
     gal.className = 'gal ' + V.toLowerCase(); fg.className = 'gal-fg ' + V.toLowerCase();
-    host.front.style.setProperty('--g-sb', (host._safe ? host._safe.b : 0) + 'px'); host.front.style.setProperty('--g-sr', (host._safe ? host._safe.r : 0) + 'px');
+    host.front.style.setProperty('--g-sb', (host._safe ? host._safe.b : 0) + 'px'); host.front.style.setProperty('--g-sr', (host._safe ? host._safe.r : 0) + 'px'); document.documentElement.style.setProperty('--g-st', (host._safe ? host._safe.t : 0) + 'px');
     setLabels(host, V === 'G2' ? 'num' : 'title');
     gal.appendChild(el('div', 'g-wall'));
     if (V === 'G1') chromeG1(host, W, H, land, els);
@@ -190,7 +232,7 @@
     else chromeG3(host, W, H, land, els);
     if (entering) {
       ['--k', '--t', '--s', '--w', '--lit', '--s1', '--s2', '--s3'].forEach(function (p) { host.front.style.setProperty(p, 0) });
-      host.front.classList.remove('g-enter'); void host.front.offsetWidth; host.front.classList.add('g-enter');
+      host.front.classList.remove('g-enter'); if (!stopped) { void host.front.offsetWidth; host.front.classList.add('g-enter') }
       setTimeout(function () { host.front.classList.remove('g-enter') }, 1300);
       requestAnimationFrame(function () { requestAnimationFrame(function () { if (curV === V) applyLight(V, host) }) });
     } else applyLight(V, host);
@@ -199,7 +241,7 @@
     var fd = host.fdown; if (fdownHTML == null) fdownHTML = fd.innerHTML;
     if (V === 'G1') {
       fd.innerHTML = ''; fd.classList.add('g-door');
-      var cl = el('span', 'g-cl'); [['cream', 62], ['ash', 78], ['clay', 48]].forEach(function (a, j) { var c = cup(a[0], a[1], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? GUTTER + 'px' : '0'; cl.appendChild(c) });
+      var cl = el('span', 'g-cl'); (W < 400 ? [['cream', 54], ['ash', 66], ['clay', 42]] : [['cream', 62], ['ash', 78], ['clay', 48]]).forEach(function (a, j) { var c = cup(a[0], a[1], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? GUTTER + 'px' : '0'; cl.appendChild(c) });
       fd.appendChild(cl); fd.appendChild(el('span', 'g-dt', 'the rings and the board ↓'));
     } else { fd.classList.remove('g-door'); fd.innerHTML = fdownHTML }
   }
@@ -278,12 +320,15 @@
     if (!gal) return;
     gal.innerHTML = ''; fg.innerHTML = ''; gal.className = 'gal'; curV = null;
     Object.keys(ui).forEach(function (k) { ui[k].el.hidden = true; if (ui[k].isOpen()) ui[k].open(false) });
+    if (stopBtn) stopBtn.hidden = true;
+    var hd0 = document.getElementById('ohd'); if (hd0) hd0.removeAttribute('data-g');
     if (hostRef) {
+      setStopped(false, hostRef);
       setLabels(hostRef, 'title'); hostRef.fdown.classList.remove('g-door'); if (fdownHTML != null) hostRef.fdown.innerHTML = fdownHTML;
       ['--k', '--t', '--s', '--w', '--lit', '--s1', '--s2', '--s3', '--spr'].forEach(function (p) { hostRef.front.style.removeProperty(p) }); hostRef.front.removeAttribute('data-p');
       hostRef.els.forEach(function (e) { e.el.removeAttribute('data-spot'); e.el.style.removeProperty('--ps') });
     }
   }
 
-  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, labels: CUP_LABEL };
+  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, labels: CUP_LABEL, get stopped() { return stopped }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
 })();

@@ -33,9 +33,11 @@ function measure() {
   document.querySelectorAll('#front .pc').forEach(e => add(e, 'still'));
   document.querySelectorAll('#front .cup').forEach(e => add(e, 'cup'));
   document.querySelectorAll('[data-photo]').forEach(e => add(e, 'photo'));
+  const ui = [];
+  document.querySelectorAll('.g-stop, #ohd .ofollow, .ambx.obj-light .ambx-tg, #fdown').forEach(e => { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || e.hidden) return; const r = e.getBoundingClientRect(); if (r.width < 1) return; ui.push({ name: 'ui:' + (e.className || e.id || e.tagName), l: r.left, t: r.top, r: r.right, b: r.bottom }) });
   const p = document.createElement('div'); p.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
   document.body.appendChild(p); const c = getComputedStyle(p); const safe = { t: parseFloat(c.paddingTop), r: parseFloat(c.paddingRight), b: parseFloat(c.paddingBottom), l: parseFloat(c.paddingLeft) }; p.remove();
-  return { photos: out, safe, vw: innerWidth, vh: innerHeight };
+  return { photos: out, ui, safe, vw: innerWidth, vh: innerHeight };
 }
 
 function judge(m, forced) {
@@ -56,6 +58,11 @@ function judge(m, forced) {
       else { minGap = Math.min(minGap, gap); if (gap < MIN_GAP) fails.push(`TOUCH ${a.name} x ${b.name} (gap ${gap.toFixed(1)}px)`) }
     }
   }
+  /* controls that sit on the page (tap to stop, follow, the light pill) never cover a photo and stay on screen */
+  (m.ui || []).forEach(u => {
+    if (u.l < -.5 || u.t < -.5 || u.r > m.vw + .5 || u.b > m.vh + .5) fails.push(`${u.name} off screen`);
+    P.forEach(a => { if (u.name.indexOf('ui:fdown') === 0 || a.rail >= 0) return; const gap = Math.max(a.l - u.r, u.l - a.r, a.t - u.b, u.t - a.b); if (gap < 0) fails.push(`${u.name} covers ${a.name} (${(-gap).toFixed(1)}px)`) })
+  });
   return { fails, minGap: isFinite(minGap) ? minGap : null };
 }
 

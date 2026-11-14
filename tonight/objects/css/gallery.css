@@ -131,3 +131,19 @@ html[data-theme=red] #front.vG2[data-p=off]{--surf1:#100406;--surf2:#090203;--gl
 
 /* the stage is as tall as the screen, never taller: no photo may sit below the fold in a short landscape window */
 #board #front[data-g]{min-height:0}
+
+/* ---- tap to stop: the room's own hint pill (same type, ground and radius as #hint), top centre, touch screens and narrow windows only ---- */
+.g-stop{display:none;position:fixed;left:50%;top:calc(46px + var(--g-st,0px));transform:translateX(-50%);z-index:13;margin:0;border:0;font:300 11px/1.2 Poppins,system-ui,sans-serif;color:#d8cfc2;background:rgba(10,10,14,.6);
+  padding:6px 12px;border-radius:999px;white-space:nowrap;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);-webkit-tap-highlight-color:transparent;cursor:pointer}
+.g-stop::before{content:"";position:absolute;inset:-10px -8px}
+.g-stop[aria-pressed=true]{color:#e8e4dc}
+.g-stop:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:2px}
+@media (pointer:coarse),(max-width:719px){.g-stop:not([hidden]){display:block}}
+/* stopped: running animations are held where they are, transitions snap and stay off; play removes this and they carry on */
+#front.g-stopped,#front.g-stopped *{animation-play-state:paused!important;transition:none!important}
+
+/* ---- follow: joio on Instagram, in the header, same type as the piece count ---- */
+#ohd .ofollow{display:none;position:relative;font:300 10.5px/1 Poppins,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#a49d92;text-decoration:none;padding:4px 0;border-bottom:1px solid rgba(164,157,146,.35)}
+#ohd .ofollow::before{content:"";position:absolute;inset:-12px -8px}
+#ohd .ofollow:hover,#ohd .ofollow:focus-visible{color:#e8e4dc;border-bottom-color:rgba(232,228,220,.7);outline:0}
+body.at-board:not(.at-detail) #ohd[data-g] .ofollow{display:inline-block}
