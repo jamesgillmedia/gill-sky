@@ -41,6 +41,24 @@ const parse = c => (/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c) || []).slice(1, 4).
     await tap('.bd-hub'); await sleep(900); await p.keyboard.press('Escape'); await sleep(900); ok(await lvl() === '0', tag + ': Esc closes');
     await tap('.bd-hub'); await sleep(900); await p.goBack(); await sleep(900); ok(await lvl() === '0', tag + ': back closes'); ok(await p.evaluate(() => location.href) === href0, tag + ': back stayed on the page');
     await tap('.bd-hub'); await sleep(900); await tap('.bd-hub'); await sleep(900); ok(await lvl() === '0', tag + ': a second hub tap closes');
+    // tap-to-open and tap-to-close on the hub, a reliable fallback for the swipe: one tap = one toggle (never a double fire), under ~8px of movement is still a tap
+    {
+            await tap('.bd-hub'); await sleep(700);
+      ok(await lvl() === '1', tag + ': a tap on the closed hub opens the dial (and stays open: no double fire from the click that follows)');
+      ok(await p.evaluate(() => !!(history.state && history.state.bd === 1)), tag + ': the open dial is its own history step (so back closes it)');
+      await tap('.bd-hub'); await sleep(700);
+      ok(await lvl() === '0', tag + ': a tap on the hub again closes it (and stays closed)');
+      await p.keyboard.press('Tab'); await p.focus('.bd-hub'); await p.keyboard.press('Enter'); await sleep(900);
+      ok(await lvl() === '1', tag + ': Enter on the focused hub opens it too'); await p.keyboard.press('Enter'); await sleep(900); ok(await lvl() === '0', tag + ': and closes it');
+      if (phone) {
+        const c = await p.createCDPSession(), T = (ty, pts) => c.send('Input.dispatchTouchEvent', { type: ty, touchPoints: pts });
+        const h = await p.evaluate(() => { const b = document.querySelector('.bd-hub').getBoundingClientRect(); return [b.x + b.width / 2, b.y + b.height / 2]; });
+        const wob = async (dx, dy) => { await T('touchStart', [{ x: h[0], y: h[1] }]); await T('touchMove', [{ x: h[0] + dx / 2, y: h[1] + dy / 2 }]); await sleep(30); await T('touchMove', [{ x: h[0] + dx, y: h[1] + dy }]); await sleep(30); await T('touchEnd', []); await sleep(700); };
+        await wob(5, 5); ok(await lvl() === '1', tag + ': a tap with 7px of finger wobble still opens the dial');
+        await wob(-4, 6); ok(await lvl() === '0', tag + ': and still closes it');
+        await wob(14, 4); ok(await lvl() === '0', tag + ': a 15px drag that is not a swipe does nothing (neither tap nor swipe)');
+      }
+    }
     // mobile: a swipe down that starts on the hub or the dial goes through; taps and ring drags still work; a held dial steps back but never vanishes
     if (phone) {
       const c = await p.createCDPSession(), T = (ty, pts) => c.send('Input.dispatchTouchEvent', { type: ty, touchPoints: pts });

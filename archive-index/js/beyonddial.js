@@ -37,7 +37,7 @@
 
   /* ---------- layout ---------- */
   var BIG = 160, HUB = 44;
-  var NOM = { x: -72, y: -120 }, LAY = { beyond: { x: NOM.x, y: NOM.y, z: 28 } };
+  var TAP_PX = 8, NOM = { x: -72, y: -120 }, LAY = { beyond: { x: NOM.x, y: NOM.y, z: 28 } };
   var ORDER = ['beyond'];
   var wrap, hub, cluster, D = {}, lvl = 0, holdS = { x: 0, v: 0, t: 0, w: 4.6 }, hubSw = null, noClickUntil = 0, openA = { x: 0, v: 0, t: 0, w: 4.6 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
 
@@ -95,8 +95,13 @@
     hub.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); if (performance.now() < noClickUntil) return; cycle(); });
     /* a swipe down that starts on the hub goes through (the hub does not swallow it); a tap still opens the dial */
     hub.addEventListener('pointerdown', function (e) { if (e.button > 0) return; hubSw = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false }; try { hub.setPointerCapture(e.pointerId); } catch (x) {} });
-    hub.addEventListener('pointermove', function (e) { if (hubSw && hubSw.id === e.pointerId && Math.hypot(e.clientX - hubSw.x, e.clientY - hubSw.y) > 10) hubSw.moved = true; });
-    hub.addEventListener('pointerup', function (e) { var sw = hubSw; if (!sw || sw.id !== e.pointerId) return; hubSw = null; if (sw.moved) noClickUntil = performance.now() + 450; if (isSwipeDown(sw, e)) onSwipeDown(); });
+    hub.addEventListener('pointermove', function (e) { if (hubSw && hubSw.id === e.pointerId && Math.hypot(e.clientX - hubSw.x, e.clientY - hubSw.y) > TAP_PX) hubSw.moved = true; });
+    /* tap and swipe never both fire: under TAP_PX of movement it is a tap and toggles right here on pointerup (open when closed, close when open: it does not wait for a click);
+       beyond it, a downward swipe goes to the page and anything else does nothing. Either way the click that follows is swallowed. A keyboard activation still arrives as a click. */
+    hub.addEventListener('pointerup', function (e) {
+      var sw = hubSw; if (!sw || sw.id !== e.pointerId) return; hubSw = null; noClickUntil = performance.now() + 450;
+      if (!sw.moved) cycle(); else if (isSwipeDown(sw, e)) onSwipeDown();
+    });
     hub.addEventListener('pointercancel', function () { hubSw = null; });
     doc.addEventListener('pointerdown', function (e) { if (lvl && !held && !wrap.contains(e.target)) { e.preventDefault(); e.stopPropagation(); closeOne(); } }, true);
     doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && lvl) { e.preventDefault(); e.stopImmediatePropagation(); closeOne(); } }, true);
