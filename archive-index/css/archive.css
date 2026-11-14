@@ -144,3 +144,9 @@ html.rm .cstl{background:#050203}
 html.rm .lt-box{background:#000}
 html.rm-img #cv,html.rm-img .lt-box img{filter:grayscale(1) sepia(1) hue-rotate(-56deg) saturate(3.4) brightness(.58) contrast(1.15)}
 @media (max-width:520px){.lt-nav.next{right:calc(max(.5rem,env(safe-area-inset-right)) + 52px)}}
+
+/* eyepiece: only the outer silhouette. Mask is the room colour, so it is invisible at rest; the hairline edge shows while moving. */
+#eye{position:fixed;inset:0;width:100%;height:100%;z-index:15;pointer-events:none;overflow:visible}
+#eyeMask{fill:#0a0b0d;fill-rule:evenodd}
+#eyeLine{fill:none;stroke:rgba(238,240,242,.42);stroke-width:1;shape-rendering:geometricPrecision;opacity:0}
+html.rm #eyeLine{stroke:rgba(190,40,56,.85)}

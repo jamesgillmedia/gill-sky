@@ -91,8 +91,15 @@ function build(cols) {
   }
   return { cols, r, heads, W, H: y + PAD };
 }
+/* the eyepiece: a soft rounded-rectangle aperture (css px). The whole field fits inside it at the widest zoom, below the title bar and above the controls. */
+function ap() {
+  const cr = document.querySelector('.corner'), bot = cr ? Math.max(40, vh - cr.getBoundingClientRect().top + 8) : 56;
+  const x = 10, y = TOP + 8, w = Math.max(60, vw - x * 2), h = Math.max(60, vh - y - bot);
+  return { x, y, w, h, r: Math.max(14, Math.min(46, Math.min(w, h) * .06)) };
+}
+function apFit() { const a = ap(), ins = a.r * .3 + 3; return { w: a.w - 2 * ins, h: a.h - 2 * ins, cx: a.x + a.w / 2, cy: a.y + a.h / 2 }; }
 function layout() {
-  const a = vw / Math.max(1, vh - TOP);
+  const fv = apFit(), a = fv.w / Math.max(1, fv.h);
   let best = null, bd = 1e9;
   for (let c = 5; c <= 90; c++) {
     const l = build(c); const d = Math.abs(Math.log((l.W / l.H) / a));
@@ -100,18 +107,19 @@ function layout() {
   }
   L = best;
 }
-function fitS() { return Math.min((vw - 8) / L.W, (vh - TOP - 6) / L.H); }
+function fitS() { const fv = apFit(); return Math.min(fv.w / L.W, fv.h / L.H); }
 function minS() { return fitS() * 0.85; }
 function maxS() { return Math.max(vw, vh) * 0.9 / CW; }
-function fit(anim) { const t = fitS(); go(t, L.W / 2 - vw / 2 / t, L.H / 2 - (vh + TOP) / 2 / t, anim); }
+function fit(anim) { const t = fitS(), fv = apFit(); go(t, L.W / 2 - fv.cx / t, L.H / 2 - fv.cy / t, anim); }
 function clamp() {
   s = Math.min(maxS(), Math.max(minS(), s));
   const ww = L.W * s, wh = L.H * s;
   // keep some of the field on screen; centre if it is smaller than the view
-  const mx = ww < vw ? (L.W / 2 - vw / 2 / s) : null;
-  const my = wh < vh - TOP ? (L.H / 2 - (vh + TOP) / 2 / s) : null;
-  ox = mx !== null ? mx : Math.min(L.W - vw / s + 40 / s, Math.max(-40 / s, ox));
-  oy = my !== null ? my : Math.min(L.H - vh / s + 60 / s, Math.max(-(TOP + 40) / s, oy));
+  const A = ap(), fv = apFit();
+  const mx = ww <= fv.w + 1 ? (L.W / 2 - fv.cx / s) : null;
+  const my = wh <= fv.h + 1 ? (L.H / 2 - fv.cy / s) : null;
+  ox = mx !== null ? mx : Math.min(L.W - (A.x + A.w - 40) / s, Math.max(-(A.x + 40) / s, ox));
+  oy = my !== null ? my : Math.min(L.H - (A.y + A.h - 40) / s, Math.max(-(A.y + 40) / s, oy));
 }
 let anim = null;
 function go(ts, tx, ty, a) {
@@ -275,9 +283,39 @@ function drawContain(im, sx, sy, sw, sh, dx, dy, dw, dh) {
   cx.fillStyle = '#050506'; cx.fillRect(dx, dy, dw, dh);
   cx.drawImage(im, sx, sy, sw, sh, dx + (dw - w) / 2, dy + (dh - h) / 2, w, h);
 }
+/* eyepiece render: the aperture mask is always there (content only shows inside it); the hairline edge shows only while something moves.
+   Zooming in past the widest level scales the frame out and fades it on the site spring, so crossing it never pops or hard-clips. */
+const eye = document.getElementById('eye'), eyeMask = document.getElementById('eyeMask'), eyeLine = document.getElementById('eyeLine');
+const ez = S(0, 4.6); let eyeMoveT = 0, eyeA = 0, eyeKey = '';
+const eyeNudge = () => { eyeMoveT = performance.now(); };
+function eyePath(x, y, w, h, r) {
+  const c = r * .42;
+  return `M${x + r} ${y}H${x + w - r}C${x + w - c} ${y} ${x + w} ${y + c} ${x + w} ${y + r}V${y + h - r}C${x + w} ${y + h - c} ${x + w - c} ${y + h} ${x + w - r} ${y + h}H${x + r}C${x + c} ${y + h} ${x} ${y + h - c} ${x} ${y + h - r}V${y + r}C${x} ${y + c} ${x + c} ${y} ${x + r} ${y}Z`;
+}
+function eyeTick(dt, now) {
+  if (!L) return;
+  const a = ap(), z = s / fitS(), W_ = WTS();
+  ez.t = clampN((z - 1.03) / .9, 0, 1); ez.w = W_.GLIDE; sstep(ez, dt);
+  const zk = clampN(ez.x, 0, 1), spring = Math.abs(ez.x - ez.t) > .002 || Math.abs(ez.v) > .002;
+  if (spring || anim || glide || Math.abs(dr.x.x) + Math.abs(dr.y.x) > .05 || P.size) { if (spring || anim || glide || P.size) eyeNudge(); }
+  const kmax = Math.max(vw / a.w, vh / a.h) * 1.25, e3 = zk < .5 ? 4 * zk * zk * zk : 1 - Math.pow(-2 * zk + 2, 3) / 2, k = 1 + (kmax - 1) * e3;
+  const m = clampN((zk - .45) / .55, 0, 1), maskA = 1 - m * m * (3 - 2 * m);
+  const moving = now - eyeMoveT < 140;
+  eyeA += ((moving ? 1 : 0) - eyeA) * (1 - Math.exp(-dt * (moving ? 22 : 4.2)));   // quick in, soft out about half a second after you stop
+  if (eyeA < .002 && !moving) eyeA = 0;
+  const w = a.w * k, h = a.h * k, x = a.x + a.w / 2 - w / 2, y = a.y + a.h / 2 - h / 2, r = a.r * k;
+  const key = [vw, vh, w.toFixed(2), x.toFixed(2), y.toFixed(2), maskA.toFixed(3), eyeA.toFixed(3)].join();
+  if (key === eyeKey) return; eyeKey = key;
+  eye.style.visibility = maskA < .003 ? 'hidden' : 'visible';
+  const d = eyePath(x, y, w, h, r);
+  eyeMask.setAttribute('d', `M-2 -2H${vw + 2}V${vh + 2}H-2Z` + d); eyeMask.style.opacity = maskA.toFixed(3);
+  eyeLine.setAttribute('d', d); eyeLine.style.opacity = (eyeA * maskA).toFixed(3);
+  eye.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
+}
 let dlt = 0;
 function loop(t) {
   const ddt = Math.min(.05, Math.max(.001, (t - dlt) / 1000)); dlt = t;
+  eyeTick(ddt, t);
   if (Math.abs(dr.x.x) + Math.abs(dr.y.x) + Math.abs(dr.x.t) + Math.abs(dr.y.t) + Math.abs(dr.x.v) + Math.abs(dr.y.v) > .004) { sstep(dr.x, ddt); sstep(dr.y, ddt); dirty = true; }
   if (anim) anim(t);
   if (glide) glide(t);
@@ -349,7 +387,7 @@ function up(e) {
 vp.addEventListener('pointerup', up); vp.addEventListener('pointercancel', up);
 vp.addEventListener('pointerleave', () => { if (hov >= 0) { hov = -1; dirty = true; } });
 vp.addEventListener('wheel', e => {
-  e.preventDefault(); anim = null; glide = null;
+  e.preventDefault(); anim = null; glide = null; eyeNudge();
   const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? vh : 1;
   if (!e.ctrlKey && (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY))) {
     ox += (e.deltaX || e.deltaY) * k / s; clamp(); dirty = true; return;
