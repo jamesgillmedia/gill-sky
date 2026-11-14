@@ -9,6 +9,24 @@ const $ = id => document.getElementById(id);
 const CW = 160, CH = 90, GX = 12, GY = 12, HEAD = 62, FGAP = 30, PAD = 24;
 const MONO = 'ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,"DejaVu Sans Mono","Liberation Mono",monospace';
 const RED = '229,55,44';
+/* red mode: every canvas colour is remapped to a deep darkroom red (images are drawn untouched, so they stay true colour) */
+const remapCache = new Map(); let rmOn = false;
+function toRed(v) {
+  if (!rmOn || typeof v !== 'string') return v;
+  let r = remapCache.get(v); if (r) return r;
+  let c = null, m;
+  if ((m = /^rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)(?:\s*,\s*([\d.]+))?\s*\)$/.exec(v))) c = [+m[1], +m[2], +m[3], m[4] == null ? 1 : +m[4]];
+  else if ((m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v))) { let h = m[1]; if (h.length === 3) h = h.replace(/./g, '$&$&'); c = [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16), 1]; }
+  if (!c) return v;
+  const mx = Math.max(c[0], c[1], c[2]);
+  if (mx < 40) r = v;                                   // black stays dark
+  else { const l = Math.min(1, mx / 255), k = x => Math.round(x); r = 'rgba(' + k(24 + 198 * l) + ',' + k(5 + 47 * l) + ',' + k(9 + 57 * l) + ',' + c[3] + ')'; }
+  remapCache.set(v, r); return r;
+}
+{ const P = CanvasRenderingContext2D.prototype;
+  for (const k of ['fillStyle', 'strokeStyle']) { const d = Object.getOwnPropertyDescriptor(P, k); Object.defineProperty(cx, k, { get() { return d.get.call(cx); }, set(v) { d.set.call(cx, toRed(v)); }, configurable: true }); } }
+addEventListener('rmchange', e => { rmOn = e.detail.rm; dirty = true; });
+if (window.GJ_RM) rmOn = GJ_RM.on();
 let D, F = [], films = [], mode = 'film', hi = null;  // hi = highlighted film index
 let L = null;            // layout
 let vw = 0, vh = 0, dpr = 1, TOP = 46;
