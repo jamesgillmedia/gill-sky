@@ -2,7 +2,9 @@
    Needs puppeteer-core and a Chrome (CHROME=/path, default /usr/local/bin/google-chrome). Runs desktop and a 390px touch phone.
    Checks, per viewport: no console errors; closed -> one tap opens the Beyond dial only (no mini dials, no sub-menu);
    tap outside / Esc / back each close it and leave the page where it was; a second hub tap closes; the outer ring snaps between the off / red / colour / light detents and re-ranks
-   the field; the dial is opaque with a mist that has pointer-events none; red mode gives a dark red body; no filter on the images. */
+   the field; the dial is opaque with a mist that has pointer-events none; red mode gives a dark red body; no filter on the images.
+   Also: the hub and the open dial are visible and inside the viewport; each of red / colour / light swaps which frames lead the field (and off restores it);
+   red mode on and off both work with the dial; images keep filter:none (field canvas and the lifted frame); back, Esc and pinch still work (lift, constellation). */
 const puppeteer = require('puppeteer-core');
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const BASE = process.argv[2] || 'http://localhost:8123/archive-index/index.html';
@@ -27,6 +29,9 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     await tap('.bd-hub'); await sleep(1400);
     ok(await lvl() === '1', tag + ': one tap on the hub opens the Beyond dial');
     ok(await p.evaluate(() => document.querySelector('.bd-cluster').classList.contains('bd-vis')), tag + ': dial is visible');
+    const vis = await p.evaluate(() => { const vw = innerWidth, vh = innerHeight, q = s => { const e = document.querySelector(s), r = e.getBoundingClientRect(), c = getComputedStyle(e); return { in: r.left >= -1 && r.top >= -1 && r.right <= vw + 1 && r.bottom <= vh + 1 && r.width > 20, vis: c.visibility !== 'hidden' && c.display !== 'none' && +c.opacity > .3 }; }; return { hub: q('.bd-hub'), dial: q('.bd-body') }; });
+    ok(vis.hub.in && vis.hub.vis, tag + ': the hub is visible and on screen'); ok(vis.dial.in && vis.dial.vis, tag + ': the open dial is visible and fully on screen');
+    await p.screenshot({ path: (process.env.SHOTS || '/tmp') + '/beyond-' + (phone ? 'phone' : 'desktop') + '-normal.png' });
     ok(await p.evaluate(() => !document.querySelector('[data-k=depth],[data-k=drift],[data-k=orbit],[data-k=ease]')), tag + ': no mini dials or sub-menu');
     const css = await p.evaluate(() => { const m = document.querySelector('.bd-mist'), bo = document.querySelector('.bd-body'), cm = getComputedStyle(m), cb = getComputedStyle(bo); return { pe: cm.pointerEvents, bf: cm.backdropFilter || cm.webkitBackdropFilter, bg: cb.backgroundColor }; });
     ok(css.pe === 'none', tag + ': mist has pointer-events:none'); ok(/blur/.test(css.bf), tag + ': backdrop blur on the mist'); ok(/rgb\(\d+, \d+, \d+\)$/.test(css.bg), tag + ': body is an opaque solid (' + css.bg + ')');
@@ -54,10 +59,17 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     ok(await p.evaluate(() => JSON.stringify(window.__ai.perm())) !== before, tag + ': the field re-ranked');
     const col = await p.evaluate(() => ({ act: document.querySelector('.bd-act').getAttribute('stroke'), th: document.querySelector('.ring-out .bd-th').getAttribute('fill') }));
     ok(/rgba\(\d+,\d+,\d+,/.test(col.act) && col.act === col.th.replace(/,1\)$/, ',.95)') || !!col.act, tag + ': active arc and thumb carry the ramp colour (' + col.act + ')');
-    const pt2 = at(45); await tapAt(pt2[0], pt2[1]); await sleep(1600);
+    const pRed = await p.evaluate(() => JSON.stringify(window.__ai.perm()));
+    const pt2 = at(45); await tapAt(pt2[0], pt2[1]); await sleep(2000);
     ok(await p.evaluate(() => GJ_BEYOND.state.mode) === 'colour', tag + ': outer ring snapped to the colour detent');
+    const pCol = await p.evaluate(() => JSON.stringify(window.__ai.perm()));
+    ok(pCol !== pRed, tag + ': colour swaps the frames that lead (red -> colour)');
     const pt3 = at(135); await tapAt(pt3[0], pt3[1]); await sleep(2000);
     ok(await p.evaluate(() => GJ_BEYOND.state.mode) === 'light', tag + ': outer ring snapped to the light detent');
+    ok(await p.evaluate(() => JSON.stringify(window.__ai.perm())) !== pCol, tag + ': light swaps the frames that lead (colour -> light)');
+    const pt0 = at(-135); await tapAt(pt0[0], pt0[1]); await sleep(2000);
+    ok(await p.evaluate(() => GJ_BEYOND.state.mode) === 'off' && await p.evaluate(() => window.__ai.perm() == null), tag + ': off restores the archive order');
+    const ptr = at(-45); await tapAt(ptr[0], ptr[1]); await sleep(1600);
     const col2 = await p.evaluate(() => document.querySelector('.bd-act').getAttribute('stroke'));
     ok(col2 !== col.act, tag + ': the ramp colour moved with the detent (' + col2 + ')');
     // red mode
@@ -66,8 +78,25 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); 
     await tap('.bd-hub'); await sleep(1400);
     const rb = await p.evaluate(() => ({ rm: document.documentElement.classList.contains('rm'), body: getComputedStyle(document.querySelector('.bd-body')).backgroundColor, filter: getComputedStyle(document.getElementById('cv')).filter }));
     ok(rb.rm && /rgb\((\d+), (\d+), (\d+)\)/.test(rb.body) && +/rgb\((\d+)/.exec(rb.body)[1] > +/rgb\(\d+, (\d+)/.exec(rb.body)[1], tag + ': red mode gives a dark red body (' + rb.body + ')');
-    ok(rb.filter === 'none', tag + ': no filter on the images');
+    ok(rb.filter === 'none', tag + ': no filter on the images (red mode on)');
     await p.screenshot({ path: process.env.SHOTS ? process.env.SHOTS + '/bd-' + (phone ? 'phone' : 'desktop') + '-red.png' : '/tmp/bd-' + (phone ? 'phone' : 'desktop') + '-red.png' });
+    await p.keyboard.press('Escape'); await sleep(600);
+    await tap('.rm-dot'); await sleep(900);
+    const roff = await p.evaluate(() => ({ rm: document.documentElement.classList.contains('rm'), filter: getComputedStyle(document.getElementById('cv')).filter }));
+    ok(!roff.rm && roff.filter === 'none', tag + ': red mode off works, images filter:none');
+    // navigation still works: back / Esc / pinch
+    await p.evaluate(() => { location.hash = '#order=continuous&boxes=dim&n=0142'; }); await sleep(1800);
+    ok(await p.evaluate(() => !document.getElementById('lt').hidden), tag + ': a frame lifts');
+    ok(await p.evaluate(() => getComputedStyle(document.getElementById('ltbox').querySelector('img')).filter) === 'none', tag + ': the lifted frame keeps filter:none');
+    await p.keyboard.press('Escape'); await sleep(1100); ok(await p.evaluate(() => document.getElementById('lt').hidden), tag + ': Esc leaves the frame');
+    await p.evaluate(() => { location.hash = '#order=continuous&boxes=dim&n=0142'; }); await sleep(1800);
+    await p.goBack(); await sleep(1100); ok(await p.evaluate(() => document.getElementById('lt').hidden), tag + ': back leaves the frame');
+    await p.evaluate(() => { location.hash = '#order=continuous&boxes=dim&n=0142'; }); await sleep(1800);
+    if (phone) { const c = await p.createCDPSession(); const T = (ty, pts) => c.send('Input.dispatchTouchEvent', { type: ty, touchPoints: pts }); const cx = 195, cy = 430;
+      for (let n = 0; n < 2; n++) { await T('touchStart', [{ x: cx - 100, y: cy }, { x: cx + 100, y: cy }]); for (let i = 1; i <= 20; i++) { const w = 100 - 75 * i / 20; await T('touchMove', [{ x: cx - w, y: cy }, { x: cx + w, y: cy }]); await sleep(18); } await T('touchEnd', []); await sleep(500); } }
+    else { await p.mouse.move(640, 400); for (let i = 0; i < 16; i++) { await p.mouse.wheel({ deltaY: 250 }); await sleep(45); } }
+    await sleep(1500); ok(await p.evaluate(() => !document.querySelector('.cstl').hidden), tag + ': pinch / wheel out still reaches the constellation');
+    await p.keyboard.press('Escape'); await sleep(1800); ok(await p.evaluate(() => document.querySelector('.cstl').hidden), tag + ': Esc returns from the constellation');
     ok(errs.length === 0, tag + ': no console errors' + (errs.length ? ' ' + JSON.stringify(errs.slice(0, 3)) : ''));
     await p.close();
   }
