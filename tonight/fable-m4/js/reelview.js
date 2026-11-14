@@ -74,7 +74,7 @@ function mount(el,hooks){
     var marks=track.children,c;
     if(prev>=0)for(c=0;c<3;c++){var o=marks[c*N+mod(prev)];if(o)o.classList.remove('on')}
     for(c=0;c<3;c++){var m=marks[c*N+n];if(m)m.classList.add('on')}
-    quiet();if(!busy()){playCur();vidFor(mod(n+1),true)}
+    quiet();if(!busy()&&playing){playCur();vidFor(mod(n+1),true)}
   }
   function place(){
     var w=root.clientWidth,q=((p%N)+N)%N;
@@ -87,14 +87,21 @@ function mount(el,hooks){
     if(tween){
       var kk=Math.min(1,(t-tween.t0)/tween.ms),e=1-Math.pow(1-kk,3);
       p=tween.a+(tween.b-tween.a)*e;
-      if(kk>=1){p=tween.b;tween=null;if(!playing)playCur()}
+      if(kk>=1){p=tween.b;tween=null}
     }else if(playing&&!drag&&!wheeling)p+=dt*RATE;
     place();raf=requestAnimationFrame(frame);
   }
   function startLoop(){lastT=0;if(!raf)raf=requestAnimationFrame(frame)}
   function stopLoop(){if(raf)cancelAnimationFrame(raf);raf=0;quiet()}
   function glide(to,ms){tween={a:p,b:to,t0:performance.now(),ms:ms||500};startLoop()}
-  function setPlay(on){playing=on;root.classList.toggle('paused',!on);if(on){tween=null;playCur()}}
+  /* Moving <-> still is instant and in place. Still: the clip is paused on the frame it is showing (currentTime and the .on picture untouched),
+   any glide in flight is dropped where it is, and the strip stays at the transform it has. Moving: the clip resumes from that same frame and
+   the strip drifts on from that same position. Nothing eases, fades or slides, and nothing is left running. */
+  function setPlay(on){
+    playing=on;root.classList.toggle('paused',!on);tween=null;
+    if(on)playCur();
+    else pool.forEach(function(o){if(!o.v.paused)o.v.pause()});
+  }
   function toggle(){setPlay(!playing);root.classList.add('seen')}
   function onDown(e){
     if(e.button)return;
