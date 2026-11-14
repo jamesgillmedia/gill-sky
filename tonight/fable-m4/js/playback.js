@@ -127,11 +127,7 @@ function ensure(){
     "#gj-head{position:absolute;z-index:2;cursor:pointer;background:transparent;outline:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}",
     "#gj-head[hidden]{display:none}",
     "#gj-head:focus-visible{box-shadow:inset 0 0 0 1px rgba(232,228,220,.28)}",
-    "#gj-head .gj-rip{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border:1px solid #e8e4dc;border-radius:50%;opacity:0;pointer-events:none;box-sizing:border-box}",
-    "#gj-head .gj-glyph{position:absolute;right:14px;top:12px;width:10px;height:12px;opacity:0;pointer-events:none;transition:opacity 1.1s ease-out;color:#e8e4dc}",
-    "#gj-head .gj-glyph.on{opacity:.4;transition:none}",
-    "#gj-head .gj-glyph.pause{background:linear-gradient(90deg,currentColor 0 3px,transparent 3px 7px,currentColor 7px 10px)}",
-    "#gj-head .gj-glyph.play{background:currentColor;clip-path:polygon(0 0,100% 50%,0 100%)}",
+    "#gj-head .gj-rip{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border:1px solid transparent;border-radius:50%;opacity:0;pointer-events:none;box-sizing:border-box}",
     "#opc .oc,#opc .oc-b{background:#04070b}",
     "video.gj-hero{background:#04070b}"
   ].join("");
@@ -349,28 +345,32 @@ function setPaused(on,quiet){
   }
   if(band)band.setAttribute("aria-pressed",paused?"true":"false");
   try{window.dispatchEvent(new Event("gjpause"))}catch(e){}
-  if(!quiet)flash(paused?"pause":"play");
   return paused;
 }
-var band,glyph,glyphT;
-function flash(kind){
-  if(!glyph)return;
-  glyph.className="gj-glyph "+kind;
-  void glyph.offsetWidth;
-  glyph.classList.add("on");
-  clearTimeout(glyphT);
-  glyphT=setTimeout(function(){glyph.classList.remove("on")},50);
+var band;
+/* Tap feedback at the tap point: one soft ring (a thin line and a faint glow in the current ink), 0.16 at its peak, 32px out, gone in about half a
+   second. It sits in the header band, above the header text, and takes no taps. The ink comes from the theme, so Red gets its own ink and never white.
+   With Reduce Motion it does not grow: the same ring simply fades. */
+function ink(a){
+  var c="rgba(232,228,220,"+a+")";
+  try{if(window.GJ_THEME&&GJ_THEME.map)c=GJ_THEME.map(c)}catch(e){}
+  return c;
 }
-/* One thin ring, a whisper: 0.16 at its peak, ends 32px out, gone in about half a second. No burst, no fill. */
 function ripple(x,y){
   if(!band||!band.animate)return;
-  try{if(matchMedia("(prefers-reduced-motion: reduce)").matches)return}catch(e){}
+  var calm=false;
+  try{calm=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
   var r=band.getBoundingClientRect(),ring=document.createElement("i");
   ring.className="gj-rip";
   ring.style.left=(x-r.left)+"px";
   ring.style.top=(y-r.top)+"px";
+  ring.style.borderColor=ink(1);
+  ring.style.background="radial-gradient(circle,"+ink(.35)+" 0,"+ink(0)+" 72%)";
   band.appendChild(ring);
-  var a=ring.animate([{transform:"scale(.375)",opacity:.16},{transform:"scale(1)",opacity:0}],{duration:520,easing:"cubic-bezier(.2,.6,.3,1)",fill:"forwards"});
+  var a=ring.animate(calm
+    ?[{transform:"scale(1)",opacity:.16},{transform:"scale(1)",opacity:0}]
+    :[{transform:"scale(.375)",opacity:.16},{transform:"scale(1)",opacity:0}],
+    {duration:calm?420:520,easing:calm?"ease-out":"cubic-bezier(.2,.6,.3,1)",fill:"forwards"});
   a.onfinish=function(){if(ring.parentNode)ring.parentNode.removeChild(ring)};
 }
 function inBox(x,y,b){return x>=b.l&&x<=b.r&&y>=b.t&&y<=b.b}
@@ -397,10 +397,6 @@ function ensureBand(){
   band.setAttribute("aria-label","Pause or resume the film loops");
   band.setAttribute("aria-pressed",paused?"true":"false");
   band.hidden=true;
-  glyph=document.createElement("i");
-  glyph.className="gj-glyph";
-  glyph.setAttribute("aria-hidden","true");
-  band.appendChild(glyph);
   band.addEventListener("click",function(e){
     var u=window.__u1,info=u&&u.rects;
     if(!info||info.key!=="film")return;
