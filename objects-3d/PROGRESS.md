@@ -13,9 +13,11 @@ Gill asked for the same camera logic and a gentle orbit here, "most opaque and r
 ## preview-objects-orbit, version C rings + planet (Nov 14)
 `index.html` now opens version C of the live tonight objects room: `js/c-media.js` is tonight/objects `js/media.js` (window.OBJ_C, rings and board) and `media/{r,cup,board}` plus `js/glb.js` are copied intact (the joio cup GLB is byte-identical).
 No ice cream scoop mesh exists in the repo on any ref (only `joio-cup.glb`), so the scoop ring is its photographs; nothing was invented.
-Glide ring to ring (swipe, arrows, chevrons), go through the hoop (tap, pinch in, Enter), deeper layers are smaller hoops down the same axis. Alone in a room, drag turns a vast spherical world around you and the object
-(unbounded yaw, soft-walled +-1.2 rad pitch, curved horizon on the shell, slow inertia, site springs 9.5 / 5.6 / 4.6 / 3.2, FOV 60, 960 ms push). The mesh cup turns with its world; flat photographs face you and lean a little.
-Pinch out rises through the ring you came in by, then to the constellation (tap a star or pinch in to return). Red mode dot (images true colour by default), Reduce Motion (no drift, no inertia, no push).
+Flow: rings -> object orbit -> planet.
+- Rings stay as C has them: glide ring to ring (swipe, arrows, chevrons), through a hoop (tap, pinch in, Enter), deeper layers are smaller hoops down the same axis.
+- Inside an object the camera spins and orbits around that object (drag; wide yaw, +-1.0 rad pitch, slow inertia, site springs 9.5 / 5.6 / 4.6 / 3.2, FOV 60, 960 ms push). Photographs face you while you orbit; the mesh cup is orbited for real.
+- Pinch out (or wheel away) from an object enters the planet: a vast spherical world you are inside, drag turns the whole world around you and the object (unbounded yaw, +-1.2 rad pitch, curved horizon). Pinch in, Back or Esc return to the object. Back / Esc then rise layer by layer and out through the ring.
+- Pinch out from the ring view, or once more from the planet, reaches the constellation (tap a star or pinch in to return). Red mode dot (images true colour by default); Reduce Motion: no idle drift, no inertia, no push.
 The earlier specimen viewer is `specimen.html`.
 
 ## Open it

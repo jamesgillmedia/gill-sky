@@ -1,9 +1,11 @@
-/* objects-3d · version C rings, with a planet to be alone in.
-   The way in is C's rings (tonight/objects, window.OBJ_C): glide ring to ring, go through a hoop into a piece's room, deeper layers are smaller
-   hoops further down the same axis. Once through a hoop you are alone with the object, inside a vast spherical world: drag turns the whole
-   sphere of the environment around you and the object (wide yaw, no hard clamp, generous pitch, curved horizon), with slow inertia that settles.
+/* objects-3d · version C rings, an object to orbit, and a planet to be inside.
+   rings -> object orbit -> planet.  The way in is C's rings (tonight/objects, window.OBJ_C): glide ring to ring, go through a hoop into a piece's room,
+   deeper layers are smaller hoops further down the same axis. Inside an object's room the camera spins and orbits around that object (wide yaw, generous pitch,
+   slow inertia that settles). Pinch out from the object enters the planet: a vast spherical world you are inside, where drag turns the whole world around you
+   and the object (wide yaw, no hard clamp, curved horizon). Pinch in returns to the object; Back / Esc rise one step (planet -> object -> its ring).
+   Pinch out from the ring view, or once more from the planet, reaches the constellation.
    The camera is the site's: critically damped springs (sstep, W_REL 9.5 / W_FLY 5.6 / W_GLIDE 4.6 / W_SOFT 3.2), FOV 60, fable-m4's 960 ms push,
-   the moon opener's exponential lag. Pinch out rises through the ring you came in by, and once more reaches the constellation.
+   the moon opener's exponential lag.
    Reduce Motion: no idle drift, no inertia, no push, stiffer springs. Photographs are never tinted (red images are an explicit sub-toggle). */
 import * as THREE from '../vendor/three.module.min.js';
 import { loadGLB } from './glb.js';
@@ -190,19 +192,21 @@ const fitDist = (w, h, mw = 1.18, mh = 1.42) => Math.max(h * mh / (2 * tanH), w 
 function ringPose(i) { const C = W_.rings[i].C, d = fitDist(HR * 2, HR * 2, 1.22, 1.3) + .3; return { p: C.clone().add(V(0, .25, d)), l: C.clone().add(V(0, -.15, -8)) } }
 function framePose(i, L, k) {
   const rm = W_.rings[i], f = rm.layers[L].frames[k], C = rm.C;
-  if (i === J && L === 0 && k === 0 && cup) { const n = aspect < 1, d = Math.max(3.4, fitDist(Math.max(cupW * 1.35, n ? 2.2 : 3.6), cupH * 2.1, 1.12, 1.3)); return { p: C.clone().add(V(f.bx - (n ? .25 : .9), FLOOR + 1.2, f.z + d)), l: C.clone().add(V(f.bx - (n ? .3 : 1), FLOOR + .55, f.z - 3)) } }
-  return { p: C.clone().add(V(f.x, f.cy + .05, f.z + DC)), l: C.clone().add(V(f.x, f.cy, f.z - 4)) };
+  if (i === J && L === 0 && k === 0 && cup) { const n = aspect < 1, d = Math.max(3.4, fitDist(Math.max(cupW * 1.35, n ? 2.2 : 3.6), cupH * 2.1, 1.12, 1.3)); return { p: C.clone().add(V(f.bx - (n ? .25 : .9), FLOOR + 1.2, f.z + d)), l: C.clone().add(V(f.bx, FLOOR + .65, f.z)) } }
+  return { p: C.clone().add(V(f.x, f.cy + .05, f.z + DC)), l: C.clone().add(V(f.x, f.cy, f.z)) };
 }
-const poseOf = s => s.lv === 'rings' ? ringPose(s.r) : framePose(s.r, s.L, s.k);
+/* the planet: the same object, the camera drawn back a little into the vast world around it */
+function planetPose(i, L, k) { const b = framePose(i, L, k), d = b.p.clone().sub(b.l); return { p: b.l.clone().add(d.multiplyScalar(1.3)), l: b.l } }
+const poseOf = s => s.lv === 'rings' ? ringPose(s.r) : s.lv === 'planet' ? planetPose(s.r, s.L, s.k) : framePose(s.r, s.L, s.k);
 const CP = [mkS(0, 5.6), mkS(0, 5.6), mkS(0, 5.6)], CL = [mkS(0, 9.5), mkS(0, 9.5), mkS(0, 9.5)];
-let wps = [], wi = 0, busy = false, segLen = 1, roomK = 0, pushT0 = -1e9, camReady = false;
+let wps = [], wi = 0, busy = false, segLen = 1, roomK = 0, planetK = 0, orbW = 0, pushT0 = -1e9, camReady = false;
 function aimWp(w) { const W = WTS(); CP[0].t = w.p.x; CP[1].t = w.p.y; CP[2].t = w.p.z; CL[0].t = w.l.x; CL[1].t = w.l.y; CL[2].t = w.l.z; CP.forEach(q => q.w = W.GLIDE); CL.forEach(q => q.w = W.REL) }
 function jumpTo(w) { CP[0].x = w.p.x; CP[1].x = w.p.y; CP[2].x = w.p.z; CL[0].x = w.l.x; CL[1].x = w.l.y; CL[2].x = w.l.z; CP.concat(CL).forEach(q => q.v = 0); aimWp(w) }
 function retarget(instant) { const w = poseOf(S); wps = [w]; wi = 0; if (instant || !camReady) { jumpTo(w); camReady = true } else aimWp(w); dirty = true }
 function path(a, b) {
   const out = [];
-  if (a.lv === 'room' && (b.lv === 'rings' || b.r !== a.r)) out.push(ringPose(a.r));
-  if (b.r !== a.r && b.lv === 'room') out.push(ringPose(b.r));
+  if (a.lv !== 'rings' && (b.lv === 'rings' || b.r !== a.r)) out.push(ringPose(a.r));
+  if (b.r !== a.r && b.lv !== 'rings') out.push(ringPose(b.r));
   out.push(poseOf(b));
   return out;
 }
@@ -210,47 +214,57 @@ function go(b, opt) {
   if (busy) return false;
   const a = S, w = path(a, b); S = b; wps = w; wi = 0; busy = true; aimWp(w[0]);
   segLen = Math.max(1, V(CP[0].x, CP[1].x, CP[2].x).distanceTo(w[0].p));
-  if (b.lv === 'room' && a.lv !== 'room') { if (!RMQ.matches) pushT0 = performance.now() + 250 }
-  if (b.lv === 'room' && b.k >= 0) memK[b.r][b.L] = b.k;
-  if (b.lv === 'rings') { raw.y = raw.p = 0; lastIn = performance.now() }
+  if ((b.lv === 'room' && a.lv === 'rings') || (b.lv === 'planet' && a.lv === 'room')) { if (!RMQ.matches) pushT0 = performance.now() + 150 }
+  if (b.lv !== 'rings') memK[b.r][b.L] = b.k;
+  if (b.lv === 'rings') { ORB.raw.y = ORB.raw.p = PLN.raw.y = PLN.raw.p = 0; lastIn = performance.now() }
   say(); dirty = true; wake(); return true;
 }
 const lastOf = r => r.layers.length - 1;
 const nRings = RINGS.length;
-function deeper() {
+function deeper() {   // in: through the hoop, one layer deeper; from the planet, back to the object
   if (busy) return;
   if (S.lv === 'rings') return go({ lv: 'room', r: S.r, L: 0, k: memK[S.r][0] });
+  if (S.lv === 'planet') return go({ lv: 'room', r: S.r, L: S.L, k: S.k });
   const r = RINGS[S.r]; if (S.L < r.layers.length - 1) go({ lv: 'room', r: S.r, L: S.L + 1, k: Math.min(memK[S.r][S.L + 1], r.layers[S.L + 1].frames.length - 1) });
 }
-function up() {
+function outward() {  // pinch out / wheel away: object -> planet, then (or from the rings) the constellation
+  if (busy) return;
+  if (S.lv === 'room') return go({ lv: 'planet', r: S.r, L: S.L, k: S.k });
+  enterCst();
+}
+function up() {       // Back / Esc: one step up, planet -> object -> (layer by layer) -> its ring -> the constellation
   if (busy) return;
   if (S.lv === 'rings') return enterCst();
+  if (S.lv === 'planet') return go({ lv: 'room', r: S.r, L: S.L, k: S.k });
   if (S.L > 0) return go({ lv: 'room', r: S.r, L: S.L - 1, k: memK[S.r][S.L - 1] });
   go({ lv: 'rings', r: S.r, L: 0, k: 0 });
 }
 function along(d) {
-  if (busy) return;
+  if (busy || S.lv === 'planet') return;
   if (S.lv === 'rings') { const r = S.r + d; if (r >= 0 && r < nRings) go({ lv: 'rings', r, L: 0, k: 0 }) }
   else { const n = RINGS[S.r].layers[S.L].frames.length, k = S.k + d; if (k >= 0 && k < n) go({ lv: 'room', r: S.r, L: S.L, k }) }
 }
 function home() { if (busy) return; if (S.lv === 'rings' && S.r === 0) return; go({ lv: 'rings', r: 0, L: 0, k: 0 }) }
 
-/* ---------- planet orbit: raw angles are unbounded in yaw, soft-walled in pitch; springs settle them ---------- */
-const PIT = 1.2, KRAD = .008, RAWP = 2.2 * PIT, DRIFT = .02, IDLE_MS = 3500, VCAP = 3;
-const raw = { y: 0, p: 0 }, YS = mkS(0, 9.5), PS = mkS(0, 9.5);
+/* ---------- the two turns: the camera orbiting the object, and the world turning around you in the planet.
+   Raw angles are unbounded in yaw and soft-walled in pitch; the site springs settle them. ---------- */
+const DRIFT = .02, IDLE_MS = 3500, VCAP = 3;
+function mkCtl(K, PIT, sgnP) { return { raw: { y: 0, p: 0 }, YS: mkS(0, 9.5), PS: mkS(0, 9.5), K, PIT, RAWP: 2.2 * PIT, sgnP } }
+const ORB = mkCtl(.006, 1.0, 1), PLN = mkCtl(.008, 1.2, -1);
+const ctl = () => (S.lv === 'planet' ? PLN : ORB);
 let interacting = false, lastIn = performance.now(), lvel = [0, 0], lmoveT = 0, drift = 0;
-const grab = () => { interacting = true; lastIn = performance.now(); lvel = [0, 0]; lmoveT = 0; const W = WTS(); YS.w = PS.w = W.REL; wake() };
+const grab = () => { interacting = true; lastIn = performance.now(); lvel = [0, 0]; lmoveT = 0; const c = ctl(), W = WTS(); c.YS.w = c.PS.w = W.REL; wake() };
 function drag(dx, dy) {
-  const t = performance.now(), dts = Math.max(.008, (t - (lmoveT || t - 16)) / 1000); lmoveT = t; lastIn = t;
-  raw.y -= dx * KRAD; raw.p = clamp(raw.p - dy * KRAD, -RAWP, RAWP);
-  lvel = [lvel[0] * .6 + clamp(-dx * KRAD / dts, -VCAP, VCAP) * .4, lvel[1] * .6 + clamp(-dy * KRAD / dts, -VCAP, VCAP) * .4]; wake();
+  const c = ctl(), t = performance.now(), dts = Math.max(.008, (t - (lmoveT || t - 16)) / 1000); lmoveT = t; lastIn = t;
+  c.raw.y -= dx * c.K; c.raw.p = clamp(c.raw.p + c.sgnP * dy * c.K, -c.RAWP, c.RAWP);
+  lvel = [lvel[0] * .6 + clamp(-dx * c.K / dts, -VCAP, VCAP) * .4, lvel[1] * .6 + clamp(c.sgnP * dy * c.K / dts, -VCAP, VCAP) * .4]; wake();
 }
 function release() {
-  interacting = false; lastIn = performance.now();
-  if (!RMQ.matches && performance.now() - lmoveT < 80) { raw.y += clamp(lvel[0] * .45, -1.1, 1.1); raw.p = clamp(raw.p + clamp(lvel[1] * .45, -.5, .5), -RAWP, RAWP) }   // slow inertia, then it settles on W_SOFT
-  YS.w = PS.w = WTS().SOFT; wake();
+  const c = ctl(); interacting = false; lastIn = performance.now();
+  if (!RMQ.matches && performance.now() - lmoveT < 80) { c.raw.y += clamp(lvel[0] * .45, -1.1, 1.1); c.raw.p = clamp(c.raw.p + clamp(lvel[1] * .45, -.5, .5), -c.RAWP, c.RAWP) }   // slow inertia, then it settles on W_SOFT
+  c.YS.w = c.PS.w = WTS().SOFT; wake();
 }
-function settleOrbit() { raw.y = Math.round(YS.x / (Math.PI * 2)) * Math.PI * 2; raw.p = 0; YS.w = PS.w = WTS().GLIDE; lastIn = performance.now(); wake() }
+function settleOrbit() { const c = ctl(); c.raw.y = Math.round(c.YS.x / (Math.PI * 2)) * Math.PI * 2; c.raw.p = 0; c.YS.w = c.PS.w = WTS().GLIDE; lastIn = performance.now(); wake() }
 
 /* ---------- camera tick ---------- */
 let raf = 0, lastT = 0, fovNow = FOV;
@@ -266,31 +280,37 @@ function tick(now) {
     if (wi < wps.length - 1) { if (pos.distanceTo(w.p) < Math.max(.9, segLen * .28)) { wi++; aimWp(wps[wi]); segLen = Math.max(1, pos.distanceTo(wps[wi].p)) } }
     else if (pos.distanceTo(w.p) < Math.max(.28, segLen * .12)) busy = false;
   }
-  const inRoom = S.lv === 'room';
-  roomK = lag(roomK, inRoom ? 1 : 0, rm ? 22 : 3.4, dt);
+  const inRoom = S.lv !== 'rings', atObj = S.lv === 'room';
+  roomK = lag(roomK, inRoom ? 1 : 0, rm ? 22 : 3.4, dt); planetK = lag(planetK, S.lv === 'planet' ? 1 : 0, rm ? 22 : 3.4, dt); orbW = lag(orbW, atObj ? 1 : 0, rm ? 22 : 3.4, dt);
   const idle = inRoom && !interacting && now - lastIn > IDLE_MS && !rm;
-  if (idle) { drift += dt; raw.y += DRIFT * dt; YS.w = PS.w = W.SOFT }
-  YS.t = raw.y; PS.t = PIT * Math.tanh(raw.p / PIT);
-  sstep(YS, dt); sstep(PS, dt);
+  const cc = ctl(); if (idle) { drift += dt; cc.raw.y += DRIFT * dt; cc.YS.w = cc.PS.w = W.SOFT }
+  [ORB, PLN].forEach(c => { c.YS.t = c.raw.y; c.PS.t = c.PIT * Math.tanh(c.raw.p / c.PIT); sstep(c.YS, dt); sstep(c.PS, dt) });
+  const YS = PLN.YS, PS = PLN.PS;
+  if (orbW * (1 - planetK) > .0005) {   // the camera orbits the object it is looking at
+    const w = orbW * (1 - planetK), off = pos.clone().sub(look), r = Math.max(.01, off.length()), a0 = Math.atan2(off.x, off.z), e0 = Math.asin(clamp(off.y / r, -1, 1));
+    const az = a0 + ORB.YS.x * w, el = clamp(e0 + ORB.PS.x * w, -1.25, 1.25);
+    pos.set(look.x + r * Math.cos(el) * Math.sin(az), look.y + r * Math.sin(el), look.z + r * Math.cos(el) * Math.cos(az));
+  }
   const e = clamp((now - pushT0) / 960, 0, 1), bf = bump(e);
   const fov = FOV / bf; if (Math.abs(fov - fovNow) > .01) { fovNow = fov; cam.fov = fov; cam.updateProjectionMatrix() }
   cam.position.copy(pos); cam.lookAt(look);
   planet.position.copy(look); planet.rotation.set(PS.x, YS.x, 0, 'XYZ');
-  const pu = planetU.uA; pu.value = roomK * roomK * (3 - 2 * roomK); planet.userData.stars.material.opacity = .85 * pu.value; shell.visible = pu.value > .004; planet.userData.stars.visible = shell.visible;
+  const pu = planetU.uA; pu.value = planetK * planetK * (3 - 2 * planetK); planet.userData.stars.material.opacity = .85 * pu.value; shell.visible = pu.value > .004; planet.userData.stars.visible = shell.visible;
   applyWorld(pos);
-  if (cup) { cup.rotation.set(PS.x * .9, YS.x, 0, 'XYZ') }
+  if (cup) { cup.rotation.set(PS.x * .9 * planetK, YS.x * planetK, 0, 'XYZ') }
   ensureTex(pos);
   R.render(scene, cam); dirty = false;
-  const live = busy || Math.abs(roomK - (inRoom ? 1 : 0)) > .003 || interacting || idle || e < 1 || CP.some(q => Math.abs(q.x - q.t) > 1e-3 || Math.abs(q.v) > 1e-3) || CL.some(q => Math.abs(q.x - q.t) > 1e-3 || Math.abs(q.v) > 1e-3) ||
-    Math.abs(YS.x - YS.t) > 2e-4 || Math.abs(PS.x - PS.t) > 2e-4 || Math.abs(YS.v) > 2e-4 || Math.abs(PS.v) > 2e-4;
+  const live = busy || Math.abs(roomK - (inRoom ? 1 : 0)) > .003 || Math.abs(planetK - (S.lv === 'planet' ? 1 : 0)) > .003 || Math.abs(orbW - (atObj ? 1 : 0)) > .003 || interacting || idle || e < 1 || CP.some(q => Math.abs(q.x - q.t) > 1e-3 || Math.abs(q.v) > 1e-3) || CL.some(q => Math.abs(q.x - q.t) > 1e-3 || Math.abs(q.v) > 1e-3) ||
+    [ORB, PLN].some(c => Math.abs(c.YS.x - c.YS.t) > 2e-4 || Math.abs(c.PS.x - c.PS.t) > 2e-4 || Math.abs(c.YS.v) > 2e-4 || Math.abs(c.PS.v) > 2e-4);
   if (live) raf = requestAnimationFrame(tick);
   else if (inRoom && !rm && !interacting) { clearTimeout(idleT); idleT = setTimeout(wake, Math.max(60, lastIn + IDLE_MS - now + 30)) }   // the very slow idle drift starts after 3.5 s
 }
 let idleT = 0;
+const qL = new THREE.Quaternion(), eL = new THREE.Euler();
 function applyWorld(pos) {
-  const inRoom = S.lv === 'room', ck = 1 - roomK;
+  const inRoom = S.lv !== 'rings', ck = 1 - roomK, pk = 1 - planetK;
   W_.rings.forEach((rm, i) => {
-    const focus = i === S.r, ringA = focus ? 1 : ck, atm = ck;
+    const focus = i === S.r, ringA = focus ? 1 : ck, atm = pk;
     rm.grp.visible = ringA > .004 || focus;
     rm.fx.forEach(o => { o.m.opacity = o.b * atm * (focus ? 1 : ck) });
     rm.layers.forEach((L, li) => {
@@ -304,39 +324,42 @@ function applyWorld(pos) {
         if (li === 0 && f.k === 0) a = Math.max(a, .62 * ck * ringA);
         a *= focus ? 1 : ck; f.a = a;
         f.m.material.opacity = a; f.m.visible = a > .004; f.pool.material.opacity = f.poolB * a; f.pool.visible = a > .004; if (f.sh) { f.sh.material.opacity = a; f.sh.visible = a > .004 }
-        if (focus && inRoom && li === S.L && f.k === S.k) { const yy = Math.tanh(YS.x * .25) * .45, pp = Math.tanh(PS.x * .4) * .3; f.m.rotation.set(pp, yy, 0, 'XYZ') } else f.m.rotation.set(0, 0, 0);
+        if (focus && inRoom && li === S.L && f.k === S.k) {
+          f.m.quaternion.copy(cam.quaternion);   // a photograph always faces you while you orbit it
+          if (planetK > .004) { const yy = Math.tanh(PLN.YS.x * .25) * .45, pp = Math.tanh(PLN.PS.x * .4) * .3; qL.setFromEuler(eL.set(pp, yy, 0, 'XYZ')); f.m.quaternion.slerp(qL, planetK) }
+        } else f.m.rotation.set(0, 0, 0);
       });
     });
   });
   globalFx.forEach(h => h.userData.set(ck)); stars.material.opacity = .4 * ck; stars.visible = ck > .004;
   if (cup) cup.visible = S.r === J && inRoom && S.L === 0 && ck < .98 || (S.r === J && ck > .02 && W_.rings[J].layers[0].frames[0].a > .01);
-  scene.fog.density = .045 - .025 * roomK;
+  scene.fog.density = .045 - .02 * roomK - .01 * planetK;
 }
 function ensureTex(pos) {
   W_.rings.forEach((rm, i) => rm.layers.forEach((L, li) => L.frames.forEach(f => {
     const u = f.m.userData;
     if (f.a > .03 || (i === S.r && S.lv === 'rings' && li === 0)) loadPlane(f.m, false);
-    if (S.lv === 'room' && i === S.r && li === S.L && f.k === S.k && u.loaded === 1) loadPlane(f.m, true);
+    if (S.lv !== 'rings' && i === S.r && li === S.L && f.k === S.k && u.loaded === 1) loadPlane(f.m, true);
   })));
 }
 
 /* ---------- HUD ---------- */
 const WHERE = $('#where'), CAP = $('#cap'), BACK = $('#back'), PREV = $('#prev'), NEXT = $('#next'), INB = $('#inb'), HINT = $('#hint');
 function say() {
-  const rg = RINGS[S.r], rooms = S.lv === 'room';
+  const rg = RINGS[S.r], rooms = S.lv !== 'rings';
   const L = rooms ? rg.layers[S.L] : null, f = rooms ? L.frames[S.k] : null;
-  $('.w', WHERE).textContent = rg.title + (rooms ? ' \u00b7 ' + L.name : '');
+  $('.w', WHERE).textContent = rg.title + (rooms ? ' \u00b7 ' + L.name : '') + (S.lv === 'planet' ? ' \u00b7 planet' : '');
   $('.n', WHERE).textContent = rooms ? (L.frames.length > 1 ? (S.k + 1) + ' / ' + L.frames.length : '') : (S.r + 1) + ' / ' + nRings;
   $('.t', CAP).textContent = rooms ? (f.cap || '') : '';
   $('.s', CAP).textContent = rooms ? f.img.split('/').pop().slice(0, 30) : '';
   PREV.disabled = rooms ? S.k === 0 : S.r === 0; NEXT.disabled = rooms ? S.k >= L.frames.length - 1 : S.r >= nRings - 1;
-  INB.hidden = rooms; PREV.hidden = NEXT.hidden = false;
+  INB.hidden = rooms; PREV.hidden = NEXT.hidden = S.lv === 'planet';
   hintFor();
 }
 let hintK = '';
 function hintFor() {
-  const k = S.lv === 'rings' ? 'r' : 'o'; if (hintK === k) return; hintK = k;
-  HINT.textContent = k === 'r' ? 'swipe to glide ring to ring \u00b7 tap or pinch in to go through \u00b7 pinch out for the constellation' : 'drag to turn the world around you \u00b7 pinch in goes deeper \u00b7 pinch out rises';
+  const k = S.lv === 'rings' ? 'r' : S.lv === 'planet' ? 'p' : 'o'; if (hintK === k) return; hintK = k;
+  HINT.textContent = { r: 'swipe to glide ring to ring \u00b7 tap or pinch in to go through \u00b7 pinch out for the constellation', o: 'drag to orbit the piece \u00b7 pinch in goes deeper \u00b7 pinch out enters the planet \u00b7 back rises', p: 'drag to turn the world around you \u00b7 pinch in returns to the piece \u00b7 pinch out for the constellation' }[k];
   HINT.classList.remove('gone'); clearTimeout(hintT); hintT = setTimeout(() => HINT.classList.add('gone'), 4200);
 }
 let hintT = 0;
@@ -353,15 +376,16 @@ const cst = Constellation({
   onReturn: i => { const o = flat[i]; pushT0 = performance.now(); S = { lv: 'rings', r: S.r, L: 0, k: 0 }; busy = false; go({ lv: 'room', r: o.r, L: o.L, k: o.k }) },
   onLeave: () => { }
 });
-function enterCst() { const at = Math.max(0, flat.findIndex(o => o.r === S.r)); cst.open(at) }
+function enterCst() { const at = Math.max(0, S.lv === 'rings' ? flat.findIndex(o => o.r === S.r) : flat.findIndex(o => o.r === S.r && o.L === S.L && o.k === S.k)); cst.open(at) }
 
 /* ---------- input ---------- */
-const deeperG = () => { if (!cst.isOpen()) deeper() }, upG = () => { if (!cst.isOpen()) up() };
+const deeperG = () => { if (!cst.isOpen()) deeper() }, outG = () => { if (!cst.isOpen()) outward() };
 addEventListener('keydown', e => {
   if (e.repeat || e.metaKey || e.ctrlKey || e.altKey || cst.isOpen()) return;
   const k = e.key;
   if (k === 'Enter' || k === 'ArrowDown') deeper();
   else if (k === 'ArrowUp' || k === 'Backspace' || k === 'Escape') up();
+  else if (k === '-' || k === '_') outward();
   else if (k === 'ArrowRight') along(1);
   else if (k === 'ArrowLeft') along(-1);
   else if (k === 'Home') home();
@@ -375,7 +399,7 @@ canvas.addEventListener('wheel', e => {
   const dy = e.deltaY * (e.deltaMode === 1 ? 16 : 1) * (e.ctrlKey ? 4 : 1), t = performance.now();
   if (t - wLast > 220) { wLock = false; wAcc = 0 } wLast = t;
   if (wLock) return; wAcc += dy; if (Math.abs(wAcc) < 30) return;
-  wLock = true; const d = wAcc; wAcc = 0; if (d < 0) deeper(); else up();
+  wLock = true; const d = wAcc; wAcc = 0; if (d < 0) deeper(); else outward();
 }, { passive: false });
 const PT = new Map(); let G = null;
 const dist = () => { const a = [...PT.values()]; return Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) };
@@ -388,11 +412,11 @@ canvas.addEventListener('pointerdown', e => {
 });
 canvas.addEventListener('pointermove', e => {
   const p = PT.get(e.pointerId); if (!p) return; const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY;
-  if (G && !G.multi && PT.size === 1 && S.lv === 'room') {
+  if (G && !G.multi && PT.size === 1 && S.lv !== 'rings') {
     if (!G.orbit && Math.hypot(e.clientX - G.x0, e.clientY - G.y0) > 6) { G.orbit = true; grab(); html.classList.add('orbiting'); drag(e.clientX - G.x0, e.clientY - G.y0) }
     else if (G.orbit) drag(dx, dy);
   }
-  if (G && G.multi && PT.size >= 2 && !G.fired && G.d0 > 0) { const r = dist() / G.d0; if (r > 1.2) { G.fired = true; deeperG() } else if (r < .83) { G.fired = true; upG() } }
+  if (G && G.multi && PT.size >= 2 && !G.fired && G.d0 > 0) { const r = dist() / G.d0; if (r > 1.2) { G.fired = true; deeperG() } else if (r < .83) { G.fired = true; outG() } }
 });
 function rel(e, cancel) {
   const p = PT.get(e.pointerId); if (!p) return; PT.delete(e.pointerId);
@@ -400,7 +424,7 @@ function rel(e, cancel) {
   if (!G.multi && !cancel && !G.orbit) {
     const dx = e.clientX - G.x0, dy = e.clientY - G.y0, dt = performance.now() - G.t0;
     if (S.lv === 'rings' && Math.abs(dx) > 50 && Math.abs(dx) > 1.3 * Math.abs(dy)) along(dx < 0 ? 1 : -1);
-    else if (Math.hypot(dx, dy) < 12 && dt < 600) deeperG();
+    else if (Math.hypot(dx, dy) < 12 && dt < 600 && S.lv !== 'planet') deeperG();
   }
   endOrbit(); if (PT.size === 0) G = null;
 }
@@ -415,11 +439,17 @@ function resize() {
 addEventListener('resize', resize);
 addEventListener('rmchange', paintTheme);
 
-/* deep link for review: #room=<ring id>/<layer>/<frame> */
+/* deep link for review: #room=<ring id>/<layer>/<frame>  or  #planet=<ring id>/<layer>/<frame> */
 (function boot() {
   resize(); paintTheme();
-  const m = /[#&]room=([\w-]+)\/(\d+)\/(\d+)/.exec(location.hash);
-  if (m) { const r = RINGS.findIndex(x => x.id === m[1]); if (r >= 0) { const L = Math.min(+m[2], RINGS[r].layers.length - 1), k = Math.min(+m[3], RINGS[r].layers[L].frames.length - 1); S = { lv: 'room', r, L, k }; memK[r][L] = k; roomK = 1; retarget(true) } }
+  const m = /[#&](room|planet)=([\w-]+)\/(\d+)\/(\d+)/.exec(location.hash);
+  if (m) {
+    const r = RINGS.findIndex(x => x.id === m[2]);
+    if (r >= 0) { const L = Math.min(+m[3], RINGS[r].layers.length - 1), k = Math.min(+m[4], RINGS[r].layers[L].frames.length - 1); S = { lv: m[1], r, L, k }; memK[r][L] = k; roomK = 1; if (m[1] === 'planet') planetK = 1; else orbW = 1; retarget(true) }
+  }
   say(); wake();
 })();
-window.__o3 = { state: () => ({ ...S, busy, roomK: +roomK.toFixed(3), yaw: +YS.x.toFixed(3), pit: +PS.x.toFixed(3), fov: +cam.fov.toFixed(2) }), deeper, up, along, home, settle: settleOrbit, cst: () => cst.isOpen() };
+window.__o3 = {
+  state: () => ({ ...S, busy, roomK: +roomK.toFixed(3), planetK: +planetK.toFixed(3), orbit: [+ORB.YS.x.toFixed(3), +ORB.PS.x.toFixed(3)], world: [+PLN.YS.x.toFixed(3), +PLN.PS.x.toFixed(3)], fov: +cam.fov.toFixed(2) }),
+  deeper, up, outward, along, home, settle: settleOrbit, cst: () => cst.isOpen()
+};
