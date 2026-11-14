@@ -1,0 +1,16 @@
+/* Shared accessibility layer: a visible keyboard focus everywhere, and the active-mode indicator.
+   Pointer users never see the focus ring (:focus-visible only). Photographs, film frames and video are never touched.
+
+   --sp-active  the site's "new" colour, warm white #e8e4dc (--mint in css/sky.css and css/page.css; MINT '232,228,220' for new items in js/sky.js).
+                One variable, so the colour can be changed in one place. In Red the theme maps this ring to red ink; the pressed colour-mode dot
+                below is written for html[data-theme=red] on purpose, so the theme leaves it warm white. */
+:root{--sp-active:#e8e4dc}
+html :is(a,button,input,select,summary,[role=button],[role=radio],[role=tab],[role=switch]):focus-visible:not(#safe):not(#safelight){
+  outline:2px solid var(--sp-active);outline-offset:2px}
+html input[type=range]:focus-visible:not(#safe){outline-offset:4px}
+html main[tabindex]:focus-visible,html [tabindex="0"][aria-label]:focus-visible{outline:2px solid var(--sp-active);outline-offset:-4px}
+
+/* The photo lab's safelight button keeps its own look; it is excluded from the ring above on purpose. */
+
+/* colour mode dot (home): pressed = Red is on */
+html[data-theme=red] #themeBtn[aria-pressed="true"]{opacity:1;border:2px solid #e8e4dc;box-shadow:0 0 0 1px rgba(232,228,220,.35)}

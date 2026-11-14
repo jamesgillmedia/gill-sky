@@ -68,7 +68,7 @@ function show(i,first){
   i=((i%n)+n)%n;
   var prev=FP.i,gen=++showGen;
   function mark(){
-    for(var k=0;k<n;k++)if(th[k])th[k].classList.toggle('on',k===i);
+    for(var k=0;k<n;k++)if(th[k]){th[k].classList.toggle('on',k===i);th[k].setAttribute('aria-current',k===i?'true':'false')}
     var bar=r.querySelector('.fp-bar i');if(bar)bar.style.width=(((i+1)/n)*100).toFixed(2)+'%';
     var st=r.querySelector('.fp-strip'),cur=th[i];
     if(st&&cur&&st.scrollWidth>st.clientWidth+2){var x=cur.offsetLeft-st.clientWidth/2+cur.clientWidth/2;st.scrollLeft=Math.max(0,x)}

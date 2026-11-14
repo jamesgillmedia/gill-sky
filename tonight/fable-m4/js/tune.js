@@ -440,7 +440,7 @@ function armTune(){
     var b=document.createElement('button');
     b.type='button';b.className='mm-tune-btn';
     if(!document.getElementById('marktune'))b.id='marktune';
-    b.setAttribute('aria-label','drawer');
+    b.setAttribute('aria-label','tune drawer');
     b.setAttribute('aria-haspopup','dialog');
     b.setAttribute('aria-expanded','false');
     b.textContent='+';

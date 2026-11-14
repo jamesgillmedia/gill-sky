@@ -20,10 +20,10 @@ function keep(r,g,b){
   if(r>=240&&g>=80&&g<=110&&b<=60)return true;                                    /* the safelight's orange */
   if(r>=250&&g>=140&&g<=215&&b>=150&&b<=225&&b>=g-12)return true;                 /* the player's own light rose: already Red, never mapped twice */
   return false}
-/* The map keeps the dark ground at true black, lets mid tones stay moderate (lines, panels), and lifts anything light enough to be text (Y >= .5) to 84-100% of the ink,
-   which is what small type needs (red ink at 84% is 4.5:1 on black). */
+/* The map keeps the dark ground at true black, lets mid tones stay moderate (lines, panels), and lifts anything light enough to be text (Y >= .5) to 90-100% of the ink,
+   which is what small type needs: the page ground is not pure black (it is the Night gradient mapped, up to about 0.5% luminance), and red ink at 90% still reads 4.7:1 on it (WCAG AA body text is 4.5:1). */
 function mapRGB(r,g,b){if(keep(r,g,b))return [r,g,b];var Y=(.2126*r+.7152*g+.0722*b)/255,k;
-  if(Y>=.5)k=.84+.16*(Y-.5)/.5;else if(Y>=.12){var u=(Y-.12)/.38;k=.1+.74*u*u*(3-2*u)}else k=.1*Math.pow(Y/.12,2);
+  if(Y>=.5)k=.9+.1*(Y-.5)/.5;else if(Y>=.12){var u=(Y-.12)/.38;k=.1+.74*u*u*(3-2*u)}else k=.1*Math.pow(Y/.12,2);
   return [RED[0]*k,RED[1]*k,RED[2]*k]}
 function hex2(h){h=h.replace('#','');if(h.length<=4)h=h.replace(/./g,'$&$&');return [parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16),h.length===8?parseInt(h.substr(6,2),16)/255:1]}
 var NAMED={white:[255,255,255],black:[0,0,0]},CACHE={},PRE={};
@@ -49,18 +49,18 @@ function mapStr(s){
     if(pm!==null)return pm+s.slice(i)}
   out=s.replace(RE,function(t){return t.charAt(0)==='u'?t:mapOne(t)});
   if(Object.keys(CACHE).length<4000)CACHE[s]=out;return out}
-/* DOM text: a colour with alpha is never fainter than 90% */
-function liftText(v){return v.replace(/rgba\(([^,]+),([^,]+),([^,]+),\s*([\d.]+)\)/g,function(m,r,g,b,a){return +a<.9?'rgba('+r+','+g+','+b+',.9)':m})}
+/* DOM text: a colour with alpha is never fainter than 95% */
+function liftText(v){return v.replace(/rgba\(([^,]+),([^,]+),([^,]+),\s*([\d.]+)\)/g,function(m,r,g,b,a){return +a<.95?'rgba('+r+','+g+','+b+',.95)':m})}
 function hasColor(v){RE.lastIndex=0;return RE.test(v)}
 /* canvas: colour setters map while Red is on; Night passes everything straight through */
 (function(){
   function wrap(proto,prop){var d=Object.getOwnPropertyDescriptor(proto,prop);if(!d||!d.set)return;
     Object.defineProperty(proto,prop,{get:d.get,set:function(v){d.set.call(this,(eff==='red'&&!RAW&&typeof v==='string')?mapStr(v):v)},configurable:true,enumerable:d.enumerable})}
   if(w.CanvasRenderingContext2D){['fillStyle','strokeStyle','shadowColor'].forEach(function(p){wrap(CanvasRenderingContext2D.prototype,p)})}
-  /* canvas text: a text fill is never fainter than 90% (alpha-faded small type is the first thing to fail contrast); shapes keep their alpha */
+  /* canvas text: a text fill is never fainter than 95% (alpha-faded small type is the first thing to fail contrast); shapes keep their alpha */
   if(w.CanvasRenderingContext2D){var ft=CanvasRenderingContext2D.prototype.fillText;CanvasRenderingContext2D.prototype.fillText=function(){
     if(eff==='red'){var fs=this.fillStyle,m=typeof fs==='string'&&/^rgba\((\d+), (\d+), (\d+), ([\d.]+)\)$/.exec(fs);
-      if(m&&+m[4]<.9){RAW=true;this.fillStyle='rgba('+m[1]+','+m[2]+','+m[3]+',.9)';RAW=false;var r=ft.apply(this,arguments);RAW=true;this.fillStyle=fs;RAW=false;return r}}
+      if(m&&+m[4]<.95){RAW=true;this.fillStyle='rgba('+m[1]+','+m[2]+','+m[3]+',.95)';RAW=false;var r=ft.apply(this,arguments);RAW=true;this.fillStyle=fs;RAW=false;return r}}
     return ft.apply(this,arguments)}}
   if(w.CanvasGradient){var a=CanvasGradient.prototype.addColorStop;CanvasGradient.prototype.addColorStop=function(o,c){return a.call(this,o,(eff==='red'&&typeof c==='string')?mapStr(c):c)}}
 })();
@@ -86,7 +86,7 @@ function apply(force){
   root.setAttribute('data-theme',eff);
   var m=document.querySelector('meta[name=theme-color]');if(m){if(!C.tc)C.tc=m.getAttribute('content');m.setAttribute('content',e==='red'?'#000':C.tc)}
   label();hooks.forEach(function(f){f('theme',eff)})}
-function label(){if(!btn)return;var to=pref==='red'?'night':'red';btn.setAttribute('aria-label','colour mode: '+pref+(EXEMPT[room]?' (this room keeps its own look)':'')+'. switch to '+to);btn.title=pref+' · switch to '+to}
+function label(){if(!btn)return;btn.setAttribute('aria-label','red mode'+(EXEMPT[room]?' (this room keeps its own look)':''));btn.setAttribute('aria-pressed',pref==='red'?'true':'false');btn.title='red mode '+(pref==='red'?'on':'off')+' · switch to '+(pref==='red'?'night':'red')}
 var T={get pref(){return pref},get eff(){return eff},get room(){return room},pal:{name:'night'},
   exempt:function(k){return !!EXEMPT[k]},
   map:function(s){return eff==='red'?mapStr(s):s},
