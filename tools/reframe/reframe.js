@@ -1,5 +1,5 @@
 /* Reframe debug tool (hidden). Open: add ?reframe to the URL, press Alt+Shift+R,
-   or triple-tap the top-left corner. Tap a photo/video, drag to move, wheel/pinch to zoom.
+   or hold two fingers still on the screen for 1 second (phone). Tap a photo/video, drag to move, wheel/pinch to zoom.
    Saves per page in this browser only (localStorage). Export copies JSON for the build. */
 (function(){
   if (window.__reframe) return; window.__reframe = 1;
@@ -23,6 +23,9 @@
   }
   function apply(m,f){ var c=css(f); for (var p in c) m.style[p]=c[p]; }
   function get(m){ var id=idOf(m); return store[id] || (store[id]={x:50,y:50,s:1,fit:getComputedStyle(m).objectFit==='contain'?'contain':'cover'}); }
+  function base(m){ var r=m.getBoundingClientRect(), f=store[m.dataset.reframeId||''], k=f&&f.s>1?f.s:1; if(k===1) return r;
+    var w=r.width/k, h=r.height/k, ox=r.left+f.x/100*r.width, oy=r.top+f.y/100*r.height, l=ox-f.x/100*w, t=oy-f.y/100*h;
+    return {left:l,top:t,width:w,height:h,right:l+w,bottom:t+h}; }
   function save(){ try { localStorage.setItem(KEY, JSON.stringify(store)); } catch(e){} }
   function applyAll(){ if(!Object.keys(store).length) return; media().forEach(function(m){ var f=store[idOf(m)]; if (f) apply(m,f); }); }
   function cssText(f){ var c=css(f), o=[]; o.push('object-fit:'+c.objectFit,'object-position:'+c.objectPosition); if(c.scale){o.push('transform-origin:'+c.transformOrigin,'scale:'+c.scale,'clip-path:'+c.clipPath);} return o.join(';'); }
@@ -49,7 +52,7 @@
     if (!ui) return;
     if (!sel){ ui._info.textContent='Tap a photo or video. Drag to move, wheel or pinch to zoom, arrows nudge, Esc closes.'; hl.style.display='none'; return; }
     var f=get(sel); apply(sel,f); save();
-    var r=sel.getBoundingClientRect(); hl.style.display='block'; hl.style.left=r.left+'px'; hl.style.top=r.top+'px'; hl.style.width=r.width+'px'; hl.style.height=r.height+'px';
+    var r=base(sel); hl.style.display='block'; hl.style.left=r.left+'px'; hl.style.top=r.top+'px'; hl.style.width=r.width+'px'; hl.style.height=r.height+'px';
     ui._info.textContent=idOf(sel)+'\nx '+f.x.toFixed(1)+'%  y '+f.y.toFixed(1)+'%  zoom '+f.s.toFixed(2)+'  '+f.fit+'\n'+cssText(f);
   }
   function pick(m){ sel=m||null; upd(); }
@@ -64,7 +67,7 @@
     ui._info.textContent='Exported '+Object.keys(out.frames).length+' framings (copied + downloaded).';
   }
   function hit(e){ var p=e.touches?e.touches[0]:e; if(ui&&ui.contains(e.target)) return null;
-    var a=media().filter(function(m){var r=m.getBoundingClientRect();return p.clientX>=r.left&&p.clientX<=r.right&&p.clientY>=r.top&&p.clientY<=r.bottom;}); return a[a.length-1]||null; }
+    var a=media().filter(function(m){var r=base(m);return p.clientX>=r.left&&p.clientX<=r.right&&p.clientY>=r.top&&p.clientY<=r.bottom;}); return a[a.length-1]||null; }
   var drag=null, pinch=null;
   function down(e){ if(!active||(ui&&ui.contains(e.target))) return; var m=hit(e); e.preventDefault(); e.stopPropagation();
     if (e.touches&&e.touches.length===2&&sel){ pinch={d:dist(e),s:get(sel).s}; drag=null; return; }
@@ -74,7 +77,7 @@
   function move(e){ if(!active) return;
     if (pinch&&e.touches&&e.touches.length===2){ e.preventDefault(); e.stopPropagation(); get(sel).s=Math.min(6,Math.max(1,pinch.s*dist(e)/pinch.d)); upd(); return; }
     if (!drag||!sel) return; e.preventDefault(); e.stopPropagation();
-    var p=e.touches?e.touches[0]:e, r=sel.getBoundingClientRect(), f=get(sel);
+    var p=e.touches?e.touches[0]:e, r=base(sel), f=get(sel);
     f.x=Math.min(100,Math.max(0,drag.fx-(p.clientX-drag.x)/r.width*100/f.s));
     f.y=Math.min(100,Math.max(0,drag.fy-(p.clientY-drag.y)/r.height*100/f.s)); upd(); }
   function up(e){ if(!active) return; if(drag||pinch){ e.stopPropagation(); } drag=null; if(!e.touches||e.touches.length<2) pinch=null; }
@@ -96,7 +99,11 @@
     if (on){ if(!ui) build(); ui.style.display=''; document.documentElement.style.touchAction='none'; upd(); }
     else { if(ui){ ui.style.display='none'; hl.style.display='none'; } sel=null; document.documentElement.style.touchAction=''; }
   }
-  var taps=[]; function corner(e){ var p=e.touches?e.touches[0]:e; if(p.clientX<48&&p.clientY<48){ var t=Date.now(); taps=taps.filter(function(x){return t-x<900;}); taps.push(t); if(taps.length>=3){ taps=[]; toggle(!active); } } }
+  var hold=null; function holdStart(e){ if(e.touches.length===2){ var a=[e.touches[0].clientX,e.touches[0].clientY,e.touches[1].clientX,e.touches[1].clientY];
+      clearTimeout(hold&&hold.t); hold={a:a,t:setTimeout(function(){ hold=null; toggle(!active); },1000)}; } else if(hold){ clearTimeout(hold.t); hold=null; } }
+  function holdMove(e){ if(!hold||e.touches.length!==2) return; var b=[e.touches[0].clientX,e.touches[0].clientY,e.touches[1].clientX,e.touches[1].clientY];
+    for(var i=0;i<4;i++) if(Math.abs(b[i]-hold.a[i])>14){ clearTimeout(hold.t); hold=null; return; } }
+  function holdEnd(){ if(hold){ clearTimeout(hold.t); hold=null; } }
   var o={capture:true,passive:false};
   window.addEventListener('mousedown',down,o); window.addEventListener('touchstart',down,o);
   window.addEventListener('mousemove',move,o); window.addEventListener('touchmove',move,o);
@@ -104,7 +111,9 @@
   window.addEventListener('click',block,o); window.addEventListener('dblclick',block,o);
   window.addEventListener('pointerdown',function(e){ if(active&&!(ui&&ui.contains(e.target))) e.stopPropagation(); },o);
   window.addEventListener('wheel',wheel,o); window.addEventListener('keydown',key,true);
-  window.addEventListener('touchstart',corner,{capture:true,passive:true});
+  window.addEventListener('touchstart',holdStart,{capture:true,passive:true});
+  window.addEventListener('touchmove',holdMove,{capture:true,passive:true});
+  window.addEventListener('touchend',holdEnd,{capture:true,passive:true}); window.addEventListener('touchcancel',holdEnd,{capture:true,passive:true});
   window.addEventListener('scroll',function(){ if(active) upd(); },true);
   function init(){ applyAll(); new MutationObserver(function(){ applyAll(); }).observe(document.body,{childList:true,subtree:true});
     if (/[?&#]reframe\b/.test(location.search+location.hash) || (function(){try{return sessionStorage.getItem(ON);}catch(e){}})()) toggle(true); }
