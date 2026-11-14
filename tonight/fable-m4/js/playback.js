@@ -347,6 +347,7 @@ function setPaused(on,quiet){
     reconcile();
   }
   if(band)band.setAttribute("aria-pressed",paused?"true":"false");
+  try{window.dispatchEvent(new Event("gjpause"))}catch(e){}
   if(!quiet)flash(paused?"pause":"play");
   return paused;
 }

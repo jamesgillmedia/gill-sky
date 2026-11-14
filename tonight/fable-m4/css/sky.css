@@ -223,7 +223,7 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 .rl-st img,.rl-st video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:transparent}
 .rl-st video{opacity:0}
 .rl-st video.on{opacity:1}
-.rl.fit .rl-st{inset:calc(96px + var(--st)) max(12px,var(--sr)) calc(150px + var(--sb)) max(12px,var(--sl))}
+.rl.fit .rl-st{inset:calc(96px + var(--st)) max(12px,var(--sr)) calc(236px + var(--sb)) max(12px,var(--sl))}
 .rl.fit .rl-st img,.rl.fit .rl-st video{object-fit:contain}
 .rl-st::after{content:'';position:absolute;inset:auto 0 0;height:190px;background:linear-gradient(to top,rgba(3,6,10,.7),rgba(3,6,10,0));pointer-events:none;z-index:1}
 .rl-st::before{content:'';position:absolute;inset:0 0 auto;height:120px;background:linear-gradient(to bottom,rgba(3,6,10,.55),rgba(3,6,10,0));pointer-events:none;z-index:1}
@@ -236,13 +236,25 @@ html.mapdim #mmap:active,html.mapdim #mmap:focus-visible{opacity:1}
 .rl-fit i{font-style:normal;color:#5d6f84;font-size:11px}
 .rl-fit button{height:40px;padding:0 7px;border:0;background:transparent;color:#9fb0c4;font:400 11px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.18em}
 .rl-fit button[aria-pressed=true]{color:#e8e4dc}
-.rl-b{position:absolute;left:max(16px,var(--sl));right:16px;bottom:calc(112px + var(--sb));margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
+.rl-b{position:absolute;left:max(16px,var(--sl));right:16px;bottom:calc(174px + var(--sb));margin:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .rl-b b{font-weight:400;font-size:14px;letter-spacing:.02em;color:#e6eeff;text-shadow:0 1px 8px rgba(0,0,0,.5)}
 .rl-b small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#a9b8c9}
 .rl-v{pointer-events:auto;margin-top:2px;padding:8px 0;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#e8e4dc;text-decoration:none}
 .rl.nob .rl-b b,.rl.nol .rl-v{display:none}
 .rl-h{position:absolute;left:max(16px,var(--sl));top:calc(96px + var(--st));margin:0;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#e8e4dc;transition:opacity .5s}
 .rl.seen .rl-h{opacity:0}
+.rl-pv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:transparent}
+.rl.fit .rl-pv{object-fit:contain}
+.rl-pv[hidden]{display:none}
+.rl-fr{position:absolute;left:0;right:0;bottom:calc(104px + var(--sb));height:62px;overflow:hidden;z-index:3;touch-action:pan-y;outline:0;-webkit-user-select:none;user-select:none}
+.rl-fr[hidden]{display:none}
+.rl.paused .rl-fr{cursor:ew-resize}
+.rl:not(.paused) .rl-fr{pointer-events:none}
+.rl.scrub .rl-fr{cursor:grabbing}
+.rl-ft{position:absolute;left:0;top:50%;display:flex;gap:0;margin-top:calc(var(--h,0px) / -2);transform-origin:0 0;will-change:transform}
+.rl-ft img{display:block;flex:0 0 auto;opacity:1;filter:none;pointer-events:none;-webkit-user-drag:none}
+.rl-fm{position:absolute;left:50%;top:3px;bottom:3px;width:1px;margin-left:-.5px;background:#e8e4dc;pointer-events:none}
+.rl-fr:focus-visible .rl-fm{box-shadow:0 0 0 1px rgba(232,228,220,.35)}
 .rl-fs{position:absolute;left:0;right:0;bottom:calc(42px + var(--sb));height:56px;overflow:hidden;z-index:3;cursor:grab}
 .rl.scrub .rl-fs{cursor:grabbing}
 .rl-tr{position:absolute;left:0;top:8px;height:40px;display:flex;will-change:transform}

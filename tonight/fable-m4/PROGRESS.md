@@ -55,3 +55,7 @@ Red mode stays selectively true to colour. The environment and the menus go red 
 The Tesla Roadster UI is a mood, not a copy. 3D wireframe, floating text with depth, and the fighter-jet cool factor grow out of his own constellation and sky work.
 
 The About calibre layer stays deferred to that pass.
+
+## Reel card · frame rail
+
+Under the Demo Reel card, the current shot's own frames sit in a rail at full brightness; the selected frame is a 1px warm-white line. `tools/extract_reel_frames.py` cuts evenly spaced 96x56 webp thumbs per clip (6 to 12 frames, `media/pro2/reel/frames/`) and writes `js/reelframes.js`. While the reel is paused (a tap on the card, or the stored board pause from the header band), a horizontal drag on the rail steps the shot frame by frame and the card seeks its clip to that frame. A drag above 1200 px/s rolls into autoplay from that frame. Works in fill and fit. The rail only claims horizontal drags and never calls `preventDefault`. Pause on the card is now a real pause (the clip stops) and shares `GJ_PLAY.paused`.
