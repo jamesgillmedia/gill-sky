@@ -1,0 +1,44 @@
+[
+ {
+  "k": "top",
+  "src": "board/cup-top.webp",
+  "w": 640,
+  "h": 617,
+  "label": "joio.co cup from above"
+ },
+ {
+  "k": "ash",
+  "src": "r/ashy-bowls/09-top-IMG_4675.webp",
+  "w": 501,
+  "h": 501,
+  "label": "ashy process bowl from above"
+ },
+ {
+  "k": "clay",
+  "src": "r/unfired-clay/05-top-IMG_1488.webp",
+  "w": 354,
+  "h": 347,
+  "label": "unfired clay cup from above"
+ },
+ {
+  "k": "ash2",
+  "src": "r/ashy-bowls/08-three-quarter-IMG_4670.webp",
+  "w": 504,
+  "h": 500,
+  "label": "ashy process bowl, second shot"
+ },
+ {
+  "k": "stone",
+  "src": "r/ashy-bowls/03-top-IMG_4404.webp",
+  "w": 640,
+  "h": 539,
+  "label": "wide grey bowl from above"
+ },
+ {
+  "k": "cream",
+  "src": "r/joio-cup/making-IMG_5892.webp",
+  "w": 430,
+  "h": 441,
+  "label": "cream-glazed joio.co cup from above"
+ }
+]
