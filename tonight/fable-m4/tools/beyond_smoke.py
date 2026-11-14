@@ -41,6 +41,15 @@ def check(name, ok, detail=''):
         FAILS.append(name)
 
 
+def visit(pg, url):
+    pg.goto(url)
+    # raw.githack shows a one-time "One more step" page to browsers; step through it
+    pg.wait_for_timeout(400)
+    if pg.locator('text=One more step').count():
+        pg.locator('text=Open the page').first.click()
+        pg.wait_for_timeout(1500)
+
+
 def settle(pg, ms=400, cap=9000):
     pg.wait_for_timeout(ms)
     t = 0
@@ -111,7 +120,7 @@ def run(pw, label, vp, touch, shots):
     pg.on('response', lambda r: bad.append('%d %s' % (r.status, r.url)) if r.status >= 400 else None)
 
     # ---- film board: each choice changes the selection ----
-    pg.goto(BASE + '#film/board')
+    visit(pg, BASE + '#film/board')
     pg.wait_for_function('window.GJ_BEYOND&&GJ_BEYOND.ready&&window.__u1&&__u1.ready', timeout=20000)
     pg.wait_for_timeout(2500)
     base_ids, base_pk = tiles(pg), picks(pg)
@@ -148,7 +157,7 @@ def run(pw, label, vp, touch, shots):
 
     # ---- photo board ----
     pg.evaluate("GJ_BEYOND.set({mode:'off'})")
-    pg.goto(BASE + '#photo/board')
+    visit(pg, BASE + '#photo/board')
     pg.wait_for_timeout(2500)
     p0 = tiles(pg, 12)
     pg.evaluate("GJ_BEYOND.set({mode:'light',light:.9})")
@@ -159,7 +168,7 @@ def run(pw, label, vp, touch, shots):
     pg.evaluate("GJ_BEYOND.set({mode:'off'})")
 
     # ---- a film page ----
-    pg.goto(BASE + '#film/back-to-the-start')
+    visit(pg, BASE + '#film/back-to-the-start')
     pg.wait_for_timeout(3500)
     strip = lambda: pg.evaluate("[...document.querySelectorAll('.fp-strip img')].map(i=>i.getAttribute('src'))")
     s0 = strip()
@@ -175,7 +184,7 @@ def run(pw, label, vp, touch, shots):
     check('%s film page: off restores the page\'s own stills' % label, strip() == s0)
 
     # ---- the dial cluster ----
-    pg.goto(BASE + '#film/board')
+    visit(pg, BASE + '#film/board')
     pg.wait_for_timeout(3000)
     dr = Drag(pg, touch)
     check('%s dial: hub is there on the film board' % label, pg.evaluate("!document.getElementById('bdial').hidden"))
@@ -264,7 +273,7 @@ def run(pw, label, vp, touch, shots):
     rp = rc.new_page()
     rerr = []
     rp.on('pageerror', lambda e: rerr.append(str(e)))
-    rp.goto(BASE + '#film/board')
+    visit(rp, BASE + '#film/board')
     rp.wait_for_function('window.GJ_BEYOND&&GJ_BEYOND.ready&&window.__u1&&__u1.ready', timeout=20000)
     rp.wait_for_timeout(2500)
     r0 = tiles(rp)
