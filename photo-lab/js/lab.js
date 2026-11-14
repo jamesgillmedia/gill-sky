@@ -35,6 +35,7 @@ LAB.layer={
   depth:function(){return stack.length},
   top:function(){return stack.length?stack[stack.length-1].name:''},
   back:function(){if(stack.length){history.back()}else LAB.leave(ROOT)},
+  unwind:function(){var n=stack.length;if(!n)return;while(stack.length){var s=stack.pop();try{s.leave&&s.leave()}catch(x){console.warn(x)}}LAB.layer.changed();try{history.go(-n)}catch(e){}},
   changed:function(){document.dispatchEvent(new CustomEvent('lab:layer',{detail:LAB.layer.top()}))}
 };
 window.addEventListener('popstate',function(e){var d=(e.state&&e.state.lab)||0;var any=false;while(stack.length>d){var s=stack.pop();any=true;try{s.leave&&s.leave()}catch(x){console.warn(x)}}if(any)LAB.layer.changed()});

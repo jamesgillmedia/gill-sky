@@ -90,7 +90,7 @@ function showSheet(on){
   if(on){setMarking(false);sheet.hidden=false;LAB.zoom(sheet,.94);void sheet.offsetWidth;sheet.classList.add('open');where.textContent='contact sheet';
     markSheetCur();requestAnimationFrame(function(){scrollCur()});
     els.forEach(function(f,i){armEl(f,false);armEl(rels[i],false)});watchSheet();
-    LAB.hint('tap a frame to stand it on the horizon · ✎ marks a pick · pinch out for the horizon',4600)}
+    LAB.hint('tap a frame to stand it on the horizon · ✎ marks a pick · pinch out for the constellation · pinch in for the horizon',4600)}
   else{sheet.classList.remove('open');LAB.zoom(sheet,1,.94);where.textContent='horizon';setMarking(false);
     grid.querySelectorAll('video').forEach(function(v){LAB.rest(v)});
     els.forEach(function(f,i){if(f._v){armEl(f,true);armEl(rels[i],true)}});
@@ -115,7 +115,7 @@ sheetB.addEventListener('click',function(){var top=LAB.layer.top();
   if(top==='day'){LAB.layer.back();return}
   if(top==='horizon')leaveHorizon();else enterHorizon(Math.round(pos))});
 
-LAB.pinch(sheet,{in:function(){LAB.hint('pinch out: the horizon',2600)},out:function(){enterHorizon(Math.round(pos))}});
+LAB.pinch(sheet,{in:function(){enterHorizon(Math.round(pos))},out:function(){LAB.constellation.open()}});
 
 /* ---------- horizon scrub ---------- */
 var dr=null;
@@ -169,7 +169,8 @@ document.addEventListener('keydown',function(e){var top=LAB.layer.top();if(top==
   if(atSheet()){
     if(e.key==='ArrowRight'){go(Math.round(target)+1,true);scrollCur();e.preventDefault()}
     else if(e.key==='ArrowLeft'){go(Math.round(target)-1,true);scrollCur();e.preventDefault()}
-    else if(e.key==='Enter'||e.key==='+'||e.key==='='||e.key==='-'||e.key==='_'){enterHorizon(Math.round(pos));e.preventDefault()}
+    else if(e.key==='Enter'||e.key==='+'||e.key==='='){enterHorizon(Math.round(pos));e.preventDefault()}
+    else if(e.key==='-'||e.key==='_'){LAB.constellation.open();e.preventDefault()}
     else if(e.key==='m'||e.key==='M')setMarking(!marking);
     return}
   if(e.key==='ArrowRight'){go(Math.round(target)+1);e.preventDefault()}else if(e.key==='ArrowLeft'){go(Math.round(target)-1);e.preventDefault()}
@@ -185,7 +186,7 @@ LAB.goto=function(id){var i=typeof id==='number'?id:L.findIndex(function(p){retu
 LAB.line=function(){return L};
 order();build();go(Math.round(L.length*.5),true);
 enterHorizon(Math.round(pos));booted=true;
-LAB.hz={list:function(){return L},cur:function(){return Math.round(pos)},set:function(i){go(i,true)},sky:sky,where:function(t){where.textContent=t}};
+LAB.hz={enter:function(){enterHorizon(Math.round(pos))},list:function(){return L},cur:function(){return Math.round(pos)},set:function(i){go(i,true)},sky:sky,where:function(t){where.textContent=t}};
 LAB.hint('drag sideways: every photograph, darkest to brightest · pinch out for the constellation · tap the one standing there',5600);
 
 LAB.go=function(id){var i=L.findIndex(function(p){return p.id===id});if(i>=0)go(i,true);return i};
