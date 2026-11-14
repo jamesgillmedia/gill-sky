@@ -1,5 +1,5 @@
 /* Photo lab · constellation, the widest level.
-   The path is one loop:  constellation --pinch in--> contact sheet --pinch out--> horizon --pinch out--> constellation.
+   constellation --pinch in--> contact sheet --pinch out--> constellation; the sheet pinches in to the horizon, which pinches out to the constellation.
    Tap a star to zoom into that photograph on the horizon. Esc / ‹ rise back to the horizon.
    Camera: the site's critically damped spring (sstep, glide weight 4.8, look weight 9.5), so each level change glides and settles.
    Desktop: ctrl+wheel (trackpad pinch), + / - keys, arrows move the ring, Enter = pinch in. */
@@ -29,7 +29,7 @@ LAB.zoom=function(el,from,to){
 /* ---------- the level mark: three dots along the loop, and where a pinch goes next ---------- */
 var LV=[
   {k:'constellation',next:'pinch in',to:'sheet'},
-  {k:'sheet',next:'pinch out',to:'horizon'},
+  {k:'sheet',next:'pinch out',to:'constellation'},
   {k:'horizon',next:'pinch out',to:'constellation'}];
 var mark=document.createElement('div');mark.className='lvl';mark.setAttribute('aria-hidden','true');
 mark.innerHTML='<i></i><i></i><i></i><span></span>';document.body.appendChild(mark);
@@ -110,7 +110,9 @@ function pick(x,y,max){var best=-1,bd=max*max;stars.forEach(function(s){var d=(s
 function frameIndex(i){var L=LAB.hz.list(),id=stars[i].p.id;return L.findIndex(function(p){return p.id===id})}
 
 function openIt(){
-  if(shown||LAB.layer.top()!=='horizon')return;
+  if(shown)return;
+  if(LAB.layer.top()==='')LAB.hz.enter();
+  if(LAB.layer.top()!=='horizon')return;
   if(!stars.length)layout();fit();clearTimeout(hideT);toSheetFlag=false;exitStar=-1;
   var L=LAB.hz.list(),cur=L[LAB.hz.cur()];sel=byId[cur.id].i;var st=stars[sel];
   aim(cxS,st.x,true);aim(cyS,st.y,true);aim(csS,fitS*ZIN,true);aim(lxS,0,true);aim(lyS,0,true);
@@ -132,7 +134,7 @@ function leave(){
 function toSheet(i){
   if(!shown||LAB.layer.top()!=='constellation')return;
   exitStar=i>=0?i:sel;var fi=frameIndex(exitStar);if(fi>=0)LAB.hz.set(fi);
-  toSheetFlag=true;history.go(-LAB.layer.depth());
+  toSheetFlag=true;LAB.layer.unwind();
 }
 function intoPhoto(i){
   if(!shown||LAB.layer.top()!=='constellation')return;

@@ -116,3 +116,12 @@ body.safe .cb-k{background:#170504;color:var(--ink);box-shadow:inset 0 1px 0 rgb
 body.safe .cb-k:active{background:#2a0a07}
 body.safe .cb-k.h.on{color:var(--mint)}
 body.safe .cb-name{color:var(--dim)}
+
+/* ---------- dial halo (from contact-sheet): a soft ring just outside the dial, small backdrop blur, panel only, no touches.
+   Darkroom: the ring is dim saturated red (200,40,24 / 150,16,8), never the pale blush the safelight used. ---------- */
+.cb-dial{--dg:226,238,242;--dg2:226,238,242;--da:.15;--db:.07;isolation:isolate}
+body.safe .cb-dial{--dg:200,40,24;--dg2:150,16,8;--da:.34;--db:.18}
+.cb-dial::before{content:"";position:absolute;inset:-9px;border-radius:50%;z-index:-1;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(var(--dg),0) calc(100% - 10px),rgba(var(--dg),var(--da)) calc(100% - 8px),rgba(var(--dg2),var(--db)) calc(100% - 4px),rgba(var(--dg2),0) 100%);
+  -webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);
+  -webkit-mask:radial-gradient(closest-side,transparent calc(100% - 9px),#000 calc(100% - 8px));mask:radial-gradient(closest-side,transparent calc(100% - 9px),#000 calc(100% - 8px))}

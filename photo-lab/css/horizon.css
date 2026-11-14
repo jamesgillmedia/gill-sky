@@ -99,7 +99,7 @@ body.safe .sheet{background:#050000}
 body.safe .sheet::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse at 50% 0%, rgba(140,14,8,.24), transparent 55%),
              radial-gradient(ellipse at 50% 100%, rgba(100,8,4,.28), transparent 60%)}
-body.safe .sc{position:relative;z-index:1}
+body.safe .sc{z-index:1}
 body.safe .proof{background:linear-gradient(180deg,#140403,#0b0201);border-color:var(--line);box-shadow:0 24px 60px rgba(40,0,0,.6)}
 body.safe .cell .win{background:#050000;box-shadow:0 0 0 1px rgba(200,40,24,.22),0 6px 18px rgba(60,0,0,.4)}
 body.safe .cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(236,63,34,.28),0 8px 20px rgba(60,0,0,.4)}
