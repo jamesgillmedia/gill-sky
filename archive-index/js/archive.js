@@ -68,10 +68,12 @@ function pump() {
 }
 
 /* ---------- layout ---------- */
+/* Beyond: when active the whole field is laid out continuously in rank order (best match first). Selection only: no frame is ever filtered or tinted. */
+let bperm = null, bsw = null, swPush = 0;
 function build(cols) {
   const r = new Float32Array(F.length * 2); const heads = [];
   let y = PAD, W = PAD * 2 + cols * CW + (cols - 1) * GX;
-  if (mode === 'film') {
+  if (mode === 'film' && !bperm) {
     films.forEach((f, k) => {
       if (k) y += FGAP;
       heads.push({ k, y });
@@ -83,10 +85,10 @@ function build(cols) {
       y += Math.ceil(f.frames.length / cols) * (CH + GY) - GY;
     });
   } else {
-    F.forEach((x, j) => {
-      const c = j % cols, rr = (j / cols) | 0;
-      r[j * 2] = PAD + c * (CW + GX); r[j * 2 + 1] = y + rr * (CH + GY);
-    });
+    for (let j = 0; j < F.length; j++) {
+      const g = bperm ? bperm[j] : j, c = j % cols, rr = (j / cols) | 0;
+      r[g * 2] = PAD + c * (CW + GX); r[g * 2 + 1] = y + rr * (CH + GY);
+    }
     y += Math.ceil(F.length / cols) * (CH + GY) - GY;
   }
   return { cols, r, heads, W, H: y + PAD };
@@ -105,7 +107,7 @@ function layout() {
     const l = build(c); const d = Math.abs(Math.log((l.W / l.H) / a));
     if (d < bd) { bd = d; best = l; }
   }
-  L = best;
+  L = best; bsw = null;
 }
 function fitS() { const fv = apFit(); return Math.min(fv.w / L.W, fv.h / L.H); }
 function minS() { return fitS() * 0.85; }
@@ -169,7 +171,8 @@ function draw() {
   want.length = 0;
   cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   cx.fillStyle = '#0a0b0d'; cx.fillRect(0, 0, vw, vh);
-  const lay = f => cx.setTransform(dpr, 0, 0, dpr, Math.round(dr.x.x * f * dpr), Math.round(dr.y.x * f * dpr)); lay(1);
+  const pk = 1 + .03 * swPush;   // a Beyond swap breathes in along Z on the site spring
+  const lay = f => cx.setTransform(dpr * pk, 0, 0, dpr * pk, Math.round((dr.x.x * f + vw / 2 * (1 - pk)) * dpr), Math.round((dr.y.x * f + vh / 2 * (1 - pk)) * dpr)); lay(1);
   cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
   const bw = CW * s, bh = CH * s, dev = bw * dpr;
   const tier = dev <= 100 ? 0 : dev <= 300 ? 1 : 2;
@@ -246,7 +249,7 @@ function draw() {
   }
   lay(.55);
   // film headers (by-film order)
-  if (mode === 'film') {
+  if (mode === 'film' && !bperm) {
     const hs = HEAD * s;
     for (const h of L.heads) {
       const sy = (h.y - oy) * s; if (sy > vh || sy + hs < -2) continue;
@@ -315,12 +318,30 @@ function eyeTick(dt, now) {
 let dlt = 0;
 function loop(t) {
   const ddt = Math.min(.05, Math.max(.001, (t - dlt) / 1000)); dlt = t;
+  if (bsw) {
+    sstep(bsw.sp, ddt); const u = bsw.sp.x, f = bsw.from, to = bsw.to, r = L.r;
+    for (let i = 0; i < r.length; i++) r[i] = f[i] + (to[i] - f[i]) * u;
+    swPush = Math.sin(Math.PI * clampN(u, 0, 1)); dirty = true;
+    if (Math.abs(u - 1) < .002 && Math.abs(bsw.sp.v) < .002) { r.set(to); bsw = null; swPush = 0; }
+  }
   eyeTick(ddt, t);
   if (Math.abs(dr.x.x) + Math.abs(dr.y.x) + Math.abs(dr.x.t) + Math.abs(dr.y.t) + Math.abs(dr.x.v) + Math.abs(dr.y.v) > .004) { sstep(dr.x, ddt); sstep(dr.y, ddt); dirty = true; }
   if (anim) anim(t);
   if (glide) glide(t);
   if (dirty) { dirty = false; if (!(cur >= 0 && bgA >= .995)) draw(); }
   requestAnimationFrame(loop);
+}
+
+function applyBeyond() {
+  const Bd = window.GJ_BEYOND; if (!Bd || !L) return;
+  const np = Bd.active ? Bd.order() : null;
+  if (!np && !bperm) return;
+  if (np && bperm && np.every((g, i) => g === bperm[i])) return;
+  const old = L.r.slice(), oc = L.cols, ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
+  bperm = np; layout();
+  if (fitted) fit(false); else go(s, L.r[ctr * 2] + CW / 2 - vw / 2 / s, L.r[ctr * 2 + 1] + CH / 2 - vh / 2 / s, false);
+  if (old.length === L.r.length && L.cols === oc && !RM.matches) { bsw = { from: old, to: L.r.slice(), sp: S(0, 4.6) }; bsw.sp.t = 1; L.r.set(old); }
+  dirty = true;
 }
 
 /* ---------- hit test ---------- */
@@ -661,7 +682,7 @@ function buildList() {
     // frame the film's own boxes (short films sit in the first columns, not across the whole width)
     let x0 = 1e9, x1 = -1e9;
     for (let g = a; g <= z; g++) { x0 = Math.min(x0, L.r[g * 2]); x1 = Math.max(x1, L.r[g * 2] + CW); }
-    const y0 = L.r[a * 2 + 1] - (mode === 'film' ? HEAD : 0), y1 = L.r[z * 2 + 1] + CH;
+    const y0 = L.r[a * 2 + 1] - (mode === 'film' && !bperm ? HEAD : 0), y1 = L.r[z * 2 + 1] + CH;
     const ts = Math.min(maxS() * .5, Math.max(fitS(), Math.min((vw - 40) / (x1 - x0), (vh - TOP - 40) / (y1 - y0))));
     go(ts, (x0 + x1) / 2 - vw / 2 / ts, (y0 + y1) / 2 - (vh + TOP) / 2 / ts, true);
     fl.hidden = true; fb.setAttribute('aria-expanded', 'false');
@@ -725,11 +746,12 @@ fetch('data/index.json').then(r => r.json()).then(d => {
   films.forEach((f, k) => f.frames.forEach((x, j) => { x.f = k; x.j = j; x.g = F.length; F.push(x); }));
   $('count').textContent = d.count.toLocaleString('en-US') + ' frames · ' + films.length + ' films · 0001–' + pad4(d.count);
   buildList(); resize();
+  if (window.GJ_BEYOND) { GJ_BEYOND.attach({ films, F }); GJ_BEYOND.on((st, sel) => { if (sel) applyBeyond(); }); }
   films.forEach(f => img(f.atlas.src)); pump();
   if (location.hash) readHash();
   requestAnimationFrame(loop);
 });
 addEventListener('resize', resize);
-window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()] };
+window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6) };
 if (document.fonts) document.fonts.ready.then(() => { dirty = true; });
 })();
