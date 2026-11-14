@@ -32,7 +32,7 @@
   function emit(sel) { subs.forEach(function (f) { try { f(ST, sel); } catch (e) {} }); }
 
   /* ---------- the index, measured from the atlases ---------- */
-  var M = [], ready = false, F = null, films = null, loading = false;
+  var M = [], ready = false, F = null, films = null, loading = false, NN = 0;   // NN: the stills (film clips are appended after them and are not measured here)
   function pct(sorted, v) { var lo = 0, hi = sorted.length; while (lo < hi) { var m = (lo + hi) >> 1; if (sorted[m] < v) lo = m + 1; else hi = m; } return sorted.length > 1 ? lo / (sorted.length - 1) : 0; }
   function measure(im, a, j, g, cv, cx) {
     var cw = a.cw, ch = a.ch, sx = (j % a.cols) * cw, sy = ((j / a.cols) | 0) * ch, W = 12, H = 7;
@@ -48,7 +48,7 @@
     M[g] = { lum: lum / n, hue: bi * 10 + 5, chroma: chroma / n, warm: (r + b) ? (r - b) / (r + b) : 0 };
   }
   function attach(o) {
-    if (loading) return; loading = true; films = o.films; F = o.F;
+    if (loading) return; loading = true; films = o.films; F = o.F; NN = o.n || F.length;
     var cv = document.createElement('canvas'); cv.width = 12; cv.height = 7; var cx = cv.getContext('2d', { willReadFrequently: true }); cx.imageSmoothingQuality = 'high';
     var k = 0;
     (function next() {
@@ -61,11 +61,11 @@
   }
   var LP = [], WP = [];
   function finish() {
-    var l = [], wv = [], g; for (g = 0; g < F.length; g++) if (M[g]) { l.push(M[g].lum); wv.push(M[g].warm); }
+    var l = [], wv = [], g; for (g = 0; g < NN; g++) if (M[g]) { l.push(M[g].lum); wv.push(M[g].warm); }
     l.sort(function (a, b) { return a - b; }); wv.sort(function (a, b) { return a - b; });
-    for (g = 0; g < F.length; g++) if (M[g]) { M[g].lp = pct(l, M[g].lum); M[g].wp = pct(wv, M[g].warm); }
-    var n = 0; for (g = 0; g < F.length; g++) if (M[g]) n++;
-    if (n < F.length * .5) { try { console.warn('beyond: could not measure the atlases (' + n + '/' + F.length + ')'); } catch (e) {} return; }   // nothing to select from: Beyond stays inactive
+    for (g = 0; g < NN; g++) if (M[g]) { M[g].lp = pct(l, M[g].lum); M[g].wp = pct(wv, M[g].warm); }
+    var n = 0; for (g = 0; g < NN; g++) if (M[g]) n++;
+    if (n < NN * .5) { try { console.warn('beyond: could not measure the atlases (' + n + '/' + NN + ')'); } catch (e) {} return; }   // nothing to select from: Beyond stays inactive
     ready = true; rev++; emit('index');
   }
   function angDist(a, b) { var d = Math.abs(a - b) % 360; return d > 180 ? 360 - d : d; }
@@ -105,10 +105,10 @@
   function order() {
     galN = 0;
     if (!active()) return null;
-    var rows = new Array(F.length), g;
-    for (g = 0; g < F.length; g++) rows[g] = { g: g, s: score(M[g]) };
+    var rows = new Array(NN), g;
+    for (g = 0; g < NN; g++) rows[g] = { g: g, s: score(M[g]) };
     rows.sort(function (a, b) { return b.s - a.s || a.g - b.g; });
-    if (FAM[ST.mode] || ST.mode === 'mono') { var n = 0; while (n < rows.length && rows[n].s >= .5) n++; galN = clamp(n, Math.min(12, F.length), Math.min(48, F.length)); }
+    if (FAM[ST.mode] || ST.mode === 'mono') { var n = 0; while (n < rows.length && rows[n].s >= .5) n++; galN = clamp(n, Math.min(12, NN), Math.min(48, NN)); }
     return rows.map(function (r) { return r.g; });
   }
   function set(patch) {

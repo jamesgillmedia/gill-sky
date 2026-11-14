@@ -401,7 +401,7 @@ function applyBeyond() {
   const np = useS ? Sx.order() : (Bd.active ? Bd.order() : null), ng = useS ? Sx.gallery : (np ? Bd.gallery : 0);
   stopClip();
   if (!np && !bperm) return;
-  if (np && bperm && ng === bgal && np.every((g, i) => g === bperm[i])) return;
+  if (np && bperm && ng === bgal && np.length === bperm.length && np.every((g, i) => g === bperm[i])) return;
   const ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
   bperm = np; bgal = ng; layout();
   if (bgal) frameGallery(false);   // the gallery simply appears, framed
