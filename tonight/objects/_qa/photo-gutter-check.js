@@ -34,7 +34,7 @@ function measure() {
   document.querySelectorAll('#front .cup').forEach(e => add(e, 'cup'));
   document.querySelectorAll('[data-photo]').forEach(e => add(e, 'photo'));
   const ui = [];
-  document.querySelectorAll('.g-stop, #ohd .ofollow, .ambx.obj-light .ambx-tg, #fdown, .g-head').forEach(e => { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || e.hidden) return; const r = e.getBoundingClientRect(); if (r.width < 1) return; ui.push({ name: 'ui:' + (e.className || e.id || e.tagName), l: r.left, t: r.top, r: r.right, b: r.bottom }) });
+  document.querySelectorAll('.g-stop, #ohd .ofollow, .ambx.obj-light .ambx-tg, #fdown, .g-head, .g-lampbtn, .g-lamp').forEach(e => { const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || e.hidden) return; const r = e.getBoundingClientRect(); if (r.width < 1) return; ui.push({ name: 'ui:' + (e.className || e.id || e.tagName), l: r.left, t: r.top, r: r.right, b: r.bottom }) });
   const p = document.createElement('div'); p.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
   document.body.appendChild(p); const c = getComputedStyle(p); const safe = { t: parseFloat(c.paddingTop), r: parseFloat(c.paddingRight), b: parseFloat(c.paddingBottom), l: parseFloat(c.paddingLeft) }; p.remove();
   return { photos: out, ui, safe, vw: innerWidth, vh: innerHeight };

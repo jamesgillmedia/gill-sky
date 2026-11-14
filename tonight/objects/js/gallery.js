@@ -75,6 +75,32 @@
     }
   }
 
+  /* ---------------- safelight: the photo lab's red darkroom light, ported for the gallery takes ----------------
+     Ported from gill-sky branch contact-sheet, photo-lab (tip c3c5dbb5, the lamp version 6224d11b): a soft red vignette on the stage, the room and the page grounds,
+     a small emissive lamp in the bottom-right corner that switches on with it (core first, then the bloom, a slow breath), and the chrome's lines going darkroom red.
+     It is the room's light, not Red mode and not a grade: it sits behind every photograph and every cutout (stage wall, page ground, behind the 3D canvas), nothing is laid over
+     media, and no filter, blend mode or opacity is put on a photograph or an object. One toggle, remembered on this device (gj-objects-safelight), also ?safelight=1|0.
+     It exists only while a gallery take is showing; A, B and C never get it. */
+  var SAFE_KEY = 'gj-objects-safelight', safeOn = false, safeInit = false, lampEl = null, bloomEl = null, lampBtns = [];
+  function loadSafe() {
+    if (safeInit) return; safeInit = true; var q = qs('safelight');
+    safeOn = q != null ? q === '1' : rd(SAFE_KEY) === '1';
+  }
+  function paintSafe() {
+    var on = safeOn && !!curV; document.body.classList.toggle('safe', on);
+    lampBtns.forEach(function (b) { b.setAttribute('aria-pressed', String(safeOn)); b.classList.toggle('on', safeOn) });
+    Object.keys(ui).forEach(function (k) { ui[k].refresh() });
+  }
+  function setSafe(on, announce) {
+    safeOn = !!on; wr(SAFE_KEY, safeOn ? '1' : '0'); paintSafe();
+    if (announce) { var h = document.getElementById('hint'); if (h) { h.textContent = safeOn ? 'safelight on \u2014 the room, not the photograph' : 'safelight off'; h.classList.remove('gone'); clearTimeout(setSafe.t); setSafe.t = setTimeout(function () { h.classList.add('gone') }, 2800) } }
+  }
+  function ensureLamp() {
+    if (lampEl) return;
+    lampEl = el('i', 'g-lamp'); lampEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(lampEl);
+    bloomEl = el('i', 'g-lamp-bloom g-fixed'); bloomEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(bloomEl);
+  }
+
   /* the light picker is the room's own AMBX plate (glass pill, LED switches, thin sliders), one per take, bottom left */
   function makePicker(V, host) {
     if (ui[V] || !window.AMBX) return;
@@ -90,9 +116,14 @@
         sw('s1', 'left', 'left spot'), sw('s2', 'middle', 'middle spot'), sw('s3', 'right', 'right spot'),
         { k: 'spr', label: 'spread', min: 0, max: 100, def: 50, aria: 'how wide the spots open', read: function () { return s.spr }, write: function (v) { s.spr = v; save(V) }, apply: function (v) { s.spr = v; applyLight(V, host) } }] }
     }[V];
+    defs.sliders = defs.sliders.concat([{ type: 'sec', label: 'darkroom' }, { type: 'sw', k: 'safe', label: 'safelight', aria: 'safelight: the photo lab\'s red darkroom light, with its lamp', get: function () { return safeOn }, toggle: function () { setSafe(!safeOn, true) } }]);
     C = AMBX.create({ room: 'objects-gal-' + V.toLowerCase(), title: defs.title, cls: 'sk-glass obj-light', aria: defs.aria, sliders: defs.sliders, where: function () { return V === 'G1' ? 'light on the room and the case' : V === 'G2' ? 'light on the table' : 'light on the wall' },
       onReset: function () { var d = DEF[V]; for (var k in d) s[k] = d[k]; save(V); applyLight(V, host); C.refresh() } });
     ui[V] = C; C.el.classList.add('g-ui'); C.el.hidden = true;
+    var lb = el('button', 'g-lampbtn'); lb.type = 'button'; lb.setAttribute('aria-label', 'safelight'); lb.title = 'safelight'; lb.innerHTML = '<i aria-hidden="true"></i>';
+    lb.setAttribute('aria-pressed', String(safeOn)); lb.classList.toggle('on', safeOn);
+    lb.addEventListener('click', function (e) { e.stopPropagation(); setSafe(!safeOn, true) });
+    C.el.insertBefore(lb, C.el.querySelector('.ambx-p')); lampBtns.push(lb);
   }
   function syncUI(V, host) {
     var atFront = host.board.classList.contains('on') && host.board.scrollTop <= 40;
@@ -124,6 +155,7 @@
       mediaPaused.forEach(function (m) { try { var pr = m.play(); if (pr && pr.catch) pr.catch(function () { }) } catch (e) { } }); mediaPaused = [];
     }
     if (on && railEl) { try { railEl.scrollTo({ left: railEl.scrollLeft, behavior: 'auto' }) } catch (e) { } }
+    document.body.classList.toggle('g-held', on);
     paintStop(); stopFns.forEach(function (fn) { try { fn(stopped) } catch (e) { } });
   }
   function ensureStop(host) {
@@ -235,9 +267,10 @@
   function joio(host, i) { return host.P[i].b.meta === 'joio.co' }
 
   function chrome(V, host) {
-    ensure(host); hostRef = host; ensureStop(host); var hdr = ensureFollow(); if (hdr) hdr.setAttribute('data-g', '1');
+    ensure(host); hostRef = host; loadSafe(); ensureLamp(); ensureStop(host); var hdr = ensureFollow(); if (hdr) hdr.setAttribute('data-g', '1');
     var entering = curV !== V;
     if (entering) { curV = V; if (!ST[V]) ST[V] = loadState(V); makePicker(V, host) }
+    paintSafe();
     gal.innerHTML = ''; fg.innerHTML = '';
     if (V === 'G1' && host.cur !== lastCur) { lastCur = host.cur; var po = pairOfPiece(host, lastCur); if (po) sel = po.k; else if (sel && pieceOfPair(host, BYK[sel]) >= 0) sel = null }
     if (!chrome.seeded) { chrome.seeded = true; var q = qs('pair'); if (q && BYK[q]) sel = q }
@@ -245,7 +278,7 @@
     gal.className = 'gal ' + V.toLowerCase(); fg.className = 'gal-fg ' + V.toLowerCase();
     host.front.style.setProperty('--g-sb', (host._safe ? host._safe.b : 0) + 'px'); host.front.style.setProperty('--g-sr', (host._safe ? host._safe.r : 0) + 'px'); document.documentElement.style.setProperty('--g-st', (host._safe ? host._safe.t : 0) + 'px');
     setLabels(host, V === 'G2' ? 'num' : 'title');
-    gal.appendChild(el('div', 'g-wall'));
+    gal.appendChild(el('div', 'g-wall')); gal.appendChild(el('i', 'g-lamp-bloom'));
     if (V === 'G1') chromeG1(host, W, H, land, els);
     else if (V === 'G2') chromeG2(host, W, H, land, els);
     else chromeG3(host, W, H, land, els);
@@ -384,6 +417,7 @@
     gal.innerHTML = ''; fg.innerHTML = ''; gal.className = 'gal'; curV = null;
     Object.keys(ui).forEach(function (k) { ui[k].el.hidden = true; if (ui[k].isOpen()) ui[k].open(false) });
     if (stopBtn) stopBtn.hidden = true;
+    paintSafe();
     var hd0 = document.getElementById('ohd'); if (hd0) hd0.removeAttribute('data-g');
     if (hostRef) {
       setStopped(false, hostRef);
@@ -393,5 +427,5 @@
     }
   }
 
-  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, get orbit() { return !!curV && !stopped }, get active() { return !!curV }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
+  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, get orbit() { return !!curV && !stopped }, get active() { return !!curV }, get safelight() { return safeOn && !!curV }, setSafelight: function (on) { setSafe(on, false) }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
 })();
