@@ -186,7 +186,7 @@ LAB.goto=function(id){var i=typeof id==='number'?id:L.findIndex(function(p){retu
 LAB.line=function(){return L};
 order();build();go(Math.round(L.length*.5),true);
 enterHorizon(Math.round(pos));booted=true;
-LAB.hz={enter:function(){enterHorizon(Math.round(pos))},list:function(){return L},cur:function(){return Math.round(pos)},set:function(i){go(i,true)},sky:sky,where:function(t){where.textContent=t}};
+LAB.hz={camera:camera,enter:function(){enterHorizon(Math.round(pos))},list:function(){return L},cur:function(){return Math.round(pos)},set:function(i){go(i,true)},sky:sky,where:function(t){where.textContent=t}};
 LAB.hint('drag sideways: every photograph, darkest to brightest · pinch out for the constellation · tap the one standing there',5600);
 
 LAB.go=function(id){var i=L.findIndex(function(p){return p.id===id});if(i>=0)go(i,true);return i};
