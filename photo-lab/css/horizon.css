@@ -60,7 +60,7 @@ body.marking .cell .win{cursor:cell}
 .end{margin:28px 0 0;text-align:center;font-size:11px;color:var(--mute);cursor:pointer}
 @media (min-width:900px){.stack{display:grid;grid-template-columns:1fr;max-width:1200px;margin:0 auto}.cred{max-width:1200px;margin:0 auto}.proof{padding:20px 22px 26px}.grid{gap:14px 12px}}
 @media (orientation:landscape) and (max-height:500px){.sky{--hy:70%}.ends{top:calc(var(--hy) + 18px)}.sc{padding-top:calc(52px + var(--st))}}
-@media (max-width:520px){.lab-top .lab-btn:not(.ic):not(.on){padding:0 10px}}
+@media (max-width:520px){.lab-top .lab-btn:not(.ic){padding:0 7px}}
 
 body.sheet-open .lab-top{background:rgba(4,7,11,.94);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 .sc{scroll-padding-top:calc(66px + var(--st));scroll-padding-bottom:calc(16px + var(--sb))}

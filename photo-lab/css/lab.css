@@ -71,7 +71,15 @@ noscript .ns img{width:100%;height:auto;display:block}
  .cb-side{flex-direction:row;justify-content:space-between;padding:0 6px}
  .cb-dial{width:128px;height:128px}
 }
-@media (max-width:520px){.lab-top .crumb b{display:none}#sort{font-size:11px;padding:0 9px}}
+@media (max-width:520px){
+ .lab-top .crumb b{display:none}
+ .lab-top{gap:6px;padding-left:calc(10px + var(--sl));padding-right:calc(10px + var(--sr))}
+ .lab-top>.sig,.lab-top>.lab-btn{flex-shrink:0}
+ .lab-top>.sig{margin-right:auto}
+ .lab-top .lab-btn{white-space:nowrap}
+ .lab-top .lab-btn:not(.ic){font-size:11px;letter-spacing:.06em}
+ .lab-top .lab-btn.ic{min-width:40px}
+}
 
 /* ---------- safelight (darkroom spill: ambient red on the room, not a grade on the photograph) ---------- */
 body.safe{--bg:#0a0506;--ink:#f3e0dc;--dim:#d9b8b2;--mute:#a07a76;--line:rgba(255,92,78,.20);--mint:#e38b7c;--tint:255,186,176}
