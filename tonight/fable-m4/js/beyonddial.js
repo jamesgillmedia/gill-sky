@@ -8,9 +8,17 @@
    orbit    dolly (pure push along Z) or orbit (the arrival swings through a short yaw arc)
  The same easing drives the expand, the snap to a detent and the contract. Finger tracking is the moon opener's exponential lag
  (k = 1 - exp(-dt * rate), 14 mouse, 22 touch). Nothing here uses a transition: every move is a sampled spring.
- Dial rules: boxless (no border, background or backdrop), Z-depth (perspective + translateZ, stacked drop shadows), expand / snap / contract
- on activation and release, ~18% hold anchor on the active track while a dial is held (everything else goes at once, no fade), and the
- cluster fades only when it sits over content (the open film page, the board window). Reduce Motion: same end states, no travel. */
+ Two taps. The first tap on the hub brings up only the big Beyond dial. The second tap (the hub, or the big dial's centre) brings up the
+ sub-menu: depth, drift, easing, orbit. A tap outside, Esc or the site's back button closes one level at a time. Same spring expand and
+ contract for both levels; nothing auto-hides, and an open cluster never fades, even over content.
+ Presence: each dial has an opaque dark body (a solid disc behind its rings and labels), a backdrop blur and a feathered mist around its
+ edge (pointer-events none), and a very faint glow. This overrides the earlier boxless rule for this cluster only. Red mode: a dark red body and red mist.
+ State colour (dial UI only, never an image): the outer ring ramps from the normal UI colour toward red along the detents (off, red, colour,
+ light); the active arc, thumb, label and centre text take the colour at the current position, and the inner sweep shifts toward red as it
+ moves. In red mode the ramp stays inside the reds, dim to bright.
+ Kept: Z-depth (perspective + translateZ), spring expand / snap / contract, ~18% hold anchor on the active track while a dial is held (the
+ held dial's body steps aside with the rest so the content behind it can be read). The hub itself still fades when it is closed and sits
+ over content. Reduce Motion: same end states, no travel. */
 (function(w){
 'use strict';
 var B=w.GJ_BEYOND;if(!B)return;
@@ -26,18 +34,26 @@ function arc(cx,cy,r,t0,t1){
   return 'M'+p0[0].toFixed(2)+' '+p0[1].toFixed(2)+'A'+r+' '+r+' 0 '+large+' 1 '+p1[0].toFixed(2)+' '+p1[1].toFixed(2);
 }
 function line(cx,cy,r0,r1,deg){var a=pt(cx,cy,r0,deg),b=pt(cx,cy,r1,deg);return 'M'+a[0].toFixed(2)+' '+a[1].toFixed(2)+'L'+b[0].toFixed(2)+' '+b[1].toFixed(2)}
-function P(g,cls,d){var h=el('path',{'class':'bd-halo',d:d});g.appendChild(h);var m=el('path',{'class':cls,d:d});g.appendChild(m);return m}
+function P(g,cls,d){var m=el('path',{'class':cls,d:d});g.appendChild(m);return m}
 function el(n,a,txt){var e=doc.createElementNS(NS,n),k;for(k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;return e}
 
 /* ---------- dial definitions ---------- */
 var BIG=160,MINI_W=60,MINI_H=70;
 /* centre of each dial, from the hub's centre (x right, y down), and its Z in px (the fold dial: 18 idle, 28 expanded) */
-var LAY={beyond:{x:68,y:-112,z:28},depth:{x:170,y:-164,z:18},drift:{x:232,y:-164,z:18},ease:{x:170,y:-92,z:18},orbit:{x:232,y:-92,z:18}};
+var LAY={beyond:{x:68,y:-112,z:28},depth:{x:206,y:-164,z:18},drift:{x:278,y:-164,z:18},ease:{x:206,y:-90,z:18},orbit:{x:278,y:-90,z:18}};
 var ORDER=['beyond','depth','drift','ease','orbit'];
 var NAMES={beyond:'beyond',depth:'depth',drift:'drift',ease:'easing',orbit:'orbit'};
 
-var hub,wrap,label,lab1,lab2,cluster,D={},openS={x:0,v:0,t:0,w:4.8},openT=0,idleT=0,raf=0,last=0;
-var held=null,lastRel=0;
+var hub,wrap,label,lab1,lab2,cluster,D={},openS={x:0,v:0,t:0,w:4.8},subS={x:0,v:0,t:0,w:4.8},lvl=0,openT=0,subT=0,raf=0,last=0;
+var held=null;
+/* ---------- state colour: normal UI colour -> red along the detents; the reds only, dim -> bright, in red mode ---------- */
+var UI=[232,228,220],RED=[255,68,87],RDIM=[122,30,42],RBRI=[255,92,108],SEGO=56,SEGI=40;
+function isRedTheme(){return root.getAttribute('data-theme')==='red'}
+function ramp(t){
+  t=clamp(t,0,1);
+  var a=isRedTheme()?RDIM:UI,b=isRedTheme()?RBRI:RED;
+  return 'rgb('+Math.round(lerp(a[0],b[0],t))+','+Math.round(lerp(a[1],b[1],t))+','+Math.round(lerp(a[2],b[2],t))+')';
+}
 
 function stateT(k){
   var S=B.state;
@@ -70,22 +86,22 @@ function buildBig(){
   var s=el('svg',{viewBox:'0 0 '+BIG+' '+BIG,width:BIG,height:BIG,'class':'bd-svg',tabindex:'0',role:'slider','aria-label':'Beyond selection','aria-valuemin':'0','aria-valuemax':'3'});
   s.appendChild(el('circle',{'class':'bd-hit',cx:80,cy:80,r:72}));
   var go=el('g',{'class':'ring-out'}),gl=el('g',{'class':'labs'}),gi=el('g',{'class':'ring-in'}),gc=el('g',{'class':'ctr'});
-  P(go,'bd-trk',arc(80,80,62,0,1));
+  d.segO=[];for(var q=0;q<SEGO;q++){d.segO.push(P(go,'bd-seg',arc(80,80,62,q/SEGO,Math.min(1,(q+1.3)/SEGO))))}
+  d.tickO=[];
   [0,1/3,2/3,1].forEach(function(t,i){
-    P(go,'bd-tick',line(80,80,56,68,ang(t)));
+    d.tickO.push(P(go,'bd-tick',line(80,80,56,68,ang(t))));
     var p=pt(80,80,76,ang(t));
     gl.appendChild(el('text',{'class':'bd-lab','data-i':i,x:p[0].toFixed(1),y:(p[1]+2.6).toFixed(1),'text-anchor':'middle'},B.MODES[i]));
   });
   d.thOut=el('circle',{'class':'bd-th',r:'4.2'});go.appendChild(d.thOut);
-  P(gi,'bd-trk',arc(80,80,44,0,1));
+  d.segI=[];for(var q2=0;q2<SEGI;q2++){d.segI.push(P(gi,'bd-seg',arc(80,80,44,q2/SEGI,Math.min(1,(q2+1.3)/SEGI))))}
   for(var i=0;i<=20;i++){var t=i/20;P(gi,'bd-min'+(i%5?'':' bd-maj'),line(80,80,i%5?40:38,46,ang(t)))}
-  d.fill=el('path',{'class':'bd-fill',d:''});gi.appendChild(d.fill);
   d.thIn=el('circle',{'class':'bd-th',r:'3.6'});gi.appendChild(d.thIn);
   d.c1=el('text',{'class':'bd-c1',x:80,y:78,'text-anchor':'middle'},'');
   d.c2=el('text',{'class':'bd-c2',x:80,y:92,'text-anchor':'middle'},'');
   gc.appendChild(d.c1);gc.appendChild(d.c2);
   s.appendChild(go);s.appendChild(gl);s.appendChild(gi);s.appendChild(gc);
-  d.svg=s;d.gOut=go;d.gIn=gi;d.labs=gl;
+  d.svg=s;d.gOut=go;d.gIn=gi;d.labs=gl;d.bodyR=86;d.mistR=134;
   return d;
 }
 function buildMini(k){
@@ -102,7 +118,7 @@ function buildMini(k){
   var gc=el('g',{'class':'ctr'});gc.appendChild(d.c1);
   var nm=el('text',{'class':'bd-nm',x:30,y:64,'text-anchor':'middle'},NAMES[k]);
   s.appendChild(g);s.appendChild(gc);s.appendChild(nm);
-  d.svg=s;d.gMain=g;d.nm=nm;
+  d.svg=s;d.gMain=g;d.nm=nm;d.bodyR=34;d.mistR=62;d.bodyDy=4;
   return d;
 }
 function mount(){
@@ -121,20 +137,29 @@ function mount(){
   ORDER.forEach(function(k){
     var d=D[k],h=doc.createElement('div');h.className='bd-dial';h.setAttribute('data-k',k);
     h.style.width=d.w+'px';h.style.height=d.h+'px';h.style.left=(13+LAY[k].x-d.cx)+'px';h.style.top=(13+LAY[k].y-d.cy)+'px';
+    var ms=doc.createElement('i'),bd=doc.createElement('i'),dy=d.bodyDy||0;
+    ms.className='bd-mist';ms.style.cssText='width:'+d.mistR*2+'px;height:'+d.mistR*2+'px;left:'+(d.cx-d.mistR)+'px;top:'+(d.cy+dy-d.mistR)+'px';
+    bd.className='bd-body';bd.style.cssText='width:'+d.bodyR*2+'px;height:'+d.bodyR*2+'px;left:'+(d.cx-d.bodyR)+'px;top:'+(d.cy+dy-d.bodyR)+'px';
+    h.appendChild(ms);h.appendChild(bd);
     h.appendChild(d.svg);d.box=h;cluster.appendChild(h);
     bindDial(d);
   });
   wrap.appendChild(cluster);wrap.appendChild(hub);wrap.appendChild(label);
   doc.body.appendChild(wrap);
-  hub.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();toggle()});
-  doc.addEventListener('pointerdown',function(e){if(openT&&!held&&!wrap.contains(e.target))close()},true);
-  doc.addEventListener('keydown',function(e){if(e.key==='Escape'&&openT)close()});
+  hub.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();hubTap()});
+  /* a tap outside, Esc, or the site's back button: one level at a time */
+  doc.addEventListener('pointerdown',function(e){if(lvl&&!held&&!wrap.contains(e.target)&&!(e.target.closest&&e.target.closest('#back')))setLvl(lvl-1)},true);
+  doc.addEventListener('keydown',function(e){if(e.key==='Escape'&&lvl){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();setLvl(lvl-1)}},true);
+  var bk=doc.getElementById('back');
+  if(bk)bk.addEventListener('click',function(e){if(lvl){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();setLvl(lvl-1)}},true);
   B.on(function(){paintAll();kick()});
   addEventListener('resize',function(){coverCheck()});
+  wrap.setAttribute('data-lvl','0');
   paintAll();
   setInterval(tick250,250);
   tick250();
 }
+function hubTap(){setLvl(lvl===0?1:lvl===1?2:1)}
 
 /* ---------- motion: the same springs as the camera ---------- */
 function weight(){var c=B.cam();return c}
@@ -145,7 +170,7 @@ function stepSpring(s,dt,c){
   var k=Math.exp(-s.w*dt),e=s.x-s.t,cc=s.v+s.w*e;s.x=s.t+(e+cc*dt)*k;s.v=(s.v-s.w*cc*dt)*k;
 }
 function moving(){
-  if(Math.abs(openS.x-openS.t)>.0015||Math.abs(openS.v)>.01)return true;
+  if(Math.abs(openS.x-openS.t)>.0015||Math.abs(openS.v)>.01||Math.abs(subS.x-subS.t)>.0015||Math.abs(subS.v)>.01)return true;
   var k,d,r;
   for(k in D){d=D[k];for(r in d.disp)if(Math.abs(d.disp[r]-d.tgt[r])>.0008)return true}
   return false;
@@ -155,7 +180,7 @@ function loop(now){
   raf=0;
   var dt=Math.min(.05,(now-last)/1000);last=now;
   var c=weight();
-  openS.t=openT;stepSpring(openS,dt,c);
+  openS.t=openT;subS.t=subT;stepSpring(openS,dt,c);stepSpring(subS,dt,c);
   var k,d,r;
   for(k in D){
     d=D[k];
@@ -174,15 +199,31 @@ function loop(now){
 function settled(){
   if(!openT&&openS.x<.002){cluster.classList.remove('bd-vis');wrap.classList.remove('bd-open')}
 }
+/* 0 = hub only, 1 = the big Beyond dial, 2 = Beyond plus depth / drift / easing / orbit. Both levels use the same spring. */
+function setLvl(n){
+  n=clamp(n,0,2);if(n===lvl)return;
+  lvl=n;openT=n>=1?1:0;subT=n>=2?1:0;
+  var c=B.cam();
+  if(c.instant){openS.x=openT;openS.v=0;subS.x=subT;subS.v=0}
+  if(openT){wrap.classList.add('bd-open');cluster.classList.add('bd-vis')}
+  wrap.setAttribute('data-lvl',String(lvl));
+  layout();kick();paintAll();
+}
 
 /* ---------- layout: the expand / contract is a dolly along Z out of the hub ---------- */
 function layout(){
-  var o=clamp(openS.x,0,1),i;
+  var o=clamp(openS.x,0,1),so=clamp(subS.x,0,1),i;
   wrap.classList.toggle('bd-open',o>.002||openT===1);
   cluster.classList.toggle('bd-vis',o>.002);
   for(i=0;i<ORDER.length;i++){
-    var k=ORDER[i],d=D[k],e=clamp((o-i*.09)/(1-.09*(ORDER.length-1)),0,1),L=LAY[k];
-    var x=-L.x*(1-e),y=-L.y*(1-e),z=L.z*e,s=lerp(.16,1,e),ry=lerp(6,12,e);
+    var k=ORDER[i],d=D[k],L=LAY[k],e,x,y;
+    if(i===0){e=o;x=-L.x*(1-e);y=-L.y*(1-e)}
+    else{
+      /* the sub-menu grows out of the big dial, not the hub */
+      e=clamp((so-(i-1)*.09)/(1-.09*(ORDER.length-2)),0,1);
+      x=(LAY.beyond.x-L.x)*(1-e);y=(LAY.beyond.y-L.y)*(1-e);
+    }
+    var z=L.z*e,s=lerp(.16,1,e),ry=lerp(6,12,e);
     d.box.style.transform='perspective(240px) translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,'+z.toFixed(2)+'px) rotateY('+ry.toFixed(2)+'deg) scale('+s.toFixed(4)+')';
     d.box.style.visibility=e>.012?'':'hidden';
   }
@@ -194,9 +235,20 @@ function paintBig(d){
   var po=pt(80,80,62,ang(tOut)),pi=pt(80,80,44,ang(tIn));
   d.thOut.setAttribute('cx',po[0].toFixed(2));d.thOut.setAttribute('cy',po[1].toFixed(2));
   d.thIn.setAttribute('cx',pi[0].toFixed(2));d.thIn.setAttribute('cy',pi[1].toFixed(2));
-  d.fill.setAttribute('d',S.mode==='off'?'':arc(80,80,44,0,Math.max(.002,tIn)));
   var mi=B.MODES.indexOf(S.mode),labs=d.labs.childNodes,i;
   for(i=0;i<labs.length;i++)labs[i].setAttribute('class','bd-lab'+(i===mi?' on':''));
+  /* state colour */
+  var key=tOut.toFixed(3)+'|'+tIn.toFixed(3)+'|'+(isRedTheme()?'r':'n')+'|'+S.mode;
+  if(d.ckey!==key){
+    d.ckey=key;
+    var cO=ramp(tOut),cI=ramp(tIn),live=S.mode!=='off';
+    d.segO.forEach(function(sg,q){var m=(q+.65)/SEGO,on=m<=tOut;sg.style.stroke=ramp(m);sg.style.opacity=on?'.96':'.34';sg.style.strokeWidth=on?'2.2':'1.2'});
+    d.segI.forEach(function(sg,q){var m=(q+.65)/SEGI,on=live&&m<=tIn;sg.style.stroke=ramp(m);sg.style.opacity=on?'.96':'.3';sg.style.strokeWidth=on?'2.2':'1.1'});
+    d.tickO.forEach(function(tk,q){tk.style.stroke=ramp(q/3)});
+    for(i=0;i<labs.length;i++)labs[i].style.fill=i===mi?ramp(i/3):'';
+    d.thOut.style.fill=cO;d.thIn.style.fill=live?cI:'';d.c1.style.fill=cO;d.c2.style.fill=live?cI:'';
+    wrap.style.setProperty('--bd-state',cO);
+  }
   d.gIn.setAttribute('class','ring-in'+(S.mode==='off'?' dead':''));
   var lb=S.mode==='off'?'off':B.label.split(' · ');
   if(S.mode==='off'){d.c1.textContent='beyond';d.c2.textContent='off'}
@@ -220,7 +272,8 @@ function paintAll(){
   var hp=pt(13,13,12,ang(modeT()));hub._dot.setAttribute('cx',hp[0].toFixed(2));hub._dot.setAttribute('cy',hp[1].toFixed(2));
   wrap.setAttribute('data-mode',S.mode);
   lab1.textContent='beyond'+(S.mode==='off'?'':' · '+B.label);
-  lab2.textContent=openT||held?camLine():'';
+  lab2.textContent=lvl>=2||held?camLine():'';
+  lab1.style.color=ramp(modeT());hub._dot.style.fill=ramp(modeT());
   hub.setAttribute('aria-expanded',openT?'true':'false');
 }
 function d_held(k,rings){return held&&held.k===k&&rings.indexOf(held.ringKey)>=0}
@@ -230,19 +283,6 @@ function camLine(){
 }
 
 /* ---------- interaction ---------- */
-function toggle(){if(openT)close();else open()}
-function open(){
-  openT=1;clearTimeout(idleT);wrap.classList.add('bd-open');cluster.classList.add('bd-vis');
-  var c=B.cam();if(c.instant){openS.x=1;openS.v=0}
-  kick();arm(6000);paintAll();
-}
-function close(){
-  openT=0;clearTimeout(idleT);
-  var c=B.cam();if(c.instant){openS.x=0;openS.v=0}
-  kick();paintAll();
-}
-function arm(ms){clearTimeout(idleT);idleT=setTimeout(function(){if(!held)close()},ms)}
-
 function bindDial(d){
   var s=d.svg;
   s.addEventListener('pointerdown',function(e){
@@ -254,17 +294,15 @@ function bindDial(d){
       if(rad>=53){ring='out';ringKey='out'}
       else if(rad>=24&&B.state.mode!=='off'){ring='inn';ringKey='inn'}
       else{
-        /* the centre: a tap steps off <-> the last mode used */
-        if(rad<24){B.set({mode:B.state.mode==='off'?(d.lastMode||'red'):'off'});if(B.state.mode!=='off')d.lastMode=B.state.mode;snapRing(d,'out');arm(1400);kick();return}
+        /* the centre: the second tap, which opens (or, again, closes) the sub-menu */
+        if(rad<24)hubTap();
         return;
       }
     }
-    openT=1;
     held={k:d.k,ringKey:ringKey,id:e.pointerId};
     d.ring=ringKey;d.drag=true;d.rate=e.pointerType==='mouse'?14:22;d.cx0=cx;d.cy0=cy;d.sc=sc;
     try{s.setPointerCapture(e.pointerId)}catch(x){}
     wrap.classList.add('bd-hold');d.box.classList.add('bd-act');d.box.setAttribute('data-ring',ringKey);
-    clearTimeout(idleT);
     move(d,e);kick();
   });
   s.addEventListener('pointermove',function(e){if(held&&held.k===d.k&&held.id===e.pointerId)move(d,e)});
@@ -313,11 +351,9 @@ function release(d,e){
   d.drag=false;snapRing(d,rk);
   if(d.k==='beyond'&&rk==='inn'){clearTimeout(d.swT);sweep(d,d.tgt.inn,true)}
   if(d.k==='beyond'&&B.state.mode!=='off')d.lastMode=B.state.mode;
-  held=null;lastRel=performance.now();
+  held=null;
   wrap.classList.remove('bd-hold');d.box.classList.remove('bd-act');d.box.removeAttribute('data-ring');
   paintAll();kick();
-  /* the cluster contracts after the last release unless the next dial is grabbed */
-  arm(1400);
 }
 function key(d,e){
   var k=d.k,S=B.state,dir=e.key==='ArrowRight'||e.key==='ArrowUp'?1:e.key==='ArrowLeft'||e.key==='ArrowDown'?-1:0;
@@ -331,7 +367,7 @@ function key(d,e){
   else if(k==='ease')B.set({ease:S.ease+dir});
   else if(k==='orbit')B.set({orbit:dir>0?1:0});
   else if(k==='drift')B.set({drift:S.drift+dir*.125});
-  arm(6000);kick();
+  kick();
 }
 
 /* ---------- when the hub is in play, and the one fade: only over content ---------- */
@@ -348,7 +384,7 @@ var COVER=['IMG','VIDEO','P','H1','H2','H3','LI','A','B','SMALL','EM','CANVAS'];
 function coverCheck(){
   if(!wrap||wrap.hidden)return;
   var r=hub.getBoundingClientRect(),over=false,pts=[[.5,.5],[.15,.15],[.85,.15],[.15,.85],[.85,.85]],i,j,u=w.__u1;
-  if(openT||held)over=false;
+  if(lvl||held)over=false;
   else{
     for(i=0;i<pts.length&&!over;i++){
       var els=doc.elementsFromPoint(r.left+r.width*pts[i][0],r.top+r.height*pts[i][1]);
@@ -364,7 +400,7 @@ function coverCheck(){
 }
 function tick250(){
   var on=relevant();
-  if(wrap.hidden===on){wrap.hidden=!on;if(!on&&openT){openT=0;openS.x=0;openS.v=0;layout();settled()}}
+  if(wrap.hidden===on){wrap.hidden=!on;if(!on&&lvl){lvl=0;openT=0;subT=0;openS.x=0;openS.v=0;subS.x=0;subS.v=0;wrap.setAttribute('data-lvl','0');layout();settled()}}
   if(on)coverCheck();
 }
 
@@ -372,7 +408,7 @@ function boot(){
   if(!doc.body){doc.addEventListener('DOMContentLoaded',boot);return}
   mount();
 }
-w.GJ_BEYOND_DIAL={open:open,close:close,get isOpen(){return !!openT},get hub(){return hub},get el(){return wrap},refresh:tick250,
+w.GJ_BEYOND_DIAL={setLevel:setLvl,get level(){return lvl},get isOpen(){return !!openT},get hub(){return hub},get el(){return wrap},refresh:tick250,
   grab:function(k,ring,t){var d=D[k];if(!d)return;d.ring=ring||'main';d.tgt[d.ring]=t;kick()}};
 boot();
 })(window);
