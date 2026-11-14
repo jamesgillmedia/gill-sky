@@ -2702,6 +2702,7 @@ function ui(){
   document.documentElement.classList.toggle('mapdim',onBoard()||!!cur.cards||(bioOn&&isBio()));
   document.documentElement.classList.toggle('deep',cur.lv>0&&!(bioOn&&isBio()));
   var foot=$('foot');if(foot)foot.hidden=phase==='sky'||phase==='fly';
+  var spl=$('splinks');if(spl)spl.hidden=!(phase==='sky'&&cur.lv===0&&!cur.b&&!cur.cards&&!bioOn);
   var label='the sky';
   if(window.GJ_DEPTH&&GJ_DEPTH.soundOn())label='sound';
   else if(cur.k==='progress')label='in progress';

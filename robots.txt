@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jamesgillmedia.github.io/gill-sky/sitemap.xml
+Sitemap: https://jamesgillmedia.github.io/gill-sky/sitemap-images.xml
