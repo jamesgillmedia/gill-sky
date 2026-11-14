@@ -105,7 +105,9 @@ function beyondSwap(){
   var B=window.GJ_BEYOND,r=FP.root,w=FP.work;
   if(!B||!r||!r.isConnected||!w)return;
   var list=B.stills(w,w.stills.slice()),frame=r.querySelector('.fp-frame');
-  var ims=r.querySelectorAll('.fp-frame img'),btns=r.querySelectorAll('.fp-strip button');
+  var btns=r.querySelectorAll('.fp-strip button'),ims;
+  B.flush(frame);[].forEach.call(btns,function(x){B.flush(x)});
+  ims=r.querySelectorAll('.fp-frame img');
   list.forEach(function(src,k){
     var b=btns[k],bi=b&&b.querySelector('img'),fi=ims[k];
     if(bi&&bi.getAttribute('src')!==src)B.glideDom(b,bi,src,k,{flow:true});

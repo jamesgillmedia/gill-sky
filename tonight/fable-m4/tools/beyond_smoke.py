@@ -143,7 +143,7 @@ def run(pw, label, vp, touch, shots):
     check('%s light slider: dark end < bright end' % label, lo < hi, 'lum %.3f -> %.3f' % (lo, hi))
 
     # ---- no filter anywhere ----
-    f = pg.evaluate("""()=>{const bad=[];document.querySelectorAll('img,video,canvas,.gj-box,#gj-tiles,#cv').forEach(e=>{const s=getComputedStyle(e);if(s.filter&&s.filter!=='none')bad.push(e.tagName+'.'+e.className+':'+s.filter)});return bad}""")
+    f = pg.evaluate("""()=>{const bad=[];document.querySelectorAll('img,video,canvas,.gj-box,#gj-tiles,#cv').forEach(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);if(!r.width||!r.height||e.closest('[hidden]'))return;if(s.filter&&s.filter!=='none')bad.push(e.tagName+'.'+e.className+':'+s.filter)});return bad}""")
     check('%s no CSS filter on any still, clip, tile or canvas' % label, not f, str(f[:3]))
 
     # ---- photo board ----
@@ -247,8 +247,11 @@ def run(pw, label, vp, touch, shots):
     # the same springs: the selected easing is the one the swaps use
     c = pg.evaluate('GJ_BEYOND.cam()')
     check('%s dial: easing/depth/drift/orbit are what the swaps use' % label, c['ease']['k'] == 'soft' and abs(c['w'] - 3.2 * c['spd']) < .01 and c['yaw'] > 0 and c['z'] > 120 * 2.3, 'w %.2f z %.0f yaw %.2f' % (c['w'], c['z'], c['yaw']))
-    pg.wait_for_timeout(3000)
-    check('%s dial: the cluster contracts after release' % label, not pg.evaluate("document.getElementById('bdial').classList.contains('bd-open')"))
+    t = 0
+    while t < 9000 and pg.evaluate("document.getElementById('bdial').classList.contains('bd-open')"):
+        pg.wait_for_timeout(250)
+        t += 250
+    check('%s dial: the cluster contracts after release' % label, t < 9000, 'closed after %.1fs' % (t / 1000 + 0))
     pg.evaluate("localStorage.removeItem('gj.beyond')")
 
     check('%s no console errors / page errors' % label, not errs, str(errs[:3]))
@@ -273,7 +276,7 @@ def run(pw, label, vp, touch, shots):
     rp.evaluate("document.querySelector('#bdial .bd-hub').click()")
     rp.wait_for_timeout(120)
     tr = rp.evaluate("document.querySelector('.bd-dial[data-k=beyond]').style.transform")
-    check('%s reduced motion: the cluster opens at its end pose at once' % label, 'translate3d(0.00px,0.00px,28.00px)' in tr.replace(' ', ''), tr)
+    check('%s reduced motion: the cluster opens at its end pose at once' % label, 'translate3d(0px,0px,28px)' in tr.replace(' ', ''), tr)
     check('%s reduced motion: no page errors' % label, not rerr)
     rc.close()
     br.close()

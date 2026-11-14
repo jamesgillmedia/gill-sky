@@ -30,7 +30,6 @@ function sstepF(s,dt){var k=Math.exp(-s.w*dt),e=s.x-s.t,c=s.v+s.w*e;s.x=s.t+(e+c
 var sstep=CAMX.sstep||sstepF;
 /* The site-3d springs. W_GLIDE and W_LOOK are sky.js's own (exported through GJ_CAM); the others are site-3d's weights. */
 var W={GLIDE:CAMX.W_GLIDE||4.8,LOOK:CAMX.W_LOOK||9.5,REL:CAMX.W_REL||9.5,FLY:CAMX.W_FLY||5.6,SOFT:CAMX.W_SOFT||3.2};
-var W_RM={REL:14,FLY:9,GLIDE:8,SOFT:6};
 var EXP={TAP:3.4,MOUSE:14,WHEEL:16,TOUCH:22};
 var ZLV=[.62,1,1.55,2.4];
 var EASES=[{k:'soft',n:'soft',w:'SOFT',tag:'W_SOFT'},{k:'glide',n:'glide',w:'GLIDE',tag:'W_GLIDE'},{k:'fly',n:'fly',w:'FLY',tag:'W_FLY'},{k:'exp',n:'exp',rate:EXP.TAP,tag:'exp lag'}];
@@ -172,7 +171,7 @@ function refreshDark(){
 function cam(){
   var e=EASES[ST.ease],spd=ST.drift*(1-.3*dark),mk=motionK();
   var z=Z_PX*ZLV[ST.depth]*(1+.35*dark),rm=reduced();
-  var wt=e.w?(rm?W_RM[e.w]:W[e.w]):0;
+  var wt=e.w?W[e.w]:0;
   return {z:z,spd:spd,w:wt*spd*Math.max(.35,mk),exp:!e.w,rate:(e.rate||0)*spd*Math.max(.35,mk),yaw:ST.orbit?ORBIT_ARC:0,
     ease:e,dark:dark,instant:rm||mk<=.01,f:Math.max(320,innerHeight/2/Math.tan(FOV*Math.PI/360))};
 }
@@ -267,8 +266,12 @@ function finishDom(d){
 /* out: the <img> now showing. Replaces it with a copy of it showing src, gliding in from depth while the old one passes the lens.
  host: the clipping parent (position + overflow hidden are set here). opts.flow: the new image stays in normal flow (it sizes the host).
  Both stay opaque the whole way. Returns the new <img>. */
+function flushHost(host){
+  for(var i=DOMA.length-1;i>=0;i--)if(DOMA[i].host===host){var d=DOMA.splice(i,1)[0];finishDom(d)}
+}
 function glideDom(host,out,src,idx,opts){
   opts=opts||{};
+  if(host)flushHost(host);
   if(!out||!out.parentNode)return null;
   var inn=out.cloneNode(false);inn.removeAttribute('id');
   inn.src=src;
@@ -325,7 +328,7 @@ w.GJ_BEYOND={
   get dark(){return dark},get label(){return label()},
   MODES:MODES,ZLV:ZLV,EASES:EASES,W:W,EXP:EXP,HUES:HUES,
   set:set,on:onSub,load:load,whenReady:function(f){if(IDX)f();else readyFns.push(f)},
-  items:items,stills:stills,shots:shots,img:img,slotDraw:slotDraw,slotsClear:slotsClear,moving:moving,glideDom:glideDom,cam:cam,
+  items:items,stills:stills,shots:shots,img:img,slotDraw:slotDraw,slotsClear:slotsClear,moving:moving,glideDom:glideDom,flush:flushHost,cam:cam,
   hueName:hueName,hueDeg:hueDeg,reduced:reduced,
   /* per-asset readout, for the smoke test and the console */
   meta:function(p){return M[p]||null},
