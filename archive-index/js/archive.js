@@ -69,9 +69,12 @@ function pump() {
 
 /* ---------- layout ---------- */
 /* Beyond: when active the whole field is laid out continuously in rank order (best match first). Selection only: no frame is ever filtered or tinted. */
-let bperm = null, bsw = null, swPush = 0;
+let bperm = null, bsw = null, swPush = 0, bgal = 0;
+const GK = 2.4;   // gallery tiles are this much larger than field tiles
+const kk = g => (L && L.k ? L.k[g] : 1);
 function build(cols) {
-  const r = new Float32Array(F.length * 2); const heads = [];
+  const r = new Float32Array(F.length * 2), k = new Float32Array(F.length).fill(1); const heads = [];
+  let gal = null;
   let y = PAD, W = PAD * 2 + cols * CW + (cols - 1) * GX;
   if (mode === 'film' && !bperm) {
     films.forEach((f, k) => {
@@ -85,13 +88,21 @@ function build(cols) {
       y += Math.ceil(f.frames.length / cols) * (CH + GY) - GY;
     });
   } else {
-    for (let j = 0; j < F.length; j++) {
-      const g = bperm ? bperm[j] : j, c = j % cols, rr = (j / cols) | 0;
+    let j0 = 0;
+    if (bperm && bgal > 0) {   // a colour step: the leading frames gather into a calm gallery panel (a light table), the rest follow below it
+      const K = bgal, GW = CW * GK, GH = CH * GK, inner = W - 2 * PAD, fva = apFit(), gcw = Math.floor((inner + GX) / (GW + GX)), gc = Math.max(1, Math.min(K, gcw, Math.max(3, Math.min(12, Math.round(Math.sqrt(K * (fva.w / fva.h) / 1.78))))));   // a compact table in the shape of the screen
+      const rows = Math.ceil(K / gc), gwid = gc * GW + (gc - 1) * GX, gx0 = (W - gwid) / 2, gy0 = y + HEAD * .95;
+      gal = { x: gx0 - 20, y, w: gwid + 40, h: HEAD * .95 + rows * (GH + GY) - GY + 24, n: K };
+      for (let j = 0; j < K; j++) { const g = bperm[j], c = j % gc, rr = (j / gc) | 0; r[g * 2] = gx0 + c * (GW + GX); r[g * 2 + 1] = gy0 + rr * (GH + GY); k[g] = GK; }
+      y = gal.y + gal.h + FGAP * 1.4; j0 = K;
+    }
+    for (let j = j0; j < F.length; j++) {
+      const g = bperm ? bperm[j] : j, jj = j - j0, c = jj % cols, rr = (jj / cols) | 0;
       r[g * 2] = PAD + c * (CW + GX); r[g * 2 + 1] = y + rr * (CH + GY);
     }
-    y += Math.ceil(F.length / cols) * (CH + GY) - GY;
+    y += Math.ceil((F.length - j0) / cols) * (CH + GY) - GY;
   }
-  return { cols, r, heads, W, H: y + PAD };
+  return { cols, r, k, kmax: gal ? GK : 1, gal, heads, W, H: y + PAD };
 }
 /* the eyepiece: a soft rounded-rectangle aperture (css px). The whole field fits inside it at the widest zoom, below the title bar and above the controls. */
 function ap() {
@@ -176,7 +187,7 @@ function draw() {
   cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
   const bw = CW * s, bh = CH * s, dev = bw * dpr;
   const tier = dev <= 100 ? 0 : dev <= 300 ? 1 : 2;
-  const x0 = ox - CW, x1 = ox + vw / s, y0 = oy - CH, y1 = oy + vh / s;
+  const km = L.kmax || 1, x0 = ox - CW * km, x1 = ox + vw / s, y0 = oy - CH * km, y1 = oy + vh / s;
   const oa = bw < 7 ? .2 : bw < 18 ? .36 : bw < 40 ? .55 : .72;
   const lw = bw < 30 ? 1 / dpr * Math.max(1, dpr * .75) : 1;
   const showNum = bw >= 58, fs = Math.max(8.5, Math.min(12.5, bw * .072));
@@ -186,29 +197,44 @@ function draw() {
     if (wx < x0 || wx > x1 || wy < y0 || wy > y1) continue;
     vis.push(g);
   }
+  if (L.gal) {   // the light table: an opaque panel with a hairline edge, a thin lit top edge and a caption, in the archive's refined style
+    lay(.8);
+    const G = L.gal, gx = (G.x - ox) * s, gy = (G.y - oy) * s, gw = G.w * s, gh = G.h * s;
+    cx.fillStyle = '#101215'; cx.fillRect(gx, gy, gw, gh);
+    cx.lineWidth = 1; cx.strokeStyle = 'rgba(255,255,255,.1)'; cx.strokeRect(snap(gx) + .5, snap(gy) + .5, snap(gw) - 1, snap(gh) - 1);
+    cx.strokeStyle = 'rgba(255,255,255,.2)'; cx.beginPath(); cx.moveTo(gx + 1, snap(gy) + 1.5); cx.lineTo(gx + gw - 1, snap(gy) + 1.5); cx.stroke();
+    const gts = Math.min(15, HEAD * s * .34);
+    if (gts >= 6.5) {
+      const lab = (window.GJ_BEYOND ? GJ_BEYOND.label.split(' \u00b7 ') : ['', '']); cx.textBaseline = 'alphabetic';
+      cx.font = `400 ${gts}px "Julius Sans One",sans-serif`; cx.fillStyle = 'rgba(238,240,242,.9)'; cx.fillText((lab[1] || lab[0]).toLowerCase(), gx + 20 * s, gy + HEAD * s * .56);
+      cx.font = `400 ${Math.max(6, gts * .78)}px ${MONO}`; cx.fillStyle = 'rgba(150,157,162,.9)'; const ct = pad4(G.n) + ' of ' + F.length.toLocaleString('en-US'), cw_ = cx.measureText(ct).width; cx.fillText(ct, gx + gw - 20 * s - cw_, gy + HEAD * s * .56);
+      cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.beginPath(); cx.moveTo(gx + 20 * s, snap(gy + HEAD * s * .76) + .5); cx.lineTo(gx + gw - 20 * s, snap(gy + HEAD * s * .76) + .5); cx.stroke();
+    }
+    lay(1);
+  }
   // atlases first (needed for tier 0 and as a fallback)
   for (const g of vis) {
-    const x = F[g], f = films[x.f];
+    const x = F[g], f = films[x.f], kg = L.k[g], gbw = bw * kg, gbh = bh * kg, gdev = gbw * dpr, tier = gdev <= 100 ? 0 : gdev <= 300 ? 1 : 2;
     const sx = (wxS(g)), sy = (wyS(g));
     let drawn = false;
     if (tier >= 1) {
       const src = (tier === 2 ? 'media/l/' : 'media/s/') + f.slug + '/' + x.id + '.webp';
       let im = img(src);
       if (!im && tier === 2) im = img('media/s/' + f.slug + '/' + x.id + '.webp');
-      if (im) { drawContain(im, 0, 0, im.naturalWidth, im.naturalHeight, sx, sy, bw, bh); drawn = true; }
+      if (im) { drawContain(im, 0, 0, im.naturalWidth, im.naturalHeight, sx, sy, gbw, gbh); drawn = true; }
     }
     if (!drawn) {
       const at = img(f.atlas.src);
       if (at) {
         const j = x.j, a = f.atlas;
-        cx.drawImage(at, (j % a.cols) * a.cw, ((j / a.cols) | 0) * a.ch, a.cw, a.ch, sx, sy, bw, bh);
-      } else { cx.fillStyle = '#141619'; cx.fillRect(sx, sy, bw, bh); }
+        cx.drawImage(at, (j % a.cols) * a.cw, ((j / a.cols) | 0) * a.ch, a.cw, a.ch, sx, sy, gbw, gbh);
+      } else { cx.fillStyle = '#141619'; cx.fillRect(sx, sy, gbw, gbh); }
     }
   }
   // veil for non-highlighted films
   if (hi !== null) {
     cx.fillStyle = 'rgba(10,11,13,.72)';
-    for (const g of vis) if (F[g].f !== hi) cx.fillRect(wxS(g) - 1, wyS(g) - 1, bw + 2, bh + 2);
+    for (const g of vis) if (F[g].f !== hi) cx.fillRect(wxS(g) - 1, wyS(g) - 1, bw * L.k[g] + 2, bh * L.k[g] + 2);
   }
   lay(1.3);
   // outlines (box chrome: boxes / dim / hide)
@@ -217,23 +243,24 @@ function draw() {
   cx.lineWidth = lw;
   cx.strokeStyle = `rgba(${RED},${(hi !== null ? oa * .35 : oa) * BA})`;
   cx.beginPath();
-  for (const g of vis) if (hi === null || F[g].f !== hi) { const sx = wxS(g), sy = wyS(g); cx.rect(snap(sx) + lw / 2, snap(sy) + lw / 2, snap(bw) - lw, snap(bh) - lw); }
+  for (const g of vis) if (hi === null || F[g].f !== hi) { const sx = wxS(g), sy = wyS(g); cx.rect(snap(sx) + lw / 2, snap(sy) + lw / 2, snap(bw * L.k[g]) - lw, snap(bh * L.k[g]) - lw); }
   cx.stroke();
   if (hi !== null) {
     cx.lineWidth = Math.max(lw, bw > 40 ? 1.5 : 1); cx.strokeStyle = `rgba(${RED},${BA})`; cx.beginPath();
-    for (const g of vis) if (F[g].f === hi) { const sx = wxS(g), sy = wyS(g); cx.rect(snap(sx) + .5, snap(sy) + .5, snap(bw) - 1, snap(bh) - 1); }
+    for (const g of vis) if (F[g].f === hi) { const sx = wxS(g), sy = wyS(g); cx.rect(snap(sx) + .5, snap(sy) + .5, snap(bw * L.k[g]) - 1, snap(bh * L.k[g]) - 1); }
     cx.stroke();
   }
   if (hov >= 0 && cur < 0) {
-    cx.lineWidth = 1.5; cx.strokeStyle = `rgba(255,255,255,${bx === 'dim' ? .45 : 1})`; cx.strokeRect(wxS(hov), wyS(hov), bw, bh);
+    cx.lineWidth = 1.5; cx.strokeStyle = `rgba(255,255,255,${bx === 'dim' ? .45 : 1})`; cx.strokeRect(wxS(hov), wyS(hov), bw * kk(hov), bh * kk(hov));
   }
-  if (cur >= 0) { cx.lineWidth = 2; cx.strokeStyle = `rgba(${RED},${BA})`; cx.strokeRect(wxS(cur) - 1, wyS(cur) - 1, bw + 2, bh + 2); }
+  if (cur >= 0) { cx.lineWidth = 2; cx.strokeStyle = `rgba(${RED},${BA})`; cx.strokeRect(wxS(cur) - 1, wyS(cur) - 1, bw * kk(cur) + 2, bh * kk(cur) + 2); }
   }
   // numerals: red tag in the top-left corner, like the boxed sheet
-  if (showNum && bx !== 'hide') {
+  if ((showNum || km * bw >= 58) && bx !== 'hide') {
     cx.font = `500 ${fs}px ${MONO}`; cx.textBaseline = 'middle';
     const th = Math.round(fs + 5), tw = cx.measureText('0000').width + 7;
     for (const g of vis) {
+      if (!showNum && L.k[g] * bw < 58) continue;
       const dim = hi !== null && F[g].f !== hi;
       const sx = snap(wxS(g)), sy = snap(wyS(g));
       if (bx === 'dim') {   // no red fill: faint red numeral on a dark chip
@@ -321,8 +348,9 @@ function loop(t) {
   if (bsw) {
     sstep(bsw.sp, ddt); const u = bsw.sp.x, f = bsw.from, to = bsw.to, r = L.r;
     for (let i = 0; i < r.length; i++) r[i] = f[i] + (to[i] - f[i]) * u;
+    for (let i = 0; i < L.k.length; i++) L.k[i] = bsw.fromK[i] + (bsw.toK[i] - bsw.fromK[i]) * u;
     swPush = Math.sin(Math.PI * clampN(u, 0, 1)); dirty = true;
-    if (Math.abs(u - 1) < .002 && Math.abs(bsw.sp.v) < .002) { r.set(to); bsw = null; swPush = 0; }
+    if (Math.abs(u - 1) < .002 && Math.abs(bsw.sp.v) < .002) { r.set(to); L.k.set(bsw.toK); bsw = null; swPush = 0; }
   }
   eyeTick(ddt, t);
   if (Math.abs(dr.x.x) + Math.abs(dr.y.x) + Math.abs(dr.x.t) + Math.abs(dr.y.t) + Math.abs(dr.x.v) + Math.abs(dr.y.v) > .004) { sstep(dr.x, ddt); sstep(dr.y, ddt); dirty = true; }
@@ -332,15 +360,22 @@ function loop(t) {
   requestAnimationFrame(loop);
 }
 
+function frameGallery(anim) {
+  const G = L.gal; if (!G) return false; const fv = apFit();
+  const ts = Math.min(maxS(), Math.max(minS(), Math.min(fv.w / G.w, fv.h / G.h) * .98));
+  go(ts, G.x + G.w / 2 - fv.cx / ts, G.y + G.h / 2 - fv.cy / ts, anim); return true;
+}
 function applyBeyond() {
   const Bd = window.GJ_BEYOND; if (!Bd || !L) return;
-  const np = Bd.active ? Bd.order() : null;
+  const np = Bd.active ? Bd.order() : null, ng = np ? Bd.gallery : 0;
   if (!np && !bperm) return;
-  if (np && bperm && np.every((g, i) => g === bperm[i])) return;
-  const old = L.r.slice(), oc = L.cols, ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
-  bperm = np; layout();
-  if (fitted) fit(false); else go(s, L.r[ctr * 2] + CW / 2 - vw / 2 / s, L.r[ctr * 2 + 1] + CH / 2 - vh / 2 / s, false);
-  if (old.length === L.r.length && L.cols === oc && !RM.matches) { bsw = { from: old, to: L.r.slice(), sp: S(0, 4.6) }; bsw.sp.t = 1; L.r.set(old); }
+  if (np && bperm && ng === bgal && np.every((g, i) => g === bperm[i])) return;
+  const old = L.r.slice(), oldK = L.k.slice(), ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
+  bperm = np; bgal = ng; layout();
+  if (bgal) frameGallery(!RM.matches);
+  else if (!np) fit(!RM.matches);   // Off returns the full field
+  else if (fitted) fit(false); else go(s, L.r[ctr * 2] + CW * kk(ctr) / 2 - vw / 2 / s, L.r[ctr * 2 + 1] + CH * kk(ctr) / 2 - vh / 2 / s, false);
+  if (old.length === L.r.length && !RM.matches) { bsw = { from: old, fromK: oldK, to: L.r.slice(), toK: L.k.slice(), sp: S(0, 4.6) }; bsw.sp.t = 1; L.r.set(old); L.k.set(oldK); }
   dirty = true;
 }
 
@@ -350,7 +385,7 @@ function hit(px, py) {
   const wx = ox + px / s, wy = oy + py / s;
   for (let g = 0; g < F.length; g++) {
     const x = L.r[g * 2], y = L.r[g * 2 + 1];
-    if (wx >= x && wx <= x + CW && wy >= y && wy <= y + CH) return g;
+    const q = L.k[g]; if (wx >= x && wx <= x + CW * q && wy >= y && wy <= y + CH * q) return g;
   }
   return -1;
 }
@@ -466,7 +501,7 @@ function placeLift(animate, origin) {
   if (animate && !RM.matches && origin) {
     ent = { t0: performance.now(), dur: 960, r: .06, dx: origin.x - vw / 2, dy: origin.y - vh / 2, out: false };   // grows out of the star you tapped
   } else if (animate && !RM.matches) {
-    const bw = CW * s, bh = CH * s;
+    const bw = CW * s * kk(cur), bh = CH * s * kk(cur);
     ent = { t0: performance.now(), dur: 960, r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(cur) + bw / 2 - vw / 2, dy: wyS(cur) + bh / 2 - vh / 2, out: false };
   }
   roomPaint(0);
@@ -511,7 +546,7 @@ function closeLift(fromPop, toCentre) {
   if (!fromPop) { if (pushed) { pushed = false; history.back(); } else history.replaceState(null, '', location.pathname + hashFor(0)); }
   else pushed = false;
   setInert(false);
-  const bw = CW * s, bh = CH * s;
+  const bw = CW * s * kk(g), bh = CH * s * kk(g);
   if (RM.matches || !rect) { lt.hidden = true; ent = null; return; }
   closing = { t0: performance.now(), dur: 520, keepBg: !!toCentre };      // contract: same push in reverse, r10 cubic ease-in-out
   ent = toCentre ? { r: .05, dx: 0, dy: 0, out: true } : { r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(g) + bw / 2 - vw / 2, dy: wyS(g) + bh / 2 - vh / 2, out: true };
@@ -752,6 +787,6 @@ fetch('data/index.json').then(r => r.json()).then(d => {
   requestAnimationFrame(loop);
 });
 addEventListener('resize', resize);
-window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6) };
+window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6), swapping: () => !!bsw || !!anim, gallery: () => (L && L.gal ? { n: L.gal.n, ids: bperm.slice(0, 4), k: kk(bperm[0]) } : null) };
 if (document.fonts) document.fonts.ready.then(() => { dirty = true; });
 })();

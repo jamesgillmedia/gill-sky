@@ -37,7 +37,7 @@ html.rm .bd-trk{stroke:rgba(190,48,64,.4)}
 html.rm .bd-min{stroke:rgba(190,48,64,.34)}html.rm .bd-maj{stroke:rgba(214,70,84,.55)}
 .bd-fill{fill:none;stroke-width:2;stroke-linecap:round}
 .bd-th{stroke:rgba(4,7,11,.9);stroke-width:1.6;paint-order:stroke}
-.bd-lab{font:400 7.5px "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;text-transform:lowercase}
+.bd-lab{font:400 6.3px "Julius Sans One",Poppins,sans-serif;letter-spacing:.07em;text-transform:lowercase}
 .bd-c1{font:400 9px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;text-transform:lowercase}
 .bd-c2{font:300 11px Poppins,sans-serif;letter-spacing:.04em}
 .ring-in.dead{opacity:.34}

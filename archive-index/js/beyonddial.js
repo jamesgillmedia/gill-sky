@@ -1,10 +1,11 @@
 /* Beyond dial for the archive index (port of tonight/fable-m4 js/beyonddial.js, preview-beyond), the big dial only.
-   One hub sits beside the red-mode ring. One tap opens the Beyond dial (outer ring = four snapped detents off / red / colour / light, inner ring = the sweep);
+   One hub sits beside the red-mode ring. One tap opens the Beyond dial (outer ring = ten snapped detents: off, red, the hue families orange / amber / green / teal / blue / violet, mono, light; inner ring = the sweep within the step);
    a second tap on the hub, a tap outside, Esc or the back gesture closes it. Nothing hides by itself. No depth, drift, easing or orbit dials and no sub-menu.
    The expand, snap-to-detent and contract all run on the site spring (GJ_BEYOND.cam(), W_GLIDE); finger tracking is the moon opener's exponential lag
    (14 mouse, 22 touch). No CSS transition moves anything. Held: the rest of the dial goes at once, the active track stays at 18%.
-   Colour is only ever on the dial: the outer ring ramps from the UI colour to red across the detents, and the active arc, thumb, label, hub dot and the
-   inner sweep take the colour at the current position (red mode: a dim-to-bright red ramp). Images are never touched. */
+   Colour is only ever on the dial: the outer ring carries the actual hue at each detent (neutral, red, orange, amber, green, teal, blue, violet, grey, white); the active arc,
+   thumb, label, hub dot and the inner sweep take the colour at the current position (red mode: the ring stays on a dim-to-bright red ramp; the selection still works on frames).
+   Images are never touched. */
 (function (w) {
   'use strict';
   var B = w.GJ_BEYOND; if (!B) return;
@@ -24,8 +25,14 @@
   var isRed = function () { return root.classList.contains('rm'); };
   function mixv(a, b, t) { return [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)]; }
   function rgb(v, a) { return 'rgba(' + Math.round(v[0]) + ',' + Math.round(v[1]) + ',' + Math.round(v[2]) + ',' + (a == null ? 1 : a) + ')'; }
-  function rampV(t) { return isRed() ? mixv(RED_DIM, RED_BRIGHT, clamp(t, 0, 1)) : mixv(UI, RED, clamp(t, 0, 1)); }
-  function innerV(tOut, tIn) { return mixv(rampV(tOut), isRed() ? RED_BRIGHT : RED, clamp(tIn, 0, 1) * .7); }
+  var NM = B.MODES.length, N1 = NM - 1, DARK = [18, 18, 22];
+  function stepV(i) { return B.STEPCOL[B.MODES[i]]; }
+  /* the ring: the hue at every detent, blended between them (red mode: a dim-to-bright red ramp instead) */
+  function ringV(t) {
+    t = clamp(t, 0, 1); if (isRed()) return mixv(RED_DIM, RED_BRIGHT, t);
+    var f = t * N1, i = Math.min(N1 - 1, Math.floor(f)); return mixv(stepV(i), stepV(i + 1), f - i);
+  }
+  function innerV(tOut, tIn) { var b = ringV(tOut); return mixv(mixv(b, DARK, .5), b, .45 + .55 * clamp(tIn, 0, 1)); }
   function inkV() { return isRed() ? [214, 70, 84] : UI; }
 
   /* ---------- layout ---------- */
@@ -34,23 +41,23 @@
   var ORDER = ['beyond'];
   var wrap, hub, cluster, D = {}, lvl = 0, openA = { x: 0, v: 0, t: 0, w: 4.6 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
 
-  function modeT() { return B.MODES.indexOf(B.state.mode) / (B.MODES.length - 1); }
+  function modeT() { return B.MODES.indexOf(B.state.mode) / N1; }
   function sweepT() { var S = B.state; return S.mode === 'off' ? 0 : S[S.mode]; }
 
   function buildBig() {
     var d = { k: 'beyond', w: BIG, h: BIG, cx: 80, cy: 80, disp: { out: modeT(), inn: sweepT() }, ring: 'out', tgt: { out: modeT(), inn: sweepT() }, segs: [] };
-    var s = el('svg', { viewBox: '0 0 ' + BIG + ' ' + BIG, width: BIG, height: BIG, 'class': 'bd-svg', tabindex: '0', role: 'slider', 'aria-label': 'Beyond selection', 'aria-valuemin': '0', 'aria-valuemax': '3' });
+    var s = el('svg', { viewBox: '0 0 ' + BIG + ' ' + BIG, width: BIG, height: BIG, 'class': 'bd-svg', tabindex: '0', role: 'slider', 'aria-label': 'Beyond selection', 'aria-valuemin': '0', 'aria-valuemax': String(N1) });
     s.appendChild(el('circle', { 'class': 'bd-hit', cx: 80, cy: 80, r: 72 }));
     var go = el('g', { 'class': 'ring-out' }), gl = el('g', { 'class': 'labs' }), gi = el('g', { 'class': 'ring-in' }), gc = el('g', { 'class': 'ctr' });
-    var N = 36, i;
+    var N = 72, i;
     for (i = 0; i < N; i++) { var seg = el('path', { 'class': 'bd-seg', d: arc(80, 80, 62, i / N, (i + 1) / N + .004) }); go.appendChild(seg); d.segs.push(seg); }
     d.act = el('path', { 'class': 'bd-act', d: '' }); go.appendChild(d.act);
     d.ticks = []; d.labsEl = [];
-    [0, 1 / 3, 2 / 3, 1].forEach(function (t, i) {
-      var tk = P(go, 'bd-tick', line(80, 80, 56, 68, ang(t))); d.ticks.push(tk);
-      var p = pt(80, 80, 76, ang(t)); var tx = el('text', { 'class': 'bd-lab', 'data-i': i, x: p[0].toFixed(1), y: (p[1] + 2.6).toFixed(1), 'text-anchor': 'middle' }, B.MODES[i]); gl.appendChild(tx); d.labsEl.push(tx);
+    B.MODES.forEach(function (m, i) {
+      var t = i / N1, tk = P(go, 'bd-tick', line(80, 80, 56, 68, ang(t))); d.ticks.push(tk);
+      var p = pt(80, 80, 76, ang(t)); var tx = el('text', { 'class': 'bd-lab', 'data-i': i, x: p[0].toFixed(1), y: (p[1] + 2.6).toFixed(1), 'text-anchor': 'middle' }, m); gl.appendChild(tx); d.labsEl.push(tx);
     });
-    d.thOut = el('circle', { 'class': 'bd-th', r: '4.2' }); go.appendChild(d.thOut);
+    d.thOut = el('circle', { 'class': 'bd-th', r: '4.2' }); go.appendChild(d.thOut); d.pulse = { x: 0, v: 0, t: 0, w: 9.5 }; d.lastIdx = -1;
     P(gi, 'bd-trk', arc(80, 80, 44, 0, 1));
     for (i = 0; i <= 20; i++) { var t = i / 20; P(gi, 'bd-min' + (i % 5 ? '' : ' bd-maj'), line(80, 80, i % 5 ? 40 : 38, 46, ang(t))); }
     d.fill = el('path', { 'class': 'bd-fill', d: '' }); gi.appendChild(d.fill);
@@ -68,7 +75,7 @@
     hub = doc.createElement('button'); hub.type = 'button'; hub.className = 'bd-hub'; hub.setAttribute('aria-label', 'Beyond: selection and camera dials'); hub.setAttribute('aria-expanded', 'false');
     var hs = el('svg', { viewBox: '0 0 26 26', width: 26, height: 26, 'aria-hidden': 'true' });
     hs.appendChild(el('circle', { 'class': 'bd-hr', cx: 13, cy: 13, r: 12 }));
-    hub._ticks = [0, 1 / 3, 2 / 3, 1].map(function (t) { var p = el('path', { 'class': 'bd-ht', d: line(13, 13, 8.4, 12, ang(t)) }); hs.appendChild(p); return p; });
+    hub._ticks = B.MODES.map(function (m, i) { var p = el('path', { 'class': 'bd-ht', d: line(13, 13, 9.6, 12, ang(i / N1)) }); hs.appendChild(p); return p; });
     hub._dot = el('circle', { 'class': 'bd-hd', r: '2.1' }); hs.appendChild(hub._dot);
     hub.appendChild(hs);
     cluster = doc.createElement('div'); cluster.className = 'bd-cluster';
@@ -114,6 +121,7 @@
   function moving() {
     if (Math.abs(openA.x - openA.t) > .0015 || Math.abs(openA.v) > .01) return true;
     var k, d, r; for (k in D) { d = D[k]; for (r in d.disp) if (Math.abs(d.disp[r] - d.tgt[r]) > .0008) return true; }
+    if (D.beyond && (D.beyond.pulse.x > .01 || Math.abs(D.beyond.pulse.v) > .05)) return true;
     return false;
   }
   function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } }
@@ -128,6 +136,7 @@
         else { var sp = d['_s' + r] || (d['_s' + r] = { x: d.disp[r], v: 0, t: d.tgt[r], w: 4.6 }); sp.x = d.disp[r]; sp.t = d.tgt[r]; stepSpring(sp, dt, c); d.disp[r] = sp.x; }
       }
     }
+    var pu = D.beyond.pulse; stepSpring(pu, dt, c); if (pu.x < .01 && Math.abs(pu.v) < .05) { pu.x = 0; pu.v = 0; }
     paintAll(); layout();
     if (moving() || held) raf = requestAnimationFrame(loop);
   }
@@ -150,17 +159,19 @@
     var po = pt(80, 80, 62, ang(tOut)), pi = pt(80, 80, 44, ang(tIn));
     d.thOut.setAttribute('cx', po[0].toFixed(2)); d.thOut.setAttribute('cy', po[1].toFixed(2));
     d.thIn.setAttribute('cx', pi[0].toFixed(2)); d.thIn.setAttribute('cy', pi[1].toFixed(2));
-    var cOut = rampV(tOut), cIn = innerV(tOut, tIn), N = d.segs.length, i;
-    for (i = 0; i < N; i++) setC(d.segs[i], 'stroke', rampV((i + .5) / N), .5);                                      // the ring ramps UI colour -> red across the detents
+    var cOut = ringV(tOut), cIn = innerV(tOut, tIn), N = d.segs.length, i, mi0 = B.MODES.indexOf(S.mode);
+    if (mi0 !== d.lastIdx) { if (d.lastIdx >= 0) { d.pulse.x = 2.4; d.pulse.v = 0; if (held && w.navigator && navigator.vibrate) { try { navigator.vibrate(6); } catch (x) {} } } d.lastIdx = mi0; }
+    d.thOut.setAttribute('r', (4.2 + Math.max(0, d.pulse.x)).toFixed(2));                                           // a small pulse as the thumb lands on a detent
+    for (i = 0; i < N; i++) setC(d.segs[i], 'stroke', ringV((i + .5) / N), .5);                                      // the ring carries the real hue at each detent
     d.act.setAttribute('d', tOut > .004 ? arc(80, 80, 62, 0, tOut) : ''); setC(d.act, 'stroke', cOut, .95);          // active arc: the colour at the current position
-    setC(d.thOut, 'fill', cOut); d.ticks.forEach(function (tk, n) { setC(tk, 'stroke', rampV(n / 3), .85); });
+    setC(d.thOut, 'fill', cOut); d.ticks.forEach(function (tk, n) { setC(tk, 'stroke', ringV(n / N1), .95); });
     d.fill.setAttribute('d', S.mode === 'off' ? '' : arc(80, 80, 44, 0, Math.max(.002, tIn))); setC(d.fill, 'stroke', cIn, .95);   // inner sweep shifts toward red
     setC(d.thIn, 'fill', cIn);
     var mi = B.MODES.indexOf(S.mode), n;
-    for (n = 0; n < d.labsEl.length; n++) { d.labsEl[n].setAttribute('class', 'bd-lab' + (n === mi ? ' on' : '')); setC(d.labsEl[n], 'fill', n === mi ? cOut : inkV(), n === mi ? 1 : .62); }
+    for (n = 0; n < d.labsEl.length; n++) { d.labsEl[n].setAttribute('class', 'bd-lab' + (n === mi ? ' on' : '')); setC(d.labsEl[n], 'fill', n === mi ? cOut : ringV(n / N1), n === mi ? 1 : .6); }
     d.gIn.setAttribute('class', 'ring-in' + (S.mode === 'off' ? ' dead' : ''));
     var lb = B.label.split(' \u00b7 ');
-    if (S.mode === 'off') { d.c1.textContent = 'beyond'; d.c2.textContent = 'off'; } else { d.c1.textContent = S.mode === 'red' ? 'red mode' : S.mode; d.c2.textContent = lb[1] || ''; }
+    if (S.mode === 'off') { d.c1.textContent = 'beyond'; d.c2.textContent = 'off'; } else { d.c1.textContent = lb[0]; d.c2.textContent = lb[1] || ''; }
     setC(d.c1, 'fill', mixv(inkV(), cOut, .55)); setC(d.c2, 'fill', cOut);                                           // the label takes the colour too
     d.svg.setAttribute('aria-valuenow', String(mi)); d.svg.setAttribute('aria-valuetext', B.label);
   }
@@ -171,7 +182,7 @@
     if (!dHeld('beyond', ['inn'])) D.beyond.tgt.inn = sweepT();
     paintBig(D.beyond);
     var mt = modeT(), hp = pt(13, 13, 12, ang(mt)); hub._dot.setAttribute('cx', hp[0].toFixed(2)); hub._dot.setAttribute('cy', hp[1].toFixed(2));
-    var c = rampV(mt); setC(hub._dot, 'fill', c); hub._ticks.forEach(function (tk, n) { setC(tk, 'stroke', rampV(n / 3), .55); });
+    var c = ringV(mt); setC(hub._dot, 'fill', c); hub._ticks.forEach(function (tk, n) { setC(tk, 'stroke', ringV(n / N1), .6); });
     wrap.setAttribute('data-mode', S.mode);
   }
   function dHeld(k, rings) { return held && held.k === k && rings.indexOf(held.ringKey) >= 0; }
@@ -207,7 +218,7 @@
   }
   function move(d, e) {
     var t = angleT(d, e), k = d.k, rk = held.ringKey; d.tgt[rk] = t;
-    if (k === 'beyond') { if (rk === 'out') B.set({ mode: B.MODES[Math.round(t * 3)] }); else sweep(d, t, false); }
+    if (k === 'beyond') { if (rk === 'out') { var ni = Math.round(t * N1); d.tgt.out = lerp(t, ni / N1, .6); B.set({ mode: B.MODES[ni] }); } else sweep(d, t, false); }   // the thumb is pulled toward the nearest detent: a satisfying snap
     paintAll(); kick();
   }
   /* a sweep re-ranks the whole field, so it applies at most every 110 ms and only for a real change; the last value always lands on release */
@@ -228,7 +239,7 @@
   function key(d, e) {
     var k = d.k, S = B.state, dir = e.key === 'ArrowRight' || e.key === 'ArrowUp' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowDown' ? -1 : 0;
     if (!dir) return; e.preventDefault(); e.stopPropagation();
-    if (k === 'beyond') { if (e.shiftKey && S.mode !== 'off') { var o = {}; o[S.mode] = clamp(S[S.mode] + dir * .05, 0, 1); B.set(o); } else B.set({ mode: B.MODES[clamp(B.MODES.indexOf(S.mode) + dir, 0, 3)] }); }
+    if (k === 'beyond') { if (e.shiftKey && S.mode !== 'off') { var o = {}; o[S.mode] = clamp(S[S.mode] + dir * .05, 0, 1); B.set(o); } else B.set({ mode: B.MODES[clamp(B.MODES.indexOf(S.mode) + dir, 0, N1)] }); }
     kick();
   }
 
