@@ -278,7 +278,7 @@ function soundStep(api){
   else api.backHist();
 }
 function openFilm(api,work,shot){
-  if(window.GJ_FP&&GJ_FP.from&&work&&work.stills&&work.stills.length&&api.tileBox){
+  if(window.GJ_FP&&GJ_FP.from&&work&&api.tileBox){
     var b=api.tileBox(work);
     if(b&&b.w)GJ_FP.from({x:b.l+b.w/2,y:b.t+b.h/2,w:b.w,h:b.h});
   }
@@ -1117,6 +1117,14 @@ function stillsWall(work){
     return '<img src="'+esc(s.src)+'" data-hi="'+hi+'"'+(shot?' data-clip="'+esc(shot)+'"':'')+' alt="">';
   }).join('')+'</div>';
 }
+/* The stills the player opens on: the film's own curated list, else an even sample of its frames, else its poster. */
+function playerStills(work,poster){
+  if(work.stills&&work.stills.length)return work.stills.slice();
+  var all=(gallery(work)||[]).map(function(s){return s.src}).filter(Boolean),out=[],i,n=Math.min(10,all.length);
+  for(i=0;i<n;i++)out.push(all[Math.floor(i*all.length/n)]);
+  if(!out.length&&poster)out.push(poster);
+  return out;
+}
 function paintFilm(el,work){
   var m=work.media||{};
   var clip=m.pv||m.clip||'';
@@ -1130,9 +1138,9 @@ function paintFilm(el,work){
   if(filmLv!==1&&window.GJ_FP)GJ_FP.stop();
   /* Featured films with stills use the room player. The muted loop ladder stays the hero on the board
      (playback.js) and on any work that has no stills. Never fall through to the AAC clip when the ladder exists. */
-  if(filmLv===1&&work.stills&&work.stills.length&&window.GJ_FP){
+  if(filmLv===1&&window.GJ_FP){
     filmKeep=-1;
-    GJ_FP.paint(el,work,stillsWall(work));
+    GJ_FP.paint(el,work,stillsWall(work),{stills:playerStills(work,poster)});
     fitWall(el.querySelector('.framewall'));
     return;
   }
@@ -1445,7 +1453,7 @@ function fitLongTitle(el){
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(pass);
 }
 function paintLayer(el){
-  if(window.GJ_FP&&!(filmLv===1&&filmWork&&filmWork.stills&&filmWork.stills.length))GJ_FP.stop();
+  if(window.GJ_FP&&!(filmLv===1&&filmWork))GJ_FP.stop();
   if(snd&&(fly||snd.empty)){
     el.classList.add('on');
     if(snd.empty&&!fly)el.innerHTML='<div class="sheet full"><h2>'+esc(snd.work.title)+'</h2><div class="empty-slot">no picture for this song</div></div>';

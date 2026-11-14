@@ -1,6 +1,11 @@
 /* The Demo Reel as a WORK-level stop in the sky: every distinct shot of Reel 2026 and the 2025 Cinematography Demo Reel (GJ_REEL, in order)
  drifts right to left along a filmstrip; the shot under the centre line fills the work. Hard cuts, the still at once, its muted clip when it can play.
  Tap = pause / play. Drag or swipe the picture or the strip = scrub, the frames flip as fast as you move. Fill or fit, remembered.
+ Frame rail (js/reelframes.js, thumbs from tools/extract_reel_frames.py): under the card, the current shot's own frames as stills at full brightness,
+ the selected one on a thin line. While paused (the card's own tap, or the stored board pause in GJ_PLAY) a horizontal drag on the rail steps the shot
+ frame by frame, the card seeks its clip to that frame. A fast drag shuttles: the signed velocity sets a signed playback rate, forward on the
+ clip's own playbackRate, backward by stepping currentTime down; released forward it settles into 1x play, released backward it eases to a stop. The rail only claims a
+ horizontal drag: a vertical gesture is never taken, and nothing on it calls preventDefault.
  Ported from site-v3-pro2 js/reel.js and css/reel.css. It lives in the sky's own #layer (the camera and history are the sky's), not in a page
  of its own, and its motion is the same whatever the Reduce Motion setting is. */
 (function(){
@@ -17,7 +22,7 @@ function mount(el,hooks){
   function base(i){return B+S[i].f}
   function fitMode(){var m='fill';try{m=localStorage.getItem(KEY)||'fill'}catch(e){}return m==='fit'?'fit':'fill'}
   var root=document.createElement('div');
-  root.className='rl';
+  root.className='rl'+(hooks.embed?' emb':'');
   root.setAttribute('aria-label','Demo reel, every shot on a moving filmstrip');
   root.innerHTML='<div class="rl-st" tabindex="0"><img class="rl-im" alt="" decoding="sync"></div>'+
     '<div class="rl-ui"><p class="rl-k"><span class="rl-n"></span></p>'+
@@ -28,7 +33,9 @@ function mount(el,hooks){
   el.innerHTML='';el.appendChild(root);
   var stage=root.querySelector('.rl-st'),img=root.querySelector('.rl-im'),track=root.querySelector('.rl-tr'),ctr=root.querySelector('.rl-n'),
     lab=root.querySelector('.rl-b b'),rsrc=root.querySelector('.rl-b small'),view=root.querySelector('.rl-v'),fitB=root.querySelector('.rl-fit');
-  var p=lastShot+.5,cur=-1,playing=true,raf=0,lastT=0,tween=null,drag=null,wheelT=0,wheeling=false,pool=[],stillCache={},dead=false;
+  var FR=window.GJ_REELFR||{},rail=null;
+  var p=lastShot+.5,cur=-1,playing=!(window.GJ_PLAY&&GJ_PLAY.paused),raf=0,lastT=0,tween=null,drag=null,wheelT=0,wheeling=false,pool=[],stillCache={},dead=false;
+  root.classList.toggle('paused',!playing);
   var h='',rows=Math.ceil(N/COLS),i,k;
   for(k=0;k<3;k++)for(i=0;i<N;i++)h+='<b style="background-position:'+(-(i%COLS)*TW)+'px '+(-Math.floor(i/COLS)*TW)+'px"></b>';
   track.innerHTML=h;track.style.setProperty('--bs',(COLS*TW)+'px '+(rows*TW)+'px');
@@ -37,6 +44,13 @@ function mount(el,hooks){
     ['muted','playsinline','webkit-playsinline','disablepictureinpicture'].forEach(function(a){v.setAttribute(a,'')});
     v.setAttribute('aria-hidden','true');v.preload='auto';v.addEventListener('playing',onPlaying);stage.appendChild(v);pool.push({v:v,i:-1});
   }
+  rail=GJ_RAIL.create(root,{
+    video:curVid,playing:function(){return playing},
+    setPlaying:function(on){setPlay(on)},
+    settle:function(t,dur){p=Math.floor(p)+Math.max(.02,Math.min(.98,t/dur));tween=null},
+    activate:function(v){pool.forEach(function(o){if(o.v!==v)o.v.classList.remove('on')});v.classList.add('on')},
+    thumbHost:stage,eventHost:stage,onScrub:function(){root.classList.add('seen')},onShuttle:function(on){root.classList.toggle('shuttling',!!on)}
+  });
   function setFit(m){
     root.classList.toggle('fit',m==='fit');
     fitB.querySelectorAll('[data-m]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-m')===m))});
@@ -58,8 +72,15 @@ function mount(el,hooks){
     if(dead)return;
     var n=mod(cur),q=vidFor(n,true);
     pool.forEach(function(o){if(o!==q){o.v.classList.remove('on');if(!o.v.paused)o.v.pause()}});
+    if(!playing){if(!q.v.paused)q.v.pause();return}
     if(q.v.readyState>=2&&!q.v.paused)q.v.classList.add('on');
     var pr=q.v.play();if(pr&&pr.catch)pr.catch(function(){});
+  }
+  function curVid(){var q=vidFor(mod(cur),false);return q&&q.v}
+  function framesFor(n){
+    var f=S[n].f,m=FR[f];
+    if(!m)return null;
+    return {n:m[0],w:m[1],h:m[2],dur:m[3],url:function(i){return B+'frames/'+f+'-'+(i<10?'0':'')+i+'.webp'}};
   }
   function quiet(){pool.forEach(function(o){o.v.classList.remove('on');if(!o.v.paused)o.v.pause()})}
   function show(n){
@@ -74,7 +95,7 @@ function mount(el,hooks){
     var marks=track.children,c;
     if(prev>=0)for(c=0;c<3;c++){var o=marks[c*N+mod(prev)];if(o)o.classList.remove('on')}
     for(c=0;c<3;c++){var m=marks[c*N+n];if(m)m.classList.add('on')}
-    quiet();if(!busy()){playCur();vidFor(mod(n+1),true)}
+    quiet();rail.set(framesFor(n));if(!busy()){playCur();vidFor(mod(n+1),true)}
   }
   function place(){
     var w=root.clientWidth,q=((p%N)+N)%N;
@@ -89,12 +110,20 @@ function mount(el,hooks){
       p=tween.a+(tween.b-tween.a)*e;
       if(kk>=1){p=tween.b;tween=null;if(!playing)playCur()}
     }else if(playing&&!drag&&!wheeling)p+=dt*RATE;
-    place();raf=requestAnimationFrame(frame);
+    place();rail.sync();raf=requestAnimationFrame(frame);
   }
   function startLoop(){lastT=0;if(!raf)raf=requestAnimationFrame(frame)}
   function stopLoop(){if(raf)cancelAnimationFrame(raf);raf=0;quiet()}
   function glide(to,ms){tween={a:p,b:to,t0:performance.now(),ms:ms||500};startLoop()}
-  function setPlay(on){playing=on;root.classList.toggle('paused',!on);if(on){tween=null;playCur()}}
+  function setPlay(on,fromGlobal){
+    rail.cancel();
+    playing=on;root.classList.toggle('paused',!on);
+    if(on){tween=null;playCur()}
+    else{var v=curVid();if(v&&!v.paused)v.pause()}
+    rail.refresh();rail.sync();
+    if(!fromGlobal&&window.GJ_PLAY&&GJ_PLAY.setPaused)GJ_PLAY.setPaused(!on,true);
+  }
+  function onGlobalPause(){if(dead||!window.GJ_PLAY||GJ_PLAY.paused===!playing)return;setPlay(!GJ_PLAY.paused,true)}
   function toggle(){setPlay(!playing);root.classList.add('seen')}
   function onDown(e){
     if(e.button)return;
@@ -116,6 +145,7 @@ function mount(el,hooks){
     toggle();
   }
   function onWheel(e){
+    if(hooks.embed&&Math.abs(e.deltaY)>=Math.abs(e.deltaX))return; /* inside the player a vertical wheel scrolls the page */
     e.preventDefault();
     var d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY;if(e.deltaMode===1)d*=32;
     if(!wheeling){wheeling=true;root.classList.add('scrub');quiet();root.classList.add('seen')}
@@ -137,28 +167,30 @@ function mount(el,hooks){
   addEventListener('pointercancel',onUp);
   root.addEventListener('wheel',onWheel,{passive:false});
   root.addEventListener('keydown',onKey);
+  window.addEventListener('gjpause',onGlobalPause);
   document.addEventListener('visibilitychange',onVis);
   fitB.addEventListener('click',function(e){var b=e.target.closest('[data-m]');if(b){setFit(b.getAttribute('data-m'));root.classList.add('seen')}});
   view.addEventListener('click',function(e){e.preventDefault();var l=S[mod(cur)].l;if(l==null)return;hooks.viewFilm(l)});
   document.documentElement.classList.add('reelon');
-  var bx=hooks.box&&hooks.box();
+  var bx=!hooks.embed&&hooks.box&&hooks.box();
   if(bx&&bx.w&&root.animate){
     var W=innerWidth,H=innerHeight;
     root.animate([{clipPath:'inset('+Math.max(0,bx.t).toFixed(1)+'px '+Math.max(0,W-bx.l-bx.w).toFixed(1)+'px '+Math.max(0,H-bx.t-bx.h).toFixed(1)+'px '+Math.max(0,bx.l).toFixed(1)+'px round 3px)'},
       {clipPath:'inset(0px 0px 0px 0px round 0px)'}],{duration:600,easing:EASE});
   }
   place();startLoop();playCur();
-  try{stage.focus({preventScroll:true})}catch(e){}
+  if(!hooks.embed){try{stage.focus({preventScroll:true})}catch(e){}}
   return {
     stop:function(){
-      dead=true;stopLoop();
+      dead=true;stopLoop();rail.destroy();
       removeEventListener('pointermove',onMove);removeEventListener('pointerup',onUp);removeEventListener('pointercancel',onUp);
       document.removeEventListener('visibilitychange',onVis);
+      window.removeEventListener('gjpause',onGlobalPause);
       clearTimeout(wheelT);
       pool.forEach(function(q){q.v.removeAttribute('src');q.i=-1;try{q.v.load()}catch(e){}});
       document.documentElement.classList.remove('reelon');
     },
-    state:function(){return {i:mod(cur),n:N,playing:playing,fit:root.classList.contains('fit'),p:p}}
+    state:function(){return {i:mod(cur),n:N,playing:playing,fit:root.classList.contains('fit'),p:p,rail:rail.state()}}
   };
 }
 window.GJ_REELVIEW={mount:mount};

@@ -55,3 +55,21 @@ Red mode stays selectively true to colour. The environment and the menus go red 
 The Tesla Roadster UI is a mood, not a copy. 3D wireframe, floating text with depth, and the fighter-jet cool factor grow out of his own constellation and sky work.
 
 The About calibre layer stays deferred to that pass.
+
+## Reel card · frame rail
+
+Under the Demo Reel card, the current shot's own frames sit in a rail at full brightness; the selected frame is a 1px warm-white line. `tools/extract_reel_frames.py` cuts evenly spaced 96x56 webp thumbs per clip (6 to 12 frames, `media/pro2/reel/frames/`) and writes `js/reelframes.js`. While the reel is paused (a tap on the card, or the stored board pause from the header band), a horizontal drag on the rail steps the shot frame by frame and the card seeks its clip to that frame. A drag above 1200 px/s rolls into autoplay from that frame. Works in fill and fit. The rail only claims horizontal drags and never calls `preventDefault`. Pause on the card is now a real pause (the clip stops) and shares `GJ_PLAY.paused`.
+
+The rail is directional. A drag faster than 1200 px/s (finger moving left = forward) turns it into a jog wheel: the signed velocity sets a signed playback rate (capped at 4x). Forward uses the clip's own `playbackRate`; backward steps `currentTime` down every frame, since video cannot play in reverse. While the finger is down the rate follows the velocity; holding it still drops back to frame scrubbing. Released while moving forward, the rate eases to 1x and the card is playing again; released moving backward, it eases to a stop and stays paused.
+
+## Film player for every film, one pause, one rail
+
+Pinching into any film card now lands on its film with the featured player (`js/filmplayer.js`) mounted. Before, `depth.js` only mounted it for the five films with a curated `stills` list; the other 32 films and the Demo Reel opened a different page. The hero is the film's loop (poster, then the AV1 / VP9 / H.264 ladder from `playback.js`; 720 for the featured films). A film with no loop file (Hike, REEL '24) opens on its still. The 16 untitled Nov 9 set stills on the board are stills, not films: they keep their single-still view.
+
+The player is a scrolling sheet: picture and frame rail first, then the stills, then credits and awards, then the featured cards. It used to be `overflow:hidden; touch-action:none`, which put everything below the fold out of reach. A pull down from the very top (touch) or a drag down (mouse) still shrinks it into the To Go bar. Vertical pans are the browser's; the rail and the sideways swipe use the horizontal ones.
+
+The Demo Reel opens in the same shell (grow-from-card, To Go bar, stills, featured), its card as the hero.
+
+`js/framerail.js` is the one frame rail (scrub, shuttle, reverse by stepping `currentTime`). `tools/extract_loop_frames.py` cuts its thumbs for the film loops (`media/loopframes/`, `js/loopframes.js`); `tools/extract_reel_frames.py` does the reel shots.
+
+One pause: `GJ_PLAY.paused` is read by the board tiles, the player (tap on the picture toggles it) and the reel card. Opening a film while paused opens it paused with the rail armed.

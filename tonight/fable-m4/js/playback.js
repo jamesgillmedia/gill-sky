@@ -65,6 +65,8 @@ function maxPlay(){
   return (coarse||innerWidth<800)?3:6;
 }
 var playing=new Set();
+/* Board pause (header band tap). One stored flag, read by every place that starts a loop: tryPlay, reconcile, dress. */
+var paused=false;
 function release(v){
   if(!v)return;
   try{v.pause()}catch(e){}
@@ -92,10 +94,12 @@ function arm(v){
 function tryPlay(v){
   if(!v||playing.has(v))return;
   arm(v);
+  if(paused)return;
   v.muted=true;v.defaultMuted=true;v.setAttribute("muted","");
   playing.add(v);
   function go(){
     if(!playing.has(v))return;
+    if(paused){playing.delete(v);return}
     var p=v.play();
     if(p&&p.catch)p.catch(function(){v.classList.add("is-poster")});
   }
@@ -120,6 +124,10 @@ function ensure(){
     "#gj-tiles .gj-box img,#gj-tiles .gj-box video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#04070b;display:block}",
     "#gj-tiles .gj-box video{opacity:0;transition:opacity .4s linear}",
     "#gj-tiles .gj-box video.is-ready{opacity:1}",
+    "#gj-head{position:absolute;z-index:2;cursor:pointer;background:transparent;outline:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}",
+    "#gj-head[hidden]{display:none}",
+    "#gj-head:focus-visible{box-shadow:inset 0 0 0 1px rgba(232,228,220,.28)}",
+    "#gj-head .gj-rip{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border:1px solid transparent;border-radius:50%;opacity:0;pointer-events:none;box-sizing:border-box}",
     "#opc .oc,#opc .oc-b{background:#04070b}",
     "video.gj-hero{background:#04070b}"
   ].join("");
@@ -163,18 +171,19 @@ function hideBoard(){
 }
 function syncBoard(){
   var u=window.__u1;
-  if(!u||!u.cur){hideBoard();return}
+  if(!u||!u.cur){hideBoard();syncBand(false);return}
   var cur=u.cur;
   var fsn=u.fsn&&u.fsn.fsn||0;
   var cards=document.getElementById("opb");
   var sheet=document.getElementById("layer");
   var blocked=(cards&&cards.classList.contains("on"))||(sheet&&sheet.classList.contains("on"));
   var on=cur.k==="film"&&cur.lv===1&&!cur.cards&&!!cur.b&&fsn>0.9&&!blocked;
-  if(!on){hideBoard();return}
+  if(!on){hideBoard();syncBand(false);return}
   var tiles=u.tiles||[];
   var info=u.rects;
-  if(!info||info.key!=="film"||!info.rects||!info.win){hideBoard();return}
+  if(!info||info.key!=="film"||!info.rects||!info.win){hideBoard();syncBand(false);return}
   ensure();
+  syncBand(true,info);
   var win=info.win;
   layer.hidden=false;
   layer.style.left=win[0]+"px";
@@ -271,7 +280,7 @@ function dress(v,slug,opts){
   v.addEventListener("loadeddata",show);
   v.addEventListener("playing",show);
   try{v.load()}catch(e){}
-  if(opts.play||playingNow){
+  if((opts.play||playingNow)&&!paused){
     var p=v.play();if(p&&p.catch)p.catch(function(){});
   }
 }
@@ -313,6 +322,107 @@ function dressHeroes(){
     v.muted=true;v.defaultMuted=true;
   }
 }
+function allLoops(){
+  var nodes=[];
+  Object.keys(boxes).forEach(function(k){var v=boxes[k]&&boxes[k].querySelector("video");if(v)nodes.push(v)});
+  var more=document.querySelectorAll("#layer video.clip, .enterframe video, .filmfield video");
+  for(var i=0;i<more.length;i++)nodes.push(more[i]);
+  return nodes;
+}
+function setPaused(on,quiet){
+  on=!!on;
+  if(on===paused)return paused;
+  paused=on;
+  if(paused){
+    allLoops().forEach(function(v){try{if(!v.paused)v.pause()}catch(e){}});
+    playing.clear();
+  }else{
+    allLoops().forEach(function(v){
+      if(v.closest&&v.closest("#gj-tiles"))return;
+      var p=v.play();if(p&&p.catch)p.catch(function(){});
+    });
+    reconcile();
+  }
+  if(band)band.setAttribute("aria-pressed",paused?"true":"false");
+  try{window.dispatchEvent(new Event("gjpause"))}catch(e){}
+  return paused;
+}
+var band;
+/* Tap feedback at the tap point: one soft ring (a thin line and a faint glow in the current ink), 0.16 at its peak, 32px out, gone in about half a
+   second. It sits in the header band, above the header text, and takes no taps. The ink comes from the theme, so Red gets its own ink and never white.
+   With Reduce Motion it does not grow: the same ring simply fades. */
+function ink(a){
+  var c="rgba(232,228,220,"+a+")";
+  try{if(window.GJ_THEME&&GJ_THEME.map)c=GJ_THEME.map(c)}catch(e){}
+  return c;
+}
+function ripple(x,y){
+  if(!band||!band.animate)return;
+  var calm=false;
+  try{calm=matchMedia("(prefers-reduced-motion: reduce)").matches}catch(e){}
+  var r=band.getBoundingClientRect(),ring=document.createElement("i");
+  ring.className="gj-rip";
+  ring.style.left=(x-r.left)+"px";
+  ring.style.top=(y-r.top)+"px";
+  ring.style.borderColor=ink(1);
+  ring.style.background="radial-gradient(circle,"+ink(.35)+" 0,"+ink(0)+" 72%)";
+  band.appendChild(ring);
+  var a=ring.animate(calm
+    ?[{transform:"scale(1)",opacity:.16},{transform:"scale(1)",opacity:0}]
+    :[{transform:"scale(.375)",opacity:.16},{transform:"scale(1)",opacity:0}],
+    {duration:calm?420:520,easing:calm?"ease-out":"cubic-bezier(.2,.6,.3,1)",fill:"forwards"});
+  a.onfinish=function(){if(ring.parentNode)ring.parentNode.removeChild(ring)};
+}
+function inBox(x,y,b){return x>=b.l&&x<=b.r&&y>=b.t&&y<=b.b}
+/* A tap counts only on the empty black of the header: not on its text, and not on any film (video or still, caption included). */
+function emptyHeader(x,y,info){
+  var i,r,t,hx=info.headText||[];
+  for(i=0;i<hx.length;i++)if(inBox(x,y,hx[i]))return false;
+  var tiles=window.__u1&&__u1.tiles||[],cap=Math.max(info.cap||0,26);
+  for(i=0;i<info.rects.length;i++){
+    r=info.rects[i];t=tiles[i];
+    if(!r||!t)continue;
+    if(inBox(x,y,{l:t.x-r.w/2,r:t.x+r.w/2,t:t.y-r.h/2,b:t.y+r.h/2+cap}))return false;
+  }
+  return true;
+}
+function ensureBand(){
+  if(band)return band;
+  var stage=document.getElementById("stage");
+  if(!stage)return null;
+  band=document.createElement("div");
+  band.id="gj-head";
+  band.setAttribute("role","button");
+  band.setAttribute("tabindex","0");
+  band.setAttribute("aria-label","Pause or resume the film loops");
+  band.setAttribute("aria-pressed",paused?"true":"false");
+  band.hidden=true;
+  band.addEventListener("click",function(e){
+    var u=window.__u1,info=u&&u.rects;
+    if(!info||info.key!=="film")return;
+    if(e.detail&&!emptyHeader(e.clientX,e.clientY,info))return;
+    e.stopPropagation();
+    if(e.detail)ripple(e.clientX,e.clientY);
+    setPaused(!paused);
+  });
+  band.addEventListener("keydown",function(e){
+    if(e.key!=="Enter"&&e.key!==" ")return;
+    e.preventDefault();e.stopPropagation();
+    setPaused(!paused);
+  });
+  stage.appendChild(band);
+  return band;
+}
+function syncBand(on,info){
+  if(!on||!info){if(band)band.hidden=true;return}
+  if(!ensureBand())return;
+  var win=info.win,hh=Math.max(0,Math.round(info.head||0));
+  band.hidden=false;
+  band.style.left=win[0]+"px";
+  band.style.top=win[1]+"px";
+  band.style.width=win[2]+"px";
+  band.style.height=hh+"px";
+}
 function tick(){
   syncBoard();
   dressStrip();
@@ -321,6 +431,9 @@ function tick(){
 }
 requestAnimationFrame(tick);
 window.GJ_PLAY={
+  get paused(){return paused},
+  setPaused:setPaused,
+  emptyHeader:function(x,y){var u=window.__u1,info=u&&u.rects;return !!(info&&info.key==="film"&&band&&!band.hidden&&emptyHeader(x,y,info))},
   filmTag:filmTag,
   sources:sources,
   poster:poster,
