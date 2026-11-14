@@ -12,6 +12,7 @@
    setPlaying(on): the owner flips between playing and paused (called when a forward shuttle settles into play)
    settle(t, dur): optional, called with the clip time just before that hand-over (the reel aligns its shot clock)
    activate(v): optional, make v the visible clip (default: add class "on")
+   onShuttle(on): optional, called when a fast scrub starts and ends
    thumbHost: element that receives the stand-in still shown until a never-loaded clip has a frame
    eventHost: element that contains the clips (seeked events are read there)
  }) -> {set(frames|null), sync(), refresh(), cancel(), destroy(), state(), el}
@@ -94,12 +95,15 @@ function create(host,o){
     var r=rateOf(vs);
     sh={rate:r,target:r,held:true,t:v.currentTime||0,last:performance.now(),mode:''};
     rail.classList.add('shuttle');
+    if(o.onShuttle)o.onShuttle(true);
     if(!shRaf)shRaf=requestAnimationFrame(shTick);
   }
   function endShuttle(){
     if(shRaf)cancelAnimationFrame(shRaf);shRaf=0;
     if(sh){var v=vid();if(v&&v.playbackRate!==1)v.playbackRate=1}
+    var was=!!sh;
     sh=null;rail.classList.remove('shuttle');rail.removeAttribute('data-rate');
+    if(was&&o.onShuttle)o.onShuttle(false);
   }
   function finishStop(v){
     if(!v.paused)v.pause();

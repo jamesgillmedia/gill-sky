@@ -49,7 +49,7 @@ function mount(el,hooks){
     setPlaying:function(on){setPlay(on)},
     settle:function(t,dur){p=Math.floor(p)+Math.max(.02,Math.min(.98,t/dur));tween=null},
     activate:function(v){pool.forEach(function(o){if(o.v!==v)o.v.classList.remove('on')});v.classList.add('on')},
-    thumbHost:stage,eventHost:stage,onScrub:function(){root.classList.add('seen')}
+    thumbHost:stage,eventHost:stage,onScrub:function(){root.classList.add('seen')},onShuttle:function(on){root.classList.toggle('shuttling',!!on)}
   });
   function setFit(m){
     root.classList.toggle('fit',m==='fit');

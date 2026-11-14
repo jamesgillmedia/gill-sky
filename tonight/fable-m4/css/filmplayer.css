@@ -88,6 +88,13 @@ html[data-var-film="B"] .fp-frame>img,html[data-var-film="C"] .fp-frame>img{tran
 .rl.emb .rl-h,.rl.emb .rl-fit,.rl.emb .rl-v,.rl.emb .rl-b small{display:none}
 .rl.emb .rl-b{left:8px;right:8px;bottom:8px;top:auto}
 .rl.emb .rl-b b{font-size:11px}
-.rl.emb .rl-fs{position:absolute;left:0;right:0;top:calc(100% + 6px);bottom:auto;height:56px}
+/* The clips (shot strip) live inside the rail's dock. Playing: they are tucked into the rail and not there at all. Paused: they slide up out of the rail
+   and the strip reveals from its bottom edge, so it grows out of the rail instead of arriving as a layer. A fast scrub (shuttle) tucks them away again, quickly. */
+.rl.emb .rl-fs{position:absolute;left:0;right:0;top:calc(100% + 12px);bottom:auto;height:56px;
+  transform:translateY(40px);clip-path:inset(100% 0 0 0);pointer-events:none;
+  transition:transform .18s cubic-bezier(.4,0,.6,1),clip-path .18s cubic-bezier(.4,0,.6,1)}
+.rl.emb.paused:not(.shuttling) .rl-fs{transform:none;clip-path:inset(0 0 0 0);pointer-events:auto;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1),clip-path .3s cubic-bezier(.2,.8,.2,1)}
+@media (prefers-reduced-motion:reduce){.rl.emb .rl-fs,.rl.emb.paused:not(.shuttling) .rl-fs{transition:none}}
 .rl.emb .fr-rail{position:absolute;left:0;right:0;top:calc(100% + 68px);bottom:auto}
 .rl.emb .fr-pv{object-fit:cover}
