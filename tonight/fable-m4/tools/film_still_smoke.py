@@ -72,6 +72,17 @@ async (act) => {
 """
 
 
+def visit(pg, url):
+    pg.goto(url)
+    # raw.githack shows a one-time "One more step" page to browsers; step through it
+    pg.wait_for_timeout(400)
+    if pg.locator('text=One more step').count():
+        pg.locator('text=Open the page').first.click()
+        pg.wait_for_timeout(1500)
+        return True
+    return False
+
+
 def run(pw, label, vp, touch):
     print('\n== %s %dx%d ==' % (label, vp[0], vp[1]))
     br = pw.chromium.launch(executable_path=args.chrome, args=['--no-sandbox', '--autoplay-policy=no-user-gesture-required'])
@@ -80,7 +91,8 @@ def run(pw, label, vp, touch):
     errs = []
     pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' else None)
     pg.on('pageerror', lambda e: errs.append('PAGEERROR ' + str(e)))
-    pg.goto(BASE + '#film/demo-reel')
+    if visit(pg, BASE + '#film/demo-reel'):
+        errs.clear()  # the host's own interstitial page logs a blocked ad request; it is not the site
     pg.wait_for_selector('.rl .rl-tr', timeout=20000)
     pg.wait_for_timeout(2500)
 
@@ -136,7 +148,7 @@ def run(pw, label, vp, touch):
     check('%s no transition or animation set anywhere in the film panel' % label, not d, str(d[:4]))
 
     # ---- the film board's own modes ----
-    pg.goto(BASE + '#film/board')
+    visit(pg, BASE + '#film/board')
     pg.wait_for_function('window.GJ_DEC&&window.__u1&&__u1.ready', timeout=20000)
     pg.wait_for_timeout(3000)
     for mode in ('map', 'board', 'snap'):

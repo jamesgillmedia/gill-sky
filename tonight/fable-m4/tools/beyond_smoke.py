@@ -50,6 +50,8 @@ def visit(pg, url):
     if pg.locator('text=One more step').count():
         pg.locator('text=Open the page').first.click()
         pg.wait_for_timeout(1500)
+        return True
+    return False
 
 
 def settle(pg, ms=400, cap=9000):
@@ -122,7 +124,8 @@ def run(pw, label, vp, touch, shots):
     pg.on('response', lambda r: bad.append('%d %s' % (r.status, r.url)) if r.status >= 400 else None)
 
     # ---- film board: each choice changes the selection ----
-    visit(pg, BASE + '#film/board')
+    if visit(pg, BASE + '#film/board'):
+        errs.clear()  # the host's own interstitial page logs a blocked ad request; it is not the site
     pg.wait_for_function('window.GJ_BEYOND&&GJ_BEYOND.ready&&window.__u1&&__u1.ready', timeout=20000)
     pg.wait_for_timeout(2500)
     base_ids, base_pk = tiles(pg), picks(pg)
