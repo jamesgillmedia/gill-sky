@@ -22,7 +22,7 @@ function mount(el,hooks){
   function base(i){return B+S[i].f}
   function fitMode(){var m='fill';try{m=localStorage.getItem(KEY)||'fill'}catch(e){}return m==='fit'?'fit':'fill'}
   var root=document.createElement('div');
-  root.className='rl';
+  root.className='rl'+(hooks.embed?' emb':'');
   root.setAttribute('aria-label','Demo reel, every shot on a moving filmstrip');
   root.innerHTML='<div class="rl-st" tabindex="0"><img class="rl-im" alt="" decoding="sync"></div>'+
     '<div class="rl-ui"><p class="rl-k"><span class="rl-n"></span></p>'+
@@ -171,14 +171,14 @@ function mount(el,hooks){
   fitB.addEventListener('click',function(e){var b=e.target.closest('[data-m]');if(b){setFit(b.getAttribute('data-m'));root.classList.add('seen')}});
   view.addEventListener('click',function(e){e.preventDefault();var l=S[mod(cur)].l;if(l==null)return;hooks.viewFilm(l)});
   document.documentElement.classList.add('reelon');
-  var bx=hooks.box&&hooks.box();
+  var bx=!hooks.embed&&hooks.box&&hooks.box();
   if(bx&&bx.w&&root.animate){
     var W=innerWidth,H=innerHeight;
     root.animate([{clipPath:'inset('+Math.max(0,bx.t).toFixed(1)+'px '+Math.max(0,W-bx.l-bx.w).toFixed(1)+'px '+Math.max(0,H-bx.t-bx.h).toFixed(1)+'px '+Math.max(0,bx.l).toFixed(1)+'px round 3px)'},
       {clipPath:'inset(0px 0px 0px 0px round 0px)'}],{duration:600,easing:EASE});
   }
   place();startLoop();playCur();
-  try{stage.focus({preventScroll:true})}catch(e){}
+  if(!hooks.embed){try{stage.focus({preventScroll:true})}catch(e){}}
   return {
     stop:function(){
       dead=true;stopLoop();rail.destroy();

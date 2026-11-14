@@ -1584,7 +1584,7 @@ function mmss(s){s=Math.max(0,s|0);return (s/60|0)+':'+(s%60<10?'0':'')+(s%60|0)
 function renderLayer(){
   var el=$('layer');
   if(reelCtl){
-    var same=reelCtl.id&&cur.lv===2&&cur.id===reelCtl.id&&!(window.GJ_DEPTH&&GJ_DEPTH.owns())&&el.firstChild&&el.firstChild.className==='rl';
+    var same=reelCtl.id&&cur.lv===2&&cur.id===reelCtl.id&&!(window.GJ_DEPTH&&GJ_DEPTH.owns())&&!!el.querySelector('.sheet.fp-reel');
     if(same)return;
     reelCtl.stop();reelCtl=null;
   }
@@ -1693,14 +1693,14 @@ function renderJoio(el){
 var REELBOX=null;
 function filmByL(l){return CH.film?CH.film.items.filter(function(it){return it.k==='w'+l})[0]:null}
 function renderReel(el,it){
-  if(!window.GJ_REELVIEW){el.innerHTML='<div class="sheet full"><p>The reel is missing.</p></div>';return}
-  var ctl=GJ_REELVIEW.mount(el,{
+  if(!window.GJ_REELVIEW||!window.GJ_FP||!GJ_FP.paintReel){el.innerHTML='<div class="sheet full"><p>The reel is missing.</p></div>';return}
+  var ctl=GJ_FP.paintReel(el,it,{
     base:REELB,
     title:it.title||'Demo Reel',
     film:filmByL,
-    viewFilm:function(l){var f=filmByL(l);if(f)go({lv:2,k:'film',id:f.id})},
-    box:function(){var b=REELBOX;REELBOX=null;return b}
+    viewFilm:function(l){var f=filmByL(l);if(f)go({lv:2,k:'film',id:f.id})}
   });
+  REELBOX=null;
   reelCtl={id:it.id,stop:ctl.stop,state:ctl.state};
 }
 
@@ -2086,7 +2086,7 @@ function depthApi(){
     soundBoard:soundBoard,
     hit:hit,
     tileAt:tileAt,
-    reelFrom:function(b){REELBOX=b},
+    reelFrom:function(b){REELBOX=b;if(b&&b.w&&window.GJ_FP&&GJ_FP.from)GJ_FP.from({x:b.l+b.w/2,y:b.t+b.h/2,w:b.w,h:b.h})},
     tileBox:function(it){
       var items=boardItems(),i;
       for(i=0;i<items.length;i++)if(items[i]===it||items[i].id===it.id){

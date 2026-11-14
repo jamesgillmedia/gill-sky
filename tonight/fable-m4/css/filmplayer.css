@@ -5,15 +5,16 @@
   background:radial-gradient(ellipse 60% 55% at 50% 46%,rgba(232,228,220,.055),rgba(232,228,220,.018) 55%,rgba(0,0,0,0) 78%)}
 #layer .sheet.film.fp .heroframe.fp-frame{position:relative;flex:none;min-height:0;height:auto;width:100%;aspect-ratio:2.2;margin:0;background:#000;
   box-shadow:0 0 0 1px rgba(232,228,220,.06),0 18px 60px rgba(0,0,0,.9);cursor:zoom-in}
-#layer .sheet.film.fp{overflow:hidden;touch-action:none}
-#layer .sheet.film.fp.fp-full{position:fixed;inset:0;z-index:6;overflow:hidden;max-height:none;touch-action:none}
+/* The player is a full-size state that scrolls: the picture and rail first, then stills, credits and awards, then featured. Vertical pans belong to the browser; sideways ones to the rail and the swipe. */
+#layer .sheet.film.fp{overflow-x:hidden;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain}
+#layer .sheet.film.fp.fp-full{position:fixed;inset:0;z-index:6;overflow-x:hidden;overflow-y:auto;max-height:none;touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 #layer .sheet.film.fp.fp-from,#layer .sheet.film.fp.fp-shrink{animation:none}
 /* A still is either fully there or not in the stack. No dissolve: a fade lets the black plate show through and dims the picture. */
-.fp-frame img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;filter:none;transition:none;animation:none;z-index:1}
-.fp-frame img.on{opacity:1;z-index:2}
+.fp-frame>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;filter:none;transition:none;animation:none;z-index:1}
+.fp-frame>img.on{opacity:1;z-index:2}
 .fp-frame video.fp-loop{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:4;background:#04070b;pointer-events:none;opacity:0;transition:none}
 .fp-frame video.fp-loop.live{opacity:1}
-.fp-frame img.fp-now{transition:none}
+.fp-frame>img.fp-now{transition:none}
 /* Featured tiles stay at full brightness while the player is open. Selection is not a dim. */
 #layer .sheet.film.fp .fp-cards,#layer .sheet.film.fp .fp-card,#layer .sheet.film.fp .fp-cim,#layer .sheet.film.fp .fp-cim img{opacity:1;filter:none}
 #layer .sheet.film.fp .fp-t,#layer .sheet.film.fp .fp-card b{color:#e8e4dc}
@@ -22,7 +23,7 @@
 #togo canvas,#togo span{opacity:1;display:block}
 #togo span{white-space:nowrap}
 @media (prefers-reduced-motion:reduce){
-  .fp-frame img{transition:none;filter:none;animation:none}
+  .fp-frame>img{transition:none;filter:none;animation:none}
   #layer .sheet.film.fp.fp-from,#layer .sheet.film.fp.fp-shrink{animation:none}
 }
 .fp-bar{position:relative;height:2px;background:rgba(232,228,220,.12);margin:8px 0 0}
@@ -50,7 +51,8 @@
 .fp-card b{display:block;font:400 11.5px "Julius Sans One",sans-serif;letter-spacing:.12em;text-transform:uppercase;margin:6px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fp-card small{display:block;font:300 10px Poppins,sans-serif;color:rgba(232,228,220,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fp-card em{display:block;font:300 10px/1.35 Poppins,sans-serif;font-style:normal;color:rgba(232,228,220,.8);margin-top:1px}
-#layer .sheet.film.fp .framewall.under{width:min(100%,1180px);margin:22px auto 0;padding:0 0 calc(132px + var(--sb))}
+#layer .sheet.film.fp .framewall.under{width:min(100%,1180px);margin:22px auto 0;padding:0}
+.fp-next{padding-bottom:calc(120px + var(--sb))}
 #layer .sheet.film.fp .framewall.under img{opacity:1;filter:none}
 @media (min-width:1000px) and (orientation:landscape){
   #layer .sheet.film.fp,html.wc #layer .sheet.film.fp{display:grid;grid-template-columns:minmax(0,1fr) 250px;column-gap:26px;align-content:start;align-items:start;padding-top:calc(70px + var(--st));padding-left:40px;padding-right:110px}
@@ -61,8 +63,31 @@
   .fp-next{grid-column:2;grid-row:1;width:auto;margin:6px 0 0}
   .fp-cards{grid-template-columns:1fr;gap:12px}
   #layer .sheet.film.fp .framewall.under{grid-column:1 / span 2;grid-row:2;width:auto;margin-top:26px}
+  .fp-info{grid-column:1 / span 2;grid-row:3;width:auto;padding-bottom:calc(120px + var(--sb))}
 }
 /* DEV variants (js/variants.js): B and C used to dissolve the still. Every variant now cuts at full brightness. */
 html[data-var-film="B"] .fp-stage{animation:none}
-html[data-var-film="B"] .fp-frame img,html[data-var-film="C"] .fp-frame img{transition:none;filter:none}
+html[data-var-film="B"] .fp-frame>img,html[data-var-film="C"] .fp-frame>img{transition:none;filter:none}
 #markmenu .mm-var em{font-style:normal;opacity:.7}
+
+/* Frame rail, shared. Under the picture, between it and the title. */
+.fp-railhost{margin:6px 0 0}
+.fp-railhost .fr-rail{height:62px}
+.fp-frame>img.fr-pv{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:1;z-index:5}
+.fp-frame video.fp-loop{touch-action:pan-y}
+/* Credits and awards, below the stills. */
+.fp-info{width:min(100%,1180px);margin:6px auto 0;padding:0 0 4px}
+.fp-info .fp-lab{margin:18px 0 0}
+/* The Demo Reel inside the player: the card fills the picture box; its shot strip and frame rail hang under it. */
+#layer .sheet.film.fp .heroframe.fp-frame .rl.emb{position:absolute;inset:0;overflow:visible;background:transparent;touch-action:pan-y}
+#layer .sheet.film.fp.fp-reel .heroframe.fp-frame{margin-bottom:150px;cursor:pointer;overflow:visible}
+.rl.emb .rl-st{inset:0}
+.rl.emb .rl-st::before,.rl.emb .rl-st::after{display:none}
+.rl.emb .rl-ui{inset:0}
+.rl.emb .rl-k{left:8px;top:8px;font-size:9px}
+.rl.emb .rl-h,.rl.emb .rl-fit,.rl.emb .rl-v,.rl.emb .rl-b small{display:none}
+.rl.emb .rl-b{left:8px;right:8px;bottom:8px;top:auto}
+.rl.emb .rl-b b{font-size:11px}
+.rl.emb .rl-fs{position:absolute;left:0;right:0;top:calc(100% + 6px);bottom:auto;height:56px}
+.rl.emb .fr-rail{position:absolute;left:0;right:0;top:calc(100% + 68px);bottom:auto}
+.rl.emb .fr-pv{object-fit:cover}
