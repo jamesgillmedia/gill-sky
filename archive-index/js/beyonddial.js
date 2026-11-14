@@ -39,7 +39,7 @@
   var BIG = 160, HUB = 44;
   var LAY = { beyond: { x: -72, y: -120, z: 28 } };
   var ORDER = ['beyond'];
-  var wrap, hub, cluster, D = {}, lvl = 0, openA = { x: 0, v: 0, t: 0, w: 4.6 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
+  var wrap, hub, cluster, D = {}, lvl = 0, holdS = { x: 0, v: 0, t: 0, w: 4.6 }, hubSw = null, noClickUntil = 0, openA = { x: 0, v: 0, t: 0, w: 4.6 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
 
   function modeT() { return B.MODES.indexOf(B.state.mode) / N1; }
   function sweepT() { var S = B.state; return S.mode === 'off' ? 0 : S[S.mode]; }
@@ -92,17 +92,22 @@
     wrap.appendChild(cluster); wrap.appendChild(hub);
     var host = doc.querySelector('.rm-ui');
     if (host) host.insertBefore(wrap, host.firstChild); else { wrap.className = 'bd-solo'; doc.body.appendChild(wrap); }
-    hub.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); cycle(); });
+    hub.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); if (performance.now() < noClickUntil) return; cycle(); });
+    /* a swipe down that starts on the hub goes through (the hub does not swallow it); a tap still opens the dial */
+    hub.addEventListener('pointerdown', function (e) { if (e.button > 0) return; hubSw = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false }; try { hub.setPointerCapture(e.pointerId); } catch (x) {} });
+    hub.addEventListener('pointermove', function (e) { if (hubSw && hubSw.id === e.pointerId && Math.hypot(e.clientX - hubSw.x, e.clientY - hubSw.y) > 10) hubSw.moved = true; });
+    hub.addEventListener('pointerup', function (e) { var sw = hubSw; if (!sw || sw.id !== e.pointerId) return; hubSw = null; if (sw.moved) noClickUntil = performance.now() + 450; if (isSwipeDown(sw, e)) onSwipeDown(); });
+    hub.addEventListener('pointercancel', function () { hubSw = null; });
     doc.addEventListener('pointerdown', function (e) { if (lvl && !held && !wrap.contains(e.target)) { e.preventDefault(); e.stopPropagation(); closeOne(); } }, true);
     doc.addEventListener('keydown', function (e) { if (e.key === 'Escape' && lvl) { e.preventDefault(); e.stopImmediatePropagation(); closeOne(); } }, true);
-    w.addEventListener('popstate', function (e) {
-      if (ignorePop > 0) { ignorePop--; e.stopImmediatePropagation(); return; }
-      if (pushes > 0 && lvl > 0) { pushes--; setLvl(lvl - 1); e.stopImmediatePropagation(); }   // the back gesture closes one level
-    });
     B.on(function () { paintAll(); kick(); });
     w.addEventListener('rmchange', function () { paintAll(); });
     paintAll(); layout();
   }
+
+  /* ---------- swipe down: the same rule as everywhere else in the archive (70px, mostly vertical) ---------- */
+  function isSwipeDown(sw, e) { var dx = e.clientX - sw.x, dy = e.clientY - sw.y; return dy >= 70 && dy > 1.3 * Math.abs(dx) && performance.now() - sw.t < 1200; }
+  function onSwipeDown() { if (lvl) closeOne(); else w.dispatchEvent(new CustomEvent('bd-swipe-down')); }   // an open dial closes first (one level at a time); otherwise the page handles it
 
   /* ---------- open / close ---------- */
   function setLvl(n) { lvl = n; openA.t = n ? 1 : 0; var c = B.cam(); if (c.instant) { openA.x = openA.t; openA.v = 0; } wrap.setAttribute('data-lvl', String(n)); hub.setAttribute('aria-expanded', n ? 'true' : 'false'); kick(); paintAll(); layout(); }
@@ -119,7 +124,7 @@
     s.w = c.w || 4.6; var k = Math.exp(-s.w * dt), e = s.x - s.t, cc = s.v + s.w * e; s.x = s.t + (e + cc * dt) * k; s.v = (s.v - s.w * cc * dt) * k;
   }
   function moving() {
-    if (Math.abs(openA.x - openA.t) > .0015 || Math.abs(openA.v) > .01) return true;
+    if (Math.abs(openA.x - openA.t) > .0015 || Math.abs(openA.v) > .01 || Math.abs(holdS.x - holdS.t) > .004 || Math.abs(holdS.v) > .02) return true;
     var k, d, r; for (k in D) { d = D[k]; for (r in d.disp) if (Math.abs(d.disp[r] - d.tgt[r]) > .0008) return true; }
     if (D.beyond && (D.beyond.pulse.x > .01 || Math.abs(D.beyond.pulse.v) > .05)) return true;
     return false;
@@ -127,7 +132,7 @@
   function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } }
   function loop(now) {
     raf = 0; var dt = Math.min(.05, (now - last) / 1000); last = now; var c = B.cam();
-    stepSpring(openA, dt, c);
+    stepSpring(openA, dt, c); holdS.t = held ? 1 : 0; stepSpring(holdS, dt, c);
     var k, d, r;
     for (k in D) {
       d = D[k];
@@ -145,9 +150,9 @@
     var i;
     for (i = 0; i < ORDER.length; i++) {
       var k = ORDER[i], d = D[k], e = clamp(openA.x, 0, 1), L = LAY[k];
-      var x = -L.x * (1 - e), y = -L.y * (1 - e), z = L.z * e, s = lerp(.16, 1, e), ry = lerp(-6, -12, e);
+      var hk = clamp(holdS.x, 0, 1), x = -L.x * (1 - e), y = -L.y * (1 - e), z = L.z * e, s = lerp(.16, 1, e) * (1 - .08 * hk), ry = lerp(-6, -12, e);   // held: the dial steps back (opacity .45, scale .92) and stays visible
       d.box.style.transform = 'perspective(240px) translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,' + z.toFixed(2) + 'px) rotateY(' + ry.toFixed(2) + 'deg) scale(' + s.toFixed(4) + ')';
-      d.box.style.visibility = e > .012 ? '' : 'hidden';
+      d.box.style.visibility = e > .012 ? '' : 'hidden'; d.box.style.opacity = (1 - .55 * hk).toFixed(3);
     }
     cluster.classList.toggle('bd-vis', openA.x > .002);
   }
@@ -194,11 +199,24 @@
       if (e.button > 0) return;
       e.preventDefault(); e.stopPropagation();
       var r = s.getBoundingClientRect(), sc = r.width / d.w, cx = r.left + d.cx * sc, cy = r.top + d.cy * sc, rad = Math.hypot(e.clientX - cx, e.clientY - cy) / sc;
-      var ringKey = 'main';
+      var ringKey = 'main', th = Math.atan2(e.clientX - cx, -(e.clientY - cy)) * 180 / Math.PI, onArc = Math.abs(th) <= A1 + 12;
       if (d.k === 'beyond') {
-        if (rad >= 53) ringKey = 'out';
-        else if (rad >= 24 && B.state.mode !== 'off') ringKey = 'inn';
-        else { if (rad < 24) { B.set({ mode: B.state.mode === 'off' ? (d.lastMode || 'red') : 'off' }); if (B.state.mode !== 'off') d.lastMode = B.state.mode; snapRing(d, 'out'); kick(); } return; }   // the centre steps off <-> the last mode
+        if (rad >= 53 && onArc) ringKey = 'out';
+        else if (rad >= 24 && rad < 53 && onArc && B.state.mode !== 'off') ringKey = 'inn';
+        else {
+          /* the centre, the gap at the bottom and the dead inner ring are not ring drags: a swipe down that starts here goes through, a tap on the centre steps off <-> the last mode */
+          var sw = { id: e.pointerId, x: e.clientX, y: e.clientY, t: performance.now(), moved: false, centre: rad < 24 };
+          try { s.setPointerCapture(e.pointerId); } catch (x) {}
+          var mv = function (ev) { if (ev.pointerId === sw.id && Math.hypot(ev.clientX - sw.x, ev.clientY - sw.y) > 10) sw.moved = true; };
+          var fin = function (ev) {
+            if (ev.pointerId !== sw.id) return; s.removeEventListener('pointermove', mv); s.removeEventListener('pointerup', fin); s.removeEventListener('pointercancel', fin);
+            if (ev.type === 'pointercancel') return;
+            if (isSwipeDown(sw, ev)) onSwipeDown();
+            else if (sw.centre && !sw.moved) { B.set({ mode: B.state.mode === 'off' ? (d.lastMode || 'red') : 'off' }); if (B.state.mode !== 'off') d.lastMode = B.state.mode; snapRing(d, 'out'); kick(); }
+          };
+          s.addEventListener('pointermove', mv); s.addEventListener('pointerup', fin); s.addEventListener('pointercancel', fin);
+          return;
+        }
       }
       held = { k: d.k, ringKey: ringKey, id: e.pointerId };
       d.ring = ringKey; d.drag = true; d.rate = e.pointerType === 'mouse' ? 14 : 22; d.cx0 = cx; d.cy0 = cy; d.sc = sc;
@@ -243,6 +261,11 @@
     kick();
   }
 
+  /* registered when the script runs, before archive.js adds its own popstate handler, so back closes the dial before it closes a lifted frame */
+  w.addEventListener('popstate', function (e) {
+    if (ignorePop > 0) { ignorePop--; e.stopImmediatePropagation(); return; }
+    if (pushes > 0 && lvl > 0) { pushes--; setLvl(lvl - 1); e.stopImmediatePropagation(); }   // the back gesture closes one level
+  });
   function boot() { if (!doc.body || !doc.querySelector('.rm-ui')) { doc.addEventListener('DOMContentLoaded', function () { setTimeout(mount, 0); }); return; } mount(); }
   w.GJ_BEYOND_DIAL = { get level() { return lvl; }, cycle: cycle, closeOne: closeOne, get el() { return wrap; } };
   boot();

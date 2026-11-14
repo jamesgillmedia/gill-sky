@@ -676,6 +676,7 @@ function enterCst() {
   closeLift(true, true); setInert(true);
   cst.open(at);
 }
+addEventListener('bd-swipe-down', () => { if (cur >= 0) closeLift(); });   // a swipe down that started on the Beyond hub: the same as anywhere else on the frame
 addEventListener('popstate', () => { if (cst.isOpen()) cst.leave(); else if (cur >= 0) closeLift(true); else readHash(); });
 
 

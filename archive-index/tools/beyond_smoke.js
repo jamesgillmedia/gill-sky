@@ -22,6 +22,7 @@ const parse = c => (/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c) || []).slice(1, 4).
     const interstitial = await p.$('button.url-action-button'); if (interstitial) { await Promise.all([p.waitForNavigation({ waitUntil: 'networkidle2' }), interstitial.click()]); }
     await sleep(2500);
     const lvl = () => p.evaluate(() => document.getElementById('bdial').dataset.lvl);
+    const dialSettled = async () => { for (let i = 0; i < 60; i++) { const sc = await p.evaluate(() => { const m = /scale\(([\d.]+)\)/.exec(document.querySelector('.bd-dial').style.transform); return m ? +m[1] : 0; }); if (sc > .985) break; await sleep(250); } };
     const settle = async () => { for (let i = 0; i < 60 && await p.evaluate(() => window.__ai.swapping()); i++) await sleep(400); await sleep(500); };
     const tap = async sel => { if (phone) { const r = await p.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return [b.x + b.width / 2, b.y + b.height / 2]; }, sel); await p.touchscreen.tap(r[0], r[1]); } else await p.click(sel); };
     const tapAt = async (x, y) => { if (phone) await p.touchscreen.tap(x, y); else await p.mouse.click(x, y); };
@@ -40,10 +41,57 @@ const parse = c => (/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c) || []).slice(1, 4).
     await tap('.bd-hub'); await sleep(900); await p.keyboard.press('Escape'); await sleep(900); ok(await lvl() === '0', tag + ': Esc closes');
     await tap('.bd-hub'); await sleep(900); await p.goBack(); await sleep(900); ok(await lvl() === '0', tag + ': back closes'); ok(await p.evaluate(() => location.href) === href0, tag + ': back stayed on the page');
     await tap('.bd-hub'); await sleep(900); await tap('.bd-hub'); await sleep(900); ok(await lvl() === '0', tag + ': a second hub tap closes');
+    // mobile: a swipe down that starts on the hub or the dial goes through; taps and ring drags still work; a held dial steps back but never vanishes
+    if (phone) {
+      const c = await p.createCDPSession(), T = (ty, pts) => c.send('Input.dispatchTouchEvent', { type: ty, touchPoints: pts });
+      const swipe = async (x, y, dx, dy, steps = 12) => { await T('touchStart', [{ x, y }]); for (let i = 1; i <= steps; i++) { await T('touchMove', [{ x: x + dx * i / steps, y: y + dy * i / steps }]); await sleep(14); } await T('touchEnd', []); };
+      const centre = sel => p.evaluate(s => { const b = document.querySelector(s).getBoundingClientRect(); return [b.x + b.width / 2, b.y + b.height / 2]; }, sel);
+      const lift = async () => { await p.evaluate(() => { location.hash = '#order=continuous&boxes=dim&n=0142'; }); await sleep(1800); };
+      const ring = async () => { await dialSettled(); return p.evaluate(() => { const s = document.querySelector('.bd-svg'), r = s.getBoundingClientRect(); return { x: r.left, y: r.top, sc: r.width / 160 }; }); };
+      await lift(); ok(await p.evaluate(() => !document.getElementById('lt').hidden), tag + ': a frame is lifted');
+      let h = await centre('.bd-hub'); await swipe(h[0], h[1] - 8, 0, 130); await sleep(1200);
+      ok(await p.evaluate(() => document.getElementById('lt').hidden), tag + ': a swipe down that starts on the hub closes the frame (the hub does not swallow it)');
+      ok(await lvl() === '0', tag + ': the swipe did not open the dial');
+      await tap('.bd-hub'); await sleep(1300); ok(await lvl() === '1', tag + ': a tap on the hub still opens the dial');
+      await p.keyboard.press('Escape'); await sleep(900);
+      await lift(); await tap('.bd-hub'); await sleep(1300); let g = await ring();
+      ok(await lvl() === '1' && await p.evaluate(() => !document.getElementById('lt').hidden), tag + ': the dial opens over a lifted frame');
+      await p.goBack(); await sleep(1100);
+      ok(await lvl() === '0' && await p.evaluate(() => !document.getElementById('lt').hidden), tag + ': back closes the dial before it closes the lifted frame');
+      await tap('.bd-hub'); await sleep(1300); g = await ring();
+      await swipe(g.x + 80 * g.sc, g.y + 80 * g.sc, 0, 130); await sleep(1200);   // from the centre of the dial
+      ok(await lvl() === '0', tag + ': a swipe down that starts on the dial centre closes the dial first (one level at a time)');
+      ok(await p.evaluate(() => !document.getElementById('lt').hidden), tag + ': the frame stays until the next swipe');
+      h = await centre('.bd-hub'); await swipe(h[0], h[1] - 8, 0, 130); await sleep(1200);
+      ok(await p.evaluate(() => document.getElementById('lt').hidden), tag + ': the next swipe down on the hub closes the frame');
+      await tap('.bd-hub'); await sleep(1300); g = await ring();
+      await swipe(g.x + 80 * g.sc, g.y + 142 * g.sc, 0, 120); await sleep(1100);   // from the gap at the bottom of the ring
+      ok(await lvl() === '0', tag + ': a swipe down that starts in the gap at the bottom of the ring goes through too');
+      // ring drags still work, and the dial steps back while held
+      await tap('.bd-hub'); await sleep(1300); g = await ring();
+      const at0 = i => { const a = (-135 + 270 * i / 9) * Math.PI / 180; return [g.x + (80 + 62 * Math.sin(a)) * g.sc, g.y + (80 - 62 * Math.cos(a)) * g.sc]; };
+      const p1 = at0(1);
+      await T('touchStart', [{ x: p1[0], y: p1[1] }]);
+      for (let i = 1; i <= 14; i++) { const q = at0(1 + 3 * i / 14); await T('touchMove', [{ x: q[0], y: q[1] }]); await sleep(30); }
+      await sleep(900);
+      const held = await p.evaluate(() => { const d = document.querySelector('.bd-dial'), c = getComputedStyle(d); return { op: +c.opacity, vis: c.visibility, mode: GJ_BEYOND.state.mode, tr: d.style.transform }; });
+      ok(held.mode === 'green', tag + ': a ring drag from red round to green still changes the step (' + held.mode + ')');
+      ok(held.vis === 'visible' && held.op >= .35 && held.op <= .55, tag + ': held, the dial steps back to a lower presence and stays visible (opacity ' + held.op.toFixed(2) + ')');
+      ok(/scale\(0\.9\d*\)/.test(held.tr) || /scale\(0\.8[5-9]/.test(held.tr), tag + ': and scales down a little (' + (/scale\([^)]*\)/.exec(held.tr) || [''])[0] + ')');
+      await T('touchEnd', []); await sleep(1500);
+      const rel = await p.evaluate(() => +getComputedStyle(document.querySelector('.bd-dial')).opacity);
+      ok(rel > .98, tag + ': released, it comes back to full presence (' + rel.toFixed(2) + ')');
+      await p.keyboard.press('Escape'); await sleep(700);
+      const hubOp = await p.evaluate(() => +getComputedStyle(document.querySelector('.bd-hub')).opacity);
+      ok(hubOp >= .5, tag + ': the closed hub never drops below half presence (' + hubOp.toFixed(2) + ')');
+      await tap('.bd-hub'); await sleep(900); await p.keyboard.press('Escape'); await sleep(700);
+      const gm = await p.evaluate(() => { GJ_BEYOND.set({ mode: 'off' }); return 1; });
+    }
     // the ten detents
     await tap('.bd-hub'); await sleep(1400);
     const modes = await p.evaluate(() => GJ_BEYOND.MODES.slice()), N1 = modes.length - 1;
     ok(modes.length === 10, tag + ': ten detents (' + modes.join(' / ') + ')');
+    await dialSettled();
     const R = await p.evaluate(() => { const s = document.querySelector('.bd-svg'), r = s.getBoundingClientRect(); return { x: r.left, y: r.top, sc: r.width / 160 }; });
     const at = i => { const a = (-135 + 270 * i / N1) * Math.PI / 180; return [R.x + (80 + 62 * Math.sin(a)) * R.sc, R.y + (80 - 62 * Math.cos(a)) * R.sc]; };
     const expect = await p.evaluate(() => { const o = {}; GJ_BEYOND.MODES.forEach(m => o[m] = GJ_BEYOND.STEPCOL[m]); return o; });
@@ -67,6 +115,7 @@ const parse = c => (/rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c) || []).slice(1, 4).
     await p.keyboard.press('Escape'); await sleep(700);
     await tap('.rm-dot'); await sleep(900);
     await tap('.bd-hub'); await sleep(1400);
+    await dialSettled();
     const R2 = await p.evaluate(() => { const s = document.querySelector('.bd-svg'), r = s.getBoundingClientRect(); return { x: r.left, y: r.top, sc: r.width / 160 }; });
     const at2 = i => { const a = (-135 + 270 * i / N1) * Math.PI / 180; return [R2.x + (80 + 62 * Math.sin(a)) * R2.sc, R2.y + (80 - 62 * Math.cos(a)) * R2.sc]; };
     const permBefore = JSON.stringify(await p.evaluate(() => window.__ai.perm()));
