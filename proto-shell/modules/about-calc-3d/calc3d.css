@@ -1,0 +1,25 @@
+/* about-calc-3d · the 3D calculator. The 2D page rules come from ../about-calc/calc.css (verbatim m4); these only add the WebGL canvas,
+   the drag layer and the bio's light switch. The canvas shows the photo's own pixels: no colour here (Red never maps it). */
+#acalc.gl3 #glitch{visibility:hidden}
+#acalc #calc3d{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
+#acalc .c3-hit{position:absolute;inset:0;z-index:1;pointer-events:auto;touch-action:none;cursor:grab}
+#acalc.c3:not(.gl3) .c3-hit{display:none}
+#acalc .c3-hit.drag{cursor:grabbing}
+#acalc.exit .c3-hit{pointer-events:none}
+html.gj-noflash #acalc #laytext.flick{opacity:1}
+/* the bio's light switch: stop flashing + glitch (keys gj.noflash, gj.glitch), bottom left, only while the bio is open */
+.c3-ctl{position:fixed;z-index:46;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));font:300 11px/1 Poppins,sans-serif;color:#d6d3cc}
+.c3-ctl[hidden]{display:none}
+.c3-ctl .c3-tg{display:flex;align-items:center;gap:7px;min-height:32px;padding:0 12px;border:1px solid rgba(232,228,220,.28);border-radius:16px;background:rgba(4,7,11,.55);color:#d6d3cc;
+ font:300 11px/1 Poppins,sans-serif;letter-spacing:.08em;text-transform:lowercase;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.c3-ctl .c3-tg i{width:6px;height:6px;border-radius:50%;background:rgba(232,228,220,.55)}
+.c3-ctl .c3-p{position:absolute;left:0;bottom:40px;width:210px;padding:12px;border:1px solid rgba(232,228,220,.18);border-radius:14px;background:rgba(4,7,11,.86);
+ -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);display:grid;gap:12px}
+.c3-ctl .c3-p[hidden]{display:none}
+.c3-ctl .c3-sw{display:flex;align-items:center;gap:8px;min-height:32px;padding:0 10px;border:1px solid rgba(232,228,220,.25);border-radius:16px;background:transparent;color:#d6d3cc;font:300 11px/1 Poppins,sans-serif;letter-spacing:.06em}
+.c3-ctl .c3-sw .led{width:7px;height:7px;border-radius:50%;background:rgba(232,228,220,.25)}
+.c3-ctl .c3-sw[aria-pressed=true]{border-color:rgba(232,228,220,.6);color:#f0ede6}
+.c3-ctl .c3-sw[aria-pressed=true] .led{background:#e8e4dc;box-shadow:0 0 6px rgba(232,228,220,.7)}
+.c3-ctl .c3-row{display:grid;grid-template-columns:44px 1fr 32px;align-items:center;gap:8px;color:#bdb9b1;letter-spacing:.06em}
+.c3-ctl .c3-row input{width:100%;accent-color:#e8e4dc}
+.c3-ctl .c3-row b{font-weight:300;text-align:right;color:#d6d3cc}
