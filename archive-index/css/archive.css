@@ -50,31 +50,39 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
 .lvl:empty{display:none}
 .lvl{font:400 10px/1 var(--mono);color:var(--meta);pointer-events:none;letter-spacing:.06em;background:rgba(10,11,13,.7);padding:3px 5px}
 
-/* lifted frame */
-.lt{position:fixed;inset:0;z-index:40}
+/* the room: one opaque, solid environment. Images are never dimmed or tinted. */
+:root{--room:#040506;--hair:rgba(255,255,255,.12);--hair2:rgba(255,255,255,.2)}
+.lt{position:fixed;inset:0;z-index:40;touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  background:transparent;overscroll-behavior:none}
+.lt.drag{cursor:grabbing}
 .lt[hidden]{display:none}
-.lt-bg{position:absolute;inset:0;background:rgba(7,8,10,.86)}
-.lt-fig{position:absolute;margin:0;left:0;top:0;transform-origin:0 0}
-.lt-box{position:relative;width:100%;height:100%;outline:1.5px solid var(--red);background:#000;overflow:hidden}
-.lt-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none;user-select:none}
+.lt-bg{position:absolute;inset:0;background:var(--room);opacity:0}
+.lt-fig{position:absolute;margin:0;left:0;top:0;pointer-events:none}
+.lt-box{position:relative;width:100%;height:100%;background:#000;outline:1px solid var(--redq);outline-offset:7px;
+  will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden;transform-origin:50% 50%}
+.lt-box img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block;-webkit-user-drag:none;user-select:none;pointer-events:none}
 .lt-box #lthi{opacity:0;transition:opacity .25s}
 .lt-box #lthi.on{opacity:1}
-.lt-tag{position:absolute;left:-1px;top:-22px;height:21px;padding:0 6px;background:var(--red);color:#fff;
-  font:500 12px/21px var(--mono);letter-spacing:.06em}
-.lt-cap{position:absolute;left:0;right:0;top:calc(100% + 10px);display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px}
-.lt-num{font:400 12px/1 var(--mono);color:var(--red);letter-spacing:.06em}
-.lt-title button{font:300 13px/1.3 Poppins,sans-serif;color:var(--ink);text-align:left;border-bottom:1px dotted rgba(255,255,255,.25)}
-.lt-title button[aria-pressed=true]{border-bottom:1px solid var(--red)}
-.lt-tc{font:400 11px/1 var(--mono);color:var(--meta);letter-spacing:.04em}
-.lt-nav,.lt-x{position:absolute;width:44px;height:44px;display:grid;place-items:center;color:var(--dim);
-  font:200 30px/1 Poppins,sans-serif;border:1px solid transparent}
-.lt-nav{top:50%;margin-top:-22px}
-.lt-nav.prev{left:max(.3rem,env(safe-area-inset-left))}
-.lt-nav.next{right:max(.3rem,env(safe-area-inset-right))}
-.lt-x{top:calc(.4rem + env(safe-area-inset-top));right:max(.4rem,env(safe-area-inset-right));font-size:26px}
-@media (hover:hover){.lt-nav:hover,.lt-x:hover{color:#fff;border-color:var(--line)}}
-.lt-fig.anim{transition:transform .28s cubic-bezier(.2,.7,.2,1)}
-@media (prefers-reduced-motion:reduce){.lt-fig.anim,.lt-box #lthi{transition:none}}
+.lt-ch{opacity:0}
+.lt-mark,.lt-x,.lt-nav{position:absolute;color:var(--meta);transition:color .3s cubic-bezier(.22,.7,.2,1)}
+.lt-mark{left:max(1rem,env(safe-area-inset-left));top:calc(.9rem + env(safe-area-inset-top));min-height:44px;display:flex;align-items:center;
+  font:400 12px/1 "Julius Sans One",sans-serif;letter-spacing:.2em;text-transform:lowercase}
+.lt-x{top:calc(.5rem + env(safe-area-inset-top));right:max(.6rem,env(safe-area-inset-right));width:44px;height:44px;display:grid;place-items:center;font:200 24px/1 Poppins,sans-serif}
+.lt-nav{top:50%;margin-top:-22px;width:44px;height:44px;display:grid;place-items:center;font:200 28px/1 Poppins,sans-serif}
+.lt-nav.prev{left:max(.5rem,env(safe-area-inset-left))}
+.lt-nav.next{right:max(.5rem,env(safe-area-inset-right))}
+@media (hover:hover){.lt-mark:hover,.lt-x:hover,.lt-nav:hover{color:var(--ink)}}
+.lt-cap{position:absolute;left:0;right:0;bottom:calc(1.1rem + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:9px;
+  pointer-events:none;padding:0 1rem;text-align:center}
+.lt-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:baseline;gap:4px 16px;padding-top:11px;border-top:1px solid var(--hair);min-width:min(320px,80vw)}
+.lt-line>*{pointer-events:auto}
+.lt-num{font:400 10.5px/1 var(--mono);color:var(--redq);letter-spacing:.08em}
+.lt-title button{font:200 12.5px/1.3 Poppins,sans-serif;color:var(--dim);letter-spacing:.04em;text-align:center}
+.lt-title button[aria-pressed=true]{color:var(--ink)}
+.lt-tc{font:400 10.5px/1 var(--mono);color:var(--meta);letter-spacing:.06em}
+.lt-hint{font:200 10px/1 Poppins,sans-serif;letter-spacing:.14em;color:var(--meta);text-transform:lowercase;transition:opacity .6s cubic-bezier(.22,.7,.2,1)}
+body.lt-touched .lt-hint{opacity:0}
+@media (prefers-reduced-motion:reduce){.lt-box #lthi,.lt-hint,.lt-mark,.lt-x,.lt-nav{transition:none}}
 @media (max-width:520px){
   .count{display:none}
   .top{display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand films" "modes boxsw";gap:7px 8px;align-items:center}
@@ -82,14 +90,14 @@ button:focus-visible{outline:1px solid var(--red);outline-offset:2px}
   .films{top:calc(84px + env(safe-area-inset-top))}
   .modes button,.filmsbtn{padding:0 8px;letter-spacing:.12em}
   .brand{font-size:12.5px;letter-spacing:.16em}
-  .lt-nav{top:auto;bottom:calc(.6rem + env(safe-area-inset-bottom));margin-top:0}
+  .lt-nav{top:auto;bottom:calc(.9rem + env(safe-area-inset-bottom));margin-top:0}
+  .lt-hint{letter-spacing:.08em;font-size:9.5px}
+  .lt-cap{bottom:calc(3.3rem + env(safe-area-inset-bottom))}
 }
 
-/* box chrome: dim / hide */
-body[data-boxes=dim] .lt-box{outline-color:rgba(229,55,44,.28)}
-body[data-boxes=dim] .lt-tag{background:none;color:rgba(229,55,44,.3)}
+/* box chrome: dim / hide (hairline around the object follows the same switch) */
+body[data-boxes=dim] .lt-box{outline-color:rgba(229,55,44,.22)}
 body[data-boxes=hide] .lt-box{outline:none}
-body[data-boxes=hide] .lt-tag{display:none}
 body[data-boxes=dim] .lt-num,body[data-boxes=hide] .lt-num{color:var(--meta)}
-body[data-boxes=dim] .lt-title button[aria-pressed=true],body[data-boxes=hide] .lt-title button[aria-pressed=true]{border-bottom-color:rgba(255,255,255,.6)}
 body[data-boxes=dim] button:focus-visible,body[data-boxes=hide] button:focus-visible{outline-color:rgba(255,255,255,.5)}
+.lt:focus{outline:none}

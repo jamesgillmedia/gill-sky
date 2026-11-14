@@ -253,7 +253,7 @@ function drawContain(im, sx, sy, sw, sh, dx, dy, dw, dh) {
 function loop(t) {
   if (anim) anim(t);
   if (glide) glide(t);
-  if (dirty) { dirty = false; draw(); }
+  if (dirty) { dirty = false; if (!(cur >= 0 && bgA >= .995)) draw(); }
   requestAnimationFrame(loop);
 }
 
@@ -323,59 +323,86 @@ vp.addEventListener('wheel', e => {
 vp.addEventListener('dblclick', e => e.preventDefault());
 ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault()));
 
-/* ---------- lifted frame ---------- */
-const lt = $('lt'), fig = $('ltfig'), lo = $('ltlo'), hiImg = $('lthi');
-let pushed = false, liftRect = null;
+/* ---------- the room: lifted frame under the site's camera ----------
+   One object, one opaque room. The camera reuses site-3d's critically damped
+   spring (sstep) and its weights, FOV 60, fable-m4's 960 ms ease-out push,
+   and the moon opener's exponential lag. Nothing here advances on its own
+   except a very slow idle drift (off under Reduce Motion). */
+const lt = $('lt'), fig = $('ltfig'), box = $('ltbox'), lo = $('ltlo'), hiImg = $('lthi'), ltbg = $('ltbg');
+const chrome = [...lt.querySelectorAll('.lt-ch')];
+const outside = ['.top', '.films', '.corner', '#vp'].map(q => document.querySelector(q));
+let pushed = false, closing = null;
+
+const TAN30 = Math.tan(Math.PI / 6);                       // FOV 60 (site-3d PerspectiveCamera)
+const WTS = () => RM.matches ? { REL: 14, FLY: 9, GLIDE: 8, SOFT: 6 } : { REL: 9.5, FLY: 5.6, GLIDE: 4.6, SOFT: 3.2 };
+function S(x, w) { return { x, t: x, v: 0, w }; }
+function sstep(q, dt) { const w = q.w, e = q.x - q.t, k = Math.exp(-w * dt), c = q.v + w * e; q.x = q.t + (e + c * dt) * k; q.v = (q.v - w * c * dt) * k; }
+const YAW = .62, PIT = .36, ZMIN = .75, ZMAX = 2.2;           // angle clamp keeps the frame in view (see fitScale)
+const RAWK = 2.2, KRAD = .0045;                                            // radians per dragged px
+const IDLE_MS = 3500, DRIFT_Y = .2, DRIFT_P = .045, DRIFT_WY = .06, DRIFT_WP = .043;  // site-3d idle yaw .012 rad/s peak
+const cam = { yaw: S(0, 9.5), pit: S(0, 9.5), zoom: S(1, 4.6) };
+let uy = 0, upv = 0, drift = 0, lastIn = 0, interacting = false, ent = null, bgA = 0, chA = 0, rect = null, roomT = 0, wheelT = 0;
+const clampN = (v, a, b) => Math.min(b, Math.max(a, v));
+const easeOut3 = u => 1 - Math.pow(1 - u, 3), easeIO3 = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+// fable-m4 depth.js push, peak scaled down from its 1.1 knee so the frame arrives with a breath, not a jolt
+function bump(e) { const f = e < .38 ? 1 + .1 * (1 - Math.pow(1 - e / .38, 2)) : 1.1 - .1 * easeOut3((e - .38) / .62); return 1 + (f - 1) * .5; }
+
+function fitScale(w, h, P, aw, ah) {   // scale so the worst clamped orbit corner still sits inside the room
+  let worst = 1;
+  for (const sy of [-1, 1]) for (const sp of [-1, 1]) {
+    const yw = sy * YAW, pt = sp * PIT, cy = Math.cos(yw), sny = Math.sin(yw), cp = Math.cos(pt), snp = Math.sin(pt);
+    for (const px of [-.5, .5]) for (const py of [-.5, .5]) {
+      const X = px * w, Y = py * h, X1 = X * cy, Z1 = -X * sny, Y2 = Y * cp - Z1 * snp, Z2 = Y * snp + Z1 * cp, k = P / (P - Z2);
+      worst = Math.max(worst, Math.abs(X1 * k) / (aw / 2), Math.abs(Y2 * k) / (ah / 2));
+    }
+  }
+  return 1 / worst;
+}
 function liftTarget(g) {
-  const x = F[g]; const ar = x.w / x.h;
-  const narrow = vw < 560;
-  const aw = vw - (narrow ? 24 : 150), ah = vh - (narrow ? 190 : 170);
-  const bw = CW * s;
-  let w = Math.max(3 * bw, Math.min(aw, narrow ? aw : 900));   // at least ~3x the box
-  w = Math.min(w, aw, 1280);
-  let h = w / ar; if (h > ah) { h = ah; w = h * ar; }
-  return { w, h, x: (vw - w) / 2, y: Math.max(TOP + 26, (vh - h) / 2 - (narrow ? 30 : 16)) };
+  const x = F[g], ar = x.w / x.h, narrow = vw < 560;
+  const mx = narrow ? 22 : 96, my = narrow ? 104 : 88;
+  const aw = vw - mx * 2, ah = vh - my * 2, P = (vh / 2) / TAN30;
+  let w = Math.min(aw, 1280), h = w / ar; if (h > ah) { h = ah; w = h * ar; }
+  const f = fitScale(w, h, P, aw, ah); w *= f; h *= f;
+  return { w, h, x: (vw - w) / 2, y: (vh - h) / 2, P };
 }
 function placeLift(animate) {
-  const t = liftTarget(cur); liftRect = t;
-  fig.style.width = t.w + 'px'; fig.style.height = t.h + 'px';
-  fig.classList.remove('anim');
-  fig.style.transform = `translate(${t.x}px,${t.y}px)`;
+  rect = liftTarget(cur);
+  fig.style.width = rect.w + 'px'; fig.style.height = rect.h + 'px';
+  fig.style.transform = `translate(${rect.x}px,${rect.y}px)`;
   if (animate && !RM.matches) {
-    // FLIP from the box on the field
-    const bx = wxS(cur), by = wyS(cur), bw = CW * s, bh = CH * s;
-    const r = Math.min(bw / t.w, bh / t.h);
-    fig.style.transform = `translate(${bx + (bw - t.w * r) / 2}px,${by + (bh - t.h * r) / 2}px) scale(${r})`;
-    fig.getBoundingClientRect();
-    fig.classList.add('anim');
-    fig.style.transform = `translate(${t.x}px,${t.y}px)`;
+    const bw = CW * s, bh = CH * s;
+    ent = { t0: performance.now(), dur: 960, r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(cur) + bw / 2 - vw / 2, dy: wyS(cur) + bh / 2 - vh / 2, out: false };
   }
+  roomPaint(0);
 }
 function fillLift() {
   const x = F[cur], f = films[x.f], n = pad4(x.n);
   const lsrc = 'media/s/' + f.slug + '/' + x.id + '.webp', hsrc = 'media/l/' + f.slug + '/' + x.id + '.webp';
   lo.src = lsrc; hiImg.classList.remove('on'); hiImg.onload = () => hiImg.classList.add('on'); hiImg.src = hsrc;
-  $('lttag').textContent = n;
-  $('ltnum').textContent = 'no. ' + n + ' / ' + pad4(F.length);
+  $('ltnum').textContent = n + ' / ' + pad4(F.length);
   $('lttitle').textContent = f.title;
   $('lttitle').setAttribute('aria-pressed', hi === x.f ? 'true' : 'false');
   $('lttc').textContent = 'frame ' + x.i + ' of ' + f.frames.length + ' · ' + x.tc;
   fig.setAttribute('aria-label', 'Frame ' + n + ', ' + f.title + ', ' + x.tc);
-  // preload neighbours (user may step; nothing steps by itself)
   [cur - 1, cur + 1].forEach(k => { if (k >= 0 && k < F.length) { const y = F[k]; new Image().src = 'media/l/' + films[y.f].slug + '/' + y.id + '.webp'; } });
 }
+function poseHome(w) { uy = upv = 0; drift = 0; cam.yaw.t = cam.pit.t = 0; cam.zoom.t = 1; cam.yaw.w = cam.pit.w = cam.zoom.w = w; lastIn = performance.now(); }
+function setInert(on) { outside.forEach(el => { if (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); } }); }
 function openLift(g, animate, fromHash) {
-  const was = cur >= 0; cur = g;
-  // make sure the box is on screen behind the lift
+  const was = cur >= 0; cur = g; closing = null;
   const sx = wxS(g), sy = wyS(g);
   if (sx < 0 || sy < TOP || sx + CW * s > vw || sy + CH * s > vh) focusOn(g, false);
-  lt.hidden = false; fillLift(); placeLift(animate && !was);
+  lt.hidden = false; setInert(true);
+  if (!was) { bgA = 0; chA = 0; ent = null; cam.yaw.x = cam.pit.x = 0; cam.yaw.v = cam.pit.v = 0; cam.zoom.x = 1; cam.zoom.v = 0; }
+  poseHome(WTS().GLIDE);
+  fillLift(); placeLift(animate && !was);
   const h = hashFor(F[g].n);
   if (!fromHash) {
     if (!was && !pushed) { history.pushState({ lift: 1 }, '', h); pushed = true; }
     else history.replaceState(history.state, '', h);
   }
-  dirty = true; $('ltx').focus({ preventScroll: true });
+  dirty = true; wake(); lt.focus({ preventScroll: true });
 }
 function step(d) {
   if (cur < 0) return; const g = cur + d; if (g < 0 || g >= F.length) return;
@@ -383,25 +410,123 @@ function step(d) {
 }
 function closeLift(fromPop) {
   if (cur < 0) return;
-  const g = cur; cur = -1; lt.hidden = true; dirty = true;
+  const g = cur; cur = -1; dirty = true;
   const sx = wxS(g), sy = wyS(g);
   if (sx < 0 || sy < TOP || sx + CW * s > vw || sy + CH * s > vh) focusOn(g, false);
   if (!fromPop) { if (pushed) { pushed = false; history.back(); } else history.replaceState(null, '', location.pathname + hashFor(0)); }
   else pushed = false;
+  setInert(false);
+  const bw = CW * s, bh = CH * s;
+  if (RM.matches || !rect) { lt.hidden = true; ent = null; return; }
+  closing = { t0: performance.now(), dur: 520 };      // contract: same push in reverse, r10 cubic ease-in-out
+  ent = { r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(g) + bw / 2 - vw / 2, dy: wyS(g) + bh / 2 - vh / 2, out: true };
+  wake();
 }
-$('ltx').onclick = () => closeLift(); $('ltbg').onclick = () => closeLift();
+
+/* camera tick: springs, idle drift, enter / contract, room + chrome easing */
+function roomPaint(e) {
+  if (!rect) return;
+  const P = rect.P, z = clampN(cam.zoom.x, ZMIN * .9, ZMAX * 1.05), dz = P * (1 - 1 / z);
+  let pre = '';
+  if (ent) {
+    const k = e;
+    const sc = (ent.r + (1 - ent.r) * k) * (ent.out ? 1 : bump(k));
+    pre = `translate3d(${ent.dx * (1 - k)}px,${ent.dy * (1 - k)}px,0) scale(${sc}) `;
+  }
+  box.style.transform = `${pre}perspective(${P}px) translateZ(${dz}px) rotateX(${cam.pit.x}rad) rotateY(${cam.yaw.x}rad)`;
+}
+function lag(cur0, target, rate, dt) { return cur0 + (target - cur0) * (1 - Math.exp(-dt * rate)); }   // moon opener: k = 1-exp(-dt*rate)
+let last = 0, raf = 0;
+function wake() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(roomTick); } }
+function roomTick(t) {
+  raf = 0;
+  const live = cur >= 0, dt = Math.min(.05, Math.max(.001, (t - last) / 1000)); last = t;
+  const rm = RM.matches;
+  if (live) {
+    const idle = !interacting && t - lastIn > IDLE_MS;
+    let dy = 0, dp = 0;
+    if (idle && !rm) { drift += dt; dy = DRIFT_Y * Math.sin(DRIFT_WY * drift); dp = DRIFT_P * Math.sin(DRIFT_WP * drift); }
+    cam.yaw.t = YAW * Math.tanh((uy + dy) / YAW); cam.pit.t = PIT * Math.tanh((upv + dp) / PIT);   // soft walls: slows into the clamp
+    if (idle && !rm) { cam.yaw.w = cam.pit.w = WTS().SOFT; }
+    sstep(cam.yaw, dt); sstep(cam.pit, dt); sstep(cam.zoom, dt);
+    cam.yaw.x = clampN(cam.yaw.x, -YAW, YAW); cam.pit.x = clampN(cam.pit.x, -PIT, PIT);
+    bgA = lag(bgA, 1, rm ? 22 : 14, dt);
+    chA = lag(chA, interacting ? .22 : 1, rm ? 22 : 3.4, dt);
+    if (ent && !ent.out) { const u = Math.min(1, (t - ent.t0) / ent.dur); ent.e = easeOut3(u); if (u >= 1) ent = null; }
+    roomPaint(ent ? ent.e : 1);
+  } else if (closing) {
+    const u = Math.min(1, (t - closing.t0) / closing.dur), e = 1 - easeIO3(u);
+    bgA = lag(bgA, 0, 14, dt); chA = lag(chA, 0, 14, dt);
+    roomPaint(e);
+    if (u >= 1) { closing = null; ent = null; lt.hidden = true; bgA = chA = 0; }
+  }
+  ltbg.style.opacity = bgA >= .995 ? 1 : bgA.toFixed(3);
+  const co = chA >= .995 ? 1 : chA.toFixed(3); chrome.forEach(el => el.style.opacity = co);
+  if (live || closing) raf = requestAnimationFrame(roomTick);
+}
+function bumpIn() { lastIn = performance.now(); drift = 0; }
+function absorbDrift() {   // fold the current drift offset into the user's pose so hand-over is continuous
+  if (drift > 0 && !RM.matches) { uy = clampN(uy + DRIFT_Y * Math.sin(DRIFT_WY * drift), -RAWK * YAW, RAWK * YAW); upv = clampN(upv + DRIFT_P * Math.sin(DRIFT_WP * drift), -RAWK * PIT, RAWK * PIT); }
+  drift = 0;
+}
+
+/* gestures: one finger / drag orbits, pinch / wheel dollies */
+const LP = new Map(); let lpinch = null, ltap = null, lvel = [0, 0], lmoveT = 0;
+lt.style.touchAction = 'none';
+lt.addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  absorbDrift(); bumpIn(); interacting = true; document.body.classList.add('lt-touched');
+  lt.setPointerCapture(e.pointerId); LP.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  const W = WTS(); cam.yaw.w = cam.pit.w = W.REL; cam.zoom.w = W.REL;
+  if (LP.size === 1) { ltap = { x: e.clientX, y: e.clientY, moved: false, bg: e.target === ltbg }; lvel = [0, 0]; }
+  if (LP.size === 2) { const [a, b] = [...LP.values()]; lpinch = Math.hypot(a.x - b.x, a.y - b.y); ltap = null; }
+  wake();
+});
+lt.addEventListener('pointermove', e => {
+  const p = LP.get(e.pointerId); if (!p) return;
+  const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; bumpIn();
+  if (LP.size === 1) {
+    if (ltap && !ltap.moved && Math.hypot(e.clientX - ltap.x, e.clientY - ltap.y) > 6) { ltap.moved = true; lt.classList.add('drag'); }
+    if (ltap && ltap.moved) {
+      const t = performance.now(), dts = Math.max(.008, (t - lmoveT) / 1000); lmoveT = t;
+      uy = clampN(uy + dx * KRAD, -RAWK * YAW, RAWK * YAW); upv = clampN(upv - dy * KRAD, -RAWK * PIT, RAWK * PIT);
+      lvel = [lvel[0] * .6 + (dx * KRAD / dts) * .4, lvel[1] * .6 + (-dy * KRAD / dts) * .4];
+    }
+  } else if (LP.size === 2 && lpinch) {
+    const [a, b] = [...LP.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    cam.zoom.t = clampN(cam.zoom.t * (d / lpinch), ZMIN, ZMAX); lpinch = d;
+  }
+  wake();
+});
+function settleZoom() {   // soft detent back to the fit, site-3d's W_SOFT, only when you let go close to it
+  if (Math.abs(Math.log(cam.zoom.t)) < .1) { cam.zoom.t = 1; }
+  cam.zoom.w = WTS().SOFT;
+}
+function lup(e) {
+  if (!LP.has(e.pointerId)) return;
+  LP.delete(e.pointerId); lt.classList.remove('drag');
+  if (LP.size === 1) { lpinch = null; ltap = null; lvel = [0, 0]; return; }
+  if (LP.size) return;
+  const W = WTS(); lpinch = null; interacting = false; bumpIn();
+  if (ltap && !ltap.moved && ltap.bg && e.type === 'pointerup') closeLift();
+  else if (ltap && ltap.moved && !RM.matches && performance.now() - lmoveT < 80) {
+    uy = clampN(uy + lvel[0] * .3, -RAWK * YAW, RAWK * YAW); upv = clampN(upv + lvel[1] * .3, -RAWK * PIT, RAWK * PIT);   // slow inertia that settles
+  }
+  cam.yaw.w = cam.pit.w = W.SOFT; settleZoom(); ltap = null; wake();
+}
+lt.addEventListener('pointerup', lup); lt.addEventListener('pointercancel', lup);
+lt.addEventListener('wheel', e => {
+  e.preventDefault(); absorbDrift(); bumpIn();
+  const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? vh : 1;
+  cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t * Math.exp(-(e.deltaY || 0) * k * (e.ctrlKey ? .01 : .0018)), ZMIN, ZMAX);
+  clearTimeout(wheelT); wheelT = setTimeout(settleZoom, 350);   // r10 wheel: 350 ms quiet
+  document.body.classList.add('lt-touched'); wake();
+}, { passive: false });
+lt.addEventListener('dblclick', e => { if (e.target.closest('button')) return; e.preventDefault(); poseHome(WTS().GLIDE); wake(); });
+
+$('ltx').onclick = () => closeLift(); $('ltmark').onclick = () => closeLift();
 $('ltprev').onclick = () => step(-1); $('ltnext').onclick = () => step(1);
 $('lttitle').onclick = () => { setHi(hi === F[cur].f ? null : F[cur].f); $('lttitle').setAttribute('aria-pressed', hi === F[cur].f ? 'true' : 'false'); };
-// swipe between neighbours on the lifted frame
-let sw = null;
-fig.addEventListener('pointerdown', e => { sw = { x: e.clientX, y: e.clientY, id: e.pointerId }; });
-fig.addEventListener('pointerup', e => {
-  if (!sw || sw.id !== e.pointerId) return;
-  const dx = e.clientX - sw.x, dy = e.clientY - sw.y; sw = null;
-  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) step(dx < 0 ? 1 : -1);
-  else if (dy > 70 && Math.abs(dy) > Math.abs(dx) * 1.3) closeLift();
-});
-fig.style.touchAction = 'none';
 addEventListener('popstate', () => { if (cur >= 0) closeLift(true); else readHash(); });
 
 
@@ -458,6 +583,9 @@ addEventListener('keydown', e => {
     if (e.key === 'ArrowLeft') { e.preventDefault(); step(-1); }
     if (e.key === 'ArrowDown') { e.preventDefault(); step(L.cols); }
     if (e.key === 'ArrowUp') { e.preventDefault(); step(-L.cols); }
+    if (e.key === '+' || e.key === '=') { cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t * 1.25, ZMIN, ZMAX); bumpIn(); wake(); }
+    if (e.key === '-' || e.key === '_') { cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t / 1.25, ZMIN, ZMAX); bumpIn(); wake(); }
+    if (e.key === '0') { poseHome(WTS().GLIDE); wake(); }
     return;
   }
   if (e.target.closest && e.target.closest('button')) return;

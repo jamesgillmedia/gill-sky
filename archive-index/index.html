@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <meta name="theme-color" content="#0a0b0d">
 <title>archive index · gill</title>
+<link rel="icon" href="data:,">
 <link rel="preload" href="data/index.json" as="fetch" crossorigin>
 <link rel="stylesheet" href="css/archive.css">
 </head>
@@ -37,20 +38,19 @@
   <span class="lvl" id="lvl" aria-hidden="true"></span>
 </div>
 
-<div id="lt" class="lt" hidden role="dialog" aria-modal="true" aria-label="Frame">
+<div id="lt" class="lt" tabindex="-1" hidden role="dialog" aria-modal="true" aria-label="Frame">
   <div class="lt-bg" id="ltbg"></div>
+  <button type="button" class="lt-mark lt-ch" id="ltmark" aria-label="Back to the index">archive&nbsp;index</button>
+  <button type="button" class="lt-x lt-ch" id="ltx" aria-label="Back to the index">&#215;</button>
   <figure class="lt-fig" id="ltfig">
-    <span class="lt-tag" id="lttag"></span>
     <div class="lt-box" id="ltbox"><img id="ltlo" alt=""><img id="lthi" alt=""></div>
-    <figcaption class="lt-cap">
-      <span class="lt-num" id="ltnum"></span>
-      <span class="lt-title"><button type="button" id="lttitle" title="Highlight this film's boxes"></button></span>
-      <span class="lt-tc" id="lttc"></span>
-    </figcaption>
   </figure>
-  <button type="button" class="lt-nav prev" id="ltprev" aria-label="Previous frame">&#8249;</button>
-  <button type="button" class="lt-nav next" id="ltnext" aria-label="Next frame">&#8250;</button>
-  <button type="button" class="lt-x" id="ltx" aria-label="Back to the index">&#215;</button>
+  <button type="button" class="lt-nav lt-ch prev" id="ltprev" aria-label="Previous frame">&#8249;</button>
+  <button type="button" class="lt-nav lt-ch next" id="ltnext" aria-label="Next frame">&#8250;</button>
+  <div class="lt-cap lt-ch">
+    <span class="lt-line"><span class="lt-num" id="ltnum"></span><span class="lt-title"><button type="button" id="lttitle" title="Highlight this film's boxes"></button></span><span class="lt-tc" id="lttc"></span></span>
+    <span class="lt-hint">drag to orbit &nbsp;·&nbsp; pinch or scroll to move closer &nbsp;·&nbsp; esc to return</span>
+  </div>
 </div>
 
 <script src="js/archive.js"></script>
