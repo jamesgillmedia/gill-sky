@@ -376,11 +376,13 @@ function liftTarget(g) {
   const f = fitScale(w, h, P, aw, ah); w *= f; h *= f;
   return { w, h, x: (vw - w) / 2, y: (vh - h) / 2, P };
 }
-function placeLift(animate) {
+function placeLift(animate, origin) {
   rect = liftTarget(cur);
   fig.style.width = rect.w + 'px'; fig.style.height = rect.h + 'px';
   fig.style.transform = `translate(${rect.x}px,${rect.y}px)`;
-  if (animate && !RM.matches) {
+  if (animate && !RM.matches && origin) {
+    ent = { t0: performance.now(), dur: 960, r: .06, dx: origin.x - vw / 2, dy: origin.y - vh / 2, out: false };   // grows out of the star you tapped
+  } else if (animate && !RM.matches) {
     const bw = CW * s, bh = CH * s;
     ent = { t0: performance.now(), dur: 960, r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(cur) + bw / 2 - vw / 2, dy: wyS(cur) + bh / 2 - vh / 2, out: false };
   }
@@ -399,14 +401,14 @@ function fillLift() {
 }
 function poseHome(w) { uy = upv = 0; drift = 0; cam.yaw.t = cam.pit.t = 0; cam.zoom.t = 1; cam.yaw.w = cam.pit.w = cam.zoom.w = w; lastIn = performance.now(); }
 function setInert(on) { outside.forEach(el => { if (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); } }); }
-function openLift(g, animate, fromHash) {
+function openLift(g, animate, fromHash, origin) {
   const was = cur >= 0; cur = g; closing = null;
   const sx = wxS(g), sy = wyS(g);
   if (sx < 0 || sy < TOP || sx + CW * s > vw || sy + CH * s > vh) focusOn(g, false);
   lt.hidden = false; setInert(true);
   if (!was) { bgA = 0; chA = 0; ent = null; cam.yaw.x = cam.pit.x = 0; cam.yaw.v = cam.pit.v = 0; cam.zoom.x = 1; cam.zoom.v = 0; }
   poseHome(WTS().GLIDE);
-  fillLift(); placeLift(animate && !was); paintHint();
+  fillLift(); placeLift(animate && !was, origin); paintHint();
   const h = hashFor(F[g].n);
   if (!fromHash) {
     if (!was && !pushed) { history.pushState({ lift: 1 }, '', h); pushed = true; }
@@ -418,7 +420,7 @@ function step(d) {
   if (cur < 0 || solo) return; const g = cur + d; if (g < 0 || g >= F.length) return;
   openLift(g, false);
 }
-function closeLift(fromPop) {
+function closeLift(fromPop, toCentre) {
   if (cur < 0) return;
   const g = cur; cur = -1; dirty = true;
   const sx = wxS(g), sy = wyS(g);
@@ -428,8 +430,8 @@ function closeLift(fromPop) {
   setInert(false);
   const bw = CW * s, bh = CH * s;
   if (RM.matches || !rect) { lt.hidden = true; ent = null; return; }
-  closing = { t0: performance.now(), dur: 520 };      // contract: same push in reverse, r10 cubic ease-in-out
-  ent = { r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(g) + bw / 2 - vw / 2, dy: wyS(g) + bh / 2 - vh / 2, out: true };
+  closing = { t0: performance.now(), dur: 520, keepBg: !!toCentre };      // contract: same push in reverse, r10 cubic ease-in-out
+  ent = toCentre ? { r: .05, dx: 0, dy: 0, out: true } : { r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(g) + bw / 2 - vw / 2, dy: wyS(g) + bh / 2 - vh / 2, out: true };
   wake();
 }
 
@@ -469,7 +471,7 @@ function roomTick(t) {
     roomPaint(ent ? ent.e : 1);
   } else if (closing) {
     const u = Math.min(1, (t - closing.t0) / closing.dur), e = 1 - easeIO3(u);
-    bgA = lag(bgA, 0, 14, dt); chA = lag(chA, 0, 14, dt);
+    if (!closing.keepBg) bgA = lag(bgA, 0, 14, dt); chA = lag(chA, 0, 14, dt);
     roomPaint(e);
     if (u >= 1) { closing = null; ent = null; lt.hidden = true; bgA = chA = 0; }
   }
@@ -488,7 +490,7 @@ const LP = new Map(); let lpinch = null, ltap = null, lvel = [0, 0], lmoveT = 0;
 lt.style.touchAction = 'none';
 lt.addEventListener('pointerdown', e => {
   if (e.target.closest('button')) return;
-  absorbDrift(); bumpIn(); interacting = true; document.body.classList.add('lt-touched');
+  absorbDrift(); bumpIn(); interacting = true; outAcc = 0; document.body.classList.add('lt-touched');
   lt.setPointerCapture(e.pointerId); LP.set(e.pointerId, { x: e.clientX, y: e.clientY });
   const W = WTS(); cam.yaw.w = cam.pit.w = W.REL; cam.zoom.w = W.REL;
   if (LP.size === 1) { ltap = { x: e.clientX, y: e.clientY, moved: false, bg: e.target === ltbg }; lvel = [0, 0]; }
@@ -507,10 +509,17 @@ lt.addEventListener('pointermove', e => {
     }
   } else if (LP.size === 2 && lpinch) {
     const [a, b] = [...LP.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
-    cam.zoom.t = clampN(cam.zoom.t * (d / lpinch), ZMIN, ZMAX); lpinch = d;
+    const f = d / lpinch, raw = cam.zoom.t * f; lpinch = d;
+    if (pushedOut(f)) { enterCst(); return; }   // pinch out past the widest stop
+    cam.zoom.t = clampN(raw, ZMIN, ZMAX);
   }
   wake();
 });
+let outAcc = 0;   // how far past the widest stop a gesture has pushed (log scale); deliberate, so a stray pinch or wheel tail does not leave the room
+function pushedOut(factor) {
+  if (cam.zoom.t > ZMIN * 1.02 || factor >= 1) { if (factor >= 1) outAcc = 0; return false; }
+  outAcc += -Math.log(factor); return outAcc > .3;
+}
 function settleZoom() {   // soft detent back to the fit, site-3d's W_SOFT, only when you let go close to it
   if (Math.abs(Math.log(cam.zoom.t)) < .1) { cam.zoom.t = 1; }
   cam.zoom.w = WTS().SOFT;
@@ -536,8 +545,10 @@ lt.addEventListener('pointerup', lup); lt.addEventListener('pointercancel', lup)
 lt.addEventListener('wheel', e => {
   e.preventDefault(); absorbDrift(); bumpIn();
   const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? vh : 1;
-  cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t * Math.exp(-(e.deltaY || 0) * k * (e.ctrlKey ? .01 : .0018)), ZMIN, ZMAX);
-  clearTimeout(wheelT); wheelT = setTimeout(settleZoom, 350);   // r10 wheel: 350 ms quiet
+  const f = Math.exp(-(e.deltaY || 0) * k * (e.ctrlKey ? .01 : .0018)), raw = cam.zoom.t * f;
+  if (pushedOut(f)) { enterCst(); return; }   // wheel / dolly out past the widest stop
+  cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(raw, ZMIN, ZMAX);
+  clearTimeout(wheelT); wheelT = setTimeout(() => { outAcc = 0; settleZoom(); }, 350);   // r10 wheel: 350 ms quiet
   document.body.classList.add('lt-touched'); wake();
 }, { passive: false });
 lt.addEventListener('dblclick', e => { if (e.target.closest('button')) return; e.preventDefault(); poseHome(WTS().GLIDE); wake(); });
@@ -562,7 +573,25 @@ setIMode(imode, false);
 $('ltx').onclick = () => closeLift(); $('ltmark').onclick = () => closeLift();
 $('ltprev').onclick = () => step(-1); $('ltnext').onclick = () => step(1);
 $('lttitle').onclick = () => { setHi(hi === F[cur].f ? null : F[cur].f); $('lttitle').setAttribute('aria-pressed', hi === F[cur].f ? 'true' : 'false'); };
-addEventListener('popstate', () => { if (cur >= 0) closeLift(true); else readHash(); });
+/* the constellation: one level wider than the widest stop of the room */
+let cstSet = [];
+const cst = Constellation({
+  items: () => cstSet.map(g => ({ group: F[g].f })),
+  label: i => pad4(F[cstSet[i]].n),
+  thumb: i => { const x = F[cstSet[i]]; return 'media/s/' + films[x.f].slug + '/' + x.id + '.webp'; },
+  hint: 'pinch in or tap a star to go back in \u00b7 esc to return',
+  onReturn: (i, sx, sy) => { const g = cstSet[i]; openLift(g, true, true, { x: sx, y: sy }); pushed = true; },
+  onLeave: () => { setInert(false); }
+});
+function enterCst() {
+  if (cur < 0 || cst.isOpen()) return;
+  cstSet = solo ? [cur] : hi !== null && films[hi] ? films[hi].frames.map(x => x.g) : F.map((_, g) => g);
+  const at = Math.max(0, cstSet.indexOf(cur));
+  LP.clear(); interacting = false; lpinch = null; ltap = null; lt.classList.remove('drag');
+  closeLift(true, true); setInert(true);
+  cst.open(at);
+}
+addEventListener('popstate', () => { if (cst.isOpen()) cst.leave(); else if (cur >= 0) closeLift(true); else readHash(); });
 
 
 /* ---------- modes, highlight, films list ---------- */
@@ -619,7 +648,7 @@ addEventListener('keydown', e => {
     if (e.key === 'ArrowDown') { e.preventDefault(); step(L.cols); }
     if (e.key === 'ArrowUp') { e.preventDefault(); step(-L.cols); }
     if (e.key === '+' || e.key === '=') { cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t * 1.25, ZMIN, ZMAX); bumpIn(); wake(); }
-    if (e.key === '-' || e.key === '_') { cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t / 1.25, ZMIN, ZMAX); bumpIn(); wake(); }
+    if (e.key === '-' || e.key === '_') { if (cam.zoom.t <= ZMIN * 1.02) { enterCst(); return; } cam.zoom.w = WTS().GLIDE; cam.zoom.t = clampN(cam.zoom.t / 1.25, ZMIN, ZMAX); bumpIn(); wake(); }
     if (e.key === '0') { poseHome(WTS().GLIDE); wake(); }
     return;
   }

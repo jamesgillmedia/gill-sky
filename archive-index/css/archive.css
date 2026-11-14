@@ -106,3 +106,14 @@ body[data-boxes=hide] .lt-box{outline:none}
 body[data-boxes=dim] .lt-num,body[data-boxes=hide] .lt-num{color:var(--meta)}
 body[data-boxes=dim] button:focus-visible,body[data-boxes=hide] button:focus-visible{outline-color:rgba(255,255,255,.5)}
 .lt:focus{outline:none}
+
+/* constellation: the widest level */
+.cstl{position:fixed;inset:0;z-index:45;background:#050607;touch-action:none;cursor:default;opacity:0}
+.cstl[hidden]{display:none}
+.cstl:focus{outline:none}
+.cstl canvas{display:block;position:absolute;inset:0}
+.cs-back{position:absolute;left:max(1rem,env(safe-area-inset-left));top:calc(.9rem + env(safe-area-inset-top));min-height:44px;display:flex;align-items:center;
+  font:200 11px/1 Poppins,sans-serif;letter-spacing:.2em;text-transform:lowercase;color:var(--meta);transition:color .3s cubic-bezier(.22,.7,.2,1)}
+@media (hover:hover){.cs-back:hover{color:var(--ink)}}
+.cs-hint{position:absolute;left:0;right:0;bottom:calc(1.1rem + env(safe-area-inset-bottom));margin:0;text-align:center;font:200 10px/1 Poppins,sans-serif;letter-spacing:.14em;color:var(--meta);pointer-events:none}
+.cs-count{position:absolute;right:max(1rem,env(safe-area-inset-right));top:calc(.9rem + env(safe-area-inset-top));margin:0;min-height:44px;display:flex;align-items:center;font:400 10.5px/1 var(--mono);letter-spacing:.08em;color:var(--meta);pointer-events:none}
