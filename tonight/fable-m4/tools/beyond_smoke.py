@@ -349,6 +349,27 @@ def run(pw, label, vp, touch, shots):
     check('%s no failed requests for Beyond files' % label, not mine, str(mine[:3]))
     ctx.close()
 
+    # ---- red mode: a dark red body, red mist, and the colour ramp stays inside the reds ----
+    rr = br.new_context(viewport={'width': vp[0], 'height': vp[1]}, is_mobile=touch, has_touch=touch)
+    rg = rr.new_page()
+    visit(rg, BASE + '?theme=red&beyond=colour&bv=.5#film/board')
+    rg.wait_for_function('window.GJ_BEYOND&&GJ_BEYOND.ready&&window.__u1&&__u1.ready', timeout=20000)
+    rg.wait_for_timeout(2500)
+    rg.evaluate('GJ_BEYOND_DIAL.setLevel(2)')
+    rg.wait_for_timeout(2600)
+    rgb2 = lambda c: [float(x) for x in c[c.index('(') + 1:c.index(')')].split(',')]
+    info = rg.evaluate("""()=>{const d=document.querySelector('.bd-dial[data-k=beyond]');return {segs:[...d.querySelectorAll('.ring-out .bd-seg')].map(s=>s.style.stroke),inn:[...d.querySelectorAll('.ring-in .bd-seg')].map(s=>s.style.stroke),
+      thumb:d.querySelector('.ring-out .bd-th').style.fill,body:getComputedStyle(d.querySelector('.bd-body')).backgroundColor,mist:getComputedStyle(d.querySelector('.bd-mist')).backgroundImage,
+      mistPE:getComputedStyle(d.querySelector('.bd-mist')).pointerEvents,theme:document.documentElement.getAttribute('data-theme')}}""")
+    allc = [rgb2(c) for c in info['segs'] + info['inn'] + [info['thumb']]]
+    inred = all(c[0] >= 120 and c[1] <= 100 and c[2] <= 112 and c[0] > c[1] * 1.3 for c in allc)
+    dim2bright = rgb2(info['segs'][0])[0] < rgb2(info['segs'][-1])[0] and rgb2(info['segs'][0])[1] < rgb2(info['segs'][-1])[1]
+    bd = rgb2(info['body'])
+    check('%s red mode: the colour ramp stays in the reds, dim to bright' % label, info['theme'] == 'red' and inred and dim2bright, '%s -> %s' % (info['segs'][0], info['segs'][-1]))
+    check('%s red mode: dark red body and red mist, mist pointer-events none' % label, bd[0] > bd[1] and bd[0] < 40 and 'rgba(' in info['mist'] and info['mistPE'] == 'none', '%s | %s' % (info['body'], info['mist'][:70]))
+    rg.screenshot(path=os.path.join(shots, '%s-dial-red.png' % label))
+    rr.close()
+
     # ---- Reduce Motion ----
     rc = br.new_context(viewport={'width': vp[0], 'height': vp[1]}, reduced_motion='reduce', is_mobile=touch, has_touch=touch)
     rp = rc.new_page()
