@@ -63,10 +63,10 @@
 .g-mk:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:3px;border-radius:50%}
 
 /* the way down: three cups from above in place of the old pill */
-#front.vG1 #fdown.g-door{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;bottom:8px}
+#front.vG1 #fdown.g-door{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;bottom:calc(8px + var(--g-sb,0px))}
 #front.vG1 #fdown .g-cl{display:flex;align-items:flex-end;height:70px}
 #front.vG1 #fdown .g-dt{font:300 10.5px/1 Poppins,sans-serif;letter-spacing:.08em;color:#a49d92;padding:7px 13px;border-radius:999px;border:1px solid rgba(232,228,220,.14);background:rgba(8,9,12,.5)}
-#front.vG1.land #fdown.g-door{left:auto;right:5%;transform:none}
+#front.vG1.land #fdown.g-door{left:auto;right:max(5%,calc(12px + var(--g-sr,0px)));transform:none}
 
 /* ======================= G2 · light table ======================= */
 #front.vG2{--surf1:#bcc3c6;--surf2:#8d9599;--glow:rgba(196,210,220,.30);--ink:rgba(18,20,22,.62);--sh:0 5px 12px rgba(0,0,0,.30),0 0 0 1px rgba(0,0,0,.22);--cupsh:0 7px 8px rgba(0,0,0,.34)}
@@ -128,3 +128,6 @@ html[data-theme=red] #front.vG2[data-p=day]{--surf1:#5d1720;--surf2:#300b11;--gl
 html[data-theme=red] #front.vG2[data-p=warm]{--surf1:#62201a;--surf2:#33100c;--glow:rgba(255,90,60,.14);--ink:rgba(255,160,150,.62)}
 html[data-theme=red] #front.vG2[data-p=dim]{--surf1:#2c0b10;--surf2:#17060a;--glow:rgba(255,68,87,.05);--ink:rgba(255,140,150,.5)}
 html[data-theme=red] #front.vG2[data-p=off]{--surf1:#100406;--surf2:#090203;--glow:rgba(0,0,0,0);--ink:rgba(255,140,150,.38)}
+
+/* the stage is as tall as the screen, never taller: no photo may sit below the fold in a short landscape window */
+#board #front[data-g]{min-height:0}

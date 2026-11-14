@@ -159,6 +159,7 @@
   var W = 0, H = 0, land = false, cur = 0;
   function fitImg(i, w, h) { var im = els[i].el.querySelector('img'); im.style.width = '100%'; im.style.height = '100%' }
   function layout(instant) {
+    if (isG()) front.setAttribute('data-g', ''); else front.removeAttribute('data-g');
     var r = front.getBoundingClientRect(); W = r.width; H = r.height; land = W > H * 1.05 || W >= 720;
     front.className = 'v' + V + (land ? ' land' : ' port');
     var L = land ? LAY.land : LAY.port, u = land ? Math.min(H, W * .62) : Math.min(W, H * .62);

@@ -90,38 +90,70 @@
     if (ui[V]) ui[V].refresh();
   }
 
-  /* ---------------- plans: where every still goes in G2 and G3 ---------------- */
-  var TOP = 92, BOT = 58;
+  /* ---------------- plans: where every still goes ----------------
+     Gill's layout rule: photos never overlap, never touch each other (GUTTER apart, always) and never touch or clip into the screen edges
+     (EDGE from the viewport and from the safe-area insets). Everything below is laid out from those two numbers. */
+  var GUTTER = 12, EDGE = 12, DOOR_H = 104;
+  function safe() {
+    var q = qs('safe');
+    if (q) { var a = q.split(',').map(Number); if (a.length === 4 && a.every(isFinite)) return { t: a[0], r: a[1], b: a[2], l: a[3] } }
+    var p = el('div'); p.style.cssText = 'position:fixed;left:0;top:0;visibility:hidden;pointer-events:none;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)';
+    document.body.appendChild(p); var c = getComputedStyle(p), r = { t: parseFloat(c.paddingTop) || 0, r: parseFloat(c.paddingRight) || 0, b: parseFloat(c.paddingBottom) || 0, l: parseFloat(c.paddingLeft) || 0 }; p.remove(); return r;
+  }
   function plan(V, host) {
-    var W = host.W, H = host.H, land = host.land, n = host.els.length, out = [], i;
-    if (V === 'G1') return null;
+    var W = host.W, H = host.H, land = host.land, n = host.els.length, out = [], i, sf = safe(), short = H < 500;
+    var L = sf.l + EDGE, R = W - sf.r - EDGE, TOPR = (short ? 56 : 92) + sf.t, BOTR = (short ? 50 : 58) + sf.b;
+    host._safe = sf;
+    if (V === 'G1') {
+      var cur = host.cur, pad = land ? 16 : 12;
+      var mAvail = land ? Math.min(W * .56, W - 2 * (Math.max(W * .05, 12 + sf.r) + 212 + GUTTER * 2)) : R - L, mM = Math.max(14, Math.min(land ? 36 : 34, (mAvail - 7 * GUTTER) / 8));
+      var below = 46 + mM + 12, door = land ? 0 : DOOR_H + 10 + 8 + sf.b;
+      var fh = Math.min(land ? .62 * H : .46 * H, H - TOPR - pad - below - Math.max(door, land ? sf.b + 8 : 0) - 6);
+      var fw = Math.min(fh * .8, (R - L) * (land ? .5 : .52)); fh = fw / .8;
+      var extra = Math.max(0, H - TOPR - pad - below - Math.max(door, land ? sf.b + 8 : 0) - 6 - fh);
+      var ct = TOPR + pad + extra * .35, cx = (L + R) / 2, cy = ct + fh / 2;
+      host._g1 = { cx: cx, ct: ct, fh: fh, fw: fw, pad: pad, below: below, m: mM, mSpan: mAvail };
+      for (i = 0; i < n; i++) out.push({ x: cx, y: cy, w: fw, h: fh, z: 0, lab: 0, show: false });
+      out[cur] = { x: cx, y: cy, w: fw, h: fh, z: 20, lab: 1, show: true };
+      [1, -1].forEach(function (sd) {
+        var edge = cx + sd * (fw / 2 + pad + GUTTER);
+        for (var k = 1; ; k++) {
+          var idx = cur + sd * k; if (idx < 0 || idx >= n) break;
+          var hh = fh * .46 * Math.pow(.8, k), ww = hh * .8, room = sd > 0 ? R - edge : edge - L;
+          if (room < 36) break; if (ww > room) { ww = room; hh = ww / .8 }
+          out[idx] = { x: edge + sd * ww / 2, y: cy - k * 4, w: ww, h: hh, z: 19 - k, lab: 0, show: true };
+          edge += sd * (ww + GUTTER);
+        }
+      });
+      return out;
+    }
     if (V === 'G2') {
-      var cols = land ? 5 : 3, rows = land ? 2 : 3, px = land ? Math.max(48, W * .05) : 12, pad = land ? 26 : 14, hd = 24, lab = 18, gap = land ? 16 : 10;
-      var pw = W - 2 * px, ph = H - TOP - BOT, aw = pw - 2 * pad, ah = ph - 2 * pad - hd;
+      var cols = land ? 5 : 3, rows = land ? 2 : 3, pxl = Math.max(12, sf.l + EDGE), pxr = Math.max(12, sf.r + EDGE), pd = land ? (short ? 12 : 26) : 14, hd = short ? 18 : 24, lab = 18, gap = GUTTER;
+      var pw = W - pxl - pxr, ph = H - TOPR - BOTR, aw = pw - 2 * pd, ah = ph - 2 * pd - hd;
       var ih = (ah - rows * lab - (rows - 1) * gap) / rows, iw = Math.min((aw - (cols - 1) * gap) / cols, ih * .8); ih = iw / .8;
       var gx = Math.min((aw - cols * iw) / Math.max(1, cols - 1), iw * .55), gy = Math.min((ah - rows * (ih + lab)) / Math.max(1, rows - 1), 26);
       var tw = cols * iw + (cols - 1) * gx, th = rows * (ih + lab) + (rows - 1) * gy;
-      var x0 = px + pw / 2 - tw / 2, y0 = TOP + pad + hd + Math.max(0, (ah - th) / 2);
-      host._g2 = { panel: { x: px, y: TOP, w: pw, h: ph }, cols: cols, rows: rows, iw: iw, ih: ih, gx: gx, gy: gy, lab: lab, x0: x0, y0: y0, pad: pad };
+      var x0 = pxl + pw / 2 - tw / 2, y0 = TOPR + pd + hd + Math.max(0, (ah - th) / 2);
+      host._g2 = { panel: { x: pxl, y: TOPR, w: pw, h: ph }, cols: cols, rows: rows, iw: iw, ih: ih, gx: gx, gy: gy, lab: lab, x0: x0, y0: y0, pad: pd, hd: hd };
       for (i = 0; i < n; i++) {
         var c = i % cols, r = Math.floor(i / cols);
         out.push({ x: x0 + c * (iw + gx) + iw / 2, y: y0 + r * (ih + lab + gy) + ih / 2, w: iw, h: ih, z: 10, lab: 1, show: true });
       }
       return out;
     }
-    /* G3: salon hang. Fractions of the wall (x of W, row of the free height), sizes as a share of a base width. */
-    var tp = land ? TOP : 108, wy = tp, wh = H - tp - BOT, slot = 20, P3;
-    if (land) {
-      var base = Math.min(W * .15, (wh / 2 - slot - 22) * .8 * 1.0);
-      P3 = [[.145, 0, 1.0], [.335, 0, 1.12], [.54, 0, .92], [.74, 0, 1.06], [.22, 1, 1.1], [.43, 1, .94], [.63, 1, 1.12], [.83, 1, .96]];
-      for (i = 0; i < n; i++) { var q = P3[i], w = base * q[2], h = w / .8, rowH = wh / 2, cy = wy + q[1] * rowH + (rowH - slot - 12) / 2 + (hash(i + 20) - .5) * 14;
-        out.push({ x: q[0] * W, y: cy, w: w, h: h, z: 10, lab: 0, show: true }) }
-    } else {
-      var b2 = Math.min(W * .28, (wh / 3 - slot - 18) * .8);
-      P3 = [[.20, 0, 1.0], [.52, 0, 1.12], [.82, 0, .9], [.34, 1, 1.06], [.70, 1, 1.0], [.17, 2, .94], [.47, 2, 1.1], [.80, 2, .98]];
-      for (i = 0; i < n; i++) { var q2 = P3[i], w2 = b2 * q2[2], h2 = w2 / .8, rh = wh / 3, cy2 = wy + q2[1] * rh + (rh - slot - 10) / 2 + 4 + (hash(i + 20) - .5) * 12;
-        out.push({ x: q2[0] * W, y: cy2, w: w2, h: h2, z: 10, lab: 0, show: true }) }
-    }
+    /* G3: salon hang in rows. Each row's cells share one width; a piece is a little smaller than its cell by a fixed, varied share,
+       so the hang is not a grid but nothing ever touches. Under every piece: a thread and the shop slot (34px). */
+    var rowsCfg = land ? [4, 4] : [3, 2, 3], tp = (land ? TOPR : 108 + sf.t), wy = tp, wh = H - tp - BOTR, SLOT = 34;
+    var maxc = Math.max.apply(null, rowsCfg), cw = (R - L - (maxc - 1) * GUTTER) / maxc, rh = wh / rowsCfg.length;
+    var share = [1, .9, .96, .86, .93, 1, .88, .95], idx = 0;
+    rowsCfg.forEach(function (cnt, r) {
+      var hmax = rh - SLOT - GUTTER, rowW = cnt * cw + (cnt - 1) * GUTTER, rx = (L + R) / 2 - rowW / 2;
+      for (var c = 0; c < cnt; c++, idx++) {
+        var w = Math.min(cw * share[idx % share.length], hmax * .8 * share[(idx + 3) % share.length]), h = w / .8, slack = rh - (h + SLOT);
+        var jit = (hash(idx + 20) - .5) * 2 * Math.max(0, slack / 2 - GUTTER / 2) * .7;
+        out.push({ x: rx + c * (cw + GUTTER) + cw / 2, y: wy + r * rh + slack / 2 + jit + h / 2, w: w, h: h, z: 10, lab: 0, show: true });
+      }
+    });
     host._g3 = { top: wy, bottom: wy + wh };
     return out;
   }
@@ -150,6 +182,7 @@
     gal.innerHTML = ''; fg.innerHTML = '';
     var W = host.W, H = host.H, land = host.land, els = host.els;
     gal.className = 'gal ' + V.toLowerCase(); fg.className = 'gal-fg ' + V.toLowerCase();
+    host.front.style.setProperty('--g-sb', (host._safe ? host._safe.b : 0) + 'px'); host.front.style.setProperty('--g-sr', (host._safe ? host._safe.r : 0) + 'px');
     setLabels(host, V === 'G2' ? 'num' : 'title');
     gal.appendChild(el('div', 'g-wall'));
     if (V === 'G1') chromeG1(host, W, H, land, els);
@@ -166,7 +199,7 @@
     var fd = host.fdown; if (fdownHTML == null) fdownHTML = fd.innerHTML;
     if (V === 'G1') {
       fd.innerHTML = ''; fd.classList.add('g-door');
-      var cl = el('span', 'g-cl'); [['cream', 62], ['ash', 78], ['clay', 48]].forEach(function (a, j) { var c = cup(a[0], a[1], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? '-14px' : '0'; cl.appendChild(c) });
+      var cl = el('span', 'g-cl'); [['cream', 62], ['ash', 78], ['clay', 48]].forEach(function (a, j) { var c = cup(a[0], a[1], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? GUTTER + 'px' : '0'; cl.appendChild(c) });
       fd.appendChild(cl); fd.appendChild(el('span', 'g-dt', 'the rings and the board ↓'));
     } else { fd.classList.remove('g-door'); fd.innerHTML = fdownHTML }
   }
@@ -180,19 +213,19 @@
   /* ---- G1 ---- */
   function chromeG1(host, W, H, land, els) {
     lights('G1');
-    var c = els[host.cur], pad = land ? 16 : 12;
+    var g = host._g1, c = els[host.cur], pad = g.pad;
     var cs = el('div', 'g-case'); cs.style.left = (c.bx - c.w / 2 - pad) + 'px'; cs.style.top = (c.by - c.h / 2 - pad) + 'px'; cs.style.width = (c.w + 2 * pad) + 'px'; cs.style.height = (c.h + 2 * pad) + 'px';
     gal.appendChild(cs);
-    var sy = c.by + c.h / 2 + pad + (land ? 58 : 52);
-    var sh = el('div', 'g-shelf'); sh.style.top = sy + 'px'; sh.style.left = (W * (land ? .22 : .04)) + 'px'; sh.style.right = (W * (land ? .22 : .04)) + 'px'; gal.appendChild(sh);
+    var sy = g.ct + g.fh + 46 + g.m;
+    var sh = el('div', 'g-shelf'); sh.style.top = sy + 'px'; sh.style.left = Math.max(0, g.cx - g.mSpan / 2 - 10) + 'px'; sh.style.width = Math.min(W, g.mSpan + 20) + 'px'; gal.appendChild(sh);
     gal.appendChild(Object.assign(el('div', 'g-pool'), { style: 'left:' + (c.bx - c.w * .8) + 'px;top:' + (sy - 12) + 'px;width:' + (c.w * 1.6) + 'px' }));
-    var n = els.length, span = W * (land ? .56 : .92) - 20, step = span / (n - 1), sx = W / 2 - span / 2;
+    var n = els.length, span = g.mSpan - g.m, step = span / (n - 1), sx = g.cx - span / 2;
     for (var i = 0; i < n; i++) {
-      var on = i === host.cur, k = MK[i], base = (land ? 34 : 29) * (.8 + hash(i + 50) * .45) * (on ? 1.28 : 1);
+      var on = i === host.cur, k = MK[i], base = g.m * (.82 + hash(i + 50) * .18), ch = base * CUT[k][1] / CUT[k][0];
       var b = el('button', 'g-mk' + (on ? ' on' : '')); b.type = 'button'; b.setAttribute('aria-label', host.P[i].b.title + (on ? ' (in the case)' : ': bring to the case')); b.setAttribute('aria-pressed', String(on));
       var cp = cup(k, base, 60 + i, 'span'); cp.style.position = 'relative';
-      b.appendChild(cp); b.style.left = (sx + i * step) + 'px'; b.style.top = (sy - base * (CUT[k][1] / CUT[k][0]) * .5 - 2 - (on ? 6 : 0)) + 'px';
-      b.style.width = base + 'px'; b.style.height = base + 'px';
+      b.appendChild(cp); b.style.left = (sx + i * step) + 'px'; b.style.top = (sy - 1 - ch) + 'px';
+      b.style.width = base + 'px'; b.style.height = ch + 'px';
       (function (ii) { b.addEventListener('click', function (e) { e.stopPropagation(); if (ii !== host.cur) host.cur = ii }) })(i);
       fg.appendChild(b);
     }
