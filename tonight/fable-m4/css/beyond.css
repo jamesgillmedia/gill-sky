@@ -1,0 +1,52 @@
+/* Beyond dial cluster (prototype, preview-beyond). Companion to js/beyonddial.js.
+   Boxless: no border, background, box-shadow box or backdrop on the cluster. Z-depth comes from perspective + translateZ
+   (the fold dial's plane: 18px idle, 28px expanded) and stacked drop-shadows on the strokes. No CSS transition moves anything;
+   every move is a sampled spring in beyonddial.js. The one fade is opacity when the hub would sit over content. */
+#bdial{position:fixed;z-index:49;left:calc(46px + env(safe-area-inset-left,0px));bottom:calc(46px + env(safe-area-inset-bottom,0px));width:26px;height:26px;
+  pointer-events:none;transition:opacity .22s ease;-webkit-tap-highlight-color:transparent}
+#bdial[hidden]{display:none}
+#bdial.bd-cover{opacity:0;pointer-events:none}
+#bdial.bd-cover *{pointer-events:none!important}
+.bd-hub{position:absolute;left:0;top:0;width:26px;height:26px;padding:0;margin:0;border:0;background:none;box-shadow:none;cursor:pointer;opacity:.78;pointer-events:auto;
+  transform:perspective(240px) translate3d(0,0,6px) rotateY(8deg)}
+.bd-hub:focus-visible{outline:1px solid #eef3f5;outline-offset:3px;border-radius:50%}
+.bd-hub svg{display:block;overflow:visible}
+.bd-hr{fill:none;stroke:rgba(232,228,220,.34);stroke-width:1}
+.bd-ht{fill:none;stroke:rgba(232,228,220,.4);stroke-width:1}
+.bd-hd{fill:rgba(232,228,220,.55)}
+#bdial:not([data-mode=off]) .bd-hd{fill:#e8c48a;filter:drop-shadow(0 0 3px rgba(232,196,138,.7))}
+#bdial:not([data-mode=off]) .bd-hub{opacity:1}
+.bd-label{position:absolute;left:36px;top:13px;transform:translateY(-50%);white-space:nowrap;pointer-events:none;color:rgba(232,228,220,.74);text-shadow:0 0 6px #04070b,0 0 2px #04070b}
+.bd-label b{display:block;font:400 8px/1 "Julius Sans One",Poppins,sans-serif;letter-spacing:.22em;text-transform:lowercase}
+.bd-label i{display:block;margin-top:3px;font:300 8px/1 Poppins,sans-serif;font-style:normal;letter-spacing:.05em;color:rgba(232,228,220,.55)}
+.bd-label i:empty{display:none}
+.bd-cluster{position:absolute;left:0;top:0;width:26px;height:26px;visibility:hidden;pointer-events:none}
+.bd-cluster.bd-vis{visibility:visible}
+.bd-dial{position:absolute;transform-origin:50% 50%;pointer-events:none}
+.bd-svg{display:block;overflow:visible;outline:none;touch-action:none;pointer-events:none;-webkit-user-select:none;user-select:none;
+}
+.bd-svg:focus-visible .bd-trk{stroke:#eef3f5}
+.bd-hit{fill:transparent;pointer-events:all;cursor:grab}
+.bd-halo{fill:none;stroke:rgba(4,7,11,.62);stroke-width:3.4;stroke-linecap:round}
+.bd-trk{fill:none;stroke:rgba(232,228,220,.62);stroke-width:1.2;stroke-linecap:round}
+.bd-tick{fill:none;stroke:rgba(232,228,220,.8);stroke-width:1.4;stroke-linecap:round}
+.bd-def{stroke:#e8c48a}
+.bd-min{fill:none;stroke:rgba(232,228,220,.4);stroke-width:1}
+.bd-maj{stroke:rgba(232,228,220,.62)}
+.bd-fill{fill:none;stroke:#e8c48a;stroke-width:2;stroke-linecap:round}
+.bd-th{fill:#e8c48a;stroke:rgba(4,7,11,.7);stroke-width:1.6;paint-order:stroke}
+.bd-lab,.bd-c1,.bd-c2,.bd-sm,.bd-nm{paint-order:stroke;stroke:rgba(4,7,11,.8);stroke-width:2.6px;stroke-linejoin:round}
+.bd-lab{font:400 7.5px "Julius Sans One",Poppins,sans-serif;letter-spacing:.14em;fill:rgba(232,228,220,.72);text-transform:lowercase}
+.bd-lab.on{fill:#e8e4dc}
+.bd-c1{font:400 9px "Julius Sans One",Poppins,sans-serif;letter-spacing:.16em;fill:#e8e4dc;text-transform:lowercase}
+.bd-c2{font:300 11px Poppins,sans-serif;letter-spacing:.04em;fill:#e8c48a}
+.bd-sm{font:300 9.5px Poppins,sans-serif;letter-spacing:.02em;fill:#e8e4dc}
+.bd-nm{font:400 7.5px "Julius Sans One",Poppins,sans-serif;letter-spacing:.2em;fill:rgba(232,228,220,.82);text-transform:lowercase}
+.ring-in.dead{opacity:.34}
+/* held: everything but the active track goes at once (no fade); the active hairline and thumb stay as an 18% anchor */
+#bdial.bd-hold .bd-dial:not(.bd-act){visibility:hidden!important}
+#bdial.bd-hold .bd-act .labs,#bdial.bd-hold .bd-act .ctr,#bdial.bd-hold .bd-act .bd-nm{visibility:hidden}
+#bdial.bd-hold .bd-act[data-ring=out] .ring-in,#bdial.bd-hold .bd-act[data-ring=inn] .ring-out{visibility:hidden}
+#bdial.bd-hold .bd-act[data-ring=out] .ring-out,#bdial.bd-hold .bd-act[data-ring=inn] .ring-in,#bdial.bd-hold .bd-act .ring-main{opacity:.18}
+html.rm .bd-cover,html.rm #bdial{transition:none}
+@media (prefers-reduced-motion:reduce){#bdial{transition:none}}

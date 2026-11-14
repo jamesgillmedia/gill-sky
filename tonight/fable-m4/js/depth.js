@@ -687,7 +687,7 @@ function gallery(work){
   ((work&&work.bts)||[]).forEach(function(src){
     if(src&&!seen[src]){seen[src]=1;all.push({src:src,t:0,clip:'',title:''})}
   });
-  return all;
+  return window.GJ_BEYOND?GJ_BEYOND.shots(all):all;
 }
 function fieldShots(work){
   var all=gallery(work),i,best=0,bd=1e9,prefer;

@@ -11,7 +11,7 @@
 (function(){
 'use strict';
 var FEAT=['film/one-with-the-devil','film/weird-kid','film/back-to-the-start','film/backward-fall','film/legends'];
-var HOLDS={A:3400,B:5000,C:2400},FP={t:0,i:0,root:null},FROM=null,BAR=null;
+var HOLDS={A:3400,B:5000,C:2400},FP={t:0,i:0,root:null,work:null,sub:0},FROM=null,BAR=null;
 function hold(){var v=window.GJ_VAR?GJ_VAR.get('film'):'A';return HOLDS[v]||3400}
 function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
 function parts(t){t=String(t||'');var i=t.lastIndexOf(' · ');if(i<0)return {pre:'',name:t};return {pre:t.slice(0,i),name:t.slice(i+3).replace(/^['‘’"“”]+|['‘’"“”]+$/g,'')}}
@@ -99,6 +99,22 @@ function show(i,first){
   /* Leave the current still fully opaque until the next bitmap is ready, then cut. Never a partial fade. */
   decodeIm(ims[i]).then(cut);
 }
+/* Beyond changed the selection while this page is open: the strip and the picture take their new stills by gliding in from depth
+ (js/beyond.js glideDom). Opaque the whole way; no dissolve, no dim. */
+function beyondSwap(){
+  var B=window.GJ_BEYOND,r=FP.root,w=FP.work;
+  if(!B||!r||!r.isConnected||!w)return;
+  var list=B.stills(w,w.stills.slice()),frame=r.querySelector('.fp-frame');
+  var ims=r.querySelectorAll('.fp-frame img'),btns=r.querySelectorAll('.fp-strip button');
+  list.forEach(function(src,k){
+    var b=btns[k],bi=b&&b.querySelector('img'),fi=ims[k];
+    if(bi&&bi.getAttribute('src')!==src)B.glideDom(b,bi,src,k,{flow:true});
+    if(fi&&fi.getAttribute('src')!==src){
+      if(k===FP.i&&fi.classList.contains('on')&&frame)B.glideDom(frame,fi,src,0);
+      else fi.setAttribute('src',src);
+    }
+  });
+}
 function run(){halt();FP.t=setInterval(function(){if(document.hidden)return;show(FP.i+1)},hold())}
 function card(w){
   var p=parts(w.title),still=(w.media&&w.media.thumb)||(w.stills&&w.stills[0])||'';
@@ -125,7 +141,8 @@ function applyFrom(sheet){
 function paint(el,work,under){
   stop();
   if(window.GJ_DEPTH&&GJ_DEPTH.hush)GJ_DEPTH.hush();
-  var st=work.stills.slice(),p=parts(work.title),first=st[0]||'';
+  FP.work=work;
+  var st=window.GJ_BEYOND?GJ_BEYOND.stills(work,work.stills.slice()):work.stills.slice(),p=parts(work.title),first=st[0]||'';
   if(work.id==='film/weird-kid')p={pre:'Chris Malinchak and Kiesza',name:'Weird Kid'};
   var frames=st.map(function(s,i){
     return '<img src="'+esc(s)+'" alt=""'+(i===0?' class="on fp-now" fetchpriority="high"':'')+'>';
@@ -145,6 +162,7 @@ function paint(el,work,under){
     (next?'<div class="fp-next"><p class="fp-lab">featured</p><div class="fp-cards">'+next+'</div></div>':'')+
     (under||'')+'</div>';
   FP.root=el.querySelector('.sheet.fp');FP.i=0;
+  if(window.GJ_BEYOND&&!FP.sub){FP.sub=1;GJ_BEYOND.on(function(s,why){if(why==='sel'||why==='index')beyondSwap()})}
   [].forEach.call(FP.root.querySelectorAll('.fp-frame img'),decodeIm);
   applyFrom(FP.root);
   var y0=0,y1=0,x0=0,x1=0,pid=0,drag=false;

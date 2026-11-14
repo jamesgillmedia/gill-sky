@@ -34,6 +34,8 @@ var bloom=0,bloomK=null,pbloom=0,scrK=null;
  A wheel or a pinch at the map scrubs it; letting go settles softly to the nearer side. Reduce Motion switches instantly. */
 var fsnS=S(0,W_GLIDE),fsn=0,FSCRUB=null;
 var RM=false;try{RM=matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){}
+/* The camera's springs, shared with Beyond (js/beyond.js): the swaps and the dial cluster move on these, not on a second set. W_REL / W_FLY / W_SOFT are site-3d's weights. */
+window.GJ_CAM={sstep:sstep,W_GLIDE:W_GLIDE,W_LOOK:W_LOOK,W_REL:9.5,W_FLY:5.6,W_SOFT:3.2,motionK:function(){return motionK()},rm:function(){return RM}};
 /* preview-film-snap: Gill's decisions as toggles (the mark menu's tune plate writes them; kept on this device).
  film: snap (map, then the board, default) | map (the m4 map only) | board (the site-3d board only)
  mark: fusion (default) | full | partial
@@ -918,13 +920,13 @@ function drawNames(fa){
 function boardKey(){return cur.k==='progress'?'progress':cur.k}
 function boardItems(){
   var b=window.GJ_DEPTH&&GJ_DEPTH.board();
-  if(b&&b.items)return b.items;
+  if(b&&b.items)return window.GJ_BEYOND?GJ_BEYOND.items(b.fine?'fine':b.k,b.items):b.items;
   if(cur.k==='progress')return progress;
-  var c=CH[cur.k];return c?c.items:[];
+  var c=CH[cur.k];return c?(window.GJ_BEYOND?GJ_BEYOND.items(cur.k,c.items):c.items):[];
 }
 function gridSpec(key){
   var b=window.GJ_DEPTH&&GJ_DEPTH.board();
-  var items=(b&&b.items&&(key===b.k||key===boardKey()))?b.items:(key==='progress'?progress:(CH[key]?CH[key].items:[]));
+  var items=(b&&b.items&&(key===b.k||key===boardKey()))?(window.GJ_BEYOND?GJ_BEYOND.items(b.fine?'fine':b.k,b.items):b.items):(key==='progress'?progress:(CH[key]?(window.GJ_BEYOND?GJ_BEYOND.items(key,CH[key].items):CH[key].items):[]));
   var n=items.length||1;
   var fine=!!(b&&b.fine);
   if(!fine&&CH[key])return boardSpec(key,items);
@@ -952,7 +954,7 @@ function gridSpec(key){
 /* The chapter board: pro2's grid of thumbnails, titles and captions. Each medium keeps a small difference of its own. */
 var BSPEC=null;
 function boardSpec(key,items){
-  var room=boardRoom(),n=items.length||1,leadSig=(items[0]&&items[0].feat)||0,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'')+'|'+tk('fdens')+'|'+tk('fgap')+'|'+leadSig;
+  var room=boardRoom(),n=items.length||1,leadSig=(items[0]&&items[0].feat)||0,sig=key+'|'+W+'|'+H+'|'+n+'|'+room.m+'|'+(document.fonts?document.fonts.status:'')+'|'+tk('fdens')+'|'+tk('fgap')+'|'+leadSig+'|'+(window.GJ_BEYOND?GJ_BEYOND.rev:0);
   if(BSPEC&&BSPEC.sig===sig)return BSPEC;
   var maxW=Math.min(W-28,680,room.w),pad=10,gap=8,head=44,AW=maxW+28;
   if(key==='film'||key==='objects'){pad=8;gap=key==='objects'?8:6}
@@ -1208,7 +1210,8 @@ function drawWindow(){
     if(spec.key==='photo'&&!(db&&db.fine)&&it._im&&it.ld){
       g.save();g.translate(x+w/2,y+h/2);g.rotate(((i%5)-2)*0.025);
       g.fillStyle='#e4ddd2';g.fillRect(-w/2,-h/2,w,h);
-      cover(it._im,-w/2+3,-h/2+3,w-6,h-6,it._crop);g.restore();
+      if(!(window.GJ_BEYOND&&GJ_BEYOND.slotDraw(g,'photo:'+i,it,it._im,-w/2+3,-h/2+3,w-6,h-6,function(im,px,py,pw,ph){cover(im,px,py,pw,ph,it._crop)})))cover(it._im,-w/2+3,-h/2+3,w-6,h-6,it._crop);
+      g.restore();
     }else if(spec.key==='objects'&&!(db&&db.fine)){
       loadImg(it);
       if(it._im&&it.ld)cover(it._im,x,y,w,h,it._crop);
@@ -1265,11 +1268,16 @@ function drawWindow(){
     }else if(spec.board&&spec.key==='film'){
       loadImg(it);
       g.fillStyle='#04070b';g.fillRect(x,y,w,h);
-      if(it._im&&it.ld){
+      var bb=it._im&&it.ld?it._im:null;
+      if(bb||window.GJ_BEYOND){
         var fa=it._in==null?1:Math.min(1,(performance.now()-it._in)/520);
-        g.save();g.globalAlpha=g.globalAlpha*fa;cover(it._im,x,y,w,h,it._crop);g.restore();
+        g.save();g.globalAlpha=g.globalAlpha*fa;
+        if(!(window.GJ_BEYOND&&GJ_BEYOND.slotDraw(g,'film:'+i,it,bb,x,y,w,h,function(im,px,py,pw,ph){cover(im,px,py,pw,ph,im===it._im?it._crop:null)}))&&bb)cover(bb,x,y,w,h,it._crop);
+        g.restore();
       }
-    }else if(spec.board&&(loadImg(it),it._im&&it.ld))cover(it._im,x,y,w,h,it._crop);
+    }else if(spec.board&&(loadImg(it),it._im&&it.ld)){
+      if(!(window.GJ_BEYOND&&(spec.key==='film'||spec.key==='photo')&&GJ_BEYOND.slotDraw(g,'fine:'+i,it,it._im,x,y,w,h,function(im,px,py,pw,ph){cover(im,px,py,pw,ph,it._crop)})))cover(it._im,x,y,w,h,it._crop);
+    }
     else if(it._im&&it.ld)cover(it._im,x,y,w,h,it._crop);
     else if(it._text||it.kind==='bio'||it.kind==='poem'||it.kind==='contact'||it.kind==='link'||it.kind==='track'){
       g.fillStyle='rgba(12,18,28,.9)';g.fillRect(x,y,w,h);

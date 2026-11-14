@@ -59,6 +59,11 @@ function sources(slug,rung){
   ];
 }
 function poster(slug,rung){return FILM+slug+"/loop-"+rung+"-poster.jpg";}
+/* Beyond: a tile's poster is the still the selection picked for that film (js/beyond.js). Off, or no pick: the loop's own poster. */
+function pickFor(slug,rung){
+  var B=window.GJ_BEYOND,u=window.__u1,it=u&&u.byId&&u.byId("film/"+slug);
+  return (B&&B.active&&it&&it._bp)?it._bp:poster(slug,rung);
+}
 function maxPlay(){
   var coarse=false;
   try{coarse=matchMedia("(pointer: coarse)").matches}catch(e){}
@@ -136,12 +141,12 @@ function makeBox(slug){
   box.className="gj-box";
   box.dataset.slug=slug;
   var img=document.createElement("img");
-  img.alt="";img.decoding="async";img.src=poster(slug,"480");
+  img.alt="";img.decoding="async";img.src=pickFor(slug,"480");
   var v=document.createElement("video");
   v.className="tile clip";
   v.muted=true;v.defaultMuted=true;v.playsInline=true;v.loop=true;v.preload="none";
   v.setAttribute("muted","");v.setAttribute("playsinline","");v.setAttribute("webkit-playsinline","");
-  v.poster=poster(slug,"480");
+  v.poster=pickFor(slug,"480");
   v.dataset.poster=v.poster;
   v.dataset.sources=JSON.stringify(sources(slug,"480"));
   v.dataset.gjSlug=slug;
@@ -177,6 +182,7 @@ function syncBoard(){
   ensure();
   var win=info.win;
   layer.hidden=false;
+  layer.style.visibility=(window.GJ_BEYOND&&GJ_BEYOND.moving())?"hidden":"";
   layer.style.left=win[0]+"px";
   layer.style.top=win[1]+"px";
   layer.style.width=win[2]+"px";
@@ -195,6 +201,8 @@ function syncBoard(){
     }
     var box=boxes[slug];
     if(!box){box=makeBox(slug);layer.appendChild(box);boxes[slug]=box}
+    var pk=pickFor(slug,"480"),bi=box.firstChild;
+    if(bi&&bi.getAttribute("src")!==pk){bi.setAttribute("src",pk);var bv=box.querySelector("video");if(bv){bv.poster=pk;bv.dataset.poster=pk}}
     box.style.left=Math.round(x-win[0])+"px";
     box.style.top=Math.round(y-win[1])+"px";
     box.style.width=Math.round(w)+"px";
