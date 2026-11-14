@@ -165,8 +165,7 @@
     var GP = isG() && window.OBJ_GAL ? OBJ_GAL.plan(V, host) : null;
     els.forEach(function (e, i) {
       var l = L[i], d = l[2] * u, x = l[0] * W, y = l[1] * H, w = d, h = d, sc = 1, z = 10 - i, show = true, lab = l[3];
-      e.rot = 0;
-      if (GP) { var g = GP[i]; x = g.x; y = g.y; w = g.w; h = g.h; z = g.z; lab = g.lab; show = g.show; e.rot = g.rot || 0 }
+      if (GP) { var g = GP[i]; x = g.x; y = g.y; w = g.w; h = g.h; z = g.z; lab = g.lab; show = g.show }
       else if (caseLike()) {
         var fh = land ? H * .62 : H * .46, fw = fh * .8; if (fw > W * (land ? .5 : .64)) { fw = W * (land ? .5 : .64); fh = fw / .8 }
         var k = i - cur;
@@ -234,7 +233,7 @@
         x = W * .5 + Math.cos(a0) * rx; y = hy + Math.sin(a0) * ry; sc = .78 + .22 * (Math.sin(a0) + 1) / 2; e.el.style.zIndex = Math.round(sc * 30); live = true }
       if ((V === 'A' || V === 'C') && ptr) { var vx = x - ptr.x, vy = y - ptr.y, dd = Math.hypot(vx, vy) || 1, k = 14 * DEPTH[i] * Math.exp(-dd / (M * .55)); tx = vx / dd * k; ty = vy / dd * k }
       e.ox += (tx - e.ox) * .12; e.oy += (ty - e.oy) * .12; if (Math.abs(tx - e.ox) > .05 || Math.abs(ty - e.oy) > .05) live = true;
-      e.el.style.transform = 'translate3d(' + (x + e.ox).toFixed(2) + 'px,' + (y + e.oy).toFixed(2) + 'px,0) scale(' + sc.toFixed(3) + ')' + (e.rot ? ' rotate(' + e.rot.toFixed(2) + 'deg)' : '');
+      e.el.style.transform = 'translate3d(' + (x + e.ox).toFixed(2) + 'px,' + (y + e.oy).toFixed(2) + 'px,0) scale(' + sc.toFixed(3) + ')';
     });
     if (live) raf = requestAnimationFrame(step);
   }

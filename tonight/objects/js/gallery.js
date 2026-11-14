@@ -23,13 +23,12 @@
   function wr(k, v) { try { localStorage.setItem(k, v) } catch (e) { } }
   function el(tag, cls, html) { var n = document.createElement(tag); if (cls) n.className = cls; if (html != null) n.innerHTML = html; return n }
 
-  /* a real cup: the cutout photograph in a wrapper that carries the shadow and the slow sway (the image itself is untouched) */
-  function cup(k, w, rot, seed, tag, cls) {
+  /* a real cup: the cutout photograph, always upright, in a wrapper that carries only the shadow (the image itself is untouched) */
+  function cup(k, w, seed, tag, cls) {
     var d = CUT[k], h = w * d[1] / d[0];
     var n = el(tag || 'span', 'cup' + (cls ? ' ' + cls : ''));
     n.style.width = w.toFixed(1) + 'px'; n.style.height = h.toFixed(1) + 'px';
-    n.style.setProperty('--r', rot.toFixed(1)); n.style.setProperty('--d', (15 + hash(seed) * 11).toFixed(1) + 's'); n.style.setProperty('--ph', (-hash(seed + 9) * 20).toFixed(1) + 's');
-    n.innerHTML = '<img alt="" decoding="async" draggable="false" src="media/cut/' + k + '.webp">';
+        n.innerHTML = '<img alt="" decoding="async" draggable="false" src="media/cut/' + k + '.webp">';
     n.dataset.k = k; return n;
   }
   function place(n, cx, cy) { n.style.left = (cx - parseFloat(n.style.width) / 2).toFixed(1) + 'px'; n.style.top = (cy - parseFloat(n.style.height) / 2).toFixed(1) + 'px'; return n }
@@ -106,7 +105,7 @@
       host._g2 = { panel: { x: px, y: TOP, w: pw, h: ph }, cols: cols, rows: rows, iw: iw, ih: ih, gx: gx, gy: gy, lab: lab, x0: x0, y0: y0, pad: pad };
       for (i = 0; i < n; i++) {
         var c = i % cols, r = Math.floor(i / cols);
-        out.push({ x: x0 + c * (iw + gx) + iw / 2, y: y0 + r * (ih + lab + gy) + ih / 2, w: iw, h: ih, z: 10, lab: 1, show: true, rot: (hash(i + 3) - .5) * 2.2 });
+        out.push({ x: x0 + c * (iw + gx) + iw / 2, y: y0 + r * (ih + lab + gy) + ih / 2, w: iw, h: ih, z: 10, lab: 1, show: true });
       }
       return out;
     }
@@ -116,12 +115,12 @@
       var base = Math.min(W * .15, (wh / 2 - slot - 22) * .8 * 1.0);
       P3 = [[.145, 0, 1.0], [.335, 0, 1.12], [.54, 0, .92], [.74, 0, 1.06], [.22, 1, 1.1], [.43, 1, .94], [.63, 1, 1.12], [.83, 1, .96]];
       for (i = 0; i < n; i++) { var q = P3[i], w = base * q[2], h = w / .8, rowH = wh / 2, cy = wy + q[1] * rowH + (rowH - slot - 12) / 2 + (hash(i + 20) - .5) * 14;
-        out.push({ x: q[0] * W, y: cy, w: w, h: h, z: 10, lab: 0, show: true, rot: 0 }) }
+        out.push({ x: q[0] * W, y: cy, w: w, h: h, z: 10, lab: 0, show: true }) }
     } else {
       var b2 = Math.min(W * .28, (wh / 3 - slot - 18) * .8);
       P3 = [[.20, 0, 1.0], [.52, 0, 1.12], [.82, 0, .9], [.34, 1, 1.06], [.70, 1, 1.0], [.17, 2, .94], [.47, 2, 1.1], [.80, 2, .98]];
       for (i = 0; i < n; i++) { var q2 = P3[i], w2 = b2 * q2[2], h2 = w2 / .8, rh = wh / 3, cy2 = wy + q2[1] * rh + (rh - slot - 10) / 2 + 4 + (hash(i + 20) - .5) * 12;
-        out.push({ x: q2[0] * W, y: cy2, w: w2, h: h2, z: 10, lab: 0, show: true, rot: 0 }) }
+        out.push({ x: q2[0] * W, y: cy2, w: w2, h: h2, z: 10, lab: 0, show: true }) }
     }
     host._g3 = { top: wy, bottom: wy + wh };
     return out;
@@ -167,7 +166,7 @@
     var fd = host.fdown; if (fdownHTML == null) fdownHTML = fd.innerHTML;
     if (V === 'G1') {
       fd.innerHTML = ''; fd.classList.add('g-door');
-      var cl = el('span', 'g-cl'); [['cream', 62, -12, 0], ['ash', 78, 8, 1], ['clay', 48, 24, 2]].forEach(function (a, j) { var c = cup(a[0], a[1], a[2], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? '-14px' : '0'; cl.appendChild(c) });
+      var cl = el('span', 'g-cl'); [['cream', 62], ['ash', 78], ['clay', 48]].forEach(function (a, j) { var c = cup(a[0], a[1], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? '-14px' : '0'; cl.appendChild(c) });
       fd.appendChild(cl); fd.appendChild(el('span', 'g-dt', 'the rings and the board ↓'));
     } else { fd.classList.remove('g-door'); fd.innerHTML = fdownHTML }
   }
@@ -191,7 +190,7 @@
     for (var i = 0; i < n; i++) {
       var on = i === host.cur, k = MK[i], base = (land ? 34 : 29) * (.8 + hash(i + 50) * .45) * (on ? 1.28 : 1);
       var b = el('button', 'g-mk' + (on ? ' on' : '')); b.type = 'button'; b.setAttribute('aria-label', host.P[i].b.title + (on ? ' (in the case)' : ': bring to the case')); b.setAttribute('aria-pressed', String(on));
-      var cp = cup(k, base, (hash(i + 70) - .5) * 70, 60 + i, 'span'); cp.style.position = 'relative';
+      var cp = cup(k, base, 60 + i, 'span'); cp.style.position = 'relative';
       b.appendChild(cp); b.style.left = (sx + i * step) + 'px'; b.style.top = (sy - base * (CUT[k][1] / CUT[k][0]) * .5 - 2 - (on ? 6 : 0)) + 'px';
       b.style.width = base + 'px'; b.style.height = base + 'px';
       (function (ii) { b.addEventListener('click', function (e) { e.stopPropagation(); if (ii !== host.cur) host.cur = ii }) })(i);
@@ -210,7 +209,7 @@
       var c = s % g.cols, r = Math.floor(s / g.cols), cx = g.x0 + c * (g.iw + g.gx) + g.iw / 2, cy = g.y0 + r * (g.ih + g.lab + g.gy) + g.ih / 2;
       var k = order[(s - els.length) % order.length], wd = g.iw * (k === 'clay' ? .8 : k === 'stone' ? 1.0 : .92);
       var b = el('button', 'g-cupbtn'); b.type = 'button'; b.setAttribute('aria-label', 'the rings and the board'); place(b, cx, cy); b.style.width = g.iw + 'px'; b.style.height = g.iw + 'px'; b.style.left = (cx - g.iw / 2) + 'px'; b.style.top = (cy - g.iw / 2) + 'px';
-      var cp = cup(k, wd, (hash(s + 5) - .5) * 40, 80 + s, 'span'); cp.style.position = 'absolute'; cp.style.left = ((g.iw - wd) / 2) + 'px'; cp.style.top = ((g.iw - wd * CUT[k][1] / CUT[k][0]) / 2) + 'px';
+      var cp = cup(k, wd, 80 + s, 'span'); cp.style.position = 'absolute'; cp.style.left = ((g.iw - wd) / 2) + 'px'; cp.style.top = ((g.iw - wd * CUT[k][1] / CUT[k][0]) / 2) + 'px';
       b.appendChild(cp); b.addEventListener('click', function (e) { e.stopPropagation(); goDown(host) }); fg.appendChild(b);
     }
   }
@@ -236,7 +235,7 @@
       var sl = el(lk ? 'a' : 'span', 'g-slot' + (lk ? ' on' : ''));
       if (lk) { sl.href = 'https://www.joioco.com'; sl.target = '_blank'; sl.rel = 'noopener'; sl.setAttribute('aria-label', 'joio.co ceramics shop (opens the shop)') } else sl.setAttribute('aria-hidden', 'true');
       sl.style.left = (e.bx - 21) + 'px'; sl.style.top = (sy + 3) + 'px';
-      var k = MK[i], cw = 15 * (.85 + hash(i + 9) * .4), cp = cup(k, cw, (hash(i + 33) - .5) * 80, 120 + i, 'i'); cp.style.position = 'relative';
+      var k = MK[i], cw = 15 * (.85 + hash(i + 9) * .4), cp = cup(k, cw, 120 + i, 'i'); cp.style.position = 'relative';
       sl.appendChild(cp); fg.appendChild(sl);
       var th = el('div', 'g-thread'); th.style.left = e.bx + 'px'; th.style.top = (e.by + e.h / 2 + 3) + 'px'; th.style.height = '8px'; gal.appendChild(th);
     });

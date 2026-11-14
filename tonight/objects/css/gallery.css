@@ -1,6 +1,6 @@
 /* Objects · stills gallery takes on B (dev switch G1 / G2 / G3, preview only).
    Light is the room and the case: wall, table, frame, shelf, cast shadow. Every light layer sits behind the photographs in the stacking order,
-   and nothing here puts a filter, blend mode or tint on a photograph. The cup cutouts are photographs too: only a shadow wrapper and a slow sway around them.
+   and nothing here puts a filter, blend mode or tint on a photograph. The cup cutouts are photographs too: only a shadow wrapper around them. Every still stays upright.
    Motion is the same with Reduce Motion on: nothing here reads prefers-reduced-motion. */
 @property --k{syntax:'<number>';inherits:true;initial-value:0}
 @property --t{syntax:'<number>';inherits:true;initial-value:0}
@@ -23,10 +23,9 @@
 #front:not([class*=vG]) .gal,#front:not([class*=vG]) .gal-fg{display:none}
 #front[class*=vG] .fcap{display:none}
 
-/* the cups: a wrapper carries the shadow and a slow sway of a degree or two, each on its own clock; the cutout inside is untouched */
-.cup{position:absolute;display:block;pointer-events:none;rotate:calc(var(--r,0) * 1deg);filter:drop-shadow(0 7px 8px rgba(0,0,0,.55));animation:cupsway var(--d,19s) ease-in-out var(--ph,0s) infinite alternate;will-change:rotate}
+/* the cups: a wrapper carries the shadow only. No stills are ever tilted: no rotate, skew or 3D turn on a photograph or a cutout */
+.cup{position:absolute;display:block;pointer-events:none;filter:drop-shadow(0 7px 8px rgba(0,0,0,.55))}
 .cup img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
-@keyframes cupsway{from{rotate:calc(var(--r,0) * 1deg - 1.5deg)}to{rotate:calc(var(--r,0) * 1deg + 1.5deg)}}
 
 /* pieces in the gallery takes: square-cornered stills, no ring, no glow of their own */
 #front[class*=vG] .pc,#front[class*=vG] .disc{border-radius:2px}
