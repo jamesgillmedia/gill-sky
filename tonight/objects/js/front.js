@@ -6,6 +6,8 @@
    Scroll down for the rings and the board. Pinch in still goes through the first ring.
    Dev-only variants (../_tn/variants.js): A drift · B specimen case (one real photograph at a time in a lit case, the rest
    further back in the dark, from fable-m4/versions/objects-b) · C slow orbit, the comparison sketch Gill asked for only.
+   Dev-only gallery takes on B (preview, js/gallery.js + css/gallery.css): G1 lit case + joio circles · G2 light table · G3 shop wall.
+   Each has its own lighting picker; light only ever falls on the room and the case, never on a photograph.
    Photographs are never graded or tinted. Nothing reads prefers-reduced-motion, so the output is the same with it on. */
 (function () {
   'use strict';
@@ -50,12 +52,15 @@
   document.documentElement.setAttribute('data-tn-room', 'objects');
   var V = 'A';
   var tv = window.TNV && TNV.mount({ room: 'objects', def: 'A',
-    list: [{ k: 'A', name: 'drift' }, { k: 'B', name: 'specimen case' }, { k: 'C', name: 'slow orbit · compare only' }],
+    list: [{ k: 'A', name: 'drift' }, { k: 'B', name: 'specimen case' }, { k: 'C', name: 'slow orbit · compare only' },
+      { k: 'G1', name: 'lit case' }, { k: 'G2', name: 'light table' }, { k: 'G3', name: 'shop wall' }],
     onChange: function (v) { V = v; layout(true) } });
   if (tv) V = tv.v;
+  function isG() { return /^G[123]$/.test(V) }
+  function caseLike() { return V === 'B' || V === 'G1' }
   if (window.GJ_MARKMENU) GJ_MARKMENU.variant('objects', {
     k: 'tn.v.objects', label: 'layout', dev: 1, def: 'A',
-    seg: [['A', 'A · drift'], ['B', 'B · specimen case'], ['C', 'C · slow orbit']],
+    seg: [['A', 'A · drift'], ['B', 'B · specimen case'], ['C', 'C · slow orbit'], ['G1', 'G1 · lit case'], ['G2', 'G2 · light table'], ['G3', 'G3 · shop wall']],
     get: function () { return tv ? tv.v : V },
     apply: function (v) { if (tv) tv.set(v); else { V = v; layout(true) } }
   });
@@ -157,9 +162,12 @@
     var r = front.getBoundingClientRect(); W = r.width; H = r.height; land = W > H * 1.05 || W >= 720;
     front.className = 'v' + V + (land ? ' land' : ' port');
     var L = land ? LAY.land : LAY.port, u = land ? Math.min(H, W * .62) : Math.min(W, H * .62);
+    var GP = isG() && window.OBJ_GAL ? OBJ_GAL.plan(V, host) : null;
     els.forEach(function (e, i) {
       var l = L[i], d = l[2] * u, x = l[0] * W, y = l[1] * H, w = d, h = d, sc = 1, z = 10 - i, show = true, lab = l[3];
-      if (V === 'B') {
+      e.rot = 0;
+      if (GP) { var g = GP[i]; x = g.x; y = g.y; w = g.w; h = g.h; z = g.z; lab = g.lab; show = g.show; e.rot = g.rot || 0 }
+      else if (caseLike()) {
         var fh = land ? H * .62 : H * .46, fw = fh * .8; if (fw > W * (land ? .5 : .64)) { fw = W * (land ? .5 : .64); fh = fw / .8 }
         var k = i - cur;
         if (k === 0) { h = fh; w = fw; x = W * .5; y = land ? H * .44 : H * .40; z = 20; lab = 1 }
@@ -176,11 +184,12 @@
       e.bx = x; e.by = y; e.w = w; e.h = h; e.z = z;
       var el = e.el; el.style.width = w + 'px'; el.style.height = h + 'px'; el.style.marginLeft = (-w / 2) + 'px'; el.style.marginTop = (-h / 2) + 'px';
       el.style.zIndex = z; el.style.display = show ? '' : 'none'; el.classList.toggle('lab', !!lab);
-      el.classList.toggle('cur', V === 'B' && i === cur);
+      el.classList.toggle('cur', caseLike() && i === cur);
     });
     if (V === 'A') keepPieceGap();
     cap.textContent = V === 'B' ? (cur + 1) + ' / ' + els.length : '';
     cap.style.top = (V === 'B' ? (els[cur].by + els[cur].h / 2 + 38) : -999) + 'px';
+    if (window.OBJ_GAL) { if (isG()) OBJ_GAL.chrome(V, host); else OBJ_GAL.off() }
     drawTunnel(); tick(true);
   }
 
@@ -188,6 +197,7 @@
   function drawTunnel() {
     var dpr = Math.min(2, devicePixelRatio || 1); tun.width = Math.round(W * dpr); tun.height = Math.round(H * dpr);
     var g = tun.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    if (isG()) return;
     var h0 = els[0], cx = h0.bx, cy = h0.by, R0 = h0.w / 2;
     if (V === 'B') { cx = W * .5; cy = (land ? H * .40 : H * .36); R0 = Math.min(W, H) * .2 }
     /* shaft */
@@ -222,9 +232,9 @@
       if (V === 'C' && i > 0) { /* comparison only: the pieces go slowly round the hero (90 s a turn) */
         var a0 = (i - 1) / (els.length - 1) * Math.PI * 2 + ang, rx = W * (land ? .34 : .40), ry = H * (land ? .34 : .30), hy = H * (land ? .48 : .42);
         x = W * .5 + Math.cos(a0) * rx; y = hy + Math.sin(a0) * ry; sc = .78 + .22 * (Math.sin(a0) + 1) / 2; e.el.style.zIndex = Math.round(sc * 30); live = true }
-      if (V !== 'B' && ptr) { var vx = x - ptr.x, vy = y - ptr.y, dd = Math.hypot(vx, vy) || 1, k = 14 * DEPTH[i] * Math.exp(-dd / (M * .55)); tx = vx / dd * k; ty = vy / dd * k }
+      if ((V === 'A' || V === 'C') && ptr) { var vx = x - ptr.x, vy = y - ptr.y, dd = Math.hypot(vx, vy) || 1, k = 14 * DEPTH[i] * Math.exp(-dd / (M * .55)); tx = vx / dd * k; ty = vy / dd * k }
       e.ox += (tx - e.ox) * .12; e.oy += (ty - e.oy) * .12; if (Math.abs(tx - e.ox) > .05 || Math.abs(ty - e.oy) > .05) live = true;
-      e.el.style.transform = 'translate3d(' + (x + e.ox).toFixed(2) + 'px,' + (y + e.oy).toFixed(2) + 'px,0) scale(' + sc.toFixed(3) + ')';
+      e.el.style.transform = 'translate3d(' + (x + e.ox).toFixed(2) + 'px,' + (y + e.oy).toFixed(2) + 'px,0) scale(' + sc.toFixed(3) + ')' + (e.rot ? ' rotate(' + e.rot.toFixed(2) + 'deg)' : '');
     });
     if (live) raf = requestAnimationFrame(step);
   }
@@ -232,13 +242,13 @@
   var down = null;
   front.addEventListener('pointerdown', function (e) { ptr = at(e); down = { x: e.clientX, y: e.clientY, t: Date.now() }; moved = false; tick() });
   front.addEventListener('pointermove', function (e) { if (e.pointerType === 'mouse' || down) { ptr = at(e); if (down && Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) moved = true; tick() } });
-  function lift(e) { if (down && V === 'B' && moved) { var dx = e.clientX - down.x; if (Math.abs(dx) > 40) { cur = Math.max(0, Math.min(els.length - 1, cur + (dx < 0 ? 1 : -1))); layout() } }
+  function lift(e) { if (down && caseLike() && moved) { var dx = e.clientX - down.x; if (Math.abs(dx) > 40) { cur = Math.max(0, Math.min(els.length - 1, cur + (dx < 0 ? 1 : -1))); layout() } }
     down = null; if (e.pointerType !== 'mouse') ptr = null; tick(); setTimeout(function () { moved = false }, 0) }
   front.addEventListener('pointerup', lift); front.addEventListener('pointercancel', lift);
   front.addEventListener('pointerleave', function () { ptr = null; tick() });
   /* B: a tap on a case further back brings it forward; a tap on the one in front opens it */
-  fx.addEventListener('click', function (e) { if (V !== 'B') return; var b = e.target.closest('.pc'); if (!b) return; var i = els.findIndex(function (x) { return x.el === b }); if (i !== cur) { e.preventDefault(); e.stopImmediatePropagation(); cur = i; layout() } }, true);
-  addEventListener('keydown', function (e) { if (V !== 'B' || !document.body.classList.contains('at-board') || boardEl.scrollTop > 40) return;
+  fx.addEventListener('click', function (e) { if (!caseLike()) return; var b = e.target.closest('.pc'); if (!b) return; var i = els.findIndex(function (x) { return x.el === b }); if (i !== cur) { e.preventDefault(); e.stopImmediatePropagation(); cur = i; layout() } }, true);
+  addEventListener('keydown', function (e) { if (!caseLike() || !document.body.classList.contains('at-board') || boardEl.scrollTop > 40) return;
     if (e.key === 'ArrowRight' && cur < els.length - 1) { cur++; layout(); e.stopImmediatePropagation() } else if (e.key === 'ArrowLeft' && cur > 0) { cur--; layout(); e.stopImmediatePropagation() } }, true);
   addEventListener('resize', function () { layout(true) });
 
@@ -256,5 +266,11 @@
   addEventListener('keydown', function (e) { if (e.key === 'Escape' && atFront() && !e.defaultPrevented) { var o = window.__objc; if (o && o.S && o.S.lv === 'board') { e.stopImmediatePropagation(); e.preventDefault(); toSky() } } }, true);
   window.__front = { get v() { return V }, set: function (v) { tv ? tv.set(v) : (V = v, layout()) }, get cur() { return cur }, layout: layout, toSky: toSky, atFront: atFront,
     pieces: function () { return els.map(function (e, i) { var r = e.el.getBoundingClientRect(); return { t: P[i].b.title, x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height } }) } };
+  var host = {
+    front: front, fx: fx, els: els, P: P, board: boardEl, fdown: $('fdown'), cap: cap,
+    get W() { return W }, get H() { return H }, get land() { return land },
+    get cur() { return cur }, set cur(i) { cur = i; layout() },
+    open: openPiece, relayout: function () { layout(true) }
+  };
   requestAnimationFrame(function () { layout(true) });
 })();
