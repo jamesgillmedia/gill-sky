@@ -69,7 +69,7 @@ function pump() {
 
 /* ---------- layout ---------- */
 /* Beyond: when active the whole field is laid out continuously in rank order (best match first). Selection only: no frame is ever filtered or tinted. */
-let bperm = null, bsw = null, swPush = 0, bgal = 0;
+let bperm = null, bgal = 0;
 const GK = 2.4;   // gallery tiles are this much larger than field tiles
 const kk = g => (L && L.k ? L.k[g] : 1);
 function build(cols) {
@@ -118,7 +118,7 @@ function layout() {
     const l = build(c); const d = Math.abs(Math.log((l.W / l.H) / a));
     if (d < bd) { bd = d; best = l; }
   }
-  L = best; bsw = null;
+  L = best;
 }
 function fitS() { const fv = apFit(); return Math.min(fv.w / L.W, fv.h / L.H); }
 function minS() { return fitS() * 0.85; }
@@ -182,8 +182,7 @@ function draw() {
   want.length = 0;
   cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   cx.fillStyle = '#0a0b0d'; cx.fillRect(0, 0, vw, vh);
-  const pk = 1 + .03 * swPush;   // a Beyond swap breathes in along Z on the site spring
-  const lay = f => cx.setTransform(dpr * pk, 0, 0, dpr * pk, Math.round((dr.x.x * f + vw / 2 * (1 - pk)) * dpr), Math.round((dr.y.x * f + vh / 2 * (1 - pk)) * dpr)); lay(1);
+  const lay = f => cx.setTransform(dpr, 0, 0, dpr, Math.round(dr.x.x * f * dpr), Math.round(dr.y.x * f * dpr)); lay(1);
   cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
   const bw = CW * s, bh = CH * s, dev = bw * dpr;
   const tier = dev <= 100 ? 0 : dev <= 300 ? 1 : 2;
@@ -345,13 +344,6 @@ function eyeTick(dt, now) {
 let dlt = 0;
 function loop(t) {
   const ddt = Math.min(.05, Math.max(.001, (t - dlt) / 1000)); dlt = t;
-  if (bsw) {
-    sstep(bsw.sp, ddt); const u = bsw.sp.x, f = bsw.from, to = bsw.to, r = L.r;
-    for (let i = 0; i < r.length; i++) r[i] = f[i] + (to[i] - f[i]) * u;
-    for (let i = 0; i < L.k.length; i++) L.k[i] = bsw.fromK[i] + (bsw.toK[i] - bsw.fromK[i]) * u;
-    swPush = Math.sin(Math.PI * clampN(u, 0, 1)); dirty = true;
-    if (Math.abs(u - 1) < .002 && Math.abs(bsw.sp.v) < .002) { r.set(to); L.k.set(bsw.toK); bsw = null; swPush = 0; }
-  }
   eyeTick(ddt, t);
   if (Math.abs(dr.x.x) + Math.abs(dr.y.x) + Math.abs(dr.x.t) + Math.abs(dr.y.t) + Math.abs(dr.x.v) + Math.abs(dr.y.v) > .004) { sstep(dr.x, ddt); sstep(dr.y, ddt); dirty = true; }
   if (anim) anim(t);
@@ -370,12 +362,11 @@ function applyBeyond() {
   const np = Bd.active ? Bd.order() : null, ng = np ? Bd.gallery : 0;
   if (!np && !bperm) return;
   if (np && bperm && ng === bgal && np.every((g, i) => g === bperm[i])) return;
-  const old = L.r.slice(), oldK = L.k.slice(), ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
+  const ctr = cur >= 0 ? cur : centreFrame(), fitted = s <= fitS() * 1.05;
   bperm = np; bgal = ng; layout();
-  if (bgal) frameGallery(!RM.matches);
-  else if (!np) fit(!RM.matches);   // Off returns the full field
+  if (bgal) frameGallery(false);   // the gallery simply appears, framed
+  else if (!np) fit(false);        // Off returns the full field
   else if (fitted) fit(false); else go(s, L.r[ctr * 2] + CW * kk(ctr) / 2 - vw / 2 / s, L.r[ctr * 2 + 1] + CH * kk(ctr) / 2 - vh / 2 / s, false);
-  if (old.length === L.r.length && !RM.matches) { bsw = { from: old, fromK: oldK, to: L.r.slice(), toK: L.k.slice(), sp: S(0, 4.6) }; bsw.sp.t = 1; L.r.set(old); L.k.set(oldK); }
   dirty = true;
 }
 
@@ -425,7 +416,7 @@ function driftKick(dx, dy) {
   dvx = dvx * .6 + (dx / dt) * .4; dvy = dvy * .6 + (dy / dt) * .4;
   dr.x.t = Math.max(-DRIFT_MAX, Math.min(DRIFT_MAX, -dvx * .012)); dr.y.t = Math.max(-DRIFT_MAX, Math.min(DRIFT_MAX, -dvy * .012)); dr.x.w = dr.y.w = 9.5; dirty = true;
 }
-function driftRest() { dvx = dvy = 0; dr.x.t = dr.y.t = 0; dr.x.w = dr.y.w = 3.2; dirty = true; }
+function driftRest() { dvx = dvy = 0; dr.x.t = dr.y.t = 0; dr.x.w = dr.y.w = 8; dirty = true; }
 function up(e) {
   if (!P.has(e.pointerId)) return;
   P.delete(e.pointerId); vp.classList.remove('drag'); if (!P.size) driftRest();
@@ -463,7 +454,8 @@ const chrome = [...lt.querySelectorAll('.lt-ch')];
 const outside = ['.top', '.films', '.corner', '#vp'].map(q => document.querySelector(q));
 let pushed = false, closing = null;
 const TAN30 = Math.tan(Math.PI / 6);                       // FOV 60 (site-3d PerspectiveCamera)
-const WTS = () => RM.matches ? { REL: 14, FLY: 9, GLIDE: 8, SOFT: 6 } : { REL: 9.5, FLY: 5.6, GLIDE: 4.6, SOFT: 3.2 };
+/* calm: critically damped (no overshoot) and quick, so things settle in a third of a second instead of travelling */
+const WTS = () => RM.matches ? { REL: 22, FLY: 22, GLIDE: 22, SOFT: 22 } : { REL: 16, FLY: 16, GLIDE: 14, SOFT: 12 };
 function S(x, w) { return { x, t: x, v: 0, w }; }
 function sstep(q, dt) { const w = q.w, e = q.x - q.t, k = Math.exp(-w * dt), c = q.v + w * e; q.x = q.t + (e + c * dt) * k; q.v = (q.v - w * c * dt) * k; }
 const YAW = .026, PIT = .026, ZMIN = .75, ZMAX = 2.2;   // the most the plane ever leans (about 1.5 degrees); fitScale keeps it framed
@@ -472,8 +464,6 @@ const cam = { yaw: S(0, 9.5), pit: S(0, 9.5), tx: S(0, 9.5), ty: S(0, 9.5), zoom
 let uy = 0, upv = 0, lastIn = 0, interacting = false, ent = null, bgA = 0, chA = 0, rect = null, roomT = 0, wheelT = 0;
 const clampN = (v, a, b) => Math.min(b, Math.max(a, v));
 const easeOut3 = u => 1 - Math.pow(1 - u, 3), easeIO3 = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
-// fable-m4 depth.js push, peak scaled down from its 1.1 knee so the frame arrives with a breath, not a jolt
-function bump(e) { const f = e < .38 ? 1 + .1 * (1 - Math.pow(1 - e / .38, 2)) : 1.1 - .1 * easeOut3((e - .38) / .62); return 1 + (f - 1) * .5; }
 
 function fitScale(w, h, P, aw, ah) {   // scale so the worst clamped orbit corner still sits inside the room
   let worst = 1;
@@ -505,10 +495,9 @@ function placeLift(animate, origin) {
   fig.style.width = rect.w + 'px'; fig.style.height = rect.h + 'px';
   fig.style.transform = `translate(${rect.x}px,${rect.y}px)`;
   if (animate && !RM.matches && origin) {
-    ent = { t0: performance.now(), dur: 960, r: .06, dx: origin.x - vw / 2, dy: origin.y - vh / 2, out: false };   // grows out of the star you tapped
   } else if (animate && !RM.matches) {
     const bw = CW * s * kk(cur), bh = CH * s * kk(cur);
-    ent = { t0: performance.now(), dur: 960, r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(cur) + bw / 2 - vw / 2, dy: wyS(cur) + bh / 2 - vh / 2, out: false };
+    ent = { t0: performance.now(), dur: 260, r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(cur) + bw / 2 - vw / 2, dy: wyS(cur) + bh / 2 - vh / 2, out: false };
   }
   roomPaint(0);
 }
@@ -554,8 +543,8 @@ function closeLift(fromPop, toCentre) {
   setInert(false);
   const bw = CW * s * kk(g), bh = CH * s * kk(g);
   if (RM.matches || !rect) { lt.hidden = true; ent = null; return; }
-  closing = { t0: performance.now(), dur: 520, keepBg: !!toCentre };      // contract: same push in reverse, r10 cubic ease-in-out
-  ent = toCentre ? { r: .05, dx: 0, dy: 0, out: true } : { r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(g) + bw / 2 - vw / 2, dy: wyS(g) + bh / 2 - vh / 2, out: true };
+  closing = { t0: performance.now(), dur: toCentre ? 180 : 220, keepBg: !!toCentre };   // short and plain
+  ent = toCentre ? null : { r: Math.min(bw / rect.w, bh / rect.h), dx: wxS(g) + bw / 2 - vw / 2, dy: wyS(g) + bh / 2 - vh / 2, out: true };
   wake();
 }
 
@@ -566,7 +555,7 @@ function roomPaint(e) {
   let pre = '';
   if (ent) {
     const k = e;
-    const sc = (ent.r + (1 - ent.r) * k) * (ent.out ? 1 : bump(k));
+    const sc = ent.r + (1 - ent.r) * k;
     pre = `translate3d(${ent.dx * (1 - k)}px,${ent.dy * (1 - k)}px,0) scale(${sc}) `;
   }
   box.style.transform = `${pre}translate3d(${cam.tx.x.toFixed(2)}px,${cam.ty.x.toFixed(2)}px,0) perspective(${P}px) translateZ(${dz}px) rotateX(${cam.pit.x}rad) rotateY(${cam.yaw.x}rad)`;
@@ -584,11 +573,11 @@ function roomTick(t) {
     if (RM.matches) cam.yaw.t = cam.pit.t = cam.tx.t = cam.ty.t = 0;
     sstep(cam.yaw, dt); sstep(cam.pit, dt); sstep(cam.tx, dt); sstep(cam.ty, dt); sstep(cam.zoom, dt);
     bgA = lag(bgA, 1, rm ? 22 : 14, dt);
-    chA = lag(chA, interacting ? .22 : 1, rm ? 22 : 3.4, dt);
+    chA = lag(chA, interacting ? .22 : 1, 14, dt);
     if (ent && !ent.out) { const u = Math.min(1, (t - ent.t0) / ent.dur); ent.e = easeOut3(u); if (u >= 1) ent = null; }
     roomPaint(ent ? ent.e : 1);
   } else if (closing) {
-    const u = Math.min(1, (t - closing.t0) / closing.dur), e = 1 - easeIO3(u);
+    const u = Math.min(1, (t - closing.t0) / closing.dur), e = 1 - easeOut3(u);
     if (!closing.keepBg) bgA = lag(bgA, 0, 14, dt); chA = lag(chA, 0, 14, dt);
     roomPaint(e);
     if (u >= 1) { closing = null; ent = null; lt.hidden = true; bgA = chA = 0; }
@@ -671,7 +660,7 @@ const cst = Constellation({
   label: i => pad4(F[cstSet[i]].n),
   thumb: i => { const x = F[cstSet[i]]; return 'media/s/' + films[x.f].slug + '/' + x.id + '.webp'; },
   hint: 'pinch in or tap a star to go back in \u00b7 esc to return',
-  onReturn: (i, sx, sy) => { const g = cstSet[i]; openLift(g, true, true, { x: sx, y: sy }); pushed = true; },
+  onReturn: i => { const g = cstSet[i]; openLift(g, false, true); pushed = true; },
   onLeave: () => { setInert(false); }
 });
 function enterCst() {
@@ -794,6 +783,6 @@ fetch('data/index.json').then(r => r.json()).then(d => {
   requestAnimationFrame(loop);
 });
 addEventListener('resize', resize);
-window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6), swapping: () => !!bsw || !!anim, gallery: () => (L && L.gal ? { n: L.gal.n, ids: bperm.slice(0, 4), k: kk(bperm[0]) } : null) };
+window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()], perm: () => bperm && bperm.slice(0, 6), swapping: () => !!anim, gallery: () => (L && L.gal ? { n: L.gal.n, ids: bperm.slice(0, 4), k: kk(bperm[0]) } : null) };
 if (document.fonts) document.fonts.ready.then(() => { dirty = true; });
 })();

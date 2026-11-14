@@ -54,7 +54,7 @@ const near = (a, b, t = 1.6) => Math.abs(a - b) <= t;
     ok(M.sw <= vw + 1, tag + ': no horizontal overflow');
     // the open dial
     await p.evaluate(() => document.querySelector('.bd-hub').click()); await sleep(900);
-    for (let i = 0; i < 60; i++) { const sc = await p.evaluate(() => { const m = /scale\(([\d.]+)\)/.exec(document.querySelector('.bd-dial').style.transform); return m ? +m[1] : 0; }); if (sc > .985) break; await sleep(200); }
+    for (let i = 0; i < 60; i++) { const sc = await p.evaluate(() => +document.querySelector('.bd-dial').style.opacity || 0); if (sc > .985) break; await sleep(200); }
     const D = await p.evaluate(() => { const b = document.querySelector('.bd-body').getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom }; });
     ok(D.l >= sa.left - .5 && D.r <= vw - sa.right + .5 && D.t >= sa.top - .5 && D.b <= vh - sa.bottom + .5, tag + ': the open dial is not clipped (' + [D.l, D.t, D.r, D.b].map(v => v.toFixed(0)).join(',') + ' in ' + vw + 'x' + vh + ')');
     if (SHOTS) await p.screenshot({ path: SHOTS + '/' + TAG + '-' + name.replace(/[^a-z0-9]+/gi, '-') + (red ? '-red' : '-night') + '.png' });

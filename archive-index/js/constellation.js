@@ -104,7 +104,7 @@
       var Z = c.s / fitS, gz = clamp(Math.pow(Z, .35), 1, 2.4), scale = heavy ? .62 : 1;
       for (i = 0; i < n; i++) {
         s = stars[i]; if (s.sx < -60 || s.sx > W + 60 || s.sy < -60 || s.sy > H + 60) continue;
-        var on = s.i === sel, pulse = heavy && !on ? 1 : 1 + .07 * Math.sin(t / 900 + s.ph);
+        var on = s.i === sel, pulse = 1;   // calm: the stars hold still
         var tint, core, depth = red ? (.55 + .9 * s.d) : 1;
         if (red) { tint = [Math.round(lerp(96, 255, s.d)), Math.round(lerp(14, 62, s.d)), Math.round(lerp(24, 80, s.d))]; core = 'rgb(' + Math.round(lerp(170, 255, s.d)) + ',' + Math.round(lerp(52, 150, s.d)) + ',' + Math.round(lerp(60, 156, s.d)) + ')'; }
         else { tint = s.tone < .3 ? [205, 225, 255] : s.tone < .7 ? [225, 232, 250] : [250, 236, 222]; core = '#fff'; }
@@ -137,7 +137,7 @@
       var dt = Math.min(.05, Math.max(.001, (n - lastT) / 1000)); lastT = n;
       if (!drag) { sstep(lxS, dt); sstep(lyS, dt); }
       sstep(cxS, dt); sstep(cyS, dt); sstep(csS, dt);
-      op = op + ((closing ? 0 : 1) - op) * (1 - Math.exp(-dt * (closing ? 5 : 14)));
+      op = op + ((closing ? 0 : 1) - op) * (1 - Math.exp(-dt * 14));
       el.style.opacity = op > .995 ? 1 : op.toFixed(3);
       var live = Math.abs(csS.x - csS.t) > .0004 * csS.t || Math.abs(csS.v) > .002 || Math.abs(cxS.x - cxS.t) > .01 || Math.abs(lxS.x - lxS.t) > .01 || !!drag || Math.abs(op - (closing ? 0 : 1)) > .003;
       if (live || !heavy || n - lastDraw > 120) { draw(n); lastDraw = n; }
@@ -153,15 +153,15 @@
         if (shown && !closing) return;
         layout(); fit(); clearTimeout(hideT); closing = false; fired = false; sel = clamp(selected | 0, 0, stars.length - 1);
         var st = stars[sel];
-        aim(cxS, st.x, true); aim(cyS, st.y, true); aim(csS, fitS * ZIN, true); aim(lxS, 0, true); aim(lyS, 0, true);
+        aim(cxS, 0, true); aim(cyS, 0, true); aim(csS, fitS, true); aim(lxS, 0, true); aim(lyS, 0, true);   // it simply appears, no fly-in
         count.textContent = stars.length.toLocaleString('en-US') + (stars.length === 1 ? ' item' : ' items');
         shown = true; el.hidden = false; op = 0; el.style.opacity = 0; thumbFor = -1; draw(performance.now());
-        aim(cxS, 0); aim(cyS, 0); aim(csS, fitS); run();
+        run();
         el.focus({ preventScroll: true });
       },
       returnTo: function (i) {
         if (!shown || closing) return; closing = true; var st = stars[i]; sel = i;
-        aim(cxS, st.x); aim(cyS, st.y); aim(csS, fitS * ZIN); run();
+        run();
         opt.onReturn(i, st.sx, st.sy);
       },
       leave: function () { if (!shown || closing) return; closing = true; run(); if (opt.onLeave) opt.onLeave(); },
