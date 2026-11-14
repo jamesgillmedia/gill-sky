@@ -1,8 +1,12 @@
 /* Objects · stills gallery takes on variant B (preview only, dev switch G1 / G2 / G3).
-   G1 lit case      B's case on a shelf. Gill's own joio cups, seen from above and cut out of his photographs, stand on the shelf as
-                    markers and make the way down to the rings and the board. A light picker: warm key, soft top, gallery spot, window.
+   G1 lit case      B's case on a shelf, the rail of cut-out objects standing on the shelf. A light picker: warm key, soft top, gallery spot, window.
    G2 light table   the stills laid out like a contact sheet on a lightbox, cups from above lying on the table. Four light presets.
    G3 shop wall     the stills hung on a wall under three adjustable spots; under every piece an empty shop slot (no invented prices or titles).
+
+   The rail (all three takes) is the horizontal track of Gill's cut-out objects: joio cups from above and paddles, each cut from one of his own photographs
+   (media/cut/cuts.js says which). Tap an object and the photograph it was cut from opens beside it in the rail, with "cut from" and the room it belongs to;
+   tap the photograph's piece in the gallery and its object is revealed. The rail is a native scroller: touch swipe with iOS momentum, trackpad, and the
+   vertical mouse wheel mapped to horizontal; it never traps the page (at either end the wheel goes on to the page) and has no scrollbar.
 
    Light is only ever the room and the case: the wall, the table, the frame, the shelf and the cast shadows. It is drawn behind the photographs;
    nothing is laid over a photograph, no filter, no blend mode, no tint. The cups are cutouts (alpha only, _build/cutout_joio.py); their pixels are the photographs' own.
@@ -12,9 +16,14 @@
    Host contract (js/front.js): OBJ_GAL.plan(V, host) -> boxes for G2 / G3; OBJ_GAL.chrome(V, host) after every layout; OBJ_GAL.off() when another variant is chosen. */
 (function () {
   'use strict';
-  var CUT = { top: [640, 617], ash: [501, 501], clay: [354, 347], ash2: [504, 500], stone: [640, 539], cream: [430, 441] };
-  var CUP_LABEL = { top: 'joio.co cup from above', ash: 'ashy bowl from above', clay: 'unfired clay cup from above', ash2: 'ashy bowl, second shot', stone: 'wide grey bowl from above', cream: 'cream-glazed cup from above' };
-  var MK = ['top', 'cream', 'ash', 'clay', 'stone', 'ash2', 'cream', 'top'];
+  var OBJS = window.OBJ_CUTS || [], CUT = {}, BYK = {};
+  OBJS.forEach(function (o) { CUT[o.k] = [o.w, o.h]; BYK[o.k] = o });
+  /* the rail alternates cups and paddles; anything not listed follows in file order */
+  var ORDER = ['top', 'pd-product', 'cream', 'ash', 'pd-wall-a', 'clay', 'stone', 'pd-brown', 'ash2', 'pd-wall-b'];
+  OBJS = ORDER.map(function (k) { return BYK[k] }).filter(Boolean).concat(OBJS.filter(function (o) { return ORDER.indexOf(o.k) < 0 }));
+  var RING = {};
+  (window.OBJ_C && OBJ_C.rings || []).forEach(function (g) { RING[g.id] = g.title });
+  var sel = null, railLeft = 0, lastCur = -1;
   var gal = null, fg = null, ui = {}, curV = null, savedPl = null, fdownHTML = null, hostRef = null, scrollBound = false;
 
   function hash(n) { var x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x) }
@@ -112,6 +121,7 @@
       frozen.forEach(function (a) { try { a.play() } catch (e) { } }); frozen = [];
       mediaPaused.forEach(function (m) { try { var pr = m.play(); if (pr && pr.catch) pr.catch(function () { }) } catch (e) { } }); mediaPaused = [];
     }
+    if (on && railEl) { try { railEl.scrollTo({ left: railEl.scrollLeft, behavior: 'auto' }) } catch (e) { } }
     paintStop(); stopFns.forEach(function (fn) { try { fn(stopped) } catch (e) { } });
   }
   function ensureStop(host) {
@@ -135,7 +145,8 @@
   /* ---------------- plans: where every still goes ----------------
      Gill's layout rule: photos never overlap, never touch each other (GUTTER apart, always) and never touch or clip into the screen edges
      (EDGE from the viewport and from the safe-area insets). Everything below is laid out from those two numbers. */
-  var GUTTER = 12, EDGE = 12, DOOR_H = 104;
+  var GUTTER = 12, EDGE = 12;
+  function railH(H) { return H < 500 ? 60 : 96 }
   function safe() {
     var q = qs('safe');
     if (q) { var a = q.split(',').map(Number); if (a.length === 4 && a.every(isFinite)) return { t: a[0], r: a[1], b: a[2], l: a[3] } }
@@ -144,17 +155,15 @@
   }
   function plan(V, host) {
     var W = host.W, H = host.H, land = host.land, n = host.els.length, out = [], i, sf = safe(), short = H < 500;
-    var L = sf.l + EDGE, R = W - sf.r - EDGE, TOPR = (short ? 80 : 92) + sf.t, BOTR = (short ? 50 : 58) + sf.b;
-    host._safe = sf;
+    var L = sf.l + EDGE, R = W - sf.r - EDGE, TOPR = (short ? 80 : 92) + sf.t, BOTR = (short ? 50 : 58) + sf.b, RH = railH(H), BOTRR = BOTR + RH + GUTTER;
+    host._safe = sf; host._rail = { l: L, r: R, top: H - BOTR - RH, h: RH };
     if (V === 'G1') {
-      var cur = host.cur, pad = land ? 16 : 12;
-      var mAvail = land ? Math.min(W * .56, W - 2 * (Math.max(W * .05, 12 + sf.r) + 212 + GUTTER * 2)) : R - L, mM = Math.max(14, Math.min(land ? 36 : 34, (mAvail - 7 * GUTTER) / 8));
-      var below = 46 + mM + 12, door = land ? 0 : DOOR_H + 10 + 8 + sf.b;
-      var fh = Math.min(land ? .62 * H : .46 * H, H - TOPR - pad - below - Math.max(door, land ? sf.b + 8 : 0) - 6);
+      var cur = host.cur, pad = land ? 16 : 12, zone = 50;
+      var fh = Math.min(land ? .62 * H : .46 * H, H - TOPR - pad - zone - BOTRR - 6);
       var fw = Math.min(fh * .8, (R - L) * (land ? .5 : .52)); fh = fw / .8;
-      var extra = Math.max(0, H - TOPR - pad - below - Math.max(door, land ? sf.b + 8 : 0) - 6 - fh);
+      var extra = Math.max(0, H - TOPR - pad - zone - BOTRR - 6 - fh);
       var ct = TOPR + pad + extra * .35, cx = (L + R) / 2, cy = ct + fh / 2;
-      host._g1 = { cx: cx, ct: ct, fh: fh, fw: fw, pad: pad, below: below, m: mM, mSpan: mAvail };
+      host._g1 = { cx: cx, ct: ct, fh: fh, fw: fw, pad: pad };
       for (i = 0; i < n; i++) out.push({ x: cx, y: cy, w: fw, h: fh, z: 0, lab: 0, show: false });
       out[cur] = { x: cx, y: cy, w: fw, h: fh, z: 20, lab: 1, show: true };
       [1, -1].forEach(function (sd) {
@@ -171,7 +180,7 @@
     }
     if (V === 'G2') {
       var cols = land ? 5 : 3, rows = land ? 2 : 3, pxl = Math.max(12, sf.l + EDGE), pxr = Math.max(12, sf.r + EDGE), pd = land ? (short ? 12 : 26) : 14, hd = short ? 18 : 24, lab = 18, gap = GUTTER;
-      var pw = W - pxl - pxr, ph = H - TOPR - BOTR, aw = pw - 2 * pd, ah = ph - 2 * pd - hd;
+      var pw = W - pxl - pxr, ph = H - TOPR - BOTRR, aw = pw - 2 * pd, ah = ph - 2 * pd - hd;
       var ih = (ah - rows * lab - (rows - 1) * gap) / rows, iw = Math.min((aw - (cols - 1) * gap) / cols, ih * .8); ih = iw / .8;
       var gx = Math.min((aw - cols * iw) / Math.max(1, cols - 1), iw * .55), gy = Math.min((ah - rows * (ih + lab)) / Math.max(1, rows - 1), 26);
       var tw = cols * iw + (cols - 1) * gx, th = rows * (ih + lab) + (rows - 1) * gy;
@@ -185,7 +194,7 @@
     }
     /* G3: salon hang in rows. Each row's cells share one width; a piece is a little smaller than its cell by a fixed, varied share,
        so the hang is not a grid but nothing ever touches. Under every piece: a thread and the shop slot (34px). */
-    var rowsCfg = land ? [4, 4] : [3, 2, 3], tp = (land ? TOPR + (short ? 14 : 0) : 108 + sf.t), wy = tp, wh = H - tp - BOTR, SLOT = 34;
+    var rowsCfg = land ? [4, 4] : [3, 2, 3], tp = (land ? TOPR + (short ? 14 : 0) : 108 + sf.t), wy = tp + 12, wh = H - wy - BOTRR, SLOT = 34;
     var maxc = Math.max.apply(null, rowsCfg), cw = (R - L - (maxc - 1) * GUTTER) / maxc, rh = wh / rowsCfg.length;
     var share = [1, .9, .96, .86, .93, 1, .88, .95], idx = 0;
     rowsCfg.forEach(function (cnt, r) {
@@ -196,7 +205,7 @@
         out.push({ x: rx + c * (cw + GUTTER) + cw / 2, y: wy + r * rh + slack / 2 + jit + h / 2, w: w, h: h, z: 10, lab: 0, show: true });
       }
     });
-    host._g3 = { top: wy, bottom: wy + wh };
+    host._g3 = { top: tp, bottom: wy + wh };
     return out;
   }
 
@@ -206,8 +215,14 @@
     gal = el('div', 'gal'); gal.setAttribute('aria-hidden', 'true'); host.front.insertBefore(gal, host.fx);
     fg = el('div', 'gal-fg'); host.front.insertBefore(fg, host.fx.nextSibling);
     ['pointerdown', 'pointermove', 'pointerup'].forEach(function (t) { fg.addEventListener(t, function (e) { e.stopPropagation() }) });
+    /* a photograph that has an object cut from it: the first tap reveals the object in the rail, the next tap opens the piece as before (G1 does this with its case) */
+    host.fx.addEventListener('click', function (e) {
+      if (curV !== 'G2' && curV !== 'G3') return;
+      var b = e.target.closest('.pc'); if (!b) return;
+      var i = host.els.findIndex(function (x) { return x.el === b }), o = i >= 0 ? pairOfPiece(host, i) : null;
+      if (o && sel !== o.k) { e.preventDefault(); e.stopImmediatePropagation(); selectPair(host, o.k, true) }
+    }, true);
   }
-  function goDown(host) { var r = document.getElementById('rings'), t = r ? r.closest('section') : null; if (t) host.board.scrollTo({ top: t.offsetTop - 60, behavior: 'smooth' }) }
   function setLabels(host, mode) {
     host.els.forEach(function (e, i) {
       var pl = e.el.querySelector('.pl'); if (!pl) return;
@@ -222,6 +237,8 @@
     var entering = curV !== V;
     if (entering) { curV = V; if (!ST[V]) ST[V] = loadState(V); makePicker(V, host) }
     gal.innerHTML = ''; fg.innerHTML = '';
+    if (V === 'G1' && host.cur !== lastCur) { lastCur = host.cur; var po = pairOfPiece(host, lastCur); if (po) sel = po.k; else if (sel && pieceOfPair(host, BYK[sel]) >= 0) sel = null }
+    if (!chrome.seeded) { chrome.seeded = true; var q = qs('pair'); if (q && BYK[q]) sel = q }
     var W = host.W, H = host.H, land = host.land, els = host.els;
     gal.className = 'gal ' + V.toLowerCase(); fg.className = 'gal-fg ' + V.toLowerCase();
     host.front.style.setProperty('--g-sb', (host._safe ? host._safe.b : 0) + 'px'); host.front.style.setProperty('--g-sr', (host._safe ? host._safe.r : 0) + 'px'); document.documentElement.style.setProperty('--g-st', (host._safe ? host._safe.t : 0) + 'px');
@@ -230,6 +247,7 @@
     if (V === 'G1') chromeG1(host, W, H, land, els);
     else if (V === 'G2') chromeG2(host, W, H, land, els);
     else chromeG3(host, W, H, land, els);
+    buildRail(host); syncPairs(host);
     if (entering) {
       ['--k', '--t', '--s', '--w', '--lit', '--s1', '--s2', '--s3'].forEach(function (p) { host.front.style.setProperty(p, 0) });
       host.front.classList.remove('g-enter'); if (!stopped) { void host.front.offsetWidth; host.front.classList.add('g-enter') }
@@ -239,11 +257,7 @@
     syncUI(V, host);
     if (!scrollBound) { scrollBound = true; host.board.addEventListener('scroll', function () { if (curV && hostRef) syncUI(curV, hostRef) }, { passive: true }) }
     var fd = host.fdown; if (fdownHTML == null) fdownHTML = fd.innerHTML;
-    if (V === 'G1') {
-      fd.innerHTML = ''; fd.classList.add('g-door');
-      var cl = el('span', 'g-cl'); (W < 400 ? [['cream', 54], ['ash', 66], ['clay', 42]] : [['cream', 62], ['ash', 78], ['clay', 48]]).forEach(function (a, j) { var c = cup(a[0], a[1], 40 + j, 'span'); c.style.position = 'relative'; c.style.marginLeft = j ? GUTTER + 'px' : '0'; cl.appendChild(c) });
-      fd.appendChild(cl); fd.appendChild(el('span', 'g-dt', 'the rings and the board ↓'));
-    } else { fd.classList.remove('g-door'); fd.innerHTML = fdownHTML }
+    fd.classList.remove('g-door'); fd.innerHTML = fdownHTML;
   }
 
   function lights(V) {
@@ -255,21 +269,67 @@
   /* ---- G1 ---- */
   function chromeG1(host, W, H, land, els) {
     lights('G1');
-    var g = host._g1, c = els[host.cur], pad = g.pad;
+    var g = host._g1, c = els[host.cur], pad = g.pad, rl = host._rail;
     var cs = el('div', 'g-case'); cs.style.left = (c.bx - c.w / 2 - pad) + 'px'; cs.style.top = (c.by - c.h / 2 - pad) + 'px'; cs.style.width = (c.w + 2 * pad) + 'px'; cs.style.height = (c.h + 2 * pad) + 'px';
     gal.appendChild(cs);
-    var sy = g.ct + g.fh + 46 + g.m;
-    var sh = el('div', 'g-shelf'); sh.style.top = sy + 'px'; sh.style.left = Math.max(0, g.cx - g.mSpan / 2 - 10) + 'px'; sh.style.width = Math.min(W, g.mSpan + 20) + 'px'; gal.appendChild(sh);
-    gal.appendChild(Object.assign(el('div', 'g-pool'), { style: 'left:' + (c.bx - c.w * .8) + 'px;top:' + (sy - 12) + 'px;width:' + (c.w * 1.6) + 'px' }));
-    var n = els.length, span = g.mSpan - g.m, step = span / (n - 1), sx = g.cx - span / 2;
-    for (var i = 0; i < n; i++) {
-      var on = i === host.cur, k = MK[i], base = g.m * (.82 + hash(i + 50) * .18), ch = base * CUT[k][1] / CUT[k][0];
-      var b = el('button', 'g-mk' + (on ? ' on' : '')); b.type = 'button'; b.setAttribute('aria-label', host.P[i].b.title + (on ? ' (in the case)' : ': bring to the case')); b.setAttribute('aria-pressed', String(on));
-      var cp = cup(k, base, 60 + i, 'span'); cp.style.position = 'relative';
-      b.appendChild(cp); b.style.left = (sx + i * step) + 'px'; b.style.top = (sy - 1 - ch) + 'px';
-      b.style.width = base + 'px'; b.style.height = ch + 'px';
-      (function (ii) { b.addEventListener('click', function (e) { e.stopPropagation(); if (ii !== host.cur) host.cur = ii }) })(i);
-      fg.appendChild(b);
+    var sh = el('div', 'g-shelf'); sh.style.top = (rl.top + rl.h) + 'px'; sh.style.left = Math.max(0, rl.l - 10) + 'px'; sh.style.width = Math.min(W, rl.r - rl.l + 20) + 'px'; gal.appendChild(sh);
+    gal.appendChild(Object.assign(el('div', 'g-pool'), { style: 'left:' + (c.bx - c.w * .8) + 'px;top:' + (c.by + c.h / 2 + pad - 22) + 'px;width:' + (c.w * 1.6) + 'px' }));
+  }
+
+  /* ---------------- the rail of objects, and the pairs ---------------- */
+  function pairOfPiece(host, i) { var img = host.P[i].b.img; for (var k in BYK) if (BYK[k].src === img) return BYK[k]; return null }
+  function pieceOfPair(host, o) { for (var i = 0; i < host.P.length; i++) if (host.P[i].b.img === o.src) return i; return -1 }
+  function srcTitle(host, o) { var i = pieceOfPair(host, o); if (i >= 0) return host.P[i].b.title; var m = /^r\/([^/]+)\//.exec(o.src); return (m && RING[m[1]]) || '' }
+  function selectPair(host, k, force) {
+    var i0 = pieceOfPair(host, BYK[k]);
+    if (curV === 'G1' && i0 >= 0 && i0 !== host.cur) { sel = k; host.cur = i0; return }
+    sel = (!force && sel === k) ? null : k; host.relayout();
+  }
+  function syncPairs(host) {
+    host.els.forEach(function (e) { e.el.classList.remove('pair-src') });
+    var o = BYK[sel], i = o ? pieceOfPair(host, o) : -1;
+    if (i >= 0 && host.els[i].el.style.display !== 'none') host.els[i].el.classList.add('pair-src');
+  }
+  var railEl = null;
+  function buildRail(host) {
+    var g = host._rail, S = g.h - 16;
+    var rail = el('div', 'g-rail'); rail.setAttribute('data-rail', ''); rail.setAttribute('role', 'group'); rail.tabIndex = 0;
+    rail.setAttribute('aria-label', 'the objects, cups and paddles, each cut from one of the photographs: scrolls sideways; tap one to see its photograph');
+    rail.style.left = g.l + 'px'; rail.style.width = (g.r - g.l) + 'px'; rail.style.top = g.top + 'px'; rail.style.height = g.h + 'px';
+    OBJS.forEach(function (o, i) {
+      var pd = o.kind === 'paddle', on = sel === o.k;
+      var maxd = pd ? S * (.86 + .14 * hash(i + 2)) : S * (.72 + .28 * hash(i + 5));
+      var w = pd ? maxd * o.w / o.h : Math.min(maxd, S * o.w / o.h);
+      var item = el('div', 'g-item' + (on ? ' on' : '')), b = el('button', 'g-obj'); b.type = 'button';
+      b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', (pd ? 'paddle: ' : 'cup: ') + o.label + (on ? ' (its photograph is showing: tap to close)' : ': tap to see the photograph it was cut from'));
+      b.style.width = Math.max(44, w) + 'px'; b.style.height = S + 'px';
+      var c = cup(o.k, w, 10 + i, 'span'); c.style.position = 'relative'; b.appendChild(c);
+      b.addEventListener('click', function (e) { e.stopPropagation(); selectPair(host, o.k) });
+      item.appendChild(b);
+      if (on) {
+        var sw = S * o.srcW / o.srcH, ph = el('button', 'g-src'); ph.type = 'button'; ph.setAttribute('data-photo', ''); ph.style.width = sw + 'px'; ph.style.height = S + 'px';
+        ph.setAttribute('aria-label', 'the photograph this ' + (pd ? 'paddle' : 'cup') + ' was cut from: ' + srcTitle(host, o) + '. Tap to close');
+        ph.innerHTML = '<img alt="" decoding="async" draggable="false" src="media/' + o.src + '-480.webp">';
+        ph.addEventListener('click', function (e) { e.stopPropagation(); selectPair(host, o.k) });
+        var cap = el('span', 'g-cap', 'cut from<b></b>' + (o.cutAtHand ? '<i>cut where the hand starts</i>' : '')); cap.querySelector('b').textContent = srcTitle(host, o);
+        item.appendChild(ph); item.appendChild(cap);
+      }
+      rail.appendChild(item);
+    });
+    fg.appendChild(rail); railEl = rail; rail.scrollLeft = railLeft;
+    rail.addEventListener('scroll', function () { railLeft = rail.scrollLeft }, { passive: true });
+    rail.addEventListener('wheel', function (e) {
+      if (e.ctrlKey || rail.scrollWidth <= rail.clientWidth + 1) return;
+      var dx = e.deltaX, dy = e.deltaY, u = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? rail.clientWidth : 1; dx *= u; dy *= u;
+      if (Math.abs(dy) <= Math.abs(dx)) return;
+      var max = rail.scrollWidth - rail.clientWidth;
+      if ((rail.scrollLeft <= 0 && dy < 0) || (rail.scrollLeft >= max - 1 && dy > 0)) return;
+      e.preventDefault(); rail.scrollLeft = Math.max(0, Math.min(max, rail.scrollLeft + dy));
+    }, { passive: false });
+    var it = rail.querySelector('.g-item.on');
+    if (it) {
+      var l = it.offsetLeft, w2 = it.offsetWidth, vw = rail.clientWidth;
+      if (l < rail.scrollLeft || l + w2 > rail.scrollLeft + vw) rail.scrollTo({ left: Math.max(0, Math.min(l, rail.scrollWidth - vw)), behavior: stopped ? 'auto' : 'smooth' });
     }
   }
 
@@ -283,15 +343,15 @@
     for (var s = els.length; s < slots; s++) {
       var c = s % g.cols, r = Math.floor(s / g.cols), cx = g.x0 + c * (g.iw + g.gx) + g.iw / 2, cy = g.y0 + r * (g.ih + g.lab + g.gy) + g.ih / 2;
       var k = order[(s - els.length) % order.length], wd = g.iw * (k === 'clay' ? .8 : k === 'stone' ? 1.0 : .92);
-      var b = el('button', 'g-cupbtn'); b.type = 'button'; b.setAttribute('aria-label', 'the rings and the board'); place(b, cx, cy); b.style.width = g.iw + 'px'; b.style.height = g.iw + 'px'; b.style.left = (cx - g.iw / 2) + 'px'; b.style.top = (cy - g.iw / 2) + 'px';
+      var b = el('button', 'g-cupbtn'); b.type = 'button'; place(b, cx, cy); b.style.width = g.iw + 'px'; b.style.height = g.iw + 'px'; b.style.left = (cx - g.iw / 2) + 'px'; b.style.top = (cy - g.iw / 2) + 'px';
       var cp = cup(k, wd, 80 + s, 'span'); cp.style.position = 'absolute'; cp.style.left = ((g.iw - wd) / 2) + 'px'; cp.style.top = ((g.iw - wd * CUT[k][1] / CUT[k][0]) / 2) + 'px';
-      b.appendChild(cp); b.addEventListener('click', function (e) { e.stopPropagation(); goDown(host) }); fg.appendChild(b);
+      b.appendChild(cp); b.setAttribute('aria-label', 'cup: tap to see the photograph it was cut from'); (function (kk) { b.addEventListener('click', function (e) { e.stopPropagation(); selectPair(host, kk, true) }) })(k); fg.appendChild(b);
     }
   }
 
   /* ---- G3 ---- */
   function chromeG3(host, W, H, land, els) {
-    var g = host._g3, rail = el('div', 'g-rail'); rail.style.top = (g.top - 8) + 'px'; gal.appendChild(rail);
+    var g = host._g3, rail = el('div', 'g-prail'); rail.style.top = (g.top - 8) + 'px'; gal.appendChild(rail);
     var skirt = el('div', 'g-skirt'); skirt.style.top = (g.bottom + 6) + 'px'; gal.appendChild(skirt);
     var sx = [W * .2, W * .5, W * .8];
     for (var s = 0; s < 3; s++) {
@@ -310,8 +370,9 @@
       var sl = el(lk ? 'a' : 'span', 'g-slot' + (lk ? ' on' : ''));
       if (lk) { sl.href = 'https://www.joioco.com'; sl.target = '_blank'; sl.rel = 'noopener'; sl.setAttribute('aria-label', 'joio.co ceramics shop (opens the shop)') } else sl.setAttribute('aria-hidden', 'true');
       sl.style.left = (e.bx - 21) + 'px'; sl.style.top = (sy + 3) + 'px';
-      var k = MK[i], cw = 15 * (.85 + hash(i + 9) * .4), cp = cup(k, cw, 120 + i, 'i'); cp.style.position = 'relative';
-      sl.appendChild(cp); fg.appendChild(sl);
+      var po = pairOfPiece(host, i);
+      if (po) { var cw = 15 * (.85 + hash(i + 9) * .4), cp = cup(po.k, cw, 120 + i, 'i'); cp.style.position = 'relative'; sl.appendChild(cp) }
+      fg.appendChild(sl);
       var th = el('div', 'g-thread'); th.style.left = e.bx + 'px'; th.style.top = (e.by + e.h / 2 + 3) + 'px'; th.style.height = '8px'; gal.appendChild(th);
     });
   }
@@ -324,11 +385,11 @@
     var hd0 = document.getElementById('ohd'); if (hd0) hd0.removeAttribute('data-g');
     if (hostRef) {
       setStopped(false, hostRef);
-      setLabels(hostRef, 'title'); hostRef.fdown.classList.remove('g-door'); if (fdownHTML != null) hostRef.fdown.innerHTML = fdownHTML;
+      setLabels(hostRef, 'title'); hostRef.fdown.classList.remove('g-door'); if (fdownHTML != null) hostRef.fdown.innerHTML = fdownHTML; railEl = null; lastCur = -1; hostRef.els.forEach(function (e) { e.el.classList.remove('pair-src') });
       ['--k', '--t', '--s', '--w', '--lit', '--s1', '--s2', '--s3', '--spr'].forEach(function (p) { hostRef.front.style.removeProperty(p) }); hostRef.front.removeAttribute('data-p');
       hostRef.els.forEach(function (e) { e.el.removeAttribute('data-spot'); e.el.style.removeProperty('--ps') });
     }
   }
 
-  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, labels: CUP_LABEL, get stopped() { return stopped }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
+  window.OBJ_GAL = { plan: plan, chrome: chrome, off: off, cuts: CUT, pairs: function () { return OBJS.map(function (o) { return { object: o.k, kind: o.kind, photo: o.src } }) }, get selected() { return sel }, get stopped() { return stopped }, setStopped: function (on) { setStopped(on, hostRef) }, onStop: function (fn) { stopFns.push(fn) } };
 })();

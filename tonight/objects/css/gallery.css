@@ -55,19 +55,6 @@
 .g-case::before{content:"";position:absolute;left:1px;right:1px;top:1px;height:7px;border-radius:4px 4px 0 0;background:linear-gradient(180deg,rgba(255,255,255,calc(.10 + .22 * var(--t) + .16 * var(--s))),transparent)}
 .g-shelf{position:absolute;height:11px;border-top:1px solid rgba(255,236,205,calc(.10 + .38 * var(--k) + .26 * var(--s) + .2 * var(--t)));background:linear-gradient(180deg,#14151a,#0a0b0d);box-shadow:0 14px 26px -8px rgba(0,0,0,.8)}
 .g-pool{position:absolute;height:84px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,226,180,calc(.22 * var(--s) + .08 * var(--k) + .07 * var(--t))),transparent)}
-.g-mk{position:absolute;display:flex;align-items:flex-end;justify-content:center;padding:0;margin:0;transform:translateX(-50%);background:none;border:0;-webkit-tap-highlight-color:transparent}
-.g-mk::before{content:"";position:absolute;left:-8px;right:-8px;top:-8px;bottom:-14px}
-.g-mk .cup{position:relative}
-.g-mk::after{content:"";position:absolute;left:50%;bottom:-8px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:#e8e4dc;opacity:0;box-shadow:0 0 6px rgba(232,228,220,.7);transition:opacity .4s}
-.g-mk.on::after{opacity:.9}
-.g-mk:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:3px;border-radius:50%}
-
-/* the way down: three cups from above in place of the old pill */
-#front.vG1 #fdown.g-door{display:flex;flex-direction:column;align-items:center;gap:6px;padding:0;border:0;background:none;bottom:calc(8px + var(--g-sb,0px))}
-#front.vG1 #fdown .g-cl{display:flex;align-items:flex-end;height:70px}
-#front.vG1 #fdown .g-dt{font:300 10.5px/1 Poppins,sans-serif;letter-spacing:.08em;color:#a49d92;padding:7px 13px;border-radius:999px;border:1px solid rgba(232,228,220,.14);background:rgba(8,9,12,.5)}
-#front.vG1.land #fdown.g-door{left:auto;right:max(5%,calc(12px + var(--g-sr,0px)));transform:none}
-
 /* ======================= G2 · light table ======================= */
 #front.vG2{--surf1:#bcc3c6;--surf2:#8d9599;--glow:rgba(196,210,220,.30);--ink:rgba(18,20,22,.62);--sh:0 5px 12px rgba(0,0,0,.30),0 0 0 1px rgba(0,0,0,.22);--cupsh:0 7px 8px rgba(0,0,0,.34)}
 #front.vG2[data-p=warm]{--lg:12% 2%;--surf1:#e9cca2;--surf2:#7f5b36;--glow:rgba(255,190,110,.30);--ink:rgba(46,24,6,.70);--sh:9px 8px 16px rgba(52,24,0,.42),0 0 0 1px rgba(52,24,0,.28);--cupsh:9px 8px 10px rgba(52,24,0,.45)}
@@ -88,7 +75,7 @@
 /* ======================= G3 · shop wall ======================= */
 .gal.g3 .g-wall{background:radial-gradient(90% 70% at 50% 30%,#101216 0%,#0a0b0e 62%,#060709 100%)}
 .gal.g3 .g-wall::after{content:"";position:absolute;inset:0;opacity:.35;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .88 0 0 0 0 .84 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E")}
-.g-rail{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,228,220,.18) 12%,rgba(232,228,220,.18) 88%,transparent)}
+.g-prail{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(232,228,220,.18) 12%,rgba(232,228,220,.18) 88%,transparent)}
 .g-skirt{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#0e0f13,#08090b);border-top:1px solid rgba(232,228,220,.08)}
 .g-beam{position:absolute;width:0;pointer-events:none;filter:blur(calc(2px + 6px * var(--spr)))}
 .g-beam.b1{--sx:var(--s1)}.g-beam.b2{--sx:var(--s2)}.g-beam.b3{--sx:var(--s3)}
@@ -147,3 +134,23 @@ html[data-theme=red] #front.vG2[data-p=off]{--surf1:#100406;--surf2:#090203;--gl
 #ohd .ofollow::before{content:"";position:absolute;inset:-12px -8px}
 #ohd .ofollow:hover,#ohd .ofollow:focus-visible{color:#e8e4dc;border-bottom-color:rgba(232,228,220,.7);outline:0}
 body.at-board:not(.at-detail) #ohd[data-g] .ofollow{display:inline-block}
+
+/* ---- the rail: the horizontal track of cut-out objects, native scroll, no scrollbar; tap an object and its photograph opens beside it ---- */
+.g-rail{position:absolute;display:flex;align-items:center;gap:12px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;
+  scrollbar-width:none;-ms-overflow-style:none;scroll-behavior:auto;box-sizing:border-box;padding:8px 0;outline:0}
+.g-rail::-webkit-scrollbar{display:none;width:0;height:0}
+.g-rail:focus-visible{outline:1px solid rgba(232,228,220,.5);outline-offset:2px}
+.g-item{flex:0 0 auto;display:flex;align-items:center;gap:12px}
+.g-obj{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:0;margin:0;background:none;border:0;-webkit-tap-highlight-color:transparent;cursor:pointer}
+.g-obj .cup{position:relative}
+.g-obj::after{content:"";position:absolute;left:50%;bottom:-6px;width:3px;height:3px;margin-left:-1.5px;border-radius:50%;background:#e8e4dc;opacity:0;box-shadow:0 0 6px rgba(232,228,220,.7)}
+.g-item.on .g-obj::after{opacity:.9}
+.g-obj:focus-visible,.g-src:focus-visible{outline:1px solid rgba(232,228,220,.8);outline-offset:3px}
+.g-src{flex:0 0 auto;display:block;padding:0;margin:0;border:0;background:#0b0c0f;border-radius:2px;overflow:hidden;box-shadow:0 0 0 1px rgba(232,228,220,.16),0 8px 16px rgba(0,0,0,.45);cursor:pointer}
+.g-src img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;-webkit-user-drag:none}
+.g-cap{flex:0 0 auto;width:112px;font:300 9.5px/1.45 Poppins,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#8f887e;white-space:normal}
+.g-cap i{display:block;font-style:normal;font-size:8.5px;letter-spacing:.1em;text-transform:none;color:#6f695f;margin-top:2px}
+.g-cap b{display:block;font-weight:300;color:#cfc9bf;letter-spacing:.1em;text-transform:none;font-size:10.5px}
+#front.g-stopped .g-rail{scroll-behavior:auto!important}
+/* the photograph an object was cut from, while its object is revealed: an outline outside the photograph, never on it */
+#front .pc.pair-src .disc{outline:1px solid rgba(232,228,220,.6);outline-offset:4px}

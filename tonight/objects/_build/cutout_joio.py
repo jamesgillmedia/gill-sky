@@ -80,9 +80,11 @@ def make(name, cfg):
         e = rot(ang); t = np.linspace(0, 2 * math.pi, 200); ep = (e @ np.stack([rx * np.cos(t), ry * np.sin(t)], 0)).T + [cx, cy]
         dd.line([tuple(p) for p in ep], fill=(255, 60, 60), width=1)
         d.save(f'/tmp/cut_{name}.png')
-    return {'k': name, 'src': f, 'w': rgba.size[0], 'h': rgba.size[1], 'label': label}
+    sw, sh = img.size
+    return {'k': name, 'kind': 'cup', 'src': f.rsplit('.', 1)[0], 'w': rgba.size[0], 'h': rgba.size[1], 'srcW': sw, 'srcH': sh, 'label': label}
 
 if __name__ == '__main__':
     out = [make(n, c) for n, c in SRC.items()]
     json.dump(out, open(os.path.join(OUT, 'cuts.json'), 'w'), indent=1)
+    open(os.path.join(OUT, 'cuts.js'), 'w').write('/* cutout objects and the photograph each was cut from; written by _build/cutout_joio.py + cutout_paddles.py */\nwindow.OBJ_CUTS=' + json.dumps(out) + ';\n')
     for o in out: print(o)
