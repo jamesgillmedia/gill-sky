@@ -30,7 +30,11 @@ if (window.GJ_RM) rmOn = GJ_RM.on();
 let D, F = [], films = [], mode = 'film', hi = null;  // hi = highlighted film index
 let L = null;            // layout
 let vw = 0, vh = 0, dpr = 1, TOP = 46;
-let s = 1, ox = 0, oy = 0;   // screen = (world - o) * s
+let s = 1, ox = 0, oy = 0;
+/* environmental drift: while you drag or pinch (never on scroll, never fully zoomed out) the whole panel lags a few px behind your hand,
+   near layers (outlines, numerals) a touch more than far ones (images, then film headers). Site springs ease it back. Reduce Motion: none. */
+const dr = { x: S(0, 9.5), y: S(0, 9.5) }; let dvx = 0, dvy = 0, dlast = 0;
+const DRIFT_MAX = 5;   // screen = (world - o) * s
 let dirty = true, cur = -1;  // cur = lifted frame index
 // box chrome: 'boxes' (full red outlines + tags), 'dim' (~28% outlines/tags, no red fill), 'hide' (none)
 const BOXK = 'archive-index-boxes', BOXV = ['boxes', 'dim', 'hide'];
@@ -157,6 +161,7 @@ function draw() {
   want.length = 0;
   cx.setTransform(dpr, 0, 0, dpr, 0, 0);
   cx.fillStyle = '#0a0b0d'; cx.fillRect(0, 0, vw, vh);
+  const lay = f => cx.setTransform(dpr, 0, 0, dpr, Math.round(dr.x.x * f * dpr), Math.round(dr.y.x * f * dpr)); lay(1);
   cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
   const bw = CW * s, bh = CH * s, dev = bw * dpr;
   const tier = dev <= 100 ? 0 : dev <= 300 ? 1 : 2;
@@ -194,6 +199,7 @@ function draw() {
     cx.fillStyle = 'rgba(10,11,13,.72)';
     for (const g of vis) if (F[g].f !== hi) cx.fillRect(wxS(g) - 1, wyS(g) - 1, bw + 2, bh + 2);
   }
+  lay(1.3);
   // outlines (box chrome: boxes / dim / hide)
   const BA = bx === 'dim' ? .28 : 1;
   if (bx !== 'hide') {
@@ -230,6 +236,7 @@ function draw() {
       cx.fillText(pad4(F[g].n), sx + 3.5, sy + th / 2 + .5);
     }
   }
+  lay(.55);
   // film headers (by-film order)
   if (mode === 'film') {
     const hs = HEAD * s;
@@ -268,7 +275,10 @@ function drawContain(im, sx, sy, sw, sh, dx, dy, dw, dh) {
   cx.fillStyle = '#050506'; cx.fillRect(dx, dy, dw, dh);
   cx.drawImage(im, sx, sy, sw, sh, dx + (dw - w) / 2, dy + (dh - h) / 2, w, h);
 }
+let dlt = 0;
 function loop(t) {
+  const ddt = Math.min(.05, Math.max(.001, (t - dlt) / 1000)); dlt = t;
+  if (Math.abs(dr.x.x) + Math.abs(dr.y.x) + Math.abs(dr.x.t) + Math.abs(dr.y.t) + Math.abs(dr.x.v) + Math.abs(dr.y.v) > .004) { sstep(dr.x, ddt); sstep(dr.y, ddt); dirty = true; }
   if (anim) anim(t);
   if (glide) glide(t);
   if (dirty) { dirty = false; if (!(cur >= 0 && bgA >= .995)) draw(); }
@@ -277,6 +287,7 @@ function loop(t) {
 
 /* ---------- hit test ---------- */
 function hit(px, py) {
+  px -= dr.x.x; py -= dr.y.x;
   const wx = ox + px / s, wy = oy + py / s;
   for (let g = 0; g < F.length; g++) {
     const x = L.r[g * 2], y = L.r[g * 2 + 1];
@@ -303,20 +314,27 @@ vp.addEventListener('pointermove', e => {
   if (P.size === 1) {
     if (tap && Math.hypot(e.clientX - tap.x, e.clientY - tap.y) > 7) { tap.moved = true; vp.classList.add('drag'); }
     if (!tap || tap.moved) {
-      ox -= dx / s; oy -= dy / s; clamp(); dirty = true;
+      ox -= dx / s; oy -= dy / s; clamp(); dirty = true; driftKick(dx, dy);
       const t = performance.now(); vel = [dx, dy, t];
     }
   } else if (P.size === 2 && pinch) {
     const [a, b] = [...P.values()];
     const d = Math.hypot(a.x - b.x, a.y - b.y), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
-    ox -= (mx - pinch.mx) / s; oy -= (my - pinch.my) / s;
+    ox -= (mx - pinch.mx) / s; oy -= (my - pinch.my) / s; driftKick(mx - pinch.mx, my - pinch.my);
     zoomAt(d / pinch.d, mx, my);
     pinch = { d, mx, my };
   }
 });
+function driftKick(dx, dy) {
+  if (RM.matches || s <= fitS() * 1.05) { driftRest(); return; }
+  const t = performance.now(), dt = Math.max(.008, (t - dlast) / 1000); dlast = t;
+  dvx = dvx * .6 + (dx / dt) * .4; dvy = dvy * .6 + (dy / dt) * .4;
+  dr.x.t = Math.max(-DRIFT_MAX, Math.min(DRIFT_MAX, -dvx * .012)); dr.y.t = Math.max(-DRIFT_MAX, Math.min(DRIFT_MAX, -dvy * .012)); dr.x.w = dr.y.w = 9.5; dirty = true;
+}
+function driftRest() { dvx = dvy = 0; dr.x.t = dr.y.t = 0; dr.x.w = dr.y.w = 3.2; dirty = true; }
 function up(e) {
   if (!P.has(e.pointerId)) return;
-  P.delete(e.pointerId); vp.classList.remove('drag');
+  P.delete(e.pointerId); vp.classList.remove('drag'); if (!P.size) driftRest();
   if (P.size === 1) { const [a] = [...P.values()]; pinch = null; tap = null; vel = [0, 0, 0]; a && (a.x = a.x); }
   if (P.size) return;
   pinch = null;
@@ -721,5 +739,6 @@ fetch('data/index.json').then(r => r.json()).then(d => {
   requestAnimationFrame(loop);
 });
 addEventListener('resize', resize);
+window.__ai = { drift: () => [dr.x.x, dr.y.x], scale: () => [s, fitS()] };
 if (document.fonts) document.fonts.ready.then(() => { dirty = true; });
 })();
