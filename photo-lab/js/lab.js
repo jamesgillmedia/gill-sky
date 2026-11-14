@@ -128,13 +128,15 @@ LAB.cameraBack=function(list,idx,opt){
 
 /* ---------- safelight (one toggle, remembered on this device) ---------- */
 var SAFE_KEY='gj-photo-lab-safelight';
+LAB.safeTheme='#050000';
 LAB.safelight={
   on:function(){return document.body.classList.contains('safe')},
   set:function(on){
-    document.body.classList.toggle('safe',!!on);
+    document.body.classList.toggle('safe',!!on);document.documentElement.classList.toggle('safe',!!on);
     var b=LAB.$('#safe')||document.getElementById('safe');
     if(b){b.classList.toggle('on',!!on);b.setAttribute('aria-pressed',!!on)}
     try{localStorage.setItem(SAFE_KEY,on?'1':'0')}catch(e){}
+    document.dispatchEvent(new CustomEvent('lab:safe',{detail:!!on}));
   }
 };
 (function(){

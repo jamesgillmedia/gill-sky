@@ -72,31 +72,44 @@ body.sheet-open .lab-top{background:rgba(4,7,11,.94);-webkit-backdrop-filter:blu
 .stack video{display:block;width:auto;max-width:100%;height:auto;max-height:92vh;max-height:92svh;background:#04070b}
 .cb-one video{max-width:100%;max-height:100%;transition:transform .7s var(--ease);transform-origin:50% 50%}
 
-/* safelight: a soft red vignette on the sky and the sheet, and a faint glow around frames.
-   Photographs (img/video) are not graded — no filter, no blend mode on the image. */
-body.safe .sky{background:#0a0506}
+/* darkroom: black lit by a red lamp. The sky does not take the photograph's colour here (that would be a hue outside red),
+   the sheet and the day sit in the same room. Photographs (img/video) are not graded: no filter, no blend, no overlay on them.
+   Far frames are not dimmed with a filter and the water reflection is off, because both would be a filter over a photograph. */
+body.safe .sky{background:#050000}
+body.safe .sky::before{background:none}
 body.safe .sky::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
   background:
-    radial-gradient(ellipse 90% 70% at 50% -10%, rgba(150,22,14,.22), transparent 58%),
-    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(100,12,8,.30), transparent 62%),
-    radial-gradient(ellipse 50% 50% at 0% 45%, rgba(110,16,10,.10), transparent 50%),
-    radial-gradient(ellipse 50% 50% at 100% 55%, rgba(110,16,10,.10), transparent 50%)}
-body.safe .water{background:linear-gradient(180deg,#1a0a09,#0a0506 80%)}
-body.safe .water::after{background:repeating-linear-gradient(180deg,rgba(255,80,70,.04) 0 1px,transparent 1px 7px)}
+    radial-gradient(ellipse 90% 70% at 50% -10%, rgba(150,16,8,.34), transparent 58%),
+    radial-gradient(ellipse 80% 60% at 50% 110%, rgba(110,8,4,.40), transparent 62%),
+    radial-gradient(ellipse 50% 50% at 0% 45%, rgba(120,12,6,.14), transparent 50%),
+    radial-gradient(ellipse 50% 50% at 100% 55%, rgba(120,12,6,.14), transparent 50%)}
+body.safe .water{background:linear-gradient(180deg,#1c0605,#050000 80%)}
+body.safe .water::after{background:repeating-linear-gradient(180deg,rgba(200,40,24,.05) 0 1px,transparent 1px 7px)}
+body.safe .refl{display:none}
+body.safe .fm{filter:none!important}
 body.safe .fm img,body.safe .fm video,body.safe .cell img,body.safe .cell video,
 body.safe .hero img,body.safe .hero video,body.safe .stack img,body.safe .stack video{filter:none;-webkit-filter:none;mix-blend-mode:normal}
-body.safe .cell .win{box-shadow:0 0 0 1px rgba(255,120,100,.10),0 6px 18px rgba(80,8,6,.28)}
-body.safe .cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(227,139,124,.28),0 8px 20px rgba(80,8,6,.3)}
-body.safe .sheet{background:#0a0506}
+body.safe .fm img,body.safe .fm video{box-shadow:0 8px 22px rgba(60,0,0,.35)}
+body.safe .fm.cur img,body.safe .fm.cur video{box-shadow:0 0 0 1px rgba(236,63,34,.35),0 -8px 40px rgba(150,16,8,.30),0 12px 28px rgba(60,0,0,.4)}
+body.safe .rt i{background:hsl(7 80% calc(14% + var(--lum,.4)*26%))!important}
+body.safe .rt i.on{background:var(--mint)!important}
+body.safe .head{background:var(--mint);box-shadow:0 0 8px 2px rgba(236,63,34,.55)}
+body.safe .ends{color:var(--dim)}
+body.safe .sheet{background:#050000}
 body.safe .sheet::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
-  background:radial-gradient(ellipse at 50% 0%, rgba(140,20,12,.16), transparent 55%),
-             radial-gradient(ellipse at 50% 100%, rgba(90,10,8,.20), transparent 60%)}
+  background:radial-gradient(ellipse at 50% 0%, rgba(140,14,8,.24), transparent 55%),
+             radial-gradient(ellipse at 50% 100%, rgba(100,8,4,.28), transparent 60%)}
 body.safe .sc{position:relative;z-index:1}
-body.safe .proof{background:linear-gradient(180deg,#1a1010,#100a0a);border-color:rgba(255,92,78,.18);box-shadow:0 24px 60px rgba(40,0,0,.45)}
-body.safe .day{background:#0a0506}
-body.safe .hero{background:var(--hg,#0a0506)}
-body.safe.sheet-open .lab-top{background:rgba(10,5,6,.94);border-bottom-color:rgba(255,92,78,.18)}
-/* a very light edge falloff on the window only — the photograph centre is left alone */
-body.safe .cell .win::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 16px 2px rgba(80,8,6,.10);z-index:2}
-body.safe .fm img,body.safe .fm video{box-shadow:0 8px 22px rgba(60,0,0,.28), inset 0 0 16px 2px rgba(80,8,6,.08)}
-body.safe .fm.cur img,body.safe .fm.cur video{box-shadow:0 0 0 1px rgba(255,160,140,.18),0 -8px 40px rgba(160,24,16,.18),0 12px 28px rgba(80,0,0,.28), inset 0 0 16px 2px rgba(80,8,6,.08)}
+body.safe .proof{background:linear-gradient(180deg,#140403,#0b0201);border-color:var(--line);box-shadow:0 24px 60px rgba(40,0,0,.6)}
+body.safe .cell .win{background:#050000;box-shadow:0 0 0 1px rgba(200,40,24,.22),0 6px 18px rgba(60,0,0,.4)}
+body.safe .cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(236,63,34,.28),0 8px 20px rgba(60,0,0,.4)}
+body.safe .fm video,body.safe .cell .win video,body.safe .stack video{background:#050000}
+body.safe .day{background:#050000}
+body.safe .hero{background:#050000}
+body.safe .cred .sw{background:hsl(7 80% calc(14% + var(--lum,.4)*26%))!important;box-shadow:0 0 0 1px rgba(200,40,24,.45)}
+body.safe .stack figure{background:#050000}
+body.safe .stack figcaption{color:var(--ink)}
+body.safe.sheet-open .lab-top{background:rgba(5,0,0,.94);border-bottom-color:var(--line)}
+body.safe .lvl i{border-color:var(--faint)}
+body.safe .lvl i.on{background:var(--mint);border-color:var(--mint)}
+body.safe .lvl span{color:var(--dim);text-shadow:0 1px 6px #050000}

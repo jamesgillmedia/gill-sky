@@ -81,18 +81,38 @@ noscript .ns img{width:100%;height:auto;display:block}
  .lab-top .lab-btn.ic{min-width:40px}
 }
 
-/* ---------- safelight (darkroom spill: ambient red on the room, not a grade on the photograph) ---------- */
-body.safe{--bg:#0a0506;--ink:#f3e0dc;--dim:#d9b8b2;--mute:#a07a76;--line:rgba(255,92,78,.20);--mint:#e38b7c;--tint:255,186,176}
-body.safe{background:var(--bg)}
-body.safe .lab-btn{background:rgba(18,6,6,.48)}
-body.safe .lab-btn:hover{border-color:rgba(255,140,120,.38)}
-body.safe .lab-btn.on{border-color:rgba(227,139,124,.75);color:var(--mint)}
-body.safe .lab-hint{background:rgba(18,6,6,.58);border-color:rgba(255,92,78,.20)}
+/* ---------- darkroom (the safelight, deepened): only red to red-orange, hue 0-15deg, nothing pale ----------
+   The room is black lit by a red lamp. No whites, no blush, no greys, no other hues; text is dim saturated red.
+   Photographs (img/video) are never graded, tinted or filtered: the room changes, the picture does not.
+   void #050000 · surface #140403 / #230806 · ink #d8452f · dim #c23a2a · mute #b03020 · faint #8a2418 · accent #ec3f22 */
+html.safe,body.safe{--bg:#050000;--ink:#d8452f;--dim:#c23a2a;--mute:#b03020;--faint:#8a2418;--line:rgba(200,40,24,.30);--mint:#ec3f22;--tint:200,40,24;--surf:#140403;--surf2:#230806;color-scheme:dark}
+html.safe{background:var(--bg)}
+body.safe{background:var(--bg);color:var(--ink)}
+body.safe ::selection{background:#4a0e08;color:#ec3f22}
+body.safe :focus-visible{outline:2px solid #ec3f22;outline-offset:2px}
+body.safe .sky:focus-visible{outline:none}
+body.safe *{scrollbar-color:#5c140c #050000;scrollbar-width:thin}
+body.safe ::-webkit-scrollbar{width:8px;height:8px;background:#050000}
+body.safe ::-webkit-scrollbar-thumb{background:#5c140c;border-radius:4px}
+body.safe ::-webkit-scrollbar-corner{background:#050000}
+body.safe .lab-btn{background:rgba(12,2,1,.9)}
+body.safe .lab-btn:hover{border-color:rgba(236,63,34,.45)}
+body.safe .lab-btn.on{border-color:rgba(236,63,34,.8);color:var(--mint)}
+body.safe .lab-hint{background:#0c0201;-webkit-backdrop-filter:none;backdrop-filter:none;border-color:var(--line)}
 body.safe .veil{background:var(--bg)}
-/* very slight surround on the camera-back cells; the image itself is unfiltered */
-body.safe .cb{background:rgba(12,4,4,.94)}
-body.safe .cb.open{background:rgba(12,4,4,.94)}
-body.safe .cb-body{background:linear-gradient(160deg,#2a1412,#100808 60%);box-shadow:0 30px 80px rgba(40,0,0,.55),inset 0 1px 0 rgba(255,180,160,.08),inset 0 0 0 1px rgba(255,90,80,.06)}
+body.safe img,body.safe video{filter:none;-webkit-filter:none;mix-blend-mode:normal}
+body.safe .cb{background:rgba(5,0,0,0)}
+body.safe .cb.open{background:rgba(5,0,0,.96)}
+body.safe .cb-body{background:linear-gradient(160deg,#230806,#0d0302 60%);box-shadow:0 30px 80px rgba(60,0,0,.6),inset 0 1px 0 rgba(200,40,24,.14),inset 0 0 0 1px rgba(200,40,24,.08)}
+body.safe .cb-cell{background:#0d0302}
 body.safe .cb-cell.sel{outline-color:var(--mint)}
-body.safe .cb-cell img,body.safe .cb-one img,body.safe .cb-one video{filter:none}
-body.safe .cb-scr{box-shadow:inset 0 0 0 2px #140808,0 0 24px rgba(120,16,10,.22)}
+body.safe .cb-scr{box-shadow:inset 0 0 0 2px #0d0302,0 0 0 1px rgba(200,40,24,.22),0 0 28px rgba(150,16,8,.25)}
+body.safe .cb-osd{color:var(--ink)}
+body.safe .cb-dial{background:radial-gradient(circle at 50% 50%,#0d0302 0 30%,#3a0e09 31% 33%,#1c0605 34%);box-shadow:inset 0 2px 3px rgba(200,40,24,.14),inset 0 -3px 6px rgba(0,0,0,.6),0 4px 14px rgba(0,0,0,.6)}
+body.safe .cb-dial .knurl{background:repeating-conic-gradient(from 0deg,rgba(200,40,24,.2) 0 3deg,rgba(0,0,0,0) 3deg 9deg)}
+body.safe .cb-dial .dot{background:var(--mint);box-shadow:0 0 6px rgba(236,63,34,.8)}
+body.safe .cb-dial .set{color:var(--dim);background:#140403;box-shadow:inset 0 1px 2px rgba(200,40,24,.14)}
+body.safe .cb-k{background:#170504;color:var(--ink);box-shadow:inset 0 1px 0 rgba(200,40,24,.16),0 2px 6px rgba(0,0,0,.5)}
+body.safe .cb-k:active{background:#2a0a07}
+body.safe .cb-k.h.on{color:var(--mint)}
+body.safe .cb-name{color:var(--dim)}

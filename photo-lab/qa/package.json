@@ -1,0 +1,15 @@
+{
+  "name": "photo-lab-qa",
+  "private": true,
+  "type": "module",
+  "description": "Darkroom palette audit + smoke/emulation checks for /photo-lab/. Run: npm i && npm run smoke",
+  "scripts": {
+    "audit": "node palette-audit.mjs",
+    "smoke": "node smoke.mjs",
+    "clip": "node clip.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.50.0",
+    "pngjs": "^7.0.0"
+  }
+}

@@ -3,7 +3,7 @@
 .cstl.open{opacity:1;pointer-events:auto}
 .cstl[hidden]{display:none}
 .cstl canvas{display:block;position:absolute;inset:0}
-body.safe .cstl{background:radial-gradient(ellipse 80% 70% at 50% 46%,#1a0a09,#0a0506 72%)}
+body.safe .cstl{background:radial-gradient(ellipse 80% 70% at 50% 46%,#1c0605,#050000 72%)}
 
 .lvl{position:fixed;z-index:39;left:calc(16px + var(--sl));bottom:calc(18px + var(--sb));display:flex;align-items:center;gap:5px;pointer-events:none;transition:opacity .6s var(--ease);opacity:.78}
 .lvl.off{opacity:0}
