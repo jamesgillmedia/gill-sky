@@ -3,13 +3,14 @@
  Tap = pause / play. Drag or swipe the picture or the strip = scrub, the frames flip as fast as you move. Fill or fit, remembered.
  Frame rail (js/reelframes.js, thumbs from tools/extract_reel_frames.py): under the card, the current shot's own frames as stills at full brightness,
  the selected one on a thin line. While paused (the card's own tap, or the stored board pause in GJ_PLAY) a horizontal drag on the rail steps the shot
- frame by frame, the card seeks its clip to that frame; a fast enough drag rolls the card into autoplay from that point. The rail only claims a
+ frame by frame, the card seeks its clip to that frame. A fast drag shuttles: the signed velocity sets a signed playback rate, forward on the
+ clip's own playbackRate, backward by stepping currentTime down; released forward it settles into 1x play, released backward it eases to a stop. The rail only claims a
  horizontal drag: a vertical gesture is never taken, and nothing on it calls preventDefault.
  Ported from site-v3-pro2 js/reel.js and css/reel.css. It lives in the sky's own #layer (the camera and history are the sky's), not in a page
  of its own, and its motion is the same whatever the Reduce Motion setting is. */
 (function(){
 'use strict';
-var RATE=1.1,TW=40,COLS=16,KEY='gj-reel-fit',EASE='cubic-bezier(.2,.8,.2,1)',FLING=1200,FLING_MS=110;
+var RATE=1.1,TW=40,COLS=16,KEY='gj-reel-fit',EASE='cubic-bezier(.2,.8,.2,1)',FLING=1200,FLING_MS=110,MAXRATE=4,EXIT=450;
 var lastShot=0;
 function mount(el,hooks){
   var S=window.GJ_REEL||[];
@@ -35,7 +36,7 @@ function mount(el,hooks){
     lab=root.querySelector('.rl-b b'),rsrc=root.querySelector('.rl-b small'),view=root.querySelector('.rl-v'),fitB=root.querySelector('.rl-fit');
   var rail=root.querySelector('.rl-fr'),rtr=rail.querySelector('.rl-ft'),pv=document.createElement('img');
   pv.className='rl-pv';pv.alt='';pv.decoding='sync';pv.hidden=true;
-  var FR=window.GJ_REELFR||{},fr=null,rd=null,seekWant=-1,seeking=false;
+  var FR=window.GJ_REELFR||{},fr=null,rd=null,seekWant=-1,seeking=false,sh=null,shRaf=0;
   var p=lastShot+.5,cur=-1,playing=!(window.GJ_PLAY&&GJ_PLAY.paused),raf=0,lastT=0,tween=null,drag=null,wheelT=0,wheeling=false,pool=[],stillCache={},dead=false;
   root.classList.toggle('paused',!playing);
   var h='',rows=Math.ceil(N/COLS),i,k;
@@ -113,8 +114,7 @@ function mount(el,hooks){
     if(!v.paused)v.pause();
     v.classList.add('on');
     if(v.readyState<2){pv.src=thumb(i);pv.hidden=false}
-    seekWant=frameT(i);
-    if(!seeking)doSeek();
+    seekTo(frameT(i));
   }
   pool.forEach(function(o){o.v.addEventListener('seeked',function(){
     if(o.i!==mod(cur))return;
@@ -122,21 +122,97 @@ function mount(el,hooks){
     if(seekWant>=0){doSeek();return}
     pv.hidden=true;
   })});
-  function rollIntoAutoplay(){
-    var v=curVid(),t=fr?frameT(fr.idx):0;
-    rd.rolled=true;root.classList.remove('scrub');
-    if(v){try{v.currentTime=t}catch(e){}}
-    p=Math.floor(p)+Math.max(.02,Math.min(.98,t/(fr?fr.dur:1)));tween=null;
-    pv.hidden=true;seekWant=-1;
+  /* Shuttle: a fast drag turns the rail into a jog wheel. The signed drag velocity sets a signed playback rate (clip seconds per second).
+     Forward uses the clip's own playbackRate; backward steps currentTime down each frame, since video cannot play in reverse.
+     While the finger is down the rate follows the velocity. On release a forward shuttle settles into normal 1x play, a backward one eases to a stop. */
+  function seekTo(t){seekWant=Math.max(0,t);if(!seeking)doSeek()}
+  function rateOf(vs){return Math.max(-MAXRATE,Math.min(MAXRATE,vs/fr.w*(fr.dur/fr.n)))}
+  function velOf(){
+    var q=rd.s;if(q.length<2)return 0;
+    var a=q[0],b=q[q.length-1],dt=b.t-a.t;
+    return dt>0?-(b.x-a.x)/dt*1000:0;
+  }
+  function startShuttle(vs){
+    var v=curVid();if(!v||!fr)return;
+    pool.forEach(function(o){if(o.v!==v)o.v.classList.remove('on')});
+    v.classList.add('on');pv.hidden=true;
+    var r=rateOf(vs);
+    sh={rate:r,target:r,held:true,t:v.currentTime||0,last:performance.now(),mode:''};
+    root.classList.add('shuttle','seen');
+    if(!shRaf)shRaf=requestAnimationFrame(shTick);
+  }
+  function endShuttle(){
+    if(shRaf)cancelAnimationFrame(shRaf);shRaf=0;
+    if(sh){var v=curVid();if(v&&v.playbackRate!==1)v.playbackRate=1}
+    sh=null;root.classList.remove('shuttle');root.removeAttribute('data-rate');
+  }
+  function finishStop(v){
+    if(!v.paused)v.pause();
+    var t=sh.t;endShuttle();
+    seekTo(t);railAt(t/fr.dur*fr.n-.5);
+  }
+  function finishPlay(v){
+    var t=sh.mode==='rev'?sh.t:(v.currentTime||0);
+    endShuttle();
+    rd=null;root.classList.remove('scrub');
+    if(v.paused){try{v.currentTime=t}catch(e){}}
+    p=Math.floor(p)+Math.max(.02,Math.min(.98,t/fr.dur));tween=null;
     setPlay(true);
-    root.classList.add('seen');
+  }
+  function exitToScrub(v){
+    var t=sh.mode==='rev'?sh.t:(v.currentTime||0),d=rd;
+    if(!v.paused)v.pause();
+    endShuttle();
+    if(d){d.pos0=Math.max(0,Math.min(fr.n-1,t/fr.dur*fr.n-.5));d.x=d.lastX;d.s=[{t:performance.now(),x:d.lastX}];d.v=0}
+    railAt(d?d.pos0:t/fr.dur*fr.n-.5);showFrame(fr.idx);
+  }
+  function shTick(now){
+    shRaf=0;
+    if(!sh||dead)return;
+    var v=curVid(),dt=Math.min(.1,(now-sh.last)/1000);sh.last=now;
+    if(!v||!fr){endShuttle();return}
+    if(sh.held&&rd){
+      var vs=now-rd.lastT>100?0:rd.v;
+      sh.target=Math.abs(vs)<EXIT?0:rateOf(vs);
+      if(Math.abs(vs)<EXIT&&Math.abs(sh.rate)<.2){exitToScrub(v);return}
+    }
+    sh.rate+=(sh.target-sh.rate)*(1-Math.exp(-dt*(sh.held?14:5)));
+    var r=sh.rate;
+    root.setAttribute('data-rate',r.toFixed(2));
+    if(r>.04){
+      var tNow=v.currentTime||0;
+      if(sh.mode!=='fwd'){
+        if(sh.mode==='rev'){try{v.currentTime=sh.t}catch(e){}}
+        sh.mode='fwd';
+        var pr=v.play();if(pr&&pr.catch)pr.catch(function(){});
+      }else if(sh.t-tNow>.3||tNow>=fr.dur-.05){finishPlay(v);return}
+      v.playbackRate=Math.max(.0625,Math.min(MAXRATE,r));
+      sh.t=tNow;
+      railAt(tNow/fr.dur*fr.n-.5);
+    }else if(r<-.04){
+      if(sh.mode!=='rev'){if(!v.paused)v.pause();sh.t=v.currentTime||0;sh.mode='rev'}
+      sh.t=Math.max(0,sh.t+r*dt);
+      seekTo(sh.t);
+      railAt(sh.t/fr.dur*fr.n-.5);
+      if(sh.t<=0){sh.rate=sh.target=0;if(!sh.held){finishStop(v);return}}
+    }else{
+      if(sh.mode==='fwd')sh.t=v.currentTime||0;
+      if(!v.paused)v.pause();
+      sh.mode='idle';
+      if(!sh.held&&sh.target===0){finishStop(v);return}
+    }
+    if(!sh.held){
+      if(sh.target===1&&Math.abs(sh.rate-1)<.03){finishPlay(v);return}
+    }
+    shRaf=requestAnimationFrame(shTick);
   }
   function railDown(e){
     if(playing||!fr||e.button)return;
-    rd={id:e.pointerId,x:e.clientX,y:e.clientY,pos0:fr.pos,moved:false,decided:false,rolled:false,s:[{t:performance.now(),x:e.clientX}],cw:fr.w};
+    if(sh){var v0=curVid();if(v0&&!v0.paused)v0.pause();var t0=sh.mode==='rev'?sh.t:(v0?v0.currentTime:0);endShuttle();railAt(t0/fr.dur*fr.n-.5)}
+    rd={id:e.pointerId,x:e.clientX,y:e.clientY,pos0:fr.pos,moved:false,decided:false,s:[{t:performance.now(),x:e.clientX}],cw:fr.w,v:0,lastT:performance.now(),lastX:e.clientX};
   }
   function railMove(e){
-    if(!rd||e.pointerId!==rd.id||rd.rolled)return;
+    if(!rd||e.pointerId!==rd.id)return;
     var dx=e.clientX-rd.x,dy=e.clientY-rd.y,now=performance.now();
     if(!rd.decided){
       if(Math.abs(dx)<6&&Math.abs(dy)<6)return;
@@ -147,17 +223,19 @@ function mount(el,hooks){
     }
     rd.s.push({t:now,x:e.clientX});
     while(rd.s.length>2&&now-rd.s[0].t>FLING_MS)rd.s.shift();
-    var a=rd.s[0],b=rd.s[rd.s.length-1],dt=b.t-a.t;
-    var v=dt>0?Math.abs(b.x-a.x)/dt*1000:0;
+    var vs=velOf();
+    rd.v=vs;rd.lastT=now;rd.lastX=e.clientX;
+    if(sh)return;
     railAt(rd.pos0-dx/rd.cw);
     showFrame(fr.idx);
-    if(rd.s.length>=3&&v>=FLING)rollIntoAutoplay();
+    if(rd.s.length>=3&&Math.abs(vs)>=FLING)startShuttle(vs);
   }
   function railUp(e){
     if(!rd||e.pointerId!==rd.id)return;
     var d=rd;rd=null;
     root.classList.remove('scrub');
-    if(d.rolled||d.moved){if(!d.rolled)railAt(fr.idx);return}
+    if(sh){sh.held=false;sh.target=sh.rate>=.5?1:0;if(!shRaf)shRaf=requestAnimationFrame(shTick);return}
+    if(d.moved){railAt(fr.idx);return}
     if(e.type==='pointercancel'||!fr)return;
     var r=rail.getBoundingClientRect(),i=Math.round(fr.pos+(e.clientX-(r.left+r.width/2))/fr.w);
     railAt(i);showFrame(fr.idx);
@@ -203,6 +281,7 @@ function mount(el,hooks){
   function stopLoop(){if(raf)cancelAnimationFrame(raf);raf=0;quiet()}
   function glide(to,ms){tween={a:p,b:to,t0:performance.now(),ms:ms||500};startLoop()}
   function setPlay(on,fromGlobal){
+    if(sh)endShuttle();
     playing=on;root.classList.toggle('paused',!on);
     if(on){tween=null;pv.hidden=true;playCur()}
     else{var v=curVid();if(v&&!v.paused)v.pause();railSync()}
@@ -271,7 +350,7 @@ function mount(el,hooks){
   try{stage.focus({preventScroll:true})}catch(e){}
   return {
     stop:function(){
-      dead=true;stopLoop();
+      dead=true;stopLoop();if(sh)endShuttle();
       removeEventListener('pointermove',onMove);removeEventListener('pointerup',onUp);removeEventListener('pointercancel',onUp);
       document.removeEventListener('visibilitychange',onVis);
       window.removeEventListener('gjpause',onGlobalPause);
@@ -279,7 +358,7 @@ function mount(el,hooks){
       pool.forEach(function(q){q.v.removeAttribute('src');q.i=-1;try{q.v.load()}catch(e){}});
       document.documentElement.classList.remove('reelon');
     },
-    state:function(){return {i:mod(cur),n:N,playing:playing,fit:root.classList.contains('fit'),p:p,frame:fr?fr.idx:-1,frames:fr?fr.n:0}}
+    state:function(){return {i:mod(cur),n:N,playing:playing,fit:root.classList.contains('fit'),p:p,frame:fr?fr.idx:-1,frames:fr?fr.n:0,rate:sh?+sh.rate.toFixed(2):0,shuttle:sh?sh.mode:''}}
   };
 }
 window.GJ_REELVIEW={mount:mount};
