@@ -85,8 +85,8 @@ body.safe .water{background:linear-gradient(180deg,#1a0a09,#0a0506 80%)}
 body.safe .water::after{background:repeating-linear-gradient(180deg,rgba(255,80,70,.04) 0 1px,transparent 1px 7px)}
 body.safe .fm img,body.safe .fm video,body.safe .cell img,body.safe .cell video,
 body.safe .hero img,body.safe .hero video,body.safe .stack img,body.safe .stack video{filter:none;-webkit-filter:none;mix-blend-mode:normal}
-body.safe .cell .win{box-shadow:0 0 0 1px rgba(255,120,100,.10),0 6px 18px rgba(80,8,6,.28)}
-body.safe .cell.cur .win{box-shadow:0 0 0 2px var(--mint),0 0 16px rgba(227,139,124,.28),0 8px 20px rgba(80,8,6,.3)}
+body.safe .cell .win{box-shadow:0 6px 18px rgba(80,8,6,.28)}
+body.safe .cell.cur .win{box-shadow:0 0 16px rgba(227,139,124,.28),0 8px 20px rgba(80,8,6,.3)}
 body.safe .sheet{background:#0a0506}
 body.safe .sheet::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
   background:radial-gradient(ellipse at 50% 0%, rgba(140,20,12,.16), transparent 55%),
@@ -99,4 +99,4 @@ body.safe.sheet-open .lab-top{background:rgba(10,5,6,.94);border-bottom-color:rg
 /* a very light edge falloff on the window only — the photograph centre is left alone */
 body.safe .cell .win::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 16px 2px rgba(80,8,6,.10);z-index:2}
 body.safe .fm img,body.safe .fm video{box-shadow:0 8px 22px rgba(60,0,0,.28), inset 0 0 16px 2px rgba(80,8,6,.08)}
-body.safe .fm.cur img,body.safe .fm.cur video{box-shadow:0 0 0 1px rgba(255,160,140,.18),0 -8px 40px rgba(160,24,16,.18),0 12px 28px rgba(80,0,0,.28), inset 0 0 16px 2px rgba(80,8,6,.08)}
+body.safe .fm.cur img,body.safe .fm.cur video{box-shadow:0 -8px 40px rgba(160,24,16,.18),0 12px 28px rgba(80,0,0,.28), inset 0 0 16px 2px rgba(80,8,6,.08)}
