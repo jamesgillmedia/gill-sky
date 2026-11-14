@@ -39,7 +39,7 @@
   var BIG = 160, HUB = 44;
   var TAP_PX = 8, NOM = { x: -72, y: -120 }, LAY = { beyond: { x: NOM.x, y: NOM.y, z: 28 } };
   var ORDER = ['beyond'];
-  var wrap, hub, cluster, D = {}, lvl = 0, holdS = { x: 0, v: 0, t: 0, w: 4.6 }, hubSw = null, noClickUntil = 0, openA = { x: 0, v: 0, t: 0, w: 4.6 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
+  var wrap, hub, cluster, D = {}, lvl = 0, holdS = { x: 0, v: 0, t: 0, w: 14 }, hubSw = null, noClickUntil = 0, openA = { x: 0, v: 0, t: 0, w: 14 }, raf = 0, last = 0, held = null, pushes = 0, ignorePop = 0;
 
   function modeT() { return B.MODES.indexOf(B.state.mode) / N1; }
   function sweepT() { var S = B.state; return S.mode === 'off' ? 0 : S[S.mode]; }
@@ -148,7 +148,6 @@
   function moving() {
     if (Math.abs(openA.x - openA.t) > .0015 || Math.abs(openA.v) > .01 || Math.abs(holdS.x - holdS.t) > .004 || Math.abs(holdS.v) > .02) return true;
     var k, d, r; for (k in D) { d = D[k]; for (r in d.disp) if (Math.abs(d.disp[r] - d.tgt[r]) > .0008) return true; }
-    if (D.beyond && (D.beyond.pulse.x > .01 || Math.abs(D.beyond.pulse.v) > .05)) return true;
     return false;
   }
   function kick() { if (!raf) { last = performance.now(); raf = requestAnimationFrame(loop); } }
@@ -160,10 +159,9 @@
       d = D[k];
       for (r in d.disp) {
         if (d.drag && d.ring === r) { var kk = 1 - Math.exp(-dt * (d.rate || 14)); d.disp[r] += (d.tgt[r] - d.disp[r]) * kk; }
-        else { var sp = d['_s' + r] || (d['_s' + r] = { x: d.disp[r], v: 0, t: d.tgt[r], w: 4.6 }); sp.x = d.disp[r]; sp.t = d.tgt[r]; stepSpring(sp, dt, c); d.disp[r] = sp.x; }
+        else { var sp = d['_s' + r] || (d['_s' + r] = { x: d.disp[r], v: 0, t: d.tgt[r], w: 14 }); sp.x = d.disp[r]; sp.t = d.tgt[r]; stepSpring(sp, dt, c); d.disp[r] = sp.x; }
       }
     }
-    var pu = D.beyond.pulse; stepSpring(pu, dt, c); if (pu.x < .01 && Math.abs(pu.v) < .05) { pu.x = 0; pu.v = 0; }
     paintAll(); layout();
     if (moving() || held) raf = requestAnimationFrame(loop);
   }
@@ -171,14 +169,12 @@
   function layout() {
     var i;
     for (i = 0; i < ORDER.length; i++) {
-      var k = ORDER[i], d = D[k], e = clamp(openA.x, 0, 1), L = LAY[k];
-      /* held: the dial steps back. It squeezes up toward its top edge (scaleY .68, scaleX .94 about the top of the body: the body's top stays put), the ring and labels go to .5
-         and the solid body to .8, all on the one sprung value, so it eases in and expands back to full height when it is active again. Never hidden. */
-      var hk = clamp(holdS.x, 0, 1), sy = lerp(1, .68, hk), sx = lerp(1, .94, hk), s = lerp(.16, 1, e);
-      var x = -L.x * (1 - e), y = -L.y * (1 - e) - (1 - sy) * d.bodyR * s, z = L.z * e, ry = lerp(-6, -12, e);
-      d.box.style.transform = 'perspective(240px) translate3d(' + x.toFixed(2) + 'px,' + y.toFixed(2) + 'px,' + z.toFixed(2) + 'px) rotateY(' + ry.toFixed(2) + 'deg) scale(' + (s * sx).toFixed(4) + ',' + (s * sy).toFixed(4) + ')';
-      d.box.style.visibility = e > .012 ? '' : 'hidden';
-      d.svg.style.opacity = (1 - .5 * hk).toFixed(3); d.bodyEl.style.opacity = d.mistEl.style.opacity = (1 - .2 * hk).toFixed(3);   // the ring and labels step back to .5, the solid body stays at .8: never vanishes
+      var k = ORDER[i], d = D[k], e = clamp(openA.x, 0, 1);
+      /* calm: the dial simply fades in and out where it sits (no flight out of the hub, no scale, no squeeze); held, ring and labels ease to .5 and the solid body to .8 so it stays visible */
+      var hk = clamp(holdS.x, 0, 1);
+      d.box.style.transform = 'perspective(240px) translate3d(0,0,' + LAY[k].z + 'px) rotateY(-12deg)';
+      d.box.style.visibility = e > .012 ? '' : 'hidden'; d.box.style.opacity = e.toFixed(3);
+      d.svg.style.opacity = (1 - .5 * hk).toFixed(3); d.bodyEl.style.opacity = d.mistEl.style.opacity = (1 - .2 * hk).toFixed(3);
     }
     cluster.classList.toggle('bd-vis', openA.x > .002);
   }
@@ -191,8 +187,7 @@
     d.thOut.setAttribute('cx', po[0].toFixed(2)); d.thOut.setAttribute('cy', po[1].toFixed(2));
     d.thIn.setAttribute('cx', pi[0].toFixed(2)); d.thIn.setAttribute('cy', pi[1].toFixed(2));
     var cOut = ringV(tOut), cIn = innerV(tOut, tIn), N = d.segs.length, i, mi0 = B.MODES.indexOf(S.mode);
-    if (mi0 !== d.lastIdx) { if (d.lastIdx >= 0) { d.pulse.x = 2.4; d.pulse.v = 0; if (held && w.navigator && navigator.vibrate) { try { navigator.vibrate(6); } catch (x) {} } } d.lastIdx = mi0; }
-    d.thOut.setAttribute('r', (4.2 + Math.max(0, d.pulse.x)).toFixed(2));                                           // a small pulse as the thumb lands on a detent
+    d.lastIdx = mi0;
     for (i = 0; i < N; i++) setC(d.segs[i], 'stroke', ringV((i + .5) / N), .5);                                      // the ring carries the real hue at each detent
     d.act.setAttribute('d', tOut > .004 ? arc(80, 80, 62, 0, tOut) : ''); setC(d.act, 'stroke', cOut, .95);          // active arc: the colour at the current position
     setC(d.thOut, 'fill', cOut); d.ticks.forEach(function (tk, n) { setC(tk, 'stroke', ringV(n / N1), .95); });

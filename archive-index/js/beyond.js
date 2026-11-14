@@ -13,7 +13,7 @@
   var STEPCOL = { off: [232, 228, 220], red: [238, 54, 70], orange: FAM.orange.col, amber: FAM.amber.col, green: FAM.green.col, teal: FAM.teal.col, blue: FAM.blue.col, violet: FAM.violet.col, mono: [168, 170, 176], light: [250, 250, 246] };
   var HUES = [[345, 'rose'], [15, 'red'], [45, 'amber'], [70, 'gold'], [165, 'green'], [200, 'teal'], [255, 'blue'], [300, 'violet']];
   var DEF = { mode: 'off', red: .7, orange: .5, amber: .5, green: .5, teal: .5, blue: .5, violet: .5, mono: .5, light: .5 };
-  var W_GLIDE = 4.6;   // site-3d's glide weight
+  var W_GLIDE = 14;   // calm: quick and critically damped
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function lerp(a, b, u) { return a + (b - a) * u; }
   var RMQ = matchMedia('(prefers-reduced-motion: reduce)');
