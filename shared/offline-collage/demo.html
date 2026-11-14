@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#050507">
+<title>Error and offline state · demo</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="collage.css">
+<style>
+html,body{height:100%;margin:0;background:#050507;color:#c9c5bd;overflow:hidden}
+#host{position:fixed;inset:0 0 44px 0}
+#pick{position:fixed;left:0;right:0;bottom:0;height:44px;display:flex;gap:6px 18px;align-items:center;justify-content:center;flex-wrap:wrap;
+  font:300 11px/1 "Poppins","Helvetica Neue",system-ui,sans-serif;letter-spacing:.14em;text-transform:lowercase;border-top:1px solid rgba(255,255,255,.09)}
+#pick a{color:#8d8a84;text-decoration:none;min-height:30px;display:inline-flex;align-items:center;border-bottom:1px solid transparent}
+#pick a[aria-current="true"]{color:#e8e4dc;border-bottom-color:#e8e4dc}
+#pick a:focus-visible{outline:2px solid #e8e4dc;outline-offset:2px}
+</style>
+</head>
+<body>
+<div id="host"></div>
+<nav id="pick" aria-label="Which message">
+  <a href="?reason=offline">offline</a><a href="?reason=timeout">timeout</a><a href="?reason=network">unreachable</a><a href="?reason=http">no answer</a>
+</nav>
+<script src="collage.js"></script>
+<script>
+(function () {
+  var m = /[?&]reason=(offline|timeout|network|http)/.exec(location.search), reason = m ? m[1] : 'offline';
+  [].forEach.call(document.querySelectorAll('#pick a'), function (a) {
+    if (a.getAttribute('href') === '?reason=' + reason) a.setAttribute('aria-current', 'true');
+  });
+  GJ_FAILSAFE.show(document.getElementById('host'), { reason: reason, onRetry: function () { location.reload(); } });
+})();
+</script>
+</body>
+</html>

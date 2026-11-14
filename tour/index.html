@@ -6,157 +6,43 @@
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#050507">
 <title>Gill James · preview tour</title>
+<meta name="description" content="Nine previews of the Gill James site, one after another: films, photographs and objects.">
+<!-- og:begin -->
+<link rel="canonical" href="https://jamesgillmedia.github.io/gill-sky/tour/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Gill James">
+<meta property="og:title" content="Gill James · preview tour">
+<meta property="og:description" content="Nine previews of the Gill James site, one after another: films, photographs and objects.">
+<meta property="og:url" content="https://jamesgillmedia.github.io/gill-sky/tour/">
+<meta property="og:image" content="https://jamesgillmedia.github.io/gill-sky/og/tour.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="The Gill James sky: film, photo, objects and sound as constellations on a dark ground">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Gill James · preview tour">
+<meta name="twitter:description" content="Nine previews of the Gill James site, one after another: films, photographs and objects.">
+<meta name="twitter:image" content="https://jamesgillmedia.github.io/gill-sky/og/tour.jpg">
+<meta name="twitter:image:alt" content="The Gill James sky: film, photo, objects and sound as constellations on a dark ground">
+<!-- og:end -->
 <link rel="icon" href="data:,">
-<style>
-:root{--ink:#050507;--text:#c9c5bd;--dim:#7d7a75;--line:rgba(255,255,255,.09);--bar:38px}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;margin:0;background:var(--ink);color:var(--text);overflow:hidden;overscroll-behavior:none}
-body{
-  display:grid;grid-template-rows:minmax(0,1fr) auto;
-  padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);
-  font:300 12px/1 "Poppins","Helvetica Neue",system-ui,-apple-system,sans-serif;letter-spacing:.04em;
-}
-#view{position:relative;min-height:0;background:var(--ink)}
-#view iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--ink);opacity:0;transition:opacity .25s ease}
-#view iframe.on{opacity:1}
-#strip{
-  position:relative;display:flex;align-items:center;gap:2px;
-  height:calc(var(--bar) + env(safe-area-inset-bottom));padding:0 4px env(safe-area-inset-bottom);
-  background:var(--ink);border-top:1px solid var(--line);
-  touch-action:pan-y;user-select:none;-webkit-user-select:none;
-}
-#strip button,#strip a{
-  appearance:none;border:0;background:none;color:var(--text);font:inherit;letter-spacing:inherit;
-  height:var(--bar);min-width:40px;display:flex;align-items:center;justify-content:center;
-  padding:0 8px;text-decoration:none;cursor:pointer;border-radius:6px;opacity:.78;
-}
-#strip button:hover,#strip a:hover,#strip button:focus-visible,#strip a:focus-visible{opacity:1;outline:0;background:rgba(255,255,255,.06)}
-#strip svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
-#label{flex:1;min-width:0;display:flex;align-items:baseline;gap:8px;justify-content:center;white-space:nowrap}
-#label .n{color:var(--dim);font-size:11px;flex:none;font-variant-numeric:tabular-nums}
-#label .t{overflow:hidden;text-overflow:ellipsis}
-#alone{font-size:11px;color:var(--dim)}
-#menu{
-  position:absolute;left:4px;right:4px;bottom:calc(100% + 6px);max-width:340px;margin:0 auto;
-  background:rgba(8,8,11,.96);border:1px solid var(--line);border-radius:10px;padding:4px;
-  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
-  max-height:calc(100dvh - var(--bar) - 24px - env(safe-area-inset-bottom));overflow:auto;
-  opacity:0;transform:translateY(4px);pointer-events:none;visibility:hidden;transition:opacity .15s ease,transform .15s ease,visibility 0s .15s;
-}
-#menu.open{opacity:1;transform:none;pointer-events:auto;visibility:visible;transition:opacity .15s ease,transform .15s ease}
-#menu a{display:flex;justify-content:flex-start;gap:12px;width:100%;height:34px;font-size:12px;opacity:.82}
-#menu a .n{width:16px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
-#menu a[aria-current="true"]{opacity:1;background:rgba(255,255,255,.07)}
-@media (min-width:700px){:root{--bar:34px}#menu{left:auto;right:4px;margin:0}}
-@media (prefers-reduced-motion:reduce){#view iframe,#menu{transition:none}}
-</style>
+<link rel="stylesheet" href="../shared/offline-collage/collage.css">
+<link rel="stylesheet" href="tour.css">
 </head>
-<body>
-<main id="view" aria-label="Preview"></main>
+<body data-stop="1" data-index="1">
+<main id="view" aria-label="Preview"><noscript><p style="padding:20px"><a href="https://raw.githack.com/jamesgillmedia/gill-sky/fe59060b8dafdfdb843768dc25610ce7d704df94/tonight/fable-m4/#/film/one-with-the-devil" style="color:#c9c5bd">Open One With the Devil</a></p></noscript></main>
+<nav id="links" aria-label="More pages"><a href="../tonight/fable-m4/">home</a><a href="./" aria-current="page">tour index</a><a class="pn" rel="prev" href="objects-orbit/">‹ Objects orbit</a><a class="pn" rel="next" href="backward-fall/">Backward Fall ›</a></nav>
 <nav id="strip" aria-label="Preview tour">
-  <button id="prev" type="button" aria-label="Previous preview"><svg viewBox="0 0 16 16"><path d="M10 3 5 8l5 5"/></svg></button>
-  <div id="label" role="status" aria-live="polite"><span class="n"></span><span class="t"></span></div>
-  <button id="next" type="button" aria-label="Next preview"><svg viewBox="0 0 16 16"><path d="m6 3 5 5-5 5"/></svg></button>
-  <button id="menubtn" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menu" aria-label="All previews"><svg viewBox="0 0 16 16"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg></button>
-  <a id="alone" href="#" target="_blank" rel="noopener" aria-label="Open this preview alone, outside the frame">open alone</a>
-  <div id="menu" role="menu" aria-label="All previews"></div>
+  <a id="prev" rel="prev" href="objects-orbit/" aria-label="Previous preview: Objects orbit"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></a>
+  <div id="label" role="status" aria-live="polite"><span class="n">1 of 9</span><span class="t">One With the Devil</span></div>
+  <a id="next" rel="next" href="backward-fall/" aria-label="Next preview: Backward Fall"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></a>
+  <button id="menubtn" type="button" aria-expanded="false" aria-controls="menu" aria-label="All previews"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 4.5h10M3 8h10M3 11.5h10"/></svg></button>
+  <a id="alone" href="https://raw.githack.com/jamesgillmedia/gill-sky/fe59060b8dafdfdb843768dc25610ce7d704df94/tonight/fable-m4/#/film/one-with-the-devil" target="_blank" rel="noopener" aria-label="Open this preview alone, outside the frame">open alone</a>
+  <div id="menu" aria-label="All previews"><a href="one-with-the-devil/" aria-current="true"><span class="n">1</span><span class="t">One With the Devil</span></a><a href="backward-fall/"><span class="n">2</span><span class="t">Backward Fall</span></a><a href="film-board/"><span class="n">3</span><span class="t">Film board</span></a><a href="demo-reel-card/"><span class="n">4</span><span class="t">Demo reel card</span></a><a href="beyond/"><span class="n">5</span><span class="t">Beyond</span></a><a href="contact-sheet/"><span class="n">6</span><span class="t">Contact sheet</span></a><a href="photo-lab-live/"><span class="n">7</span><span class="t">Photo Lab (live)</span></a><a href="lab-lens-photo-lab/"><span class="n">8</span><span class="t">Lab-lens Photo Lab</span></a><a href="objects-orbit/"><span class="n">9</span><span class="t">Objects orbit</span></a></div>
 </nav>
-<script>
-(function(){
-  var G="https://raw.githack.com/jamesgillmedia/gill-sky/";
-  var M4="/tonight/fable-m4/";
-  var ITEMS=[
-    {t:"One With the Devil",u:G+"fe59060b8dafdfdb843768dc25610ce7d704df94"+M4+"#/film/one-with-the-devil"},
-    {t:"Backward Fall",u:G+"fe59060b8dafdfdb843768dc25610ce7d704df94"+M4+"#/film/backward-fall"},
-    {t:"Film board",u:G+"1575e327ee93e325f2e2420c3f4a164bbed999bf"+M4+"#/film/board"},
-    {t:"Demo reel card",u:G+"1575e327ee93e325f2e2420c3f4a164bbed999bf"+M4+"#/film/demo-reel"},
-    {t:"Beyond",u:G+"92a0f77b3e5455f693a9b7553438293f6b1d33dd"+M4},
-    {t:"Contact sheet",u:G+"3ef0bd3cecee5cf5e557ecc47556ebeab7f1e9ef/photo-lab/"},
-    {t:"Photo Lab (live)",u:"https://jamesgillmedia.github.io/gill-sky/photo-lab/"},
-    {t:"Lab-lens Photo Lab",u:G+"ba49149fdd178382c33161df20bb43e2fe4a2ec7/lab-lens-preview/photo-lab/"},
-    {t:"Objects orbit",u:G+"553d92d007ca445b6e309910b54eb42380f090a7/objects-3d/"}
-  ];
-  var N=ITEMS.length,cur=-1;
-  var $=function(id){return document.getElementById(id)};
-  var view=$("view"),menu=$("menu"),mbtn=$("menubtn"),lab=$("label"),alone=$("alone");
-
-  ITEMS.forEach(function(it,i){
-    var a=document.createElement("a");
-    a.href="#"+(i+1);a.setAttribute("role","menuitem");
-    a.innerHTML='<span class="n">'+(i+1)+'</span><span class="t"></span>';
-    a.lastChild.textContent=it.t;
-    a.addEventListener("click",function(e){e.preventDefault();go(i);setMenu(false)});
-    menu.appendChild(a);
-  });
-
-  function fromHash(){
-    var n=parseInt((location.hash||"").replace(/^#/,""),10);
-    return n>=1&&n<=N?n-1:0;
-  }
-  function render(i){
-    if(i===cur)return;
-    cur=i;var it=ITEMS[i];
-    var old=view.querySelector("iframe");
-    var f=document.createElement("iframe");
-    f.title=it.t;
-    f.setAttribute("allow","fullscreen; autoplay; accelerometer; gyroscope; clipboard-write");
-    f.setAttribute("allowfullscreen","");
-    var shown=function(){f.classList.add("on");if(old&&old.parentNode===view)view.removeChild(old)};
-    f.addEventListener("load",shown);
-    setTimeout(shown,7000);
-    f.src=it.u;
-    view.appendChild(f);
-    if(old)old.style.pointerEvents="none";
-    lab.firstChild.textContent=(i+1)+" of "+N;
-    lab.lastChild.textContent=it.t;
-    alone.href=it.u;
-    document.title=it.t+" · "+(i+1)+" of "+N+" · Gill James preview tour";
-    var items=menu.children;
-    for(var k=0;k<items.length;k++){
-      if(k===i)items[k].setAttribute("aria-current","true");else items[k].removeAttribute("aria-current");
-    }
-  }
-  function go(i){
-    i=((i%N)+N)%N;
-    var h="#"+(i+1);
-    if(location.hash!==h)history.replaceState(null,"",h);
-    render(i);
-  }
-  function setMenu(open){
-    menu.classList.toggle("open",open);
-    mbtn.setAttribute("aria-expanded",open?"true":"false");
-  }
-
-  $("prev").addEventListener("click",function(){go(cur-1)});
-  $("next").addEventListener("click",function(){go(cur+1)});
-  mbtn.addEventListener("click",function(e){e.stopPropagation();setMenu(!menu.classList.contains("open"))});
-  document.addEventListener("click",function(e){if(!menu.contains(e.target))setMenu(false)});
-  window.addEventListener("hashchange",function(){render(fromHash())});
-  window.addEventListener("keydown",function(e){
-    if(e.altKey||e.ctrlKey||e.metaKey)return;
-    if(e.key==="ArrowLeft"){go(cur-1);e.preventDefault()}
-    else if(e.key==="ArrowRight"){go(cur+1);e.preventDefault()}
-    else if(e.key==="Escape"){setMenu(false)}
-  });
-
-  var sx=0,sy=0,st=0,tracking=false;
-  var strip=$("strip");
-  strip.addEventListener("touchstart",function(e){
-    if(e.touches.length!==1){tracking=false;return}
-    tracking=true;sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();
-  },{passive:true});
-  strip.addEventListener("touchend",function(e){
-    if(!tracking)return;tracking=false;
-    var t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
-    if(Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)*1.5&&Date.now()-st<700){
-      go(cur+(dx<0?1:-1));
-      setTimeout(function(){document.activeElement&&document.activeElement.blur&&document.activeElement.blur()},0);
-    }
-  },{passive:true});
-
-  render(fromHash());
-  if(location.hash!=="#"+(cur+1))history.replaceState(null,"","#"+(cur+1));
-})();
-</script>
+<script src="../shared/analytics/config.js"></script>
+<script src="../shared/analytics/analytics.js"></script>
+<script src="../shared/offline-collage/collage.js"></script>
+<script src="stops.js"></script>
+<script src="tour.js"></script>
 </body>
 </html>

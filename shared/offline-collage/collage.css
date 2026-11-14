@@ -1,0 +1,20 @@
+/* Error / offline state (shared). Dark ground, calm type, no spinner. The cups are cutout photographs: only a shadow sits on the wrapper. */
+.gjf{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(10px,3vh,26px);padding:16px;
+  background:#050507;color:#c9c5bd;text-align:center;overflow:auto;
+  font:300 14px/1.5 "Poppins","Helvetica Neue",system-ui,-apple-system,sans-serif;letter-spacing:.03em}
+.gjf-stage{position:relative;width:min(88vw,520px);max-height:42vh;aspect-ratio:16/10;flex:none}
+.gjf-frame{position:absolute;inset:0;opacity:0;transition:opacity .9s ease}
+.gjf-frame.on{opacity:1}
+.gjf-cup{position:absolute;display:block;pointer-events:none;filter:drop-shadow(0 7px 8px rgba(0,0,0,.6))}
+.gjf-cup img{display:block;width:100%;height:100%;pointer-events:none;-webkit-user-drag:none}
+.gjf-msg{max-width:34ch}
+.gjf-h{margin:0 0 4px;font-size:16px;color:#e8e4dc;letter-spacing:.04em}
+.gjf-p{margin:0;font-size:13px;color:#a8a49d}
+.gjf-row{display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center;align-items:center;margin-top:14px}
+.gjf-retry{appearance:none;background:none;color:#e8e4dc;font:inherit;font-size:13px;letter-spacing:.14em;text-transform:uppercase;
+  min-height:44px;padding:0 22px;border:1px solid rgba(232,228,220,.5);border-radius:22px;cursor:pointer}
+.gjf-retry:hover{border-color:#e8e4dc;background:rgba(232,228,220,.07)}
+.gjf-link{color:#c9c5bd;font-size:13px;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center}
+.gjf-retry:focus-visible,.gjf-link:focus-visible{outline:2px solid #e8e4dc;outline-offset:3px}
+@media (max-height:520px){.gjf{flex-direction:row;gap:24px}.gjf-stage{width:min(44vw,300px)}}
+@media (prefers-reduced-motion:reduce){.gjf-frame{transition:none}}
