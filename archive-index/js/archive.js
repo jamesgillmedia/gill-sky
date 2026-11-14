@@ -400,32 +400,20 @@ vp.addEventListener('dblclick', e => e.preventDefault());
 /* ---------- the room: lifted frame under the site's camera ----------
    One object, one opaque room. The camera reuses site-3d's critically damped
    spring (sstep) and its weights, FOV 60, fable-m4's 960 ms ease-out push,
-   and the moon opener's exponential lag. Nothing here advances on its own
-   except a very slow idle drift (off under Reduce Motion). */
+   and the moon opener's exponential lag. No orbit here (objects-3d is the only orbiting room):
+   a drag only leans the plane a few px / about 1.5 degrees with damped parallax, a swipe steps. Nothing advances on its own. */
 const lt = $('lt'), fig = $('ltfig'), box = $('ltbox'), lo = $('ltlo'), hiImg = $('lthi'), ltbg = $('ltbg');
 const chrome = [...lt.querySelectorAll('.lt-ch')];
 const outside = ['.top', '.films', '.corner', '#vp'].map(q => document.querySelector(q));
 let pushed = false, closing = null;
-/* interaction mode: 'drag' orbits (only when the set has more than one item) / tilts the plane of a single item when dollied out;
-   'swipe' keeps the older gestures: swipe sideways for the next / previous frame, swipe down to leave. Default drag, ?mode=swipe, remembered. */
-const IMK = 'archive-index-imode';
-let imode = 'drag', solo = false;
-try { const v = localStorage.getItem(IMK); if (v === 'swipe' || v === 'drag') imode = v; } catch (e) {}
-{ const v = new URLSearchParams(location.search).get('mode'); if (v === 'swipe' || v === 'drag') imode = v; }
-const setSize = () => solo ? 1 : (hi !== null && films[hi] ? films[hi].frames.length : F.length);
-const orbitOn = () => imode === 'drag' && setSize() > 1;
-const tiltOn = () => imode === 'drag' && setSize() === 1 && cam.zoom.t < .93;   // single item, dollied out: the plane itself can be angled
-const LIM = () => setSize() > 1 ? [YAW, PIT] : [TYAW, TPIT];
-
 const TAN30 = Math.tan(Math.PI / 6);                       // FOV 60 (site-3d PerspectiveCamera)
 const WTS = () => RM.matches ? { REL: 14, FLY: 9, GLIDE: 8, SOFT: 6 } : { REL: 9.5, FLY: 5.6, GLIDE: 4.6, SOFT: 3.2 };
 function S(x, w) { return { x, t: x, v: 0, w }; }
 function sstep(q, dt) { const w = q.w, e = q.x - q.t, k = Math.exp(-w * dt), c = q.v + w * e; q.x = q.t + (e + c * dt) * k; q.v = (q.v - w * c * dt) * k; }
-const YAW = .62, PIT = .36, TYAW = .35, TPIT = .22, ZMIN = .75, ZMAX = 2.2;           // angle clamp keeps the frame in view (see fitScale)
-const RAWK = 2.2, KRAD = .0045;                                            // radians per dragged px
-const IDLE_MS = 3500, DRIFT_Y = .2, DRIFT_P = .045, DRIFT_WY = .06, DRIFT_WP = .043;  // site-3d idle yaw .012 rad/s peak
-const cam = { yaw: S(0, 9.5), pit: S(0, 9.5), zoom: S(1, 4.6) };
-let uy = 0, upv = 0, drift = 0, lastIn = 0, interacting = false, ent = null, bgA = 0, chA = 0, rect = null, roomT = 0, wheelT = 0;
+const YAW = .026, PIT = .026, ZMIN = .75, ZMAX = 2.2;   // the most the plane ever leans (about 1.5 degrees); fitScale keeps it framed
+const LEAN_PX = 60, LEAN_T = 6;                          // drag px that reach the full lean, and the most the plane shifts (px)
+const cam = { yaw: S(0, 9.5), pit: S(0, 9.5), tx: S(0, 9.5), ty: S(0, 9.5), zoom: S(1, 4.6) };
+let uy = 0, upv = 0, lastIn = 0, interacting = false, ent = null, bgA = 0, chA = 0, rect = null, roomT = 0, wheelT = 0;
 const clampN = (v, a, b) => Math.min(b, Math.max(a, v));
 const easeOut3 = u => 1 - Math.pow(1 - u, 3), easeIO3 = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
 // fable-m4 depth.js push, peak scaled down from its 1.1 knee so the frame arrives with a breath, not a jolt
@@ -473,7 +461,7 @@ function fillLift() {
   fig.setAttribute('aria-label', 'Frame ' + n + ', ' + f.title + ', ' + x.tc);
   [cur - 1, cur + 1].forEach(k => { if (k >= 0 && k < F.length) { const y = F[k]; new Image().src = 'media/l/' + films[y.f].slug + '/' + y.id + '.webp'; } });
 }
-function poseHome(w) { uy = upv = 0; drift = 0; cam.yaw.t = cam.pit.t = 0; cam.zoom.t = 1; cam.yaw.w = cam.pit.w = cam.zoom.w = w; lastIn = performance.now(); }
+function poseHome(w) { uy = upv = 0; cam.yaw.t = cam.pit.t = cam.tx.t = cam.ty.t = 0; cam.zoom.t = 1; cam.yaw.w = cam.pit.w = cam.tx.w = cam.ty.w = cam.zoom.w = w; lastIn = performance.now(); }
 function setInert(on) { outside.forEach(el => { if (el) { if (on) el.setAttribute('inert', ''); else el.removeAttribute('inert'); } }); }
 function openLift(g, animate, fromHash, origin) {
   const was = cur >= 0; cur = g; closing = null;
@@ -482,7 +470,7 @@ function openLift(g, animate, fromHash, origin) {
   lt.hidden = false; setInert(true);
   if (!was) { bgA = 0; chA = 0; ent = null; cam.yaw.x = cam.pit.x = 0; cam.yaw.v = cam.pit.v = 0; cam.zoom.x = 1; cam.zoom.v = 0; }
   poseHome(WTS().GLIDE);
-  fillLift(); placeLift(animate && !was, origin); paintHint();
+  fillLift(); placeLift(animate && !was, origin);
   const h = hashFor(F[g].n);
   if (!fromHash) {
     if (!was && !pushed) { history.pushState({ lift: 1 }, '', h); pushed = true; }
@@ -491,7 +479,7 @@ function openLift(g, animate, fromHash, origin) {
   dirty = true; wake(); lt.focus({ preventScroll: true });
 }
 function step(d) {
-  if (cur < 0 || solo) return; const g = cur + d; if (g < 0 || g >= F.length) return;
+  if (cur < 0) return; const g = cur + d; if (g < 0 || g >= F.length) return;
   openLift(g, false);
 }
 function closeLift(fromPop, toCentre) {
@@ -509,7 +497,7 @@ function closeLift(fromPop, toCentre) {
   wake();
 }
 
-/* camera tick: springs, idle drift, enter / contract, room + chrome easing */
+/* camera tick: springs, enter / contract, room + chrome easing */
 function roomPaint(e) {
   if (!rect) return;
   const P = rect.P, z = clampN(cam.zoom.x, ZMIN * .9, ZMAX * 1.05), dz = P * (1 - 1 / z);
@@ -519,7 +507,7 @@ function roomPaint(e) {
     const sc = (ent.r + (1 - ent.r) * k) * (ent.out ? 1 : bump(k));
     pre = `translate3d(${ent.dx * (1 - k)}px,${ent.dy * (1 - k)}px,0) scale(${sc}) `;
   }
-  box.style.transform = `${pre}perspective(${P}px) translateZ(${dz}px) rotateX(${cam.pit.x}rad) rotateY(${cam.yaw.x}rad)`;
+  box.style.transform = `${pre}translate3d(${cam.tx.x.toFixed(2)}px,${cam.ty.x.toFixed(2)}px,0) perspective(${P}px) translateZ(${dz}px) rotateX(${cam.pit.x}rad) rotateY(${cam.yaw.x}rad)`;
 }
 function lag(cur0, target, rate, dt) { return cur0 + (target - cur0) * (1 - Math.exp(-dt * rate)); }   // moon opener: k = 1-exp(-dt*rate)
 let last = 0, raf = 0;
@@ -529,16 +517,10 @@ function roomTick(t) {
   const live = cur >= 0, dt = Math.min(.05, Math.max(.001, (t - last) / 1000)); last = t;
   const rm = RM.matches;
   if (live) {
-    const orb = orbitOn(), til = tiltOn(), posed = orb || til, [LY, LP_] = LIM();
-    if (!posed && (uy || upv)) { uy = upv = 0; cam.yaw.w = cam.pit.w = WTS().GLIDE; }   // single item and not dollied out, or swipe mode: flat
-    const idle = orb && !interacting && t - lastIn > IDLE_MS;
-    let dy = 0, dp = 0;
-    if (idle && !rm) { drift += dt; dy = DRIFT_Y * Math.sin(DRIFT_WY * drift); dp = DRIFT_P * Math.sin(DRIFT_WP * drift); }
-    cam.yaw.t = LY * Math.tanh((uy + dy) / LY); cam.pit.t = LP_ * Math.tanh((upv + dp) / LP_);   // soft walls: slows into the clamp
-    if (idle && !rm) { cam.yaw.w = cam.pit.w = WTS().SOFT; }
-    sstep(cam.yaw, dt); sstep(cam.pit, dt); sstep(cam.zoom, dt);
-    cam.yaw.x = clampN(cam.yaw.x, -LY, LY); cam.pit.x = clampN(cam.pit.x, -LP_, LP_);
-    if (hintKey !== hintFor()) paintHint();
+    cam.yaw.t = clampN(uy * YAW / LEAN_PX, -YAW, YAW); cam.pit.t = clampN(-upv * PIT / LEAN_PX, -PIT, PIT);   // a drag only leans the plane
+    cam.tx.t = clampN(uy * LEAN_T / LEAN_PX, -LEAN_T, LEAN_T); cam.ty.t = clampN(upv * LEAN_T / LEAN_PX, -LEAN_T, LEAN_T);
+    if (RM.matches) cam.yaw.t = cam.pit.t = cam.tx.t = cam.ty.t = 0;
+    sstep(cam.yaw, dt); sstep(cam.pit, dt); sstep(cam.tx, dt); sstep(cam.ty, dt); sstep(cam.zoom, dt);
     bgA = lag(bgA, 1, rm ? 22 : 14, dt);
     chA = lag(chA, interacting ? .22 : 1, rm ? 22 : 3.4, dt);
     if (ent && !ent.out) { const u = Math.min(1, (t - ent.t0) / ent.dur); ent.e = easeOut3(u); if (u >= 1) ent = null; }
@@ -553,21 +535,17 @@ function roomTick(t) {
   const co = chA >= .995 ? 1 : chA.toFixed(3); chrome.forEach(el => el.style.opacity = co);
   if (live || closing) raf = requestAnimationFrame(roomTick);
 }
-function bumpIn() { lastIn = performance.now(); drift = 0; }
-function absorbDrift() {   // fold the current drift offset into the user's pose so hand-over is continuous
-  if (drift > 0 && !RM.matches) { uy = clampN(uy + DRIFT_Y * Math.sin(DRIFT_WY * drift), -RAWK * YAW, RAWK * YAW); upv = clampN(upv + DRIFT_P * Math.sin(DRIFT_WP * drift), -RAWK * PIT, RAWK * PIT); }
-  drift = 0;
-}
+function bumpIn() { lastIn = performance.now(); }
 
-/* gestures: one finger / drag orbits, pinch / wheel dollies */
-const LP = new Map(); let lpinch = null, ltap = null, lvel = [0, 0], lmoveT = 0;
+/* gestures: a drag leans the plane a hair, a swipe steps, pinch / wheel dolly */
+const LP = new Map(); let lpinch = null, ltap = null;
 lt.style.touchAction = 'none';
 lt.addEventListener('pointerdown', e => {
   if (e.target.closest('button')) return;
-  absorbDrift(); bumpIn(); interacting = true; outAcc = 0; document.body.classList.add('lt-touched');
+  bumpIn(); interacting = true; outAcc = 0; document.body.classList.add('lt-touched');
   lt.setPointerCapture(e.pointerId); LP.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  const W = WTS(); cam.yaw.w = cam.pit.w = W.REL; cam.zoom.w = W.REL;
-  if (LP.size === 1) { ltap = { x: e.clientX, y: e.clientY, moved: false, bg: e.target === ltbg }; lvel = [0, 0]; }
+  const W = WTS(); cam.yaw.w = cam.pit.w = cam.tx.w = cam.ty.w = W.REL; cam.zoom.w = W.REL;
+  if (LP.size === 1) { ltap = { x: e.clientX, y: e.clientY, moved: false, bg: e.target === ltbg }; uy = upv = 0; }
   if (LP.size === 2) { const [a, b] = [...LP.values()]; lpinch = Math.hypot(a.x - b.x, a.y - b.y); ltap = null; }
   wake();
 });
@@ -576,11 +554,7 @@ lt.addEventListener('pointermove', e => {
   const dx = e.clientX - p.x, dy = e.clientY - p.y; p.x = e.clientX; p.y = e.clientY; bumpIn();
   if (LP.size === 1) {
     if (ltap && !ltap.moved && Math.hypot(e.clientX - ltap.x, e.clientY - ltap.y) > 6) { ltap.moved = true; lt.classList.add('drag'); }
-    if (ltap && ltap.moved && (orbitOn() || tiltOn())) {
-      const t = performance.now(), dts = Math.max(.008, (t - lmoveT) / 1000); lmoveT = t; const [LY, LP_] = LIM();
-      uy = clampN(uy + dx * KRAD, -RAWK * LY, RAWK * LY); upv = clampN(upv - dy * KRAD, -RAWK * LP_, RAWK * LP_);
-      lvel = [lvel[0] * .6 + (dx * KRAD / dts) * .4, lvel[1] * .6 + (-dy * KRAD / dts) * .4];
-    }
+    if (ltap && ltap.moved) { uy = clampN(uy + dx, -LEAN_PX, LEAN_PX); upv = clampN(upv + dy, -LEAN_PX, LEAN_PX); }
   } else if (LP.size === 2 && lpinch) {
     const [a, b] = [...LP.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
     const f = d / lpinch, raw = cam.zoom.t * f; lpinch = d;
@@ -601,23 +575,21 @@ function settleZoom() {   // soft detent back to the fit, site-3d's W_SOFT, only
 function lup(e) {
   if (!LP.has(e.pointerId)) return;
   LP.delete(e.pointerId); lt.classList.remove('drag');
-  if (LP.size === 1) { lpinch = null; ltap = null; lvel = [0, 0]; return; }
+  if (LP.size === 1) { lpinch = null; ltap = null; uy = upv = 0; return; }
   if (LP.size) return;
   const W = WTS(); lpinch = null; interacting = false; bumpIn();
   if (ltap && !ltap.moved && ltap.bg && e.type === 'pointerup') closeLift();
-  else if (ltap && ltap.moved && imode === 'swipe' && e.type === 'pointerup') {
+  else if (ltap && ltap.moved && e.type === 'pointerup') {
     const dx = e.clientX - ltap.x, dy = e.clientY - ltap.y;
     if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) step(dx < 0 ? 1 : -1);
     else if (dy > 70 && Math.abs(dy) > Math.abs(dx) * 1.3) closeLift();
-  } else if (ltap && ltap.moved && !RM.matches && (orbitOn() || tiltOn()) && performance.now() - lmoveT < 80) {
-    const [LY, LP_] = LIM();
-    uy = clampN(uy + lvel[0] * .3, -RAWK * LY, RAWK * LY); upv = clampN(upv + lvel[1] * .3, -RAWK * LP_, RAWK * LP_);   // slow inertia that settles
   }
-  cam.yaw.w = cam.pit.w = W.SOFT; settleZoom(); ltap = null; wake();
+  uy = upv = 0;
+  cam.yaw.w = cam.pit.w = cam.tx.w = cam.ty.w = W.SOFT; settleZoom(); ltap = null; wake();
 }
 lt.addEventListener('pointerup', lup); lt.addEventListener('pointercancel', lup);
 lt.addEventListener('wheel', e => {
-  e.preventDefault(); absorbDrift(); bumpIn();
+  e.preventDefault(); bumpIn();
   const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? vh : 1;
   const f = Math.exp(-(e.deltaY || 0) * k * (e.ctrlKey ? .01 : .0018)), raw = cam.zoom.t * f;
   if (pushedOut(f)) { enterCst(); return; }   // wheel / dolly out past the widest stop
@@ -627,23 +599,6 @@ lt.addEventListener('wheel', e => {
 }, { passive: false });
 lt.addEventListener('dblclick', e => { if (e.target.closest('button')) return; e.preventDefault(); poseHome(WTS().GLIDE); wake(); });
 
-const hintEl = $('lthint'); let hintKey = '';
-const hintFor = () => imode === 'swipe' ? 's' : orbitOn() ? 'o' : setSize() === 1 ? (cam.zoom.t < .93 ? 't' : 'f') : 'x';
-function paintHint() {
-  hintKey = hintFor();
-  const T = { s: 'swipe for next or previous &nbsp;·&nbsp; pinch or scroll to move closer &nbsp;·&nbsp; esc to return', o: 'drag to orbit &nbsp;·&nbsp; pinch or scroll to move closer &nbsp;·&nbsp; esc to return',
-    t: 'drag to angle the plane &nbsp;·&nbsp; double-tap to flatten &nbsp;·&nbsp; esc to return', f: 'pinch or scroll to move back &nbsp;·&nbsp; esc to return', x: 'pinch or scroll to move closer &nbsp;·&nbsp; esc to return' };
-  hintEl.innerHTML = T[hintKey];
-  $('ltprev').hidden = $('ltnext').hidden = solo;
-}
-function setIMode(m, persist) {
-  if (m !== 'swipe' && m !== 'drag') return; imode = m;
-  document.querySelectorAll('.lt-modesw button').forEach(b => b.setAttribute('aria-pressed', b.dataset.im === m ? 'true' : 'false'));
-  if (persist) { try { localStorage.setItem(IMK, m); } catch (e) {} }
-  uy = upv = 0; poseHome(WTS().GLIDE); paintHint(); wake();
-}
-document.querySelectorAll('.lt-modesw button').forEach(b => b.onclick = () => setIMode(b.dataset.im, true));
-setIMode(imode, false);
 $('ltx').onclick = () => closeLift(); $('ltmark').onclick = () => closeLift();
 $('ltprev').onclick = () => step(-1); $('ltnext').onclick = () => step(1);
 $('lttitle').onclick = () => { setHi(hi === F[cur].f ? null : F[cur].f); $('lttitle').setAttribute('aria-pressed', hi === F[cur].f ? 'true' : 'false'); };
@@ -659,9 +614,9 @@ const cst = Constellation({
 });
 function enterCst() {
   if (cur < 0 || cst.isOpen()) return;
-  cstSet = solo ? [cur] : hi !== null && films[hi] ? films[hi].frames.map(x => x.g) : F.map((_, g) => g);
+  cstSet = hi !== null && films[hi] ? films[hi].frames.map(x => x.g) : F.map((_, g) => g);
   const at = Math.max(0, cstSet.indexOf(cur));
-  LP.clear(); interacting = false; lpinch = null; ltap = null; lt.classList.remove('drag');
+  LP.clear(); interacting = false; lpinch = null; ltap = null; uy = upv = 0; lt.classList.remove('drag');
   closeLift(true, true); setInert(true);
   cst.open(at);
 }
@@ -743,7 +698,6 @@ function hashFor(n) {
   if (n) q.push('n=' + pad4(n));
   if (mode === 'all') q.push('order=continuous');
   if (bx !== 'boxes') q.push('boxes=' + bx);
-  if (solo) q.push('solo=1');
   return q.length ? '#' + q.join('&') : '';
 }
 function setBoxes(v, fromHash) {
@@ -761,7 +715,6 @@ function readHash() {
   const o = q.get('order'); setMode(o === 'continuous' ? 'all' : 'film', true);
   const fs = q.get('film'); if (fs) { const k = films.findIndex(f => f.slug === fs); if (k >= 0) setHi(k); }
   const n = parseInt(q.get('n'), 10);
-  solo = q.get('solo') === '1' || new URLSearchParams(location.search).get('solo') === '1';
   if (n >= 1 && n <= F.length) { focusOn(n - 1, false); openLift(n - 1, false, true); }
   else if (cur >= 0) closeLift(true);
 }
