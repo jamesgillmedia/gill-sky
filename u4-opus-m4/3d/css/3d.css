@@ -6,6 +6,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:#cfd8e6;overflow:hidde
 #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
 #home{position:fixed;left:12px;top:max(10px,env(safe-area-inset-top));z-index:3;color:var(--mint2);font:700 17px/1 Syl,Poppins,sans-serif;padding:7px 11px;border:1px solid rgba(191,245,223,.4);border-radius:16px;background:rgba(4,6,12,.5);cursor:pointer}
 #where{position:fixed;left:0;right:0;padding:0 96px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;top:max(18px,calc(env(safe-area-inset-top) + 8px));text-align:center;z-index:2;pointer-events:none;font:300 13px/1 "Julius Sans One",sans-serif;letter-spacing:.22em;opacity:.8}
+#esc{position:fixed;right:86px;top:max(10px,env(safe-area-inset-top));z-index:3;color:#cfd8e6;text-decoration:none;font:300 11px/1 Poppins,sans-serif;letter-spacing:.16em;text-transform:lowercase;opacity:.65;padding:8px 10px;min-width:44px;min-height:36px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;border:0;background:none}
 #site{position:fixed;right:12px;top:max(10px,env(safe-area-inset-top));z-index:3;color:#cfd8e6;text-decoration:none;font:300 12px/1 Poppins,sans-serif;letter-spacing:.08em;opacity:.7;padding:8px 10px;border:1px solid rgba(207,216,230,.25);border-radius:16px;background:rgba(4,6,12,.4)}
 #cap{position:fixed;left:0;right:0;bottom:max(22px,env(safe-area-inset-bottom));z-index:2;text-align:center;padding:0 22px;opacity:0;transition:opacity .9s;pointer-events:none}
 #cap.on{opacity:1;pointer-events:auto}
@@ -68,7 +69,7 @@ html,body{margin:0;height:100%;background:var(--bg);color:#cfd8e6;overflow:hidde
 .rl-cell{aspect-ratio:1;padding:0;border:0;background:#0b1015;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .rl-cell img{max-width:100%;max-height:100%;display:block;-webkit-user-drag:none}
 .rl-cell.on{outline:1px solid var(--mint);outline-offset:1px}
-.reelon #panel,.reelon #cap,.reelon #where,.reelon #home,.reelon #site,.reelon #hyb{display:none}
+.reelon #panel,.reelon #cap,.reelon #where,.reelon #home,.reelon #site,.reelon #hyb,.reelon #esc{display:none}
 /* ---------- save 2 · Spirit Eye (js/spirit-eye.js) ---------- */
 .sx{position:fixed;left:0;right:0;bottom:0;z-index:2;max-height:56vh;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:44px max(20px,env(safe-area-inset-left)) max(22px,calc(env(safe-area-inset-bottom) + 14px));box-sizing:border-box;text-align:center;

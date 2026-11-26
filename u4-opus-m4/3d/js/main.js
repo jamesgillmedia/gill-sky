@@ -70,7 +70,7 @@ function start() {
   function ctex(c) { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.minFilter = THREE.LinearFilter; t.generateMipmaps = false; return t }
   const PG = pvGlow(), CT = coreTex(), CLL = $('#cll'); let SESKY = false, OBS = [], OBF = 0;
   /* screen boxes the chapter labels must not cover: Spirit Eye title / tagline / dial / page pill, the bar buttons, the panel */
-  function obstacles() { const o = []; document.querySelectorAll('#setext > *, #sedial, #seprog, #home, #back, #where, #site, #hyb, #panel').forEach(e => { if (!e.offsetWidth && !e.offsetHeight) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < .05) return; const r = e.getBoundingClientRect(); if (r.width && r.height) o.push([r.left - 6, r.top - 4, r.right + 6, r.bottom + 4]) }); return o }
+  function obstacles() { const o = []; document.querySelectorAll('#setext > *, #sedial, #seprog, #home, #back, #where, #site, #hyb, #esc, #panel').forEach(e => { if (!e.offsetWidth && !e.offsetHeight) return; const cs = getComputedStyle(e); if (cs.display === 'none' || cs.visibility === 'hidden' || +cs.opacity < .05) return; const r = e.getBoundingClientRect(); if (r.width && r.height) o.push([r.left - 6, r.top - 4, r.right + 6, r.bottom + 4]) }); return o }
   function txtTex(lines, w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
     lines.forEach(l => { x.font = l.f; x.fillStyle = l.c || '#e4ebf5'; x.textAlign = 'center'; x.textBaseline = 'middle'; if (l.ls) x.letterSpacing = l.ls; x.fillText(l.s, w / 2, l.y) }); return ctex(c) }
   function mulberry(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296 } }
@@ -174,11 +174,14 @@ function start() {
     if (onAnchor(x, y)) { goSE(null); return }
     if (MODE !== 'home') goHome() }
   /* Home is always there: in Spirit Eye it goes back to page 1 (or, once the chapters are open, out to the sky); elsewhere to the sky */
-  HOMEB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); if (MODE === 'se') SEC.home(); else goHome() });
+  const CKS_BACK=(function(){try{if(/safelight-3-preview/.test(location.pathname))return new URL('../index.html#spirit-eye',location.href).href}catch(e){}return 'https://jamesgillmedia.github.io/safelight-3-preview/t-f66f477ead80b8dc5a49/#spirit-eye'})();
+  function toCKS(){location.href=CKS_BACK}
+  const escEl=document.getElementById('esc'); if(escEl)escEl.setAttribute('href',CKS_BACK);
+  HOMEB.addEventListener('click, () => { if (window.GJ3_REEL.isOpen) window.GJ3_REEL.close(); if (MODE === 'se') SEC.home(); else goHome() });
   /* Back is always one step: one page in Spirit Eye; chapter -> sky; sky -> back into Spirit Eye at its last step */
   BACKB.addEventListener('click', () => { if (window.GJ3_REEL.isOpen) { window.GJ3_REEL.close(); return } if (MODE === 'se') SEC.go(-1); else if (FOC) goHome(); else goSE(SEC.NS - 1) });
   $('#seprog .nx').addEventListener('click', () => { if (MODE === 'se') SEC.go(1) });
-  addEventListener('keydown', e => { if (window.GJ3_REEL.isOpen) return; if (MODE === 'se') { SEC.key(e); return } seen(); if (FLY) { skipFly(); e.preventDefault(); return } if (e.key === 'Escape' || e.key === 'Home') goHome();
+  addEventListener('keydown', e => { if (window.GJ3_REEL.isOpen) return; if (MODE === 'se') { SEC.key(e); return } seen(); if (FLY) { skipFly(); e.preventDefault(); return } if (e.key === 'Escape') { e.preventDefault(); if (MODE !== 'home' || FOC) goHome(); else toCKS(); } else if (e.key === 'Home') goHome();
     else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const i = FOC ? CL.indexOf(FOC) : -1, n = CL.length; aim(CL[(i + (e.key === 'ArrowRight' ? 1 : n - 1) + (i < 0 && e.key === 'ArrowLeft' ? 1 : 0)) % n]) }
     else if (e.key === 'Enter' && FOC) openC(FOC) });
   /* ---------- loop ---------- */
